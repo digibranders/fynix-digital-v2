@@ -29,7 +29,7 @@ html.lenis body {
 
 :root {
   --background: #FCFCFB;
-  --background-soft: #F6F5F2;
+  --background-soft: #FBFAF8;
   --foreground: #1D2125;
   --text-muted: #565D64;
   --primary: #0C1E2E;
@@ -76,6 +76,29 @@ html.lenis body {
   }
 }
 
+
+/* Continuously drifting dashed line - signals "ongoing" in the process Gantt. */
+@keyframes dashDrift {
+  from { background-position: 0 center; }
+  to   { background-position: 12px center; }
+}
+
+.dash-drift {
+  background-image: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--primary) 55%, transparent) 50%,
+    transparent 50%
+  );
+  background-size: 12px 1px;
+  background-repeat: repeat-x;
+  background-position: 0 center;
+  animation: dashDrift 1.2s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dash-drift { animation: none; }
+}
+
 body {
   background-color: var(--background);
   color: var(--foreground);
@@ -86,7 +109,7 @@ body {
   overflow-x: clip;
 }
 
-/* Editorial italic: Cormorant is used wherever `.font-serif` is set to italic —
+/* Editorial italic: Cormorant is used wherever `.font-serif` is set to italic -
    headline pivots (Growth Partner, into vision.) and the italicized H1/H2s in
    the Initiation-style closing CTAs. Body italic keeps Figtree italic. */
 @layer utilities {
@@ -96,7 +119,7 @@ body {
   }
 }
 
-/* Tailwind v4 dropped default pointer cursor on buttons — restore it. */
+/* Tailwind v4 dropped default pointer cursor on buttons - restore it. */
 button:not(:disabled),
 [role="button"]:not(:disabled),
 summary,
@@ -122,7 +145,7 @@ select:not(:disabled) {
 }
 
 /* -----------------------------------------------------------
-   Premium CTA interactions — Linear/Stripe-style micro-motion.
+   Premium CTA interactions - Linear/Stripe-style micro-motion.
    Layered on top of existing Tailwind utility strings.
    ----------------------------------------------------------- */
 
@@ -222,7 +245,7 @@ select:not(:disabled) {
   border-radius: 2px;
 }
 
-/* Reduced motion respect — kill transforms and transitions */
+/* Reduced motion respect - kill transforms and transitions */
 @media (prefers-reduced-motion: reduce) {
   .cta-primary,
   .cta-secondary,
@@ -246,7 +269,7 @@ select:not(:disabled) {
 }
 
 /* -----------------------------------------------------------
-   Split-column panels — Four Growth Acts, magazine layout.
+   Split-column panels - Four Growth Acts, magazine layout.
    Default: 4 equal vertical slabs with rotated titles + spine.
    Hover: active panel expands (flex-grow), neighbours compress,
    accent wash fades in, expanded content fades up.
@@ -290,7 +313,7 @@ select:not(:disabled) {
   width: 5px;
 }
 
-/* Diagonal accent wash — appears on active panel */
+/* Diagonal accent wash - appears on active panel */
 .act-panel__wash {
   position: absolute;
   inset: 0;
@@ -329,7 +352,7 @@ select:not(:disabled) {
   transform: translate3d(0, 0, 0);
 }
 
-/* Collapsed (default) content — book-spine vertical title */
+/* Collapsed (default) content - book-spine vertical title */
 .act-panel__collapsed {
   position: absolute;
   inset: 0;
@@ -357,7 +380,7 @@ select:not(:disabled) {
   transition-duration: 180ms;
 }
 
-/* Expanded content — horizontal layout with details */
+/* Expanded content - horizontal layout with details */
 .act-panel__expanded {
   position: absolute;
   inset: 0;
@@ -386,7 +409,7 @@ select:not(:disabled) {
   transform: translateX(4px);
 }
 
-/* Mobile: revert to a stacked accordion — each panel always expanded */
+/* Mobile: revert to a stacked accordion - each panel always expanded */
 @media (max-width: 767px) {
   .act-panel {
     flex: 1 1 auto !important;
@@ -419,4 +442,26 @@ select:not(:disabled) {
     transition: none !important;
   }
 }
+
+.timeline-icon svg path,
+.timeline-icon svg circle,
+.timeline-icon svg rect {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 1400ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.timeline-icon[data-drawn="true"] svg path,
+.timeline-icon[data-drawn="true"] svg circle,
+.timeline-icon[data-drawn="true"] svg rect {
+  stroke-dashoffset: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .timeline-icon svg path,
+  .timeline-icon svg circle,
+  .timeline-icon svg rect {
+    stroke-dashoffset: 0 !important;
+    transition: none !important;
+  }
+}
+
 

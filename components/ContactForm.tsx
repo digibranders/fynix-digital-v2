@@ -12,23 +12,23 @@ const BUSINESS_TYPES = [
 ] as const;
 
 const PROJECT_BUDGETS = [
-  "Under $10K",
-  "$10K – $25K",
-  "$25K – $50K",
-  "$50K – $100K",
-  "$100K+",
+  "Under $5K",
+  "$5K – $10K",
+  "$10K – $20K",
+  "$20K – $50K",
+  "$50K+",
   "Not sure yet",
 ] as const;
 
 const SERVICES = [
   "UI/UX Design",
-  "Branding",
+  // "Branding",
   "CRO",
   "Mobile App",
   "SEO",
   "Development",
   "Web Design",
-  "Paid Ads",
+  // "Paid Ads",
   "Other",
 ] as const;
 
@@ -275,25 +275,10 @@ export default function ContactForm() {
       <div className="pt-2 flex justify-center">
         <button
           type="submit"
-          className="group inline-flex items-center gap-3 pl-8 pr-2 py-2 bg-primary text-white hover:bg-primary-hover cta-primary font-semibold rounded-full transition-all duration-200 text-sm shadow-sm"
+          disabled={!isValid}
+          className="inline-flex items-center justify-center gap-3 px-8 py-4 bg-primary text-white hover:bg-primary-hover cta-primary font-medium rounded-full shadow-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-primary"
         >
-          <span>Submit</span>
-          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-accent text-white transition-transform duration-200 group-hover:translate-x-0.5">
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              aria-hidden
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M14 5l7 7m0 0l-7 7m7-7H3"
-              />
-            </svg>
-          </span>
+          Submit
         </button>
       </div>
     </form>

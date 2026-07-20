@@ -23,7 +23,7 @@ export async function generateMetadata(
     description: act.headline,
     alternates: { canonical: `/services/${act.slug}` },
     openGraph: {
-      title: `${act.title} — ${act.subtitle}`,
+      title: `${act.title} · ${act.subtitle}`,
       description: act.headline,
     },
   };

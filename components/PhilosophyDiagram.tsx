@@ -1,70 +1,191 @@
-const mobileNodes = [
-  { label: "UX", step: "01. BUILD TRUST", desc: "Thoughtful interface builds customer confidence immediately." },
-  { label: "DEV", step: "02. DELIVER SPEED", desc: "Flawless, clean code executes faster and retains interest." },
-  { label: "SEO", step: "03. COMPETE SEARCH", desc: "Targeted strategies place your website in front of active buyers." },
-  { label: "GEN", step: "04. CONVERT PIPELINE", desc: "Converting traffic into real, intent-driven conversations." },
+import type { ReactNode } from "react";
+
+type Station = {
+  code: string;
+  step: string;
+  title: string;
+  role: string;
+  icon: ReactNode;
+};
+
+// Hairline SVG glyphs, one per station. currentColor + stroke-only so they
+// inherit the palette (§8: meaningful icons, in-brand, one per distinct
+// concept). aria-hidden — the station code + title carries the semantics.
+const iconProps = {
+  viewBox: "0 0 24 24",
+  fill: "none",
+  stroke: "currentColor",
+  strokeWidth: 1.4,
+  strokeLinecap: "round" as const,
+  strokeLinejoin: "round" as const,
+  "aria-hidden": true,
+};
+
+const stations: Station[] = [
+  {
+    code: "UX",
+    step: "01",
+    title: "Trust",
+    role: "The interface earns confidence before a single word is read.",
+    icon: (
+      // Interface frame — a stand-in for the UI layer buyers first see.
+      <svg {...iconProps} className="h-5 w-5">
+        <rect x="3" y="4.5" width="18" height="15" rx="1.5" />
+        <line x1="3" y1="9" x2="21" y2="9" />
+        <circle cx="6" cy="6.75" r="0.6" fill="currentColor" stroke="none" />
+        <circle cx="8.5" cy="6.75" r="0.6" fill="currentColor" stroke="none" />
+      </svg>
+    ),
+  },
+  {
+    code: "DEV",
+    step: "02",
+    title: "Speed",
+    role: "Engineering keeps the promise the design just made.",
+    icon: (
+      // Code brackets — the engineering discipline.
+      <svg {...iconProps} className="h-5 w-5">
+        <polyline points="8 7 3 12 8 17" />
+        <polyline points="16 7 21 12 16 17" />
+        <line x1="13.5" y1="6" x2="10.5" y2="18" />
+      </svg>
+    ),
+  },
+  {
+    code: "SEO",
+    step: "03",
+    title: "Search",
+    role: "Presence built into the pages buyers are already looking at.",
+    icon: (
+      // Magnifier — visibility in search.
+      <svg {...iconProps} className="h-5 w-5">
+        <circle cx="10.5" cy="10.5" r="6" />
+        <line x1="20" y1="20" x2="15" y2="15" />
+      </svg>
+    ),
+  },
+  {
+    code: "GEN",
+    step: "04",
+    title: "Pipeline",
+    role: "Visibility turned into real, intent-led conversations.",
+    icon: (
+      // Funnel — visibility narrowing into pipeline.
+      <svg {...iconProps} className="h-5 w-5">
+        <path d="M3.5 5 L20.5 5 L14.5 12 L14.5 20 L9.5 18 L9.5 12 Z" />
+      </svg>
+    ),
+  },
 ];
 
 export default function PhilosophyDiagram() {
   return (
-    <div className="bg-white border border-border rounded-xl p-8 md:p-12 shadow-xs">
+    <figure
+      aria-label="The connected growth pipeline: UX to Development to SEO to Lead Generation"
+      className="not-prose"
+    >
+      {/* ── Desktop: editorial column rail ── */}
       <div className="hidden md:block">
-        <svg
-          className="w-full h-auto max-h-[160px]"
-          viewBox="0 0 1000 120"
-          xmlns="http://www.w3.org/2000/svg"
-          role="img"
-          aria-label="Growth flow: UX to Development to SEO to Lead Generation"
-        >
-          <line x1="120" y1="60" x2="880" y2="60" stroke="#E8E7E3" strokeWidth="2" strokeDasharray="6 4" />
-          <circle cx="120" cy="60" r="30" fill="#FCFCFB" stroke="#E9AF88" strokeWidth="2" />
-          <text x="120" y="65" fontFamily="Figtree, system-ui, sans-serif" fontSize="12" fill="#0C1E2E" textAnchor="middle" fontWeight="bold">UX</text>
-          <text x="120" y="110" fontFamily="Figtree, system-ui, sans-serif" fontSize="11" fill="#565D64" textAnchor="middle" fontWeight="bold">01. BUILD TRUST</text>
-          <path d="M 330 60 L 340 60" stroke="#E9AF88" strokeWidth="2" fill="none" />
-          <circle cx="370" cy="60" r="30" fill="#FCFCFB" stroke="#1D2125" strokeWidth="1" />
-          <text x="370" y="65" fontFamily="Figtree, system-ui, sans-serif" fontSize="12" fill="#0C1E2E" textAnchor="middle">DEV</text>
-          <text x="370" y="110" fontFamily="Figtree, system-ui, sans-serif" fontSize="11" fill="#565D64" textAnchor="middle">02. DELIVER SPEED</text>
-          <circle cx="620" cy="60" r="30" fill="#FCFCFB" stroke="#1D2125" strokeWidth="1" />
-          <text x="620" y="65" fontFamily="Figtree, system-ui, sans-serif" fontSize="12" fill="#0C1E2E" textAnchor="middle">SEO</text>
-          <text x="620" y="110" fontFamily="Figtree, system-ui, sans-serif" fontSize="11" fill="#565D64" textAnchor="middle">03. COMPETE SEARCH</text>
-          <circle cx="870" cy="60" r="30" fill="#FCFCFB" stroke="#1D2125" strokeWidth="1" />
-          <text x="870" y="65" fontFamily="Figtree, system-ui, sans-serif" fontSize="12" fill="#0C1E2E" textAnchor="middle">GEN</text>
-          <text x="870" y="110" fontFamily="Figtree, system-ui, sans-serif" fontSize="11" fill="#565D64" textAnchor="middle">04. CONVERT PIPELINE</text>
-        </svg>
-      </div>
-
-      <div className="flex flex-col md:hidden gap-8 items-center">
-        {mobileNodes.map((flow, idx) => (
-          <div key={flow.label} className="flex flex-col items-center text-center">
-            <div className="h-16 w-16 rounded-full border border-primary bg-background-soft flex items-center justify-center font-serif text-lg font-bold text-primary mb-3">
-              {flow.label}
-            </div>
-            <span className="text-xs font-mono font-bold text-accent">{flow.step}</span>
-            <p className="text-xs text-text-muted max-w-xs mt-1">{flow.desc}</p>
-            {idx < mobileNodes.length - 1 && (
-              <div className="h-8 w-px border-l border-dashed border-border mt-4" aria-hidden />
-            )}
+        <div className="relative border-t border-primary/80">
+          <div className="grid grid-cols-4">
+            {stations.map((s, idx) => (
+              <div
+                key={s.code}
+                className={`relative pt-10 pb-2 px-6 lg:px-8 ${
+                  idx > 0 ? "border-l border-border/70" : ""
+                }`}
+              >
+                <div
+                  className={idx === 0 ? "text-accent-hover" : "text-primary/60"}
+                >
+                  {s.icon}
+                </div>
+                <div className="mt-6 flex items-baseline gap-3">
+                  <span className="relative font-serif italic text-4xl text-accent-hover leading-none">
+                    {s.step}
+                    {idx === 0 && (
+                      <span
+                        aria-hidden
+                        className="absolute -bottom-2 left-0 h-px w-full bg-accent"
+                      />
+                    )}
+                  </span>
+                  <span className="font-mono text-[11px] uppercase tracking-[0.28em] text-primary font-semibold">
+                    {s.code}
+                  </span>
+                </div>
+                <h3 className="font-serif text-[26px] text-primary font-normal mt-8 leading-[1.15]">
+                  {s.title}
+                </h3>
+                <p className="text-sm text-text-muted font-light leading-relaxed mt-4">
+                  {s.role}
+                </p>
+              </div>
+            ))}
           </div>
-        ))}
+        </div>
+
+        {/* Direction caption */}
+        <div className="mt-8 flex items-center gap-3 text-[10px] font-mono uppercase tracking-[0.28em] text-text-muted">
+          <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-accent" />
+          <span className="text-accent font-semibold">Entry</span>
+          <span aria-hidden className="h-px w-8 bg-border" />
+          <span>Each stage compounds the next</span>
+          <span aria-hidden className="text-accent">→</span>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 border-t border-border mt-12 pt-8">
-        <div className="p-4">
-          <h4 className="font-serif text-lg text-primary font-medium mb-2">Connected Integration</h4>
-          <p className="text-xs md:text-sm text-text-muted leading-relaxed font-light">
-            Rather than managing multiple disconnected agencies (design studios, SEO groups, and
-            engineering teams), we handle the system. Design informs the SEO hierarchy, development
-            secures speed, and marketing maps clear conversion triggers.
-          </p>
-        </div>
-        <div className="p-4">
-          <h4 className="font-serif text-lg text-primary font-medium mb-2">Outcomes Over Deliverables</h4>
-          <p className="text-xs md:text-sm text-text-muted leading-relaxed font-light">
-            We measure success not by the number of design mockups or the volume of code commits,
-            but by inbound conversions and qualified lead generation pipeline.
-          </p>
+      {/* ── Mobile: vertical timeline ── */}
+      <div className="md:hidden">
+        <div className="border-t border-primary/80 pt-8">
+          <ol className="space-y-10">
+            {stations.map((s, idx) => (
+              <li key={s.code} className="relative">
+                {idx < stations.length - 1 && (
+                  <span
+                    aria-hidden
+                    className="absolute left-4 top-9 h-[calc(100%+2.5rem)] w-px border-l border-dashed border-primary/30"
+                  />
+                )}
+                <div className="flex items-start gap-5">
+                  <div
+                    className={`relative z-10 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full ${
+                      idx === 0
+                        ? "bg-primary text-white ring-[3px] ring-accent/30 ring-offset-2 ring-offset-background-soft"
+                        : "bg-background-soft border border-primary text-primary"
+                    }`}
+                  >
+                    <span className="font-mono text-[10px] font-bold tracking-widest">
+                      {s.step}
+                    </span>
+                  </div>
+                  <div className="flex-1 pt-1">
+                    <div className="flex items-center gap-3">
+                      <span
+                        className={
+                          idx === 0 ? "text-accent-hover" : "text-primary/60"
+                        }
+                      >
+                        {s.icon}
+                      </span>
+                      <span className="font-mono text-[11px] uppercase tracking-[0.28em] text-primary font-semibold">
+                        {s.code}
+                      </span>
+                    </div>
+                    <h3 className="font-serif text-xl text-primary font-normal mt-3 leading-tight">
+                      {s.title}
+                    </h3>
+                    <p className="text-sm text-text-muted font-light leading-relaxed mt-3">
+                      {s.role}
+                    </p>
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ol>
         </div>
       </div>
-    </div>
+
+    </figure>
   );
 }

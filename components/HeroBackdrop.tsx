@@ -25,7 +25,7 @@ const FRAGMENT_SHADER = /* glsl */ `
 
   varying vec2 vUv;
 
-  // Cheap value noise + fbm — enough for a flowing mesh gradient.
+  // Cheap value noise + fbm - enough for a flowing mesh gradient.
   float hash(vec2 p) {
     p = fract(p * vec2(123.34, 456.21));
     p += dot(p, p + 45.32);
@@ -61,7 +61,7 @@ const FRAGMENT_SHADER = /* glsl */ `
 
     float t = uTime * 0.08;
 
-    // Domain warping — this is what makes it look like a "flowing mesh".
+    // Domain warping - this is what makes it look like a "flowing mesh".
     vec2 q = vec2(
       fbm(p + vec2(0.0, 0.0) + t),
       fbm(p + vec2(5.2, 1.3) - t * 0.7)
@@ -75,15 +75,15 @@ const FRAGMENT_SHADER = /* glsl */ `
     // Base wash: soft cream lifts off pure white.
     vec3 col = mix(uColorBase, uColorSoft, smoothstep(0.0, 0.9, n));
 
-    // Warm peach bloom (broad, soft) — primary accent wash.
+    // Warm peach bloom (broad, soft) - primary accent wash.
     float peachA = smoothstep(0.30, 0.85, q.y) * smoothstep(0.20, 0.80, r.x);
     col = mix(col, uColorGold, peachA * 0.55);
 
-    // Secondary peach pocket for depth — keeps the field brand-only.
+    // Secondary peach pocket for depth - keeps the field brand-only.
     float peachB = smoothstep(0.55, 0.95, r.y) * smoothstep(0.30, 0.90, n);
     col = mix(col, uColorGold, peachB * 0.35);
 
-    // Very gentle vignette — keeps corners calm, doesn't erase the effect.
+    // Very gentle vignette - keeps corners calm, doesn't erase the effect.
     float d = distance(vUv, vec2(0.5));
     float vignette = smoothstep(0.55, 1.05, d);
     col = mix(col, uColorBase, vignette * 0.35);
@@ -109,9 +109,8 @@ export default function HeroBackdrop() {
 
     // Guard against SSR + non-WebGL environments.
     if (typeof window === "undefined") return;
-    const prefersReducedMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
+    // Backdrop is intentionally still - no rAF loop, one static frame only.
+    const prefersReducedMotion = true;
 
     let disposed = false;
     let rafId = 0;
@@ -209,7 +208,7 @@ export default function HeroBackdrop() {
       };
       document.addEventListener("visibilitychange", onVisibility);
 
-      // Reduced-motion users get one static frame — no rAF loop at all.
+      // Reduced-motion users get one static frame - no rAF loop at all.
       if (prefersReducedMotion) {
         renderer.render({ scene: mesh });
       }
@@ -240,22 +239,9 @@ export default function HeroBackdrop() {
 
   return (
     <div aria-hidden className="pointer-events-none absolute inset-0">
-      {/* WebGL host — mounts the OGL canvas. Behind everything else. */}
-      <div ref={hostRef} className="absolute inset-0 z-0" />
-
-      {/* Editorial overlay: soft dot grid + corner ticks stay on top of the shader. */}
-      <div
-        className="absolute inset-0 z-10 opacity-[0.035]"
-        style={{
-          backgroundImage:
-            "radial-gradient(circle at 1px 1px, var(--foreground) 1px, transparent 0)",
-          backgroundSize: "28px 28px",
-          maskImage:
-            "radial-gradient(ellipse at center, black 30%, transparent 78%)",
-          WebkitMaskImage:
-            "radial-gradient(ellipse at center, black 30%, transparent 78%)",
-        }}
-      />
+      {/* WebGL host - mounts the OGL canvas. Behind everything else, dialed
+          down so the peach wash sits softly behind the copy. */}
+      <div ref={hostRef} className="absolute inset-0 z-0 opacity-50" />
 
       <span className="absolute top-24 left-6 md:top-28 md:left-10 h-4 w-4 border-l border-t border-border z-10" />
       <span className="absolute top-24 right-6 md:top-28 md:right-10 h-4 w-4 border-r border-t border-border z-10" />

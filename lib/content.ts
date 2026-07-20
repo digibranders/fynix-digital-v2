@@ -16,11 +16,11 @@ export const acts: Act[] = [
     title: "UI/UX",
     subtitle: "Act 1: Perception Shapes Trust",
     headline:
-      "Your website and mobile app are shaping your cybersecurity brand before your team ever gets the chance.",
+      "Your interface shapes trust before your team ever speaks.",
     content:
-      "A potential customer exploring cybersecurity solutions lands on your website knowing almost nothing about your business. So they look for signals. Signals that tell them they're in the right place. Signals that suggest you understand their challenges. Signals that make them want to learn more.",
+      "A cybersecurity buyer decides to stay in seconds. That decision runs on what the experience signals, not on what the copy claims.",
     bullets:
-      "When they get those signals, they stay, explore, and move forward. Those decisions aren't driven by what you say. They're driven by how the experience feels. We build thoughtful UX and purposeful design to help you earn your customers' trust before a conversation ever begins.",
+      "We design interfaces that earn trust before a single line is read. Purposeful hierarchy, considered motion, copy that meets the buyer's real question.",
     deliverables: [
       "User Research",
       "Wireframes",
@@ -36,11 +36,11 @@ export const acts: Act[] = [
     title: "Development",
     subtitle: "Act 2: Performance Keeps the Promise",
     headline:
-      "Your website and mobile app made the right first impression. Now they have to keep their promise.",
+      "First impressions only hold if the site can keep the promise.",
     content:
-      "A visitor decides to stay. They start exploring. They click deeper into your website, expecting the same confidence they felt moments earlier. But trust is fragile. Slow load times. Broken experiences. Clunky interactions. Technology that gets in the way instead of helping people move forward.",
+      "Slow loads and brittle interactions turn early confidence into hesitation. Hesitation is where visitors quietly leave.",
     bullets:
-      "The confidence they felt moments ago can quickly turn into hesitation. And hesitation is often all it takes for someone to leave. We build cybersecurity websites that keep the promise made by the design, creating experiences that feel effortless from the first click to the first conversation.",
+      "We build on a modern component stack with Core Web Vitals as a hard gate. Fast, accessible, easy for your team to keep growing.",
     deliverables: [
       "Custom Websites",
       "Mobile APPs",
@@ -56,11 +56,11 @@ export const acts: Act[] = [
     num: "03",
     title: "SEO / AEO",
     subtitle: "Act 3: Visibility Creates Opportunity",
-    headline: "The best website in your industry is useless if nobody can find it.",
+    headline: "The best site in the category is useless if buyers can't find it.",
     content:
-      "Trust has been earned. The experience delivers on its promise. But conversations can't begin if nobody knows you exist. In cybersecurity, visibility is highly competitive and trust-driven. Every day, people search for answers to the exact problems you solve.",
+      "Visibility in cybersecurity is competitive and trust-driven. Search is where enterprise buyers begin every shortlist.",
     bullets:
-      "When you're visible, those searches become opportunities. When you're not, they become someone else's. We help businesses increase visibility through technical SEO, content strategy, and content creation, making it easier for the right people to discover them at the right time.",
+      "Technical SEO, editorial content, and answer-engine optimisation, so the buyers you sell to discover you the moment they ask the question.",
     deliverables: [
       "Technical SEO",
       "Keyword Research",
@@ -79,9 +79,9 @@ export const acts: Act[] = [
     subtitle: "Act 4: Converting Interest into Conversation",
     headline: "Traffic is not the finish line.",
     content:
-      "The right people find you. They explore your website. They consume your content. Then nothing happens. For cybersecurity companies, we help turn that attention into conversations worth having.",
+      "The right people land, read the work, then leave without a conversation. That gap is where pipeline quietly dies.",
     bullets:
-      "Generating predictable pipeline requires aligning user intent with clear conversion pathways. We implement systematic outreach, high-intent lead magnets, and bespoke pipeline tracking built specifically for high-ticket cybersecurity buying groups.",
+      "Systematic outreach, high-intent lead magnets, and pipeline tracking built for the way enterprise cybersecurity actually buys.",
     deliverables: [
       "ICP Research",
       "Outreach Campaigns",
@@ -123,8 +123,6 @@ export const caseStudyCategories = [
   "Branding",
   "UI/UX Design",
   "SEO",
-  "Social Media",
-  "Video Editing",
 ] as const;
 
 export type CaseStudyCategory = (typeof caseStudyCategories)[number];
@@ -137,6 +135,15 @@ export type CaseStudy = {
   description: string;
   tags: Exclude<CaseStudyCategory, "All">[];
   image: string;
+  iconUrl?: string;
+  metric?: { value: string; label: string };
+  /** Vertical or product category shown in the snapshot sidebar. */
+  industry?: string;
+  /** Narrative sections - rendered on the detail page when present. */
+  challenge?: string;
+  solution?: string[];
+  execution?: string[];
+  results?: string[];
 };
 
 export const caseStudies: CaseStudy[] = [
@@ -146,53 +153,151 @@ export const caseStudies: CaseStudy[] = [
     url: "https://eventussecurity.com/",
     domain: "eventussecurity.com",
     description: "AI-powered threat detection and security platform",
-    tags: ["SEO", "UI/UX Design", "Video Editing", "Social Media"],
+    tags: ["SEO", "UI/UX Design"],
     image: "/case-studies/eventus.webp",
+    iconUrl: "/clients/eventus-icon.webp",
+    metric: { value: "4,081", label: "Monthly organic visitors" },
+    industry: "Cybersecurity · SOC & Managed Security",
+    challenge:
+      "Eventus Security had deep expertise in cybersecurity, but their digital presence wasn't reflecting their authority. Their branding lacked consistency, the website didn't explain services clearly, and they weren't ranking for industry-relevant keywords.",
+    solution: [
+      "Designed a modern brand identity to build trust",
+      "Developed a responsive, professional website highlighting SOC services",
+      "Structured SEO-driven content around trending security topics",
+      "Implemented an SEO strategy targeting high-volume keywords",
+      "Built social media assets and campaigns to grow awareness",
+    ],
+    execution: [
+      "Brand Identity",
+      "Website Redesign",
+      "SEO Dashboard",
+      "Social Media Assets",
+    ],
+    results: [
+      "4,081 monthly organic visitors",
+      "2,251 keywords indexed (industry + branded)",
+      "#1 ranking for 'Cyber Attack India' (3,600 searches/month)",
+      "#1 ranking for brand searches ('Eventus Security')",
+      "Engaged audience via content and social campaigns",
+    ],
   },
   {
     slug: "cleanstart",
     name: "CleanStart",
     url: "https://cleanstart.com/",
     domain: "cleanstart.com",
-    description: "Easy to start platform with seamless integration",
-    tags: ["Branding", "UI/UX Design", "Video Editing", "Social Media"],
+    description: "Hardened, secure container images built for speed",
+    tags: ["Branding", "UI/UX Design"],
     image: "/case-studies/cleanstart.webp",
+    iconUrl: "/clients/cleanstart-icon.webp",
+    industry: "SaaS Product",
+    challenge:
+      "CleanStart needed a web presence that matched its technical edge. They offer hardened, secure container images built for speed, but the site didn't yet reflect that performance, clarity, or trust.",
+    solution: [
+      "Developed a brand that speaks security and speed: straightforward, no fluff",
+      "Designed and built a clean, intuitive website focused on messaging clarity",
+      "Crafted social media visuals and marketing assets to reinforce trust and credibility",
+    ],
+    execution: [
+      "Brand Identity",
+      "Website Layout",
+      "Social Creatives",
+      "Marketing Collateral",
+    ],
+    results: [
+      "User-facing messaging now aligns with real business outcomes: security made simple and fast",
+    ],
   },
   {
     slug: "photonmatters",
     name: "PhotonMatters",
     url: "https://photonmatters.com/",
     domain: "photonmatters.com",
-    description: "Modern photography portfolio platform",
+    description: "Advanced automation technology, translated for humans",
     tags: ["UI/UX Design"],
     image: "/case-studies/photonmatters.webp",
+    iconUrl: "/clients/photonmatters-icon.webp",
+    industry: "Automation · Deep-Tech",
+    challenge:
+      "Photonmatter operates in advanced automation technology. Their brand and website were too technical, making it hard for investors, clients, and partners to understand their value.",
+    solution: [
+      "Refined brand identity to balance innovation with credibility",
+      "Translated complex automation tech into simple, compelling messaging",
+      "Designed a modern, structured website highlighting solutions and benefits",
+      "Built marketing assets to support outreach and partnership growth",
+    ],
+    execution: [
+      "Brand Identity",
+      "Website Redesign",
+      "Messaging Framework",
+      "Marketing Assets",
+    ],
+    results: [
+      "A professional brand identity that communicates authority in automation",
+      "Website now clarifies offerings and impact for diverse audiences",
+      "Simplified messaging that helps investors and clients see immediate value",
+      "A digital foundation ready for scaling awareness and partnerships",
+    ],
   },
   {
     slug: "alsonotify",
     name: "Alsonotify",
     url: "https://alsonotify.com/",
     domain: "alsonotify.com",
-    description: "Customer support and ticketing system",
+    description: "SaaS project management with clearer product communication",
     tags: ["UI/UX Design", "Branding"],
     image: "/case-studies/alsonotify.webp",
+    industry: "SaaS · Project Management",
+    challenge:
+      "Alsonotify had a strong tool but no brand presence. Their early website did not explain the product clearly, user journeys were confusing, and they struggled to convert interest into actual sign-ups.",
+    solution: [
+      "Built a clean brand identity around clarity and trust",
+      "Designed a simple, intuitive website showcasing product features",
+      "Created user flows to explain value (dashboards, notifications, integrations)",
+      "Structured pages for sign-ups, pricing, and product tour",
+      "Optimized messaging to focus on pain points like team alignment and task tracking",
+    ],
+    execution: [
+      "Homepage Redesign",
+      "Feature Pages",
+      "Pricing Page",
+      "Sign-up Flow",
+    ],
+    results: [
+      "Clearer product communication leading to fewer drop-offs during trial sign-up",
+      "Professional design that matched SaaS standards",
+      "Stronger credibility with early adopters and investors",
+    ],
   },
   {
     slug: "payweek",
     name: "Payweek",
     url: "https://payweek.com/",
     domain: "payweek.com",
-    description: "Customer support and ticketing system",
+    description: "Payroll made intuitive for employees and powerful for HR",
     tags: ["UI/UX Design"],
     image: "/case-studies/payweek.webp",
-  },
-  {
-    slug: "support305",
-    name: "Support305",
-    url: "https://support305.com/",
-    domain: "support305.com",
-    description: "Customer support and ticketing system",
-    tags: ["UI/UX Design"],
-    image: "/case-studies/support305.webp",
+    industry: "Fintech · HR & Payroll · SaaS",
+    challenge:
+      "Payroll systems are often clunky and confusing. Payweek wanted to change that: to build something intuitive enough for employees and powerful enough for HR teams. The goal was a design that looked fresh, worked smoothly on any device, and reduced user errors.",
+    solution: [
+      "Designed an end-to-end user flow for web and mobile",
+      "Built a modular design system for scalability",
+      "Simplified complex data views like payslips and reports",
+      "Used a calm, minimal color palette for clarity and trust",
+      "Focused on micro-interactions that make every action feel seamless",
+    ],
+    execution: [
+      "Web App UI",
+      "Mobile Experience",
+      "Design System Components",
+      "Data & Reporting Screens",
+    ],
+    results: [
+      "A cleaner, more intuitive interface that makes payroll feel approachable",
+      "Reduced friction across core flows like viewing payslips and reports",
+      "A scalable design system ready for future HR and payroll features",
+    ],
   },
 ];
 
@@ -287,6 +392,10 @@ export type ProcessStep = {
   num: string;
   title: string;
   duration: string;
+  /** Inclusive week range. `ongoing` extends the bar past the last week for phases without a fixed end. */
+  weeks: { start: number; end: number; ongoing?: boolean };
+  /** One-line description used in the compact timeline view. */
+  short: string;
   summary: string;
   activities: string[];
   deliverable: string;
@@ -297,6 +406,8 @@ export const processSteps: ProcessStep[] = [
     num: "01",
     title: "Discover",
     duration: "Week 1",
+    weeks: { start: 1, end: 1 },
+    short: "Understand your buyer, your pipeline, and the conversation the site needs to have.",
     summary:
       "We start by understanding your buyer, your pipeline, and the shape of the conversation you want the website to have with them.",
     activities: [
@@ -310,6 +421,8 @@ export const processSteps: ProcessStep[] = [
     num: "02",
     title: "Diagnose",
     duration: "Week 2",
+    weeks: { start: 2, end: 2 },
+    short: "Separate what is real from what is assumed across the funnel.",
     summary:
       "We separate what is real from what is assumed: where trust breaks, where speed leaks, where visibility disappears, where intent goes cold.",
     activities: [
@@ -323,6 +436,8 @@ export const processSteps: ProcessStep[] = [
     num: "03",
     title: "Design",
     duration: "Weeks 3–5",
+    weeks: { start: 3, end: 5 },
+    short: "Design each screen around a business outcome, not a design opinion.",
     summary:
       "We design the experience around your buyer's questions, not around a design opinion. Each screen defends itself against a business outcome.",
     activities: [
@@ -336,6 +451,8 @@ export const processSteps: ProcessStep[] = [
     num: "04",
     title: "Build",
     duration: "Weeks 5–9",
+    weeks: { start: 5, end: 9 },
+    short: "Ship on a modern stack with Core Web Vitals as a hard gate.",
     summary:
       "We ship the site on a modern component-driven stack, with Core Web Vitals treated as a hard gate before anything leaves staging.",
     activities: [
@@ -349,6 +466,8 @@ export const processSteps: ProcessStep[] = [
     num: "05",
     title: "Launch",
     duration: "Week 10",
+    weeks: { start: 10, end: 10 },
+    short: "Migrate carefully, monitor closely, stay reachable through the first days.",
     summary:
       "Launch is a handover, not a farewell. We migrate carefully, monitor closely, and stay reachable during the first days that matter most.",
     activities: [
@@ -362,6 +481,8 @@ export const processSteps: ProcessStep[] = [
     num: "06",
     title: "Grow",
     duration: "Ongoing",
+    weeks: { start: 10, end: 14, ongoing: true },
+    short: "Run a monthly cycle of experiments, content, and outreach tied to pipeline.",
     summary:
       "The website becomes a system that keeps learning. We run a monthly cycle of experiments, content, and outbound aligned to pipeline outcomes.",
     activities: [
@@ -461,7 +582,14 @@ export const siteConfig = {
   name: "Fynix",
   url: "https://fynix.digital",
   email: "hello@fynix.digital",
+  phone: "+91 789 789 6607",
+  phoneHref: "+917897896607",
   locations: "London & Bengaluru",
+  address: {
+    line1: "Office No. 2617, 26th Floor, Solus Building, Hiranandani Estate,",
+    line2: "Ghodbunder Road, Thane West, Maharashtra 400607",
+  },
+  gst: "27AAICD9268J1ZO",
   description:
     "We help cybersecurity companies transform their websites into growth engines through UI/UX, technical excellence, AI-ready SEO, and predictable lead generation.",
 };

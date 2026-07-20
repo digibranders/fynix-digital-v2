@@ -6,7 +6,7 @@ export default function EngagementModels() {
   return (
     <section
       aria-labelledby="engagement-heading"
-      className="py-24 md:py-32 bg-white"
+      className="pt-16 md:pt-20 pb-16 md:pb-20 bg-white"
     >
       <div className="max-w-7xl mx-auto px-6 md:px-12">
         <Reveal>
@@ -18,7 +18,7 @@ export default function EngagementModels() {
               id="engagement-heading"
               className="font-serif text-4xl md:text-5xl text-primary font-normal mt-3 leading-tight text-balance"
             >
-              Three ways to start, one thing in common: a partnership anchored to pipeline.
+              Three ways to start. Every one, anchored to pipeline.
             </h2>
           </div>
         </Reveal>

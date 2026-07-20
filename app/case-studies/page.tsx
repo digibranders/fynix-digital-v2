@@ -2,12 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Reveal from "@/components/Reveal";
 import CaseStudiesGrid from "@/components/CaseStudiesGrid";
-import PreFooterBackdrop from "@/components/PreFooterBackdrop";
 
 export const metadata: Metadata = {
   title: "Our Work",
   description:
-    "Selected projects across branding, UI/UX, SEO, social, and video — the systems Fynix has shipped for cybersecurity and product companies.",
+    "Selected projects across branding, UI/UX, SEO, social, and video: the systems Fynix has shipped for cybersecurity and product companies.",
   alternates: { canonical: "/case-studies" },
 };
 
@@ -26,27 +25,22 @@ export default function CaseStudiesPage() {
           <p className="text-text-muted text-base md:text-lg font-light leading-relaxed mt-6 max-w-2xl">
             A selection of the platforms, brands, and growth systems we&apos;ve shipped.{" "}
             <strong className="font-medium text-primary">Every project is live in production</strong>
-            {" "}— click through to see the work in the wild.
+            . Click through to see the work in the wild.
           </p>
         </Reveal>
       </section>
 
-      <section className="pt-4 md:pt-8 pb-24 md:pb-32 bg-background-soft">
+      <section className="pt-4 md:pt-8 pb-12 md:pb-16 bg-background-soft">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <CaseStudiesGrid />
         </div>
       </section>
 
-      <section className="relative isolate overflow-hidden py-24 md:py-32 bg-transparent">
-        <PreFooterBackdrop />
+      <section className="pt-16 md:pt-20 pb-20 md:pb-28 bg-background-soft">
         <Reveal className="max-w-4xl mx-auto px-6 text-center">
           <h2 className="font-serif italic text-4xl md:text-5xl text-primary font-normal leading-tight">
             Build what you&apos;ve been thinking about.
           </h2>
-          <p className="text-text-muted text-base md:text-lg font-light mt-4">
-            If a project on this page resembles something you&apos;re trying to solve, let&apos;s
-            talk about what your version could look like.
-          </p>
           <div className="mt-10">
             <Link
               href="/contact"

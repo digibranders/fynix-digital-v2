@@ -51,7 +51,7 @@ export default function CaseStudiesGrid() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {filtered.map((study, idx) => (
           <Reveal key={study.slug} delay={idx * 100} className="h-full">
-            <CaseStudyCard study={study} />
+            <CaseStudyCard study={study} index={idx + 1} />
           </Reveal>
         ))}
       </div>

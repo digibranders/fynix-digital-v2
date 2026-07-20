@@ -36,7 +36,7 @@ export default function ActPreviewPanels({ acts }: Props) {
             data-active={isActive}
             style={style}
             className="act-panel group relative overflow-hidden border-b md:border-b-0 md:border-r border-border last:border-r-0 last:border-b-0"
-            aria-label={`${act.title} — Act ${act.num}`}
+            aria-label={`${act.title} · Act ${act.num}`}
           >
             <span aria-hidden className="act-panel__spine" />
             <span aria-hidden className="act-panel__wash" />
@@ -58,27 +58,27 @@ export default function ActPreviewPanels({ acts }: Props) {
             </div>
 
             <div className="act-panel__expanded">
-              <h3 className="font-serif text-3xl md:text-4xl text-primary font-medium leading-tight">
+              <h3 className="font-serif text-4xl md:text-5xl text-primary font-medium leading-tight">
                 {act.title}
               </h3>
-              <p className="text-sm text-text-muted font-light mt-4 leading-relaxed max-w-sm">
+              <p className="text-base md:text-lg text-text-muted font-light mt-5 leading-relaxed max-w-sm">
                 {act.subtitle}
               </p>
-              <ul className="mt-6 grid grid-cols-1 gap-y-1.5">
+              <ul className="mt-7 grid grid-cols-1 gap-y-2.5">
                 {act.deliverables.slice(0, 4).map((d) => (
                   <li
                     key={d}
-                    className="flex items-center gap-2 text-xs text-primary/85 font-light"
+                    className="flex items-center gap-3 text-sm md:text-base text-primary/85 font-light"
                   >
                     <span
                       aria-hidden
-                      className="h-1 w-1 rounded-full bg-accent flex-shrink-0"
+                      className="h-1.5 w-1.5 rounded-full bg-accent flex-shrink-0"
                     />
                     {d}
                   </li>
                 ))}
               </ul>
-              <span className="mt-8 inline-flex items-center gap-2 text-xs uppercase font-semibold text-accent tracking-widest">
+              <span className="mt-10 inline-flex items-center gap-2 text-[13px] uppercase font-semibold text-accent tracking-widest">
                 Explore {act.title}
                 <span aria-hidden className="act-panel__arrow">&rarr;</span>
               </span>

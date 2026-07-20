@@ -5,7 +5,7 @@ export default function TeamGrid() {
   return (
     <section
       aria-labelledby="team-heading"
-      className="py-24 md:py-32 bg-background-soft"
+      className="pt-16 md:pt-20 pb-16 md:pb-20 bg-background-soft"
     >
       <div className="max-w-7xl mx-auto px-6 md:px-12">
         <Reveal>

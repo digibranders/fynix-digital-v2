@@ -23,7 +23,8 @@ export default function ServicesPage() {
             Capabilities
           </span>
           <h1 className="font-serif text-4xl md:text-6xl text-primary font-normal mt-3 leading-tight max-w-4xl">
-            The Four Growth Acts. One connected system.
+            The Four Growth Acts.{" "}
+            <span className="md:block">One connected system.</span>
           </h1>
           <p className="text-text-muted text-base md:text-lg font-light leading-relaxed mt-6 max-w-2xl">
             A potential client forms a brand perception in{" "}
@@ -42,7 +43,7 @@ export default function ServicesPage() {
         </div>
       </section>
 
-      <section className="pt-16 md:pt-24 pb-24 md:pb-32 bg-background-soft">
+      <section className="pt-16 md:pt-24 pb-12 md:pb-16 bg-background-soft">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <Reveal className="mb-16">
             <span className="text-xs uppercase tracking-widest text-accent font-semibold font-mono">
@@ -71,17 +72,12 @@ export default function ServicesPage() {
 
       <EngagementModels />
 
-      <section className="relative isolate overflow-hidden py-20 md:py-28 bg-transparent">
+      <section className="relative isolate overflow-hidden pt-16 md:pt-20 pb-20 md:pb-28 bg-transparent">
         <PreFooterBackdrop />
         <Reveal className="max-w-4xl mx-auto px-6 text-center">
           <h2 className="font-serif italic text-4xl md:text-5xl text-primary font-normal leading-tight">
             Not sure which pillar to start with?
           </h2>
-          <p className="text-text-muted text-base font-light mt-4">
-            Most engagements begin with a discovery audit that maps the strongest lever for your
-            pipeline. It&apos;s a{" "}
-            <strong className="font-medium text-primary">conversation, not a pitch</strong>.
-          </p>
           <div className="mt-10">
             <Link
               href="/contact"

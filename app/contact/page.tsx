@@ -4,6 +4,7 @@ import ContactForm from "@/components/ContactForm";
 import FaqAccordion from "@/components/FaqAccordion";
 import Reveal from "@/components/Reveal";
 import PreFooterBackdrop from "@/components/PreFooterBackdrop";
+import WorldMap from "@/components/WorldMap";
 import { faqs, siteConfig } from "@/lib/content";
 
 export const metadata: Metadata = {
@@ -16,7 +17,7 @@ export const metadata: Metadata = {
 export default function ContactPage() {
   return (
     <>
-      <section className="pt-12 md:pt-20 pb-14 md:pb-20 bg-gradient-to-b from-white to-background-soft">
+      <section className="pt-12 md:pt-20 pb-8 md:pb-10 bg-gradient-to-b from-white to-background-soft">
         <Reveal className="max-w-7xl mx-auto px-6 md:px-12">
           <span className="text-xs uppercase tracking-widest text-accent font-semibold font-mono">
             Initiation
@@ -29,37 +30,80 @@ export default function ContactPage() {
             technology that isn&apos;t keeping pace. Sometimes it&apos;s visibility that never
             becomes opportunity.
           </p>
-          <p className="text-primary text-base md:text-lg font-serif italic leading-relaxed mt-4 max-w-2xl">
-            Whatever the reason, it can be improved. Let&apos;s start there.
-          </p>
         </Reveal>
       </section>
 
-      <section className="py-16 md:py-24 bg-background-soft">
-        <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 lg:grid-cols-12 gap-12">
-          <Reveal variant="left" className="lg:col-span-5 space-y-6">
+      <section className="pt-4 md:pt-6 pb-12 md:pb-16 bg-background-soft">
+        <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:items-start">
+          <Reveal variant="left" className="lg:col-span-5 space-y-8">
             <div>
-              <span className="text-xs uppercase font-mono text-text-muted font-bold block mb-2">
-                Direct Inquiry
+              <span className="text-xs uppercase font-mono text-text-muted font-bold block mb-3">
+                Office
               </span>
+              <address className="not-italic text-sm md:text-base font-serif text-primary leading-relaxed">
+                {siteConfig.address.line1}
+                <br />
+                {siteConfig.address.line2}
+              </address>
+              <p className="text-sm font-serif text-primary mt-3">
+                GST No.&nbsp;: {siteConfig.gst}
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <a
+                href={`tel:${siteConfig.phoneHref}`}
+                className="group flex items-center gap-4 text-sm md:text-base font-serif text-primary hover:text-accent transition-colors"
+              >
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border text-primary group-hover:border-accent group-hover:text-accent transition-colors">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.6"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="w-4 h-4"
+                    aria-hidden
+                  >
+                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.37 1.9.72 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.35 1.85.59 2.81.72A2 2 0 0 1 22 16.92z" />
+                  </svg>
+                </span>
+                {siteConfig.phone}
+              </a>
+
               <a
                 href={`mailto:${siteConfig.email}`}
-                className="text-sm font-serif text-primary hover:text-accent transition-colors"
+                className="group flex items-center gap-4 text-sm md:text-base font-serif text-primary hover:text-accent transition-colors"
               >
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border text-primary group-hover:border-accent group-hover:text-accent transition-colors">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.6"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="w-4 h-4"
+                    aria-hidden
+                  >
+                    <rect x="3" y="5" width="18" height="14" rx="2" />
+                    <path d="m3 7 9 6 9-6" />
+                  </svg>
+                </span>
                 {siteConfig.email}
               </a>
             </div>
-            <div>
-              <span className="text-xs uppercase font-mono text-text-muted font-bold block mb-2">
-                Locations
-              </span>
-              <span className="text-sm font-serif text-primary">{siteConfig.locations}</span>
-            </div>
+
             <div>
               <span className="text-xs uppercase font-mono text-text-muted font-bold block mb-2">
                 Response
               </span>
               <span className="text-sm font-serif text-primary">Within 24 business hours</span>
+            </div>
+
+            <div className="pt-4">
+              <WorldMap />
             </div>
           </Reveal>
 
@@ -71,7 +115,7 @@ export default function ContactPage() {
 
       <section
         aria-labelledby="contact-faq-heading"
-        className="relative isolate overflow-hidden py-24 md:py-32 bg-transparent"
+        className="relative isolate overflow-hidden pt-16 md:pt-20 pb-24 md:pb-32 bg-transparent"
       >
         <PreFooterBackdrop />
         <div className="max-w-7xl mx-auto px-6 md:px-12">

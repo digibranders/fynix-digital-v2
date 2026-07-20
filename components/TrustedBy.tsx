@@ -28,7 +28,7 @@ export default function TrustedBy() {
           </div>
         </Reveal>
 
-        {/* Function-style single-row marquee — 48s, floating logos, no cards. */}
+        {/* Function-style single-row marquee - 48s, floating logos, no cards. */}
         <Reveal delay={80}>
           <div
             className="group relative overflow-hidden [mask-image:linear-gradient(to_right,transparent_0%,black_8%,black_92%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_right,transparent_0%,black_8%,black_92%,transparent_100%)]"
@@ -48,7 +48,7 @@ export default function TrustedBy() {
                   className="shrink-0 flex items-center justify-center"
                   title={i < clients.length ? client.name : undefined}
                 >
-                  {/* Plain <img> — natural aspect per logo, so fixed `gap` on
+                  {/* Plain <img> - natural aspect per logo, so fixed `gap` on
                       the parent produces truly equal spacing between logo edges. */}
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
@@ -63,7 +63,7 @@ export default function TrustedBy() {
             </div>
           </div>
 
-          {/* Pause / play toggle — Function-style caption underneath */}
+          {/* Pause / play toggle - Function-style caption underneath */}
           <div className="mt-10 md:mt-12 motion-reduce:hidden">
             <button
               type="button"

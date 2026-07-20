@@ -44,6 +44,9 @@ export default function ActsStack({ acts }: Props) {
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 p-6 md:p-10 lg:p-14 flex-1">
               <div className="lg:col-span-6 flex flex-col justify-center">
+                <div className="font-serif italic text-6xl md:text-7xl lg:text-[92px] text-primary font-normal leading-[0.9] tracking-tight mb-8 md:mb-10">
+                  {act.title}
+                </div>
                 <span className="text-xs uppercase tracking-widest text-accent font-semibold font-mono">
                   {act.subtitle}
                 </span>
