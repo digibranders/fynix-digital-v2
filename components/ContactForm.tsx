@@ -89,7 +89,7 @@ export default function ContactForm() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
         </div>
-        <h3 className="font-serif text-2xl text-primary font-normal mb-2">
+        <h3 className="font-serif text-2xl text-primary font-medium mb-2">
           Thank you, {formData.name}.
         </h3>
         <p className="text-sm text-text-muted font-light max-w-sm">

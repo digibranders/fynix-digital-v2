@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { engagementModels } from "@/lib/content";
+import { emphasize } from "@/lib/emphasize";
 import Reveal from "./Reveal";
 
 export default function EngagementModels() {
@@ -11,12 +12,9 @@ export default function EngagementModels() {
       <div className="max-w-7xl mx-auto px-6 md:px-12">
         <Reveal>
           <div className="max-w-4xl">
-            <span className="text-xs uppercase tracking-widest text-accent font-semibold font-mono">
-              How to work with us
-            </span>
             <h2
               id="engagement-heading"
-              className="font-serif text-4xl md:text-5xl text-primary font-normal mt-3 leading-tight text-balance"
+              className="font-serif text-4xl md:text-5xl text-primary font-medium leading-tight text-balance"
             >
               Three ways to start. Every one, anchored to pipeline.
             </h2>
@@ -43,7 +41,7 @@ export default function EngagementModels() {
                   </span>
                 )}
 
-                <h3 className="font-serif text-2xl font-normal">{model.name}</h3>
+                <h3 className="font-serif text-2xl font-medium">{model.name}</h3>
 
                 <div
                   className={`mt-4 pb-4 border-b flex items-baseline justify-between gap-4 ${
@@ -78,7 +76,10 @@ export default function EngagementModels() {
                   >
                     Best for
                   </span>
-                  {model.bestFor}
+                  {emphasize(
+                    model.bestFor,
+                    model.featured ? "font-medium text-white" : "font-medium text-primary",
+                  )}
                 </p>
 
                 <ul

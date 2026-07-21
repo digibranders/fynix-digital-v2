@@ -18,8 +18,21 @@ const stepIcons: Record<string, ReactNode> = {
   ),
   "03": (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <rect x="3.5" y="3.5" width="17" height="17" rx="1.5" pathLength={1} />
-      <path d="M3.5 10h17M3.5 15h17M10 3.5v17M15 3.5v17" pathLength={1} />
+      <rect x="2.5" y="3.5" width="19" height="13" rx="1.5" pathLength={1} />
+      <path d="M10 16.5v2.5M14 16.5v2.5M7.5 20h9" pathLength={1} />
+      <text
+        x="12"
+        y="11.6"
+        textAnchor="middle"
+        fontSize="4.2"
+        fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace"
+        fontWeight="700"
+        letterSpacing="-0.15"
+        fill="currentColor"
+        stroke="none"
+      >
+        UI/UX
+      </text>
     </svg>
   ),
   "04": (
@@ -182,7 +195,7 @@ export default function ProcessTimeline() {
                     </span>
                   </div>
 
-                  <h3 className="font-serif text-2xl md:text-[26px] text-primary font-normal mt-3 leading-tight">
+                  <h3 className="font-serif text-2xl md:text-[26px] text-primary font-medium mt-3 leading-tight">
                     {step.title}
                   </h3>
 

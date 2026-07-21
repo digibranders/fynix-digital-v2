@@ -55,7 +55,7 @@ function FeaturedCard({ study, index }: { study: CaseStudy; index: number }) {
         </div>
 
         <div className="mt-auto pt-10">
-          <h3 className="font-serif italic text-4xl md:text-5xl text-primary font-normal leading-[1.05] group-hover:text-accent transition-colors">
+          <h3 className="font-serif italic text-4xl md:text-5xl text-primary font-medium leading-[1.05] group-hover:text-accent transition-colors">
             {study.name}
           </h3>
           <div className="mt-3 text-xs font-mono text-text-muted">
@@ -110,7 +110,7 @@ function SupportingCard({ study, index }: { study: CaseStudy; index: number }) {
         </div>
 
         <div>
-          <h3 className="font-serif italic text-2xl md:text-3xl text-primary font-normal leading-[1.1] group-hover:text-accent transition-colors">
+          <h3 className="font-serif italic text-2xl md:text-3xl text-primary font-medium leading-[1.1] group-hover:text-accent transition-colors">
             {study.name}
           </h3>
           <div className="mt-2 text-[11px] font-mono text-text-muted">

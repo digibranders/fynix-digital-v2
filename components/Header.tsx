@@ -76,12 +76,6 @@ export default function Header() {
 
   const darkSectionsRef = useRef<HTMLElement[]>([]);
 
-  useEffect(() => {
-    darkSectionsRef.current = Array.from(
-      document.querySelectorAll<HTMLElement>('[data-nav-theme="dark"]'),
-    );
-  }, [pathname]);
-
   const applyScrollState = (y: number) => {
     setScrolled(y > SCROLL_THRESHOLD);
     const sections = darkSectionsRef.current;
@@ -95,6 +89,24 @@ export default function Header() {
     });
     setTheme(overDark ? "dark" : "light");
   };
+
+  useEffect(() => {
+    darkSectionsRef.current = Array.from(
+      document.querySelectorAll<HTMLElement>('[data-nav-theme="dark"]'),
+    );
+
+    if (darkSectionsRef.current.length === 0) {
+      const frame = requestAnimationFrame(() => applyScrollState(window.scrollY));
+      return () => cancelAnimationFrame(frame);
+    }
+
+    const io = new IntersectionObserver(
+      () => applyScrollState(window.scrollY),
+      { rootMargin: `-${HEADER_HEIGHT}px 0px 0px 0px`, threshold: [0, 1] },
+    );
+    darkSectionsRef.current.forEach((el) => io.observe(el));
+    return () => io.disconnect();
+  }, [pathname, applyScrollState]);
 
   useLenis((lenis) => {
     applyScrollState(lenis.scroll);
@@ -147,19 +159,19 @@ export default function Header() {
       >
         <div
           aria-hidden
-          className={`pointer-events-none absolute inset-x-0 top-0 h-2 md:h-3 backdrop-blur-md transition-opacity duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+          className={`pointer-events-none absolute inset-x-0 top-0 h-2 md:h-3 backdrop-blur-md transition-opacity duration-[900ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
             pillActive ? "opacity-100" : "opacity-0"
           }`}
         />
         <div
-          className={`mx-auto transition-[max-width,padding-left,padding-right] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+          className={`mx-auto transition-[max-width,padding-left,padding-right] duration-[1200ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
             pillActive
               ? "max-w-7xl px-6 md:px-12"
               : "max-w-full px-2 md:px-4"
           }`}
         >
         <div
-          className={`relative rounded-2xl border transition-[background-color,border-color,box-shadow,backdrop-filter] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+          className={`relative rounded-2xl border transition-[background-color,border-color,box-shadow,backdrop-filter] duration-[900ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
             pillActive
               ? `backdrop-blur-xl shadow-[0_18px_50px_-24px_rgba(12,30,46,0.35)] ${
                   isDark ? "border-white/20" : "border-black/[0.08]"
@@ -259,13 +271,19 @@ export default function Header() {
                 setMenuOpen(false);
                 handleSamePageNav("/contact")(e);
               }}
-              className={`cta-primary inline-flex items-center justify-center px-4 py-2.5 md:px-5 rounded-full text-[11px] md:text-xs font-semibold uppercase tracking-widest transition-colors duration-300 ${
+              className={`group relative inline-flex items-center justify-center gap-1.5 px-4 py-2.5 md:px-5 rounded-full text-[11px] md:text-xs font-semibold uppercase tracking-widest transition-[background-color,color,transform,box-shadow] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 active:translate-y-0 will-change-transform ${
                 isDark
-                  ? "bg-white text-primary hover:bg-accent hover:text-primary"
-                  : "bg-primary text-white hover:bg-primary-hover"
+                  ? "bg-white text-primary hover:bg-gradient-to-r hover:from-[#e9af88] hover:to-[#ffd2b3] hover:text-[#0C1E2E]"
+                  : "bg-primary text-white hover:bg-gradient-to-r hover:from-[#e9af88] hover:to-[#ffd2b3] hover:text-[#0C1E2E]"
               }`}
             >
               Start Project
+              <span
+                aria-hidden
+                className="inline-block max-w-0 overflow-hidden opacity-0 -translate-x-1 transition-[max-width,opacity,transform] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:max-w-[1em] group-hover:opacity-100 group-hover:translate-x-0"
+              >
+                →
+              </span>
             </Link>
 
             <button

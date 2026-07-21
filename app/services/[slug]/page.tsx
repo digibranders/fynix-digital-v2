@@ -3,7 +3,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import Reveal from "@/components/Reveal";
 import { acts, type Act } from "@/lib/content";
+import { emphasize } from "@/lib/emphasize";
 import PreFooterBackdrop from "@/components/PreFooterBackdrop";
+import SectionSeam from "@/components/SectionSeam";
+import HeroDarkBackdrop from "@/components/HeroDarkBackdrop";
 
 type Params = { slug: Act["slug"] };
 
@@ -41,38 +44,38 @@ export default async function ServiceDetailPage(
   return (
     <>
       {/* HERO */}
-      <section className="relative isolate overflow-hidden pt-12 md:pt-20 pb-24 md:pb-32 bg-gradient-to-b from-white to-background-soft">
+      <section
+        data-nav-theme="dark"
+        className="relative isolate overflow-hidden -mt-20 md:-mt-24 pt-32 md:pt-40 pb-24 md:pb-32 bg-primary text-white"
+      >
+        <HeroDarkBackdrop />
         <div className="relative max-w-7xl mx-auto px-6 md:px-12">
-          <Reveal variant="left" className="max-w-4xl">
+          <div className="max-w-4xl">
             <div className="flex items-center gap-4 mb-6">
-              <span className="text-xs font-mono text-accent font-semibold uppercase tracking-widest">
+              <span className="text-xs font-mono text-[#e9af88] font-semibold uppercase tracking-widest">
                 Act {act.num}
               </span>
-              <span className="h-px w-10 bg-border" aria-hidden />
+              <span className="h-px w-10 bg-white/15" aria-hidden />
               <Link
                 href="/services"
-                className="text-xs font-mono uppercase tracking-widest text-text-muted hover:text-primary transition-colors"
+                className="text-xs font-mono uppercase tracking-widest text-white/60 hover:text-white transition-colors"
               >
                 All Services
               </Link>
             </div>
 
-            <span className="text-xs uppercase tracking-widest text-accent font-semibold font-mono">
-              {act.subtitle}
-            </span>
-
-            <h1 className="font-serif text-4xl sm:text-5xl md:text-7xl text-primary font-normal tracking-tight leading-[1.08] mt-4">
+            <h1 className="font-serif text-4xl sm:text-5xl md:text-7xl text-white font-medium tracking-tight leading-[1.08]">
               {act.title}
             </h1>
 
-            <p className="font-serif text-xl md:text-2xl text-primary/80 font-normal italic leading-snug mt-8 max-w-3xl">
+            <p className="font-serif text-xl md:text-2xl text-white/80 font-normal italic leading-snug mt-8 max-w-3xl">
               &ldquo;{act.headline}&rdquo;
             </p>
 
             <div className="mt-10 flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
               <Link
                 href="/contact"
-                className="inline-flex items-center justify-center gap-3 px-8 py-4 bg-primary text-white hover:bg-primary-hover cta-primary font-medium rounded-full shadow-sm transition-all duration-200 text-center"
+                className="inline-flex items-center justify-center gap-3 px-8 py-4 bg-gradient-to-r from-[#e9af88] to-[#ffd2b3] text-[#0C1E2E] hover:brightness-105 font-bold rounded-full shadow-[0_4px_22px_rgba(233,175,136,0.3)] transition-all duration-300 text-center"
               >
                 Start with {act.title}
                 <svg
@@ -92,12 +95,12 @@ export default async function ServiceDetailPage(
               </Link>
               <Link
                 href="/case-studies"
-                className="inline-flex items-center justify-center px-8 py-4 text-primary hover:text-accent font-medium rounded-full border border-border bg-white hover:bg-background-soft cta-secondary transition-all duration-200 text-center"
+                className="inline-flex items-center justify-center px-8 py-4 text-white hover:text-[#e9af88] font-medium rounded-full border border-white/25 bg-white/5 hover:bg-white/10 transition-all duration-200 text-center"
               >
                 See Related Work
               </Link>
             </div>
-          </Reveal>
+          </div>
         </div>
       </section>
 
@@ -106,33 +109,29 @@ export default async function ServiceDetailPage(
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
             <Reveal className="lg:col-span-4">
-              <span className="text-xs uppercase tracking-widest text-accent font-semibold font-mono">
-                Why It Matters
-              </span>
-              <h2 className="font-serif text-4xl md:text-5xl text-primary font-normal mt-3 leading-tight">
+              <h2 className="font-serif text-4xl md:text-5xl text-primary font-medium leading-tight">
                 The moment behind the discipline.
               </h2>
             </Reveal>
             <Reveal className="lg:col-span-8" delay={120}>
               <p className="font-serif text-xl md:text-2xl text-primary font-normal leading-relaxed">
-                {act.content}
+                {emphasize(act.content, "font-medium text-accent-hover")}
               </p>
               <p className="text-base md:text-lg text-text-muted font-light leading-relaxed mt-6">
-                {act.bullets}
+                {emphasize(act.bullets)}
               </p>
             </Reveal>
           </div>
         </div>
       </section>
 
+      <SectionSeam from="white" to="soft" />
+
       {/* DELIVERABLES */}
       <section className="py-24 md:py-32 bg-background-soft">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <Reveal className="mb-16 border-b border-border pb-8">
-            <span className="text-xs uppercase tracking-widest text-accent font-semibold font-mono">
-              Scope of Delivery
-            </span>
-            <h2 className="font-serif text-4xl md:text-5xl text-primary font-normal mt-2 max-w-2xl">
+            <h2 className="font-serif text-4xl md:text-5xl text-primary font-medium max-w-2xl">
               Everything included under {act.title}.
             </h2>
           </Reveal>
@@ -154,14 +153,13 @@ export default async function ServiceDetailPage(
         </div>
       </section>
 
+      <SectionSeam from="soft" to="white" />
+
       {/* OTHER ACTS */}
       <section className="py-24 md:py-32 bg-white">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <Reveal className="mb-16 border-b border-border pb-8">
-            <span className="text-xs uppercase tracking-widest text-accent font-semibold font-mono">
-              Connected System
-            </span>
-            <h2 className="font-serif text-4xl md:text-5xl text-primary font-normal mt-2 max-w-2xl">
+            <h2 className="font-serif text-4xl md:text-5xl text-primary font-medium max-w-2xl">
               {act.title} is one act. The full outcome comes from all four working together.
             </h2>
           </Reveal>
@@ -194,21 +192,19 @@ export default async function ServiceDetailPage(
         </div>
       </section>
 
+      <SectionSeam from="white" to="soft" />
+
       {/* CTA */}
       <section className="relative isolate overflow-hidden py-24 md:py-32 bg-transparent">
         <PreFooterBackdrop />
         <Reveal className="max-w-4xl mx-auto px-6 text-center">
-          <span className="text-xs uppercase tracking-widest text-accent font-semibold font-mono">
-            Initiation
-          </span>
-          <h2 className="font-serif text-3xl md:text-5xl text-primary font-normal leading-tight mt-3">
+          <h2 className="font-serif text-3xl md:text-5xl text-primary font-medium leading-tight">
             Ready to move on {act.title.toLowerCase()}?
           </h2>
           <p className="text-text-muted text-base font-light leading-relaxed mt-6 max-w-2xl mx-auto">
-            Most engagements begin with a{" "}
-            <strong className="font-medium text-primary">short discovery conversation</strong>.
-            We&apos;ll map where {act.title} sits inside your current pipeline and where it would
-            create the <strong className="font-medium text-primary">most lift</strong>.
+            Most engagements begin with a short discovery conversation. We&apos;ll map where{" "}
+            {act.title} sits inside your current pipeline and where it would create the{" "}
+            <strong className="font-medium text-primary">most lift</strong>.
           </p>
           <div className="mt-10">
             <Link

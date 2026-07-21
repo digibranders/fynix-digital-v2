@@ -114,7 +114,7 @@ export default function PhilosophyDiagram() {
                     {s.code}
                   </span>
                 </div>
-                <h3 className="font-serif text-[26px] text-primary font-normal mt-8 leading-[1.15]">
+                <h3 className="font-serif text-[26px] text-primary font-medium mt-8 leading-[1.15]">
                   {s.title}
                 </h3>
                 <p className="text-sm text-text-muted font-light leading-relaxed mt-4">
@@ -125,14 +125,6 @@ export default function PhilosophyDiagram() {
           </div>
         </div>
 
-        {/* Direction caption */}
-        <div className="mt-8 flex items-center gap-3 text-[10px] font-mono uppercase tracking-[0.28em] text-text-muted">
-          <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-accent" />
-          <span className="text-accent font-semibold">Entry</span>
-          <span aria-hidden className="h-px w-8 bg-border" />
-          <span>Each stage compounds the next</span>
-          <span aria-hidden className="text-accent">→</span>
-        </div>
       </div>
 
       {/* ── Mobile: vertical timeline ── */}
@@ -172,7 +164,7 @@ export default function PhilosophyDiagram() {
                         {s.code}
                       </span>
                     </div>
-                    <h3 className="font-serif text-xl text-primary font-normal mt-3 leading-tight">
+                    <h3 className="font-serif text-xl text-primary font-medium mt-3 leading-tight">
                       {s.title}
                     </h3>
                     <p className="text-sm text-text-muted font-light leading-relaxed mt-3">

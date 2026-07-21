@@ -4,7 +4,10 @@ import { notFound } from "next/navigation";
 import Reveal from "@/components/Reveal";
 import SpotlightBackdrop from "@/components/SpotlightBackdrop";
 import DossierTile from "@/components/DossierTile";
+import SectionSeam from "@/components/SectionSeam";
+import HeroDarkBackdrop from "@/components/HeroDarkBackdrop";
 import { caseStudies, type CaseStudy } from "@/lib/content";
+import { emphasize } from "@/lib/emphasize";
 
 type Params = { slug: string };
 
@@ -52,12 +55,15 @@ export default async function CaseStudyDetailPage({
   return (
     <>
       {/* HEADER */}
-      <section className="relative isolate overflow-hidden pt-12 md:pt-16 pb-10 md:pb-14 bg-transparent">
-        <SpotlightBackdrop />
+      <section
+        data-nav-theme="dark"
+        className="relative isolate overflow-hidden -mt-20 md:-mt-24 pt-32 md:pt-40 pb-14 md:pb-20 bg-primary text-white"
+      >
+        <HeroDarkBackdrop />
         <div className="relative max-w-6xl mx-auto px-6 md:px-12">
           <Link
             href="/case-studies"
-            className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-text-muted hover:text-primary transition-colors"
+            className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-white/60 hover:text-white transition-colors"
           >
             <svg
               className="w-3.5 h-3.5"
@@ -76,22 +82,12 @@ export default async function CaseStudyDetailPage({
             All Case Studies
           </Link>
 
-          <Reveal className="mt-10">
-            <div className="flex items-center gap-3 flex-wrap">
-              <span className="text-xs uppercase tracking-widest text-accent font-semibold font-mono">
-                Case Study · Nº{String(orderIndex).padStart(2, "0")}
-              </span>
-              <span className="hidden sm:block h-px w-8 bg-border" aria-hidden />
-              <span className="text-xs font-mono text-text-muted">
-                Live at {study.domain}
-              </span>
-            </div>
-
-            <h1 className="font-serif text-4xl md:text-6xl text-primary font-normal mt-4 leading-[1.05] tracking-tight max-w-4xl">
+          <div className="mt-10">
+            <h1 className="font-serif text-4xl md:text-6xl text-white font-medium leading-[1.05] tracking-tight max-w-4xl">
               {study.name}
             </h1>
 
-            <p className="text-text-muted text-lg md:text-xl font-light leading-relaxed mt-6 max-w-2xl">
+            <p className="text-white/70 text-lg md:text-xl font-light leading-relaxed mt-6 max-w-2xl">
               {study.description}.
             </p>
 
@@ -99,42 +95,21 @@ export default async function CaseStudyDetailPage({
               {study.tags.map((t) => (
                 <span
                   key={t}
-                  className="inline-flex items-center rounded-full border border-border px-3 py-1 text-[11px] font-mono uppercase tracking-wider text-text-muted"
+                  className="inline-flex items-center rounded-full border border-white/15 px-3 py-1 text-[11px] font-mono uppercase tracking-wider text-white/70"
                 >
                   {t}
                 </span>
               ))}
             </div>
-          </Reveal>
-        </div>
-      </section>
-
-      {/* HERO SCREENSHOT */}
-      <section className="bg-background-soft pb-16 md:pb-24">
-        <div className="max-w-6xl mx-auto px-6 md:px-12">
-          <Reveal>
-            <div className="group relative aspect-[16/10] w-full rounded-xl overflow-hidden border border-border shadow-[0_30px_80px_-40px_rgba(12,30,46,0.25)]">
-              <DossierTile
-                domain={study.domain}
-                name={study.name}
-                iconUrl={study.iconUrl}
-                index={orderIndex}
-                size="lg"
-                showName
-              />
-            </div>
-          </Reveal>
+          </div>
         </div>
       </section>
 
       {/* DETAILS + CTA */}
-      <section className="pb-24 md:pb-32 bg-background-soft">
+      <section className="pt-20 md:pt-28 pb-16 md:pb-20 bg-background-soft">
         <div className="max-w-6xl mx-auto px-6 md:px-12 grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16">
           <Reveal className="lg:col-span-7">
-            <span className="text-[10px] uppercase tracking-widest text-accent font-semibold font-mono">
-              Overview
-            </span>
-            <p className="mt-4 text-base md:text-lg text-primary/90 font-light leading-relaxed">
+            <p className="text-base md:text-lg text-primary/90 font-light leading-relaxed">
               {study.description}. Shipped and live in production at{" "}
               <a
                 href={study.url}
@@ -248,12 +223,14 @@ export default async function CaseStudyDetailPage({
         study.solution?.length ||
         study.execution?.length ||
         study.results?.length) && (
-        <section className="py-20 md:py-28 bg-white border-t border-border">
+        <>
+        <SectionSeam from="soft" to="white" />
+        <section className="py-16 md:py-20 bg-white border-t border-border">
           <div className="max-w-6xl mx-auto px-6 md:px-12 grid grid-cols-1 gap-16 md:gap-20">
             {study.challenge && (
               <NarrativeBlock eyebrow="The Challenge">
                 <p className="font-serif text-2xl md:text-3xl text-primary font-normal leading-snug tracking-tight max-w-3xl">
-                  {study.challenge}
+                  {emphasize(study.challenge, "font-medium text-accent-hover")}
                 </p>
               </NarrativeBlock>
             )}
@@ -308,6 +285,8 @@ export default async function CaseStudyDetailPage({
             )}
           </div>
         </section>
+        <SectionSeam from="white" to="soft" />
+        </>
       )}
 
       {/* RELATED WORK */}
@@ -316,10 +295,7 @@ export default async function CaseStudyDetailPage({
           <div className="max-w-6xl mx-auto px-6 md:px-12">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10 md:mb-12">
               <div>
-                <span className="text-xs uppercase tracking-widest text-accent font-semibold font-mono">
-                  More work
-                </span>
-                <h2 className="font-serif text-3xl md:text-4xl text-primary font-normal mt-2">
+                <h2 className="font-serif text-3xl md:text-4xl text-primary font-medium">
                   Related case studies
                 </h2>
               </div>
@@ -343,10 +319,7 @@ export default async function CaseStudyDetailPage({
       <section className="relative isolate overflow-hidden py-24 md:py-32 bg-transparent">
         <SpotlightBackdrop />
         <Reveal className="max-w-4xl mx-auto px-6 text-center">
-          <span className="text-xs uppercase tracking-widest text-accent font-semibold font-mono">
-            Initiation
-          </span>
-          <h2 className="font-serif italic text-3xl md:text-5xl text-primary font-normal leading-tight mt-3">
+          <h2 className="font-serif italic text-3xl md:text-5xl text-primary font-medium leading-tight">
             Have a project like {study.name}?
           </h2>
           <p className="text-text-muted text-base md:text-lg font-light leading-relaxed mt-6 max-w-2xl mx-auto">
@@ -392,12 +365,12 @@ function NarrativeBlock({
     <Reveal>
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-10">
         <div className="md:col-span-3">
-          <span className="text-[10px] font-mono uppercase tracking-widest text-accent font-semibold">
+          <span className="text-xs md:text-sm font-mono uppercase tracking-widest text-accent font-semibold">
             {eyebrow}
           </span>
           <span
             aria-hidden
-            className="hidden md:block h-px w-8 bg-border mt-3"
+            className="hidden md:block h-px w-10 bg-border mt-4"
           />
         </div>
         <div className="md:col-span-9">{children}</div>

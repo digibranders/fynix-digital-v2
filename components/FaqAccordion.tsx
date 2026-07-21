@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { Faq } from "@/lib/content";
+import { emphasize } from "@/lib/emphasize";
 
 type Props = { faqs: Faq[] };
 
@@ -63,7 +64,7 @@ export default function FaqAccordion({ faqs }: Props) {
               }`}
             >
               <p className="text-sm md:text-base text-text-muted font-light leading-relaxed">
-                {faq.a}
+                {emphasize(faq.a)}
               </p>
             </div>
           </div>

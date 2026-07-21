@@ -3,6 +3,8 @@ import Link from "next/link";
 import FaqAccordion from "@/components/FaqAccordion";
 import Reveal from "@/components/Reveal";
 import PreFooterBackdrop from "@/components/PreFooterBackdrop";
+import SectionSeam from "@/components/SectionSeam";
+import HeroDarkBackdrop from "@/components/HeroDarkBackdrop";
 import { faqs, siteConfig } from "@/lib/content";
 
 export const metadata: Metadata = {
@@ -30,19 +32,21 @@ export default function FaqsPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
 
-      <section className="pt-12 md:pt-20 pb-14 md:pb-20 bg-gradient-to-b from-white to-background-soft">
-        <Reveal className="max-w-7xl mx-auto px-6 md:px-12">
-          <span className="text-xs uppercase tracking-widest text-accent font-semibold font-mono">
-            Queries
-          </span>
-          <h1 className="font-serif text-4xl md:text-6xl text-primary font-normal mt-3 leading-tight max-w-4xl">
-            Frequently Asked Questions
+      <section
+        data-nav-theme="dark"
+        className="relative isolate overflow-hidden -mt-20 md:-mt-24 pt-32 md:pt-40 pb-16 md:pb-24 bg-primary text-white"
+      >
+        <HeroDarkBackdrop />
+        <div className="relative max-w-7xl mx-auto px-6 md:px-12">
+          <h1 className="font-serif text-4xl md:text-6xl text-white font-medium leading-tight max-w-4xl">
+            Questions worth asking.{" "}
+            <span className="font-serif italic text-[#e9af88] md:block">Answered plainly.</span>
           </h1>
-          <p className="text-text-muted text-base md:text-lg font-light leading-relaxed mt-6 max-w-2xl">
+          <p className="text-white/70 text-base md:text-lg font-light leading-relaxed mt-6 max-w-2xl">
             The questions cybersecurity leaders ask most often before starting an engagement with{" "}
             {siteConfig.name}.
           </p>
-        </Reveal>
+        </div>
       </section>
 
       <section className="py-20 md:py-28 bg-white">
@@ -51,10 +55,12 @@ export default function FaqsPage() {
         </Reveal>
       </section>
 
+      <SectionSeam from="white" to="soft" />
+
       <section className="relative isolate overflow-hidden py-20 md:py-28 bg-transparent">
         <PreFooterBackdrop />
         <Reveal className="max-w-4xl mx-auto px-6 text-center">
-          <h2 className="font-serif text-4xl md:text-5xl text-primary font-normal leading-tight">
+          <h2 className="font-serif text-4xl md:text-5xl text-primary font-medium leading-tight">
             Still have a question?
           </h2>
           <div className="mt-10">

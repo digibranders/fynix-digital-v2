@@ -18,9 +18,9 @@ export const acts: Act[] = [
     headline:
       "Your interface shapes trust before your team ever speaks.",
     content:
-      "A cybersecurity buyer decides to stay in seconds. That decision runs on what the experience signals, not on what the copy claims.",
+      "A cybersecurity buyer decides to stay in seconds. That decision runs on what the experience signals, **not on what the copy claims**.",
     bullets:
-      "We design interfaces that earn trust before a single line is read. Purposeful hierarchy, considered motion, copy that meets the buyer's real question.",
+      "We design interfaces that **earn trust before a single line is read**. Purposeful hierarchy, considered motion, copy that meets the buyer's real question.",
     deliverables: [
       "User Research",
       "Wireframes",
@@ -38,9 +38,9 @@ export const acts: Act[] = [
     headline:
       "First impressions only hold if the site can keep the promise.",
     content:
-      "Slow loads and brittle interactions turn early confidence into hesitation. Hesitation is where visitors quietly leave.",
+      "Slow loads and brittle interactions turn early confidence into hesitation. **Hesitation is where visitors quietly leave.**",
     bullets:
-      "We build on a modern component stack with Core Web Vitals as a hard gate. Fast, accessible, easy for your team to keep growing.",
+      "We build on a modern component stack with **Core Web Vitals as a hard gate**. Fast, accessible, easy for your team to keep growing.",
     deliverables: [
       "Custom Websites",
       "Mobile APPs",
@@ -58,9 +58,9 @@ export const acts: Act[] = [
     subtitle: "Act 3: Visibility Creates Opportunity",
     headline: "The best site in the category is useless if buyers can't find it.",
     content:
-      "Visibility in cybersecurity is competitive and trust-driven. Search is where enterprise buyers begin every shortlist.",
+      "Visibility in cybersecurity is competitive and trust-driven. Search is **where enterprise buyers begin every shortlist**.",
     bullets:
-      "Technical SEO, editorial content, and answer-engine optimisation, so the buyers you sell to discover you the moment they ask the question.",
+      "Technical SEO, editorial content, and **answer-engine optimisation**, so the buyers you sell to discover you the moment they ask the question.",
     deliverables: [
       "Technical SEO",
       "Keyword Research",
@@ -79,9 +79,9 @@ export const acts: Act[] = [
     subtitle: "Act 4: Converting Interest into Conversation",
     headline: "Traffic is not the finish line.",
     content:
-      "The right people land, read the work, then leave without a conversation. That gap is where pipeline quietly dies.",
+      "The right people land, read the work, then leave without a conversation. **That gap is where pipeline quietly dies.**",
     bullets:
-      "Systematic outreach, high-intent lead magnets, and pipeline tracking built for the way enterprise cybersecurity actually buys.",
+      "Systematic outreach, high-intent lead magnets, and pipeline tracking built for **the way enterprise cybersecurity actually buys**.",
     deliverables: [
       "ICP Research",
       "Outreach Campaigns",
@@ -98,11 +98,11 @@ export type Faq = { q: string; a: string };
 export const faqs: Faq[] = [
   {
     q: "Why isn't my website generating leads or conversations?",
-    a: "A website often struggles when it is built to “present” rather than “guide.” Visitors land with intent, but if the experience doesn't shape that intent into clarity, they exit. Weak messaging hierarchy, unclear next steps, and low trust signals usually break the flow between interest and action.",
+    a: "A website often struggles when it is built to “present” rather than “guide.” Visitors land with intent, but if the experience doesn't shape that intent into clarity, they exit. Weak messaging hierarchy, unclear next steps, and low trust signals usually **break the flow between interest and action**.",
   },
   {
     q: "Why should UI/UX, development, and SEO/AEO be handled by one team?",
-    a: "These functions work as one connected growth system. UX shapes perception, development controls performance, SEO drives visibility, and lead generation defines conversion pathways. When separated, each improves a part. When unified, the entire journey moves toward measurable outcomes.",
+    a: "These functions work as one connected growth system. UX shapes perception, development controls performance, SEO drives visibility, and lead generation defines conversion pathways. When separated, each improves a part. When unified, **the entire journey moves toward measurable outcomes**.",
   },
   {
     q: "How do website design and development affect SEO?",
@@ -110,7 +110,7 @@ export const faqs: Faq[] = [
   },
   {
     q: "Why does Fynix focus on cybersecurity companies for lead generation?",
-    a: "Since its inception, Fynix has worked extensively with cybersecurity companies. This specialisation has given us a deep understanding of cybersecurity buyers, sales cycles, trust dynamics, and market challenges. As a result, we are able to develop more precise lead generation strategies and deliver stronger outcomes for cybersecurity-focused teams.",
+    a: "Since its inception, Fynix has worked extensively with cybersecurity companies. This specialisation has given us a deep understanding of **cybersecurity buyers, sales cycles, trust dynamics, and market challenges**. As a result, we are able to develop more precise lead generation strategies and deliver stronger outcomes for cybersecurity-focused teams.",
   },
   {
     q: "How long does it take to see results from a new website and SEO?",
@@ -159,7 +159,7 @@ export const caseStudies: CaseStudy[] = [
     metric: { value: "4,081", label: "Monthly organic visitors" },
     industry: "Cybersecurity · SOC & Managed Security",
     challenge:
-      "Eventus Security had deep expertise in cybersecurity, but their digital presence wasn't reflecting their authority. Their branding lacked consistency, the website didn't explain services clearly, and they weren't ranking for industry-relevant keywords.",
+      "Eventus Security had deep expertise in cybersecurity, but their digital presence **wasn't reflecting their authority**. Their branding lacked consistency, the website didn't explain services clearly, and they weren't ranking for industry-relevant keywords.",
     solution: [
       "Designed a modern brand identity to build trust",
       "Developed a responsive, professional website highlighting SOC services",
@@ -192,7 +192,7 @@ export const caseStudies: CaseStudy[] = [
     iconUrl: "/clients/cleanstart-icon.webp",
     industry: "SaaS Product",
     challenge:
-      "CleanStart needed a web presence that matched its technical edge. They offer hardened, secure container images built for speed, but the site didn't yet reflect that performance, clarity, or trust.",
+      "CleanStart needed a web presence that matched its technical edge. They offer **hardened, secure container images built for speed**, but the site didn't yet reflect that performance, clarity, or trust.",
     solution: [
       "Developed a brand that speaks security and speed: straightforward, no fluff",
       "Designed and built a clean, intuitive website focused on messaging clarity",
@@ -219,7 +219,7 @@ export const caseStudies: CaseStudy[] = [
     iconUrl: "/clients/photonmatters-icon.webp",
     industry: "Automation · Deep-Tech",
     challenge:
-      "Photonmatter operates in advanced automation technology. Their brand and website were too technical, making it hard for investors, clients, and partners to understand their value.",
+      "Photonmatter operates in advanced automation technology. Their brand and website were **too technical, making it hard for investors, clients, and partners to understand their value**.",
     solution: [
       "Refined brand identity to balance innovation with credibility",
       "Translated complex automation tech into simple, compelling messaging",
@@ -339,9 +339,9 @@ export const clients: Client[] = [
 export type Stat = { value: string; label: string; sub?: string };
 
 export const stats: Stat[] = [
-  { value: "40+", label: "Cybersecurity engagements", sub: "Since 2016" },
+  { value: "40+", label: "Cybersecurity engagements", sub: "Since 2021" },
   { value: "2.4×", label: "Average pipeline lift", sub: "Within 6 months of launch" },
-  { value: "9 yrs", label: "Focused on cybersecurity", sub: "One sector, deep patterns" },
+  { value: "5 years", label: "Focused on cybersecurity", sub: "One sector, deep patterns" },
   { value: "<24h", label: "Response to inbound briefs", sub: "Business days" },
 ];
 
@@ -546,7 +546,7 @@ export const engagementModels: EngagementModel[] = [
     name: "Discovery Sprint",
     price: "Fixed fee",
     duration: "2–3 weeks",
-    bestFor: "Teams who suspect a problem but need it named precisely.",
+    bestFor: "Teams who suspect a problem but **need it named precisely**.",
     scope: [
       "Buyer, funnel, and analytics review",
       "UX, technical, and SEO/AEO audit",
@@ -557,7 +557,7 @@ export const engagementModels: EngagementModel[] = [
     name: "Full Engagement",
     price: "Project fee",
     duration: "10–14 weeks",
-    bestFor: "Teams ready to rebuild the website as a growth system.",
+    bestFor: "Teams ready to rebuild the website **as a growth system**.",
     scope: [
       "Discovery, design, build, launch",
       "SEO/AEO strategy and content system",
@@ -569,7 +569,7 @@ export const engagementModels: EngagementModel[] = [
     name: "Growth Retainer",
     price: "Monthly",
     duration: "6-month minimum",
-    bestFor: "Teams with a website in place who need pipeline outcomes.",
+    bestFor: "Teams with a website in place who need **pipeline outcomes**.",
     scope: [
       "Monthly experiment and content roadmap",
       "SEO/AEO authority building",

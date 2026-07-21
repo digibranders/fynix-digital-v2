@@ -1,13 +1,14 @@
 import type { CSSProperties } from "react";
 
-// Bottom-only fade - cream stays flush at the top (so it butts up against
-// a cream-toned section above without a seam) and dissolves into whatever
-// lives below (white body, footer). Applied to every layer so they all
+// Symmetric fade - dissolves into neighbouring sections at both edges so
+// there is never a hard seam-line, regardless of whether the section above
+// or below is white, cream, or dark. Applied to every layer so they all
 // fall off together.
-const BOTTOM_FADE: CSSProperties = {
-  maskImage: "linear-gradient(to bottom, black 0%, black 60%, transparent 100%)",
+const FADE_MASK: CSSProperties = {
+  maskImage:
+    "linear-gradient(to bottom, transparent 0%, black 12%, black 60%, transparent 100%)",
   WebkitMaskImage:
-    "linear-gradient(to bottom, black 0%, black 60%, transparent 100%)",
+    "linear-gradient(to bottom, transparent 0%, black 12%, black 60%, transparent 100%)",
 };
 
 type Props = {
@@ -34,7 +35,7 @@ export default function SpotlightBackdrop({
   noFade = false,
   noDots = false,
 }: Props = {}) {
-  const fadeStyle: CSSProperties = noFade ? {} : BOTTOM_FADE;
+  const fadeStyle: CSSProperties = noFade ? {} : FADE_MASK;
 
   return (
     <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
