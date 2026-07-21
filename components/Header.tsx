@@ -164,7 +164,7 @@ export default function Header() {
           }`}
         />
         <div
-          className={`mx-auto transition-[max-width,padding-left,padding-right] duration-[1200ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
+          className={`mx-auto transition-[max-width,padding-left,padding-right] duration-[1500ms] ease-[cubic-bezier(0.18,1,0.16,1)] ${
             pillActive
               ? "max-w-7xl px-6 md:px-12"
               : "max-w-full px-2 md:px-4"
