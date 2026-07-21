@@ -10,18 +10,18 @@ export default function TeamGrid() {
       <div className="max-w-7xl mx-auto px-6 md:px-12">
         <Reveal>
           <div className="max-w-2xl">
-            <span className="text-xs uppercase tracking-widest text-accent font-semibold font-mono">
-              Your growth pod
-            </span>
             <h2
               id="team-heading"
-              className="font-serif text-4xl md:text-5xl text-primary font-normal mt-3 leading-tight"
+              className="font-serif text-4xl md:text-5xl text-primary font-medium leading-tight"
             >
               A small, senior team owns the outcome end to end.
             </h2>
             <p className="text-text-muted text-base font-light leading-relaxed mt-4">
-              You work directly with the people doing the work. No junior handoffs, no account
-              layer between you and the decisions.
+              You work directly with the people doing the work.{" "}
+              <strong className="font-medium text-primary">
+                No junior handoffs, no account layer
+              </strong>{" "}
+              between you and the decisions.
             </p>
           </div>
         </Reveal>

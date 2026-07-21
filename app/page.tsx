@@ -6,58 +6,81 @@ import Reveal from "@/components/Reveal";
 import TrustedBy from "@/components/TrustedBy";
 import ImpactStats from "@/components/ImpactStats";
 import TestimonialsRail from "@/components/TestimonialsRail";
-import HeroBackdrop from "@/components/HeroBackdrop";
-import HeroCards from "@/components/HeroCards";
 import SpotlightBackdrop from "@/components/SpotlightBackdrop";
+import HeroMetrics from "@/components/HeroMetrics";
 import SpotlightInitiation from "@/components/SpotlightInitiation";
+import HeroDarkBackdrop from "@/components/HeroDarkBackdrop";
 
 export default function Home() {
   return (
     <>
       {/* HERO */}
-      <section className="relative isolate overflow-hidden pt-12 md:pt-20 pb-24 md:pb-32 bg-gradient-to-b from-white to-background-soft">
-        <HeroBackdrop />
+      <section
+        data-nav-theme="dark"
+        className="relative isolate overflow-hidden -mt-20 md:-mt-24 pt-32 md:pt-40 pb-24 md:pb-32 bg-primary text-white"
+      >
+        <HeroDarkBackdrop />
+
         <div className="relative max-w-7xl mx-auto px-6 md:px-12">
-          <Reveal>
-            <h1 className="font-serif text-4xl md:text-6xl text-primary font-bold leading-tight max-w-4xl">
-              Your Cybersecurity <br />
-              <span className="italic text-accent font-normal">Growth Partner</span>
-            </h1>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
+            <Reveal className="lg:col-span-5 flex flex-col items-start">
+              {/* Headline using Figtree font as requested */}
+              <h1 className="font-sans text-5xl md:text-6.5xl lg:text-[76px] font-extrabold tracking-tight text-white leading-[1.08] text-left">
+                Your <br />
+                Cybersecurity <br />
+                <span className="italic font-light text-transparent bg-clip-text bg-gradient-to-r from-[#e9af88] to-[#ffb57e] tracking-tight">Growth</span>{" "}
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#e9af88] to-[#ffb57e] tracking-tight">Partner</span>
+              </h1>
 
-            <p className="text-text-muted text-base md:text-lg font-light leading-relaxed mt-6 max-w-2xl">
-              We help cybersecurity companies transform their websites into{" "}
-              <strong className="font-medium text-primary">growth engines</strong> through
-              better user experience, technical excellence, AI-ready SEO, and<br />
-              <strong className="font-medium text-primary">predictable lead generation</strong>.
-            </p>
+              {/* Glowing Divider & Lens Flare */}
+              <div className="relative w-full max-w-md h-[1.5px] mt-7 mb-8 bg-gradient-to-r from-[#e9af88]/60 via-[#ffb57e]/25 to-transparent">
+                <div className="absolute top-1/2 left-[12%] -translate-y-1/2">
+                  {/* Central core */}
+                  <div className="w-1.5 h-1.5 rounded-full bg-white shadow-[0_0_8px_2px_#ffb57e,0_0_16px_4px_#e9af88]" />
+                  {/* Horizontal light beam */}
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-14 h-[1px] bg-gradient-to-r from-transparent via-[#ffd5b4] to-transparent" />
+                  {/* Vertical light beam */}
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1px] h-5 bg-gradient-to-b from-transparent via-[#ffd5b4] to-transparent" />
+                </div>
+              </div>
 
-            <div className="mt-10 flex flex-col sm:flex-row gap-4">
-              <Link
-                href="/contact"
-                className="inline-flex items-center justify-center gap-3 px-8 py-4 bg-primary text-white hover:bg-primary-hover cta-primary font-medium rounded-full shadow-sm transition-all duration-200 text-center"
-              >
-                Let&apos;s Start Improving This Today
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  aria-hidden
+              <p className="text-white/70 text-base md:text-lg font-light leading-relaxed max-w-xl text-left">
+                We help cybersecurity companies transform their websites into{" "}
+                rowth engines through
+                better user experience, technical excellence, AI-ready SEO, and{" "}
+                predictable lead generation.
+              </p>
+
+              {/* Pill Button with copper-gold gradient */}
+              <div className="mt-8 flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+                <Link
+                  href="/contact"
+                  className="inline-flex items-center justify-center gap-2.5 px-9 py-4 bg-gradient-to-r from-[#e9af88] to-[#ffd2b3] text-[#0C1E2E] hover:brightness-105 font-bold rounded-full shadow-[0_4px_22px_rgba(233,175,136,0.3)] transition-all duration-300 text-center group text-base"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M14 5l7 7m0 0l-7 7m7-7H3"
-                  />
-                </svg>
-              </Link>
-            </div>
-          </Reveal>
+                  Let&apos;s Start Improving
+                  <svg
+                    className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    viewBox="0 0 24 24"
+                    aria-hidden
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M14 5l7 7m0 0l-7 7m7-7H3"
+                    />
+                  </svg>
+                </Link>
+              </div>
 
-          <Reveal variant="up" delay={200} className="mt-16 md:mt-24 hidden md:block">
-            <HeroCards />
-          </Reveal>
+            </Reveal>
+
+            <Reveal variant="left" delay={180} className="lg:col-span-7 w-full flex justify-center lg:justify-end">
+              <HeroMetrics />
+            </Reveal>
+          </div>
         </div>
       </section>
 
@@ -67,23 +90,23 @@ export default function Home() {
       {/* FOUR ACTS PREVIEW */}
       <section className="pt-16 md:pt-20 pb-24 md:pb-32 bg-white">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-16 border-b border-border pb-8">
-            <div className="lg:col-span-4">
-              <span className="text-xs uppercase tracking-widest text-accent font-semibold font-mono">
-                Capabilities
-              </span>
-              <h2 className="font-serif text-4xl md:text-5xl text-primary font-normal mt-2">
+          <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-6 mb-14 md:mb-16">
+            <div className="max-w-2xl">
+              <h2 className="font-serif text-4xl md:text-5xl text-primary font-medium whitespace-nowrap">
                 The Four Growth Acts
               </h2>
+              <p className="mt-4 text-base md:text-lg text-text-muted font-light leading-relaxed">
+                Four disciplines. One connected engine.
+                <br />
+                Each act sets up the next, so nothing leaks between them.
+              </p>
             </div>
-            <div className="lg:col-span-8 flex items-end justify-end gap-6 flex-wrap">
-              <Link
-                href="/services"
-                className="text-xs font-semibold uppercase tracking-widest text-accent border-b border-accent pb-1 hover:text-primary hover:border-primary cta-underline transition-all duration-200"
-              >
-                Explore Services
-              </Link>
-            </div>
+            <Link
+              href="/services"
+              className="text-xs font-semibold uppercase tracking-widest text-accent border-b border-accent pb-1 hover:text-primary hover:border-primary cta-underline transition-all duration-200"
+            >
+              Explore Services
+            </Link>
           </div>
 
           <Reveal>
@@ -98,10 +121,7 @@ export default function Home() {
         <div className="relative max-w-7xl mx-auto px-6 md:px-12">
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 border-b border-border pb-8">
             <div>
-              <span className="text-xs uppercase tracking-widest text-accent font-semibold font-mono">
-                Case Studies
-              </span>
-              <h2 className="font-serif text-4xl md:text-5xl text-primary font-normal mt-2">
+              <h2 className="font-serif text-4xl md:text-5xl text-primary font-medium">
                 Recent Work
               </h2>
             </div>

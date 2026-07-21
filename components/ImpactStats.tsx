@@ -12,14 +12,11 @@ export default function ImpactStats() {
       <div className="max-w-7xl mx-auto px-6 md:px-12">
         <Reveal>
           <div className="max-w-2xl">
-            <span className="text-xs uppercase tracking-widest text-accent font-semibold font-mono">
-              Signal
-            </span>
             <h2
               id="impact-heading"
-              className="font-serif text-2xl sm:text-3xl md:text-5xl font-normal mt-3 leading-tight text-balance"
+              className="font-serif text-2xl sm:text-3xl md:text-5xl font-medium leading-tight text-balance"
             >
-              Nine years, measurable outcomes.
+              Five years, measurable outcomes.
             </h2>
           </div>
         </Reveal>

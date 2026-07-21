@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Act } from "@/lib/content";
+import { emphasize } from "@/lib/emphasize";
 
 const HEADER_HEIGHT = 80;
 const STACK_PEEK = 68;
@@ -47,14 +48,11 @@ export default function ActsStack({ acts }: Props) {
                 <div className="font-serif italic text-6xl md:text-7xl lg:text-[92px] text-primary font-normal leading-[0.9] tracking-tight mb-8 md:mb-10">
                   {act.title}
                 </div>
-                <span className="text-xs uppercase tracking-widest text-accent font-semibold font-mono">
-                  {act.subtitle}
-                </span>
-                <h3 className="font-serif text-2xl md:text-4xl lg:text-[42px] text-primary font-normal mt-4 leading-[1.15]">
+                <h3 className="font-serif text-2xl md:text-4xl lg:text-[42px] text-primary font-medium leading-[1.15]">
                   {act.headline}
                 </h3>
                 <p className="text-text-muted text-base md:text-lg font-light leading-relaxed mt-6 max-w-xl">
-                  {act.content}
+                  {emphasize(act.content)}
                 </p>
 
                 <ul className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2.5">

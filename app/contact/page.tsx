@@ -5,6 +5,7 @@ import FaqAccordion from "@/components/FaqAccordion";
 import Reveal from "@/components/Reveal";
 import PreFooterBackdrop from "@/components/PreFooterBackdrop";
 import WorldMap from "@/components/WorldMap";
+import HeroDarkBackdrop from "@/components/HeroDarkBackdrop";
 import { faqs, siteConfig } from "@/lib/content";
 
 export const metadata: Metadata = {
@@ -17,23 +18,24 @@ export const metadata: Metadata = {
 export default function ContactPage() {
   return (
     <>
-      <section className="pt-12 md:pt-20 pb-8 md:pb-10 bg-gradient-to-b from-white to-background-soft">
-        <Reveal className="max-w-7xl mx-auto px-6 md:px-12">
-          <span className="text-xs uppercase tracking-widest text-accent font-semibold font-mono">
-            Initiation
-          </span>
-          <h1 className="font-serif italic text-4xl md:text-[56px] text-primary font-normal mt-3 leading-tight max-w-4xl">
-            Every cybersecurity company has opportunities it isn&apos;t fully capturing yet.
+      <section
+        data-nav-theme="dark"
+        className="relative isolate overflow-hidden -mt-20 md:-mt-24 pt-32 md:pt-40 pb-14 md:pb-20 bg-primary text-white"
+      >
+        <HeroDarkBackdrop />
+        <div className="relative max-w-7xl mx-auto px-6 md:px-12">
+          <h1 className="font-serif text-4xl md:text-[56px] text-white font-medium leading-tight max-w-4xl">
+            You&apos;re missing pipeline.{" "}
+            <span className="font-serif italic text-[#e9af88] md:block">Let&apos;s fix that.</span>
           </h1>
-          <p className="text-text-muted text-base md:text-lg font-light leading-relaxed mt-6 max-w-2xl">
+          <p className="text-white/70 text-base md:text-lg font-light leading-relaxed mt-6 max-w-2xl">
             Sometimes it&apos;s a website that isn&apos;t earning trust. Sometimes it&apos;s
-            technology that isn&apos;t keeping pace. Sometimes it&apos;s visibility that never
-            becomes opportunity.
+            technology that isn&apos;t keeping pace. Sometimes it&apos;s visibility that never becomes opportunity.
           </p>
-        </Reveal>
+        </div>
       </section>
 
-      <section className="pt-4 md:pt-6 pb-12 md:pb-16 bg-background-soft">
+      <section className="pt-16 md:pt-24 pb-16 md:pb-24 bg-background-soft">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:items-start">
           <Reveal variant="left" className="lg:col-span-5 space-y-8">
             <div>
@@ -120,12 +122,9 @@ export default function ContactPage() {
         <PreFooterBackdrop />
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <Reveal>
-            <span className="text-xs uppercase tracking-widest text-accent font-semibold font-mono">
-              Before you write
-            </span>
             <h2
               id="contact-faq-heading"
-              className="font-serif text-4xl md:text-5xl text-primary font-normal mt-3 leading-tight max-w-4xl"
+              className="font-serif text-4xl md:text-5xl text-primary font-medium leading-tight max-w-4xl"
             >
               Answers to the questions we hear first.
             </h2>

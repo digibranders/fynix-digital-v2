@@ -7,14 +7,16 @@ import { actAccents } from "@/components/ActsStack";
 
 type Props = { acts: Act[] };
 
+const DEFAULT_ACTIVE: Act["slug"] = "ui-ux";
+
 export default function ActPreviewPanels({ acts }: Props) {
-  const [activeSlug, setActiveSlug] = useState<Act["slug"] | null>(null);
+  const [activeSlug, setActiveSlug] = useState<Act["slug"]>(DEFAULT_ACTIVE);
 
   return (
     <div
       className="act-panels flex flex-col md:flex-row md:h-[520px] w-full border border-border rounded-xl overflow-hidden bg-white shadow-[0_30px_60px_-40px_rgba(12,30,46,0.18)]"
-      data-any-active={activeSlug !== null}
-      onMouseLeave={() => setActiveSlug(null)}
+      data-any-active
+      onMouseLeave={() => setActiveSlug(DEFAULT_ACTIVE)}
     >
       {acts.map((act) => {
         const accent = actAccents[act.slug];
@@ -32,7 +34,7 @@ export default function ActPreviewPanels({ acts }: Props) {
             href={`/services/${act.slug}`}
             onMouseEnter={() => setActiveSlug(act.slug)}
             onFocus={() => setActiveSlug(act.slug)}
-            onBlur={() => setActiveSlug(null)}
+            onBlur={() => setActiveSlug(DEFAULT_ACTIVE)}
             data-active={isActive}
             style={style}
             className="act-panel group relative overflow-hidden border-b md:border-b-0 md:border-r border-border last:border-r-0 last:border-b-0"
@@ -51,7 +53,7 @@ export default function ActPreviewPanels({ acts }: Props) {
               <span className="font-mono text-[10px] uppercase tracking-widest text-text-muted whitespace-nowrap">
                 Act {act.num}
               </span>
-              <h3 className="act-panel__vtitle font-serif text-3xl md:text-[2.25rem] text-primary font-normal">
+              <h3 className="act-panel__vtitle font-serif text-3xl md:text-[2.25rem] text-primary font-medium">
                 {act.title}
               </h3>
               <span aria-hidden />

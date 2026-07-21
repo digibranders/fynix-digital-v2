@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Reveal from "@/components/Reveal";
 import TableOfContents from "@/components/TableOfContents";
+import HeroDarkBackdrop from "@/components/HeroDarkBackdrop";
 import { siteConfig } from "@/lib/content";
 
 const LAST_UPDATED = "July 2026";
@@ -80,18 +81,20 @@ const tocItems = sections.map((s) => ({
 export default function TermsPage() {
   return (
     <>
-      <section className="pt-12 md:pt-20 pb-16 md:pb-20 bg-gradient-to-b from-white to-background-soft">
-        <Reveal className="max-w-6xl mx-auto px-6 md:px-12">
-          <span className="text-xs uppercase tracking-widest text-accent font-semibold font-mono">
-            Legal
-          </span>
-          <h1 className="font-serif text-4xl md:text-6xl text-primary font-normal mt-3 leading-tight">
-            Terms &amp; Conditions
+      <section
+        data-nav-theme="dark"
+        className="relative isolate overflow-hidden -mt-20 md:-mt-24 pt-32 md:pt-40 pb-16 md:pb-24 bg-primary text-white"
+      >
+        <HeroDarkBackdrop />
+        <div className="relative max-w-6xl mx-auto px-6 md:px-12">
+          <h1 className="font-serif text-4xl md:text-6xl text-white font-medium leading-tight">
+            The ground rules.{" "}
+            <span className="font-serif italic text-[#e9af88] md:block">Clear, fair, short.</span>
           </h1>
-          <p className="text-text-muted text-sm font-mono uppercase tracking-widest mt-6">
+          <p className="text-white/60 text-sm font-mono uppercase tracking-widest mt-6">
             Last updated · {LAST_UPDATED}
           </p>
-        </Reveal>
+        </div>
       </section>
 
       <section className="py-16 md:py-24 bg-white">
@@ -106,7 +109,7 @@ export default function TermsPage() {
             {sections.map((section, idx) => (
               <Reveal key={section.id} delay={idx * 40}>
                 <article id={section.id} className="scroll-mt-28">
-                  <h2 className="font-serif text-2xl md:text-3xl text-primary font-normal leading-tight">
+                  <h2 className="font-serif text-2xl md:text-3xl text-primary font-medium leading-tight">
                     {section.heading}
                   </h2>
                   <p className="mt-4 text-base text-text-muted font-light leading-relaxed">

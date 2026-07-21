@@ -77,6 +77,20 @@ html.lenis body {
 }
 
 
+/* Hero metrics card: line-draw + area fade in on mount. */
+@keyframes heroLineDraw {
+  from { stroke-dashoffset: 1000; }
+  to   { stroke-dashoffset: 0; }
+}
+@keyframes heroAreaFade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes heroPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.55; transform: scale(1.35); }
+}
+
 /* Continuously drifting dashed line - signals "ongoing" in the process Gantt. */
 @keyframes dashDrift {
   from { background-position: 0 center; }
@@ -97,6 +111,113 @@ html.lenis body {
 
 @media (prefers-reduced-motion: reduce) {
   .dash-drift { animation: none; }
+}
+
+/* Meridian — reusable animated seam divider (grid + hairline + spark). */
+.meridian__grid {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.055) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.055) 1px, transparent 1px);
+  background-size: 48px 48px;
+  -webkit-mask-image: radial-gradient(ellipse 65% 120% at 50% 50%, black 20%, transparent 100%);
+  mask-image: radial-gradient(ellipse 65% 120% at 50% 50%, black 20%, transparent 100%);
+  pointer-events: none;
+}
+
+.meridian__line {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  transform: translate3d(0, -50%, 0) scaleX(0);
+  transform-origin: 50% 50%;
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(255, 255, 255, 0.32) 22%,
+    rgba(255, 255, 255, 0.32) 78%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+
+.meridian__spark {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 10px;
+  height: 10px;
+  margin-left: -5px;
+  will-change: transform, opacity;
+  pointer-events: none;
+}
+
+.meridian__spark-core,
+.meridian__spark-glow {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  display: block;
+}
+
+.meridian__spark-core {
+  background: var(--meridian-spark-core, #f4c99a);
+  box-shadow: 0 0 6px var(--meridian-spark-core, #f4c99a);
+}
+
+.meridian__spark-glow {
+  background: radial-gradient(circle, var(--meridian-spark-glow, rgba(233, 175, 136, 0.55)) 0%, transparent 60%);
+  transform: scale(0.6);
+  opacity: 0;
+}
+
+.meridian[data-play] .meridian__grid {
+  animation: meridianGrid 520ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.meridian[data-play] .meridian__line {
+  animation: meridianLine 720ms cubic-bezier(0.22, 1, 0.36, 1) 220ms forwards;
+}
+.meridian[data-play] .meridian__spark-glow {
+  animation: meridianSparkBloom 420ms cubic-bezier(0.22, 1, 0.36, 1) 1140ms forwards;
+}
+.meridian[data-play] .meridian__spark-glow--drift {
+  animation:
+    meridianSparkBloom 420ms cubic-bezier(0.22, 1, 0.36, 1) 1140ms forwards,
+    meridianSparkBreathe 6.4s ease-in-out 1600ms infinite;
+}
+
+@keyframes meridianGrid {
+  from { opacity: 0; }
+  to   { opacity: 0.55; }
+}
+@keyframes meridianLine {
+  from { transform: translate3d(0, -50%, 0) scaleX(0); }
+  to   { transform: translate3d(0, -50%, 0) scaleX(1); }
+}
+@keyframes meridianSparkBloom {
+  0%   { transform: scale(0.6); opacity: 0; }
+  45%  { transform: scale(2.6); opacity: 1; }
+  100% { transform: scale(1.7); opacity: 0.75; }
+}
+@keyframes meridianSparkBreathe {
+  0%, 100% { transform: scale(1.7); opacity: 0.75; }
+  50%      { transform: scale(1.9); opacity: 0.9; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .meridian .meridian__grid { opacity: 0.55; animation: none; }
+  .meridian .meridian__line { transform: translate3d(0, -50%, 0) scaleX(1); animation: none; }
+  .meridian .meridian__spark { transition: none !important; }
+  .meridian .meridian__spark-glow,
+  .meridian .meridian__spark-glow--drift {
+    transform: scale(1.7);
+    opacity: 0.75;
+    animation: none;
+  }
 }
 
 body {
@@ -282,8 +403,8 @@ select:not(:disabled) {
   min-width: 0;
   min-height: 220px;
   transition:
-    flex-grow 620ms var(--cta-ease),
-    background-color 320ms var(--cta-ease);
+    flex-grow 980ms var(--cta-ease),
+    background-color 520ms var(--cta-ease);
   will-change: flex-grow;
 }
 
@@ -307,7 +428,7 @@ select:not(:disabled) {
   width: 3px;
   z-index: 2;
   background: var(--act-from, var(--accent));
-  transition: width 420ms var(--cta-ease);
+  transition: width 680ms var(--cta-ease);
 }
 .act-panel[data-active="true"] .act-panel__spine {
   width: 5px;
@@ -325,7 +446,7 @@ select:not(:disabled) {
     var(--act-to, transparent) 120%
   );
   opacity: 0;
-  transition: opacity 520ms var(--cta-ease);
+  transition: opacity 820ms var(--cta-ease);
 }
 .act-panel[data-active="true"] .act-panel__wash {
   opacity: 0.85;
@@ -334,21 +455,21 @@ select:not(:disabled) {
 /* Oversized italic numeral watermark, revealed on hover */
 .act-panel__watermark {
   position: absolute;
-  right: -0.04em;
-  bottom: -0.28em;
+  right: 1.25rem;
+  bottom: 1rem;
   z-index: 0;
   pointer-events: none;
-  font-size: 14rem;
-  line-height: 0.8;
+  font-size: 9rem;
+  line-height: 0.85;
   color: var(--act-ink, var(--primary));
   opacity: 0;
   transform: translate3d(24px, 24px, 0);
   transition:
-    opacity 620ms var(--cta-ease),
-    transform 620ms var(--cta-ease);
+    opacity 980ms var(--cta-ease),
+    transform 980ms var(--cta-ease);
 }
 .act-panel[data-active="true"] .act-panel__watermark {
-  opacity: 0.16;
+  opacity: 0.18;
   transform: translate3d(0, 0, 0);
 }
 
@@ -362,7 +483,7 @@ select:not(:disabled) {
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
-  transition: opacity 260ms var(--cta-ease);
+  transition: opacity 420ms var(--cta-ease);
 }
 .act-panel__vtitle {
   writing-mode: vertical-rl;
@@ -377,7 +498,7 @@ select:not(:disabled) {
 .act-panel[data-active="true"] .act-panel__collapsed {
   opacity: 0;
   pointer-events: none;
-  transition-duration: 180ms;
+  transition-duration: 260ms;
 }
 
 /* Expanded content - horizontal layout with details */
@@ -392,13 +513,13 @@ select:not(:disabled) {
   opacity: 0;
   transform: translate3d(0, 14px, 0);
   transition:
-    opacity 380ms var(--cta-ease),
-    transform 480ms var(--cta-ease);
+    opacity 620ms var(--cta-ease),
+    transform 760ms var(--cta-ease);
 }
 .act-panel[data-active="true"] .act-panel__expanded {
   opacity: 1;
   transform: translate3d(0, 0, 0);
-  transition-delay: 180ms;
+  transition-delay: 320ms;
 }
 
 .act-panel__arrow {

@@ -22,7 +22,7 @@ export default function CaseStudyCard({ study, index }: Props) {
       </div>
 
       <div className="flex flex-col flex-1 p-6 md:p-7">
-        <h3 className="font-serif text-2xl text-primary font-normal group-hover:text-accent transition-colors">
+        <h3 className="font-serif text-2xl text-primary font-medium group-hover:text-accent transition-colors">
           {study.name}
         </h3>
         <span className="mt-2 text-xs font-mono text-text-muted group-hover:text-accent transition-colors">

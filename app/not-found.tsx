@@ -4,10 +4,7 @@ export default function NotFound() {
   return (
     <section className="flex-1 flex items-center justify-center py-24 md:py-32 bg-background-soft">
       <div className="max-w-xl mx-auto px-6 text-center">
-        <span className="text-xs uppercase tracking-widest text-accent font-semibold font-mono">
-          404
-        </span>
-        <h1 className="font-serif text-4xl md:text-5xl text-primary font-normal mt-3 leading-tight">
+        <h1 className="font-serif text-4xl md:text-5xl text-primary font-medium leading-tight">
           This page has moved on.
         </h1>
         <p className="text-text-muted text-base font-light leading-relaxed mt-6">

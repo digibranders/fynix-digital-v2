@@ -4,6 +4,7 @@ import PhilosophyDiagram from "@/components/PhilosophyDiagram";
 import Reveal from "@/components/Reveal";
 import TeamGrid from "@/components/TeamGrid";
 import PreFooterBackdrop from "@/components/PreFooterBackdrop";
+import HeroDarkBackdrop from "@/components/HeroDarkBackdrop";
 
 export const metadata: Metadata = {
   title: "Philosophy",
@@ -12,24 +13,46 @@ export const metadata: Metadata = {
   alternates: { canonical: "/about" },
 };
 
-const pillars = [
+const pillars: { numeral: string; title: string; body: React.ReactNode }[] = [
   {
     numeral: "I",
     title: "Sector focus",
-    body:
-      "We work almost exclusively with cybersecurity companies. Messaging, sales-cycle understanding, and buyer research are calibrated to that market.",
+    body: (
+      <>
+        We work{" "}
+        <strong className="font-medium text-primary">
+          almost exclusively with cybersecurity companies
+        </strong>
+        . Messaging, sales-cycle understanding, and buyer research are calibrated to that
+        market.
+      </>
+    ),
   },
   {
     numeral: "II",
     title: "One team",
-    body:
-      "Design, engineering, SEO, and demand generation share a single roadmap. No agency handoffs, no context loss, no finger-pointing when metrics move.",
+    body: (
+      <>
+        Design, engineering, SEO, and demand generation share a single roadmap.{" "}
+        <strong className="font-medium text-primary">
+          No agency handoffs, no context loss
+        </strong>
+        , no finger-pointing when metrics move.
+      </>
+    ),
   },
   {
     numeral: "III",
     title: "Outcome contracts",
-    body:
-      "Every engagement is anchored to a pipeline outcome: qualified conversations, sourced opportunities, or booked revenue. Not the number of assets delivered.",
+    body: (
+      <>
+        Every engagement is anchored to a pipeline outcome: qualified conversations, sourced
+        opportunities, or booked revenue.{" "}
+        <strong className="font-medium text-primary">
+          Not the number of assets delivered.
+        </strong>
+      </>
+    ),
   },
 ];
 
@@ -37,31 +60,22 @@ export default function AboutPage() {
   return (
     <>
       {/* ─── HERO ─────────────────────────────────────────────── */}
-      <section className="relative pt-16 md:pt-24 pb-14 md:pb-20 bg-gradient-to-b from-white to-background-soft">
-        <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <Reveal variant="left">
-            <div className="flex items-center gap-4 text-[11px] font-mono uppercase tracking-[0.22em]">
-              <span className="text-accent font-semibold">Philosophy</span>
-              <span aria-hidden className="h-px w-8 bg-border" />
-              <span className="text-text-muted">Our operating belief</span>
-            </div>
-            <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl text-primary font-normal mt-6 leading-[1.05] tracking-tight max-w-5xl text-balance">
-              Most agencies deliver activities.{" "}
-              <span className="font-serif italic text-accent-hover md:block">
-                We engineer growth systems.
-              </span>
-            </h1>
-            <p className="text-text-muted text-base md:text-lg font-light leading-relaxed mt-8 max-w-2xl">
-              Activity without alignment is noise. Real commercial momentum only shows up
-              when design, technology, search placement, and outbound channels operate
-              under{" "}
-              <span className="text-primary font-medium">
-                a single, continuous pipeline cycle
-              </span>
-              , owned by one team.
-            </p>
-          </Reveal>
-
+      <section
+        data-nav-theme="dark"
+        className="relative isolate overflow-hidden -mt-20 md:-mt-24 pt-32 md:pt-40 pb-16 md:pb-24 bg-primary text-white"
+      >
+        <HeroDarkBackdrop />
+        <div className="relative max-w-7xl mx-auto px-6 md:px-12">
+          <h1 className="font-serif text-4xl md:text-6xl text-white font-medium leading-tight tracking-tight max-w-4xl text-balance">
+            Activities aren&apos;t growth.{" "}
+            <span className="font-serif italic text-[#e9af88] md:block">
+              Systems are.
+            </span>
+          </h1>
+          <p className="text-white/70 text-base md:text-lg font-light leading-relaxed mt-8 max-w-2xl">
+            Activity without alignment is noise. Real momentum shows up when every
+            discipline runs on one continuous pipeline, owned by one team.
+          </p>
         </div>
       </section>
 
@@ -72,10 +86,7 @@ export default function AboutPage() {
       >
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <Reveal className="max-w-2xl mb-14 md:mb-16">
-            <span className="text-[11px] uppercase tracking-[0.22em] text-accent font-semibold font-mono">
-              The pipeline
-            </span>
-            <h2 className="font-serif text-3xl md:text-5xl text-primary font-normal mt-4 leading-[1.1] tracking-tight">
+            <h2 className="font-serif text-3xl md:text-5xl text-primary font-medium leading-[1.1] tracking-tight">
               Four disciplines,{" "}
               <span className="font-serif italic text-accent-hover">
                 one continuous loop.
@@ -92,14 +103,11 @@ export default function AboutPage() {
       {/* ─── COMMITMENTS ─────────────────────────────────────── */}
       <section
         aria-label="Working commitments"
-        className="pt-16 md:pt-20 pb-16 md:pb-24 bg-background-soft"
+        className="pt-16 md:pt-24 pb-16 md:pb-24 bg-background-soft"
       >
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <Reveal className="max-w-2xl mb-16 md:mb-20">
-            <span className="text-[11px] uppercase tracking-[0.22em] text-accent font-semibold font-mono">
-              How we operate
-            </span>
-            <h2 className="font-serif text-3xl md:text-5xl text-primary font-normal mt-4 leading-[1.1] tracking-tight">
+            <h2 className="font-serif text-3xl md:text-5xl text-primary font-medium leading-[1.1] tracking-tight">
               Three commitments that shape every engagement.
             </h2>
           </Reveal>
@@ -114,7 +122,7 @@ export default function AboutPage() {
                   >
                     {p.numeral}.
                   </span>
-                  <h3 className="font-serif text-2xl text-primary font-normal mt-5 leading-snug">
+                  <h3 className="font-serif text-2xl text-primary font-medium mt-5 leading-snug">
                     {p.title}
                   </h3>
                   <p className="text-[15px] text-text-muted font-light leading-relaxed mt-4 flex-1">
@@ -135,12 +143,8 @@ export default function AboutPage() {
         <PreFooterBackdrop />
         <div className="relative max-w-4xl mx-auto px-6 md:px-12 text-center">
           <Reveal>
-            <span className="text-[11px] uppercase tracking-[0.22em] text-accent font-semibold font-mono">
-              Ready when you are
-            </span>
-            <h2 className="font-serif text-4xl md:text-6xl text-primary font-normal leading-[1.05] tracking-tight mt-5">
-              Ready to see what this{" "}
-              <span className="font-serif italic">looks like for you?</span>
+            <h2 className="font-serif italic text-4xl md:text-6xl text-primary font-medium leading-[1.05] tracking-tight">
+              Ready to see what this looks like for you?
             </h2>
           </Reveal>
 

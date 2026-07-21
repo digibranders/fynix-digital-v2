@@ -71,24 +71,22 @@ export default function TestimonialsRail() {
   return (
     <section
       aria-labelledby="testimonials-heading"
-      className="py-24 md:py-32 bg-background-soft"
+      className="pt-24 md:pt-32 pb-16 md:pb-20 bg-background-soft"
     >
       <div className="max-w-6xl mx-auto px-6 md:px-12">
         <Reveal>
           <div className="max-w-2xl mx-auto text-center">
-            <span className="text-xs uppercase tracking-widest text-accent font-semibold font-mono">
-              Testimonials
-            </span>
             <h2
               id="testimonials-heading"
-              className="font-serif text-3xl md:text-5xl text-primary font-normal mt-3 leading-tight"
+              className="font-serif text-3xl md:text-5xl text-primary font-medium leading-tight"
             >
               From Clients.{" "}
               <span className="italic text-accent">Not Copywriters.</span>
             </h2>
             <p className="text-text-muted text-base font-light leading-relaxed mt-6">
-              We combine strategy, creativity, and AI-driven insights to grow your brand, attract
-              high-quality leads, and drive measurable results.
+              We combine strategy, creativity, and{" "}
+              <strong className="font-medium text-primary">AI-driven insights</strong> to grow
+              your brand, attract high-quality leads, and drive measurable results.
             </p>
           </div>
         </Reveal>
