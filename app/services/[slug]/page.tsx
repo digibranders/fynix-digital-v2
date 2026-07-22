@@ -2,11 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import Reveal from "@/components/Reveal";
-import { acts, type Act } from "@/lib/content";
+import { acts, caseStudies, faqs, siteConfig, type Act } from "@/lib/content";
 import { emphasize } from "@/lib/emphasize";
 import PreFooterBackdrop from "@/components/PreFooterBackdrop";
 import SectionSeam from "@/components/SectionSeam";
 import HeroDarkBackdrop from "@/components/HeroDarkBackdrop";
+import PillarDiagnosticWidget from "@/components/PillarDiagnosticWidget";
 
 type Params = { slug: Act["slug"] };
 
@@ -32,6 +33,10 @@ export async function generateMetadata(
   };
 }
 
+function stripEmphasis(text: string): string {
+  return text.replace(/\*\*/g, "");
+}
+
 export default async function ServiceDetailPage(
   { params }: { params: Promise<Params> },
 ) {
@@ -40,20 +45,92 @@ export default async function ServiceDetailPage(
   if (!act) notFound();
 
   const others = acts.filter((a) => a.slug !== act.slug);
+  const relatedStudies = act.proof.relatedCaseStudySlugs
+    .map((s) => caseStudies.find((c) => c.slug === s))
+    .filter((c): c is (typeof caseStudies)[number] => Boolean(c));
+  const actFaqs = act.faqIndexes
+    .map((i) => faqs[i])
+    .filter((f): f is (typeof faqs)[number] => Boolean(f));
+
+  const serviceJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    name: `${act.title} for cybersecurity companies`,
+    serviceType: act.title,
+    description: act.headline,
+    provider: {
+      "@type": "Organization",
+      name: siteConfig.name,
+      url: siteConfig.url,
+    },
+    areaServed: "Global",
+    hasOfferCatalog: {
+      "@type": "OfferCatalog",
+      name: `${act.title} deliverables`,
+      itemListElement: act.deliverables.map((d) => ({
+        "@type": "Offer",
+        itemOffered: {
+          "@type": "Service",
+          name: d.title,
+          description: d.description,
+        },
+      })),
+    },
+  };
+
+  const faqJsonLd = actFaqs.length
+    ? {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        mainEntity: actFaqs.map((f) => ({
+          "@type": "Question",
+          name: f.q,
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: stripEmphasis(f.a),
+          },
+        })),
+      }
+    : null;
+
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: siteConfig.url,
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Services",
+        item: `${siteConfig.url}/services`,
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: act.title,
+        item: `${siteConfig.url}/services/${act.slug}`,
+      },
+    ],
+  };
 
   return (
     <>
       {/* HERO */}
       <section
         data-nav-theme="dark"
-        className="relative isolate overflow-hidden -mt-20 md:-mt-24 pt-32 md:pt-40 pb-24 md:pb-32 bg-primary text-white"
+        className="relative isolate overflow-hidden -mt-20 md:-mt-24 pt-32 md:pt-40 pb-14 md:pb-20 bg-primary text-white"
       >
         <HeroDarkBackdrop />
         <div className="relative max-w-7xl mx-auto px-6 md:px-12">
           <div className="max-w-4xl">
-            <div className="flex items-center gap-4 mb-6">
+            <div className="flex items-center gap-4 mb-8">
               <span className="text-xs font-mono text-[#e9af88] font-semibold uppercase tracking-widest">
-                Act {act.num}
+                Act {act.num} · {act.title}
               </span>
               <span className="h-px w-10 bg-white/15" aria-hidden />
               <Link
@@ -64,18 +141,18 @@ export default async function ServiceDetailPage(
               </Link>
             </div>
 
-            <h1 className="font-serif text-4xl sm:text-5xl md:text-7xl text-white font-medium tracking-tight leading-[1.08]">
-              {act.title}
+            <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-white font-medium tracking-tight leading-[1.08] text-balance">
+              {act.headline}
             </h1>
 
-            <p className="font-serif text-xl md:text-2xl text-white/80 font-normal italic leading-snug mt-8 max-w-3xl">
-              &ldquo;{act.headline}&rdquo;
+            <p className="font-serif text-lg md:text-xl text-white/70 font-normal leading-snug mt-8 max-w-2xl">
+              {act.subtitle}
             </p>
 
             <div className="mt-10 flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
               <Link
                 href="/contact"
-                className="inline-flex items-center justify-center gap-3 px-8 py-4 bg-gradient-to-r from-[#e9af88] to-[#ffd2b3] text-[#0C1E2E] hover:brightness-105 font-bold rounded-full shadow-[0_4px_22px_rgba(233,175,136,0.3)] transition-all duration-300 text-center"
+                className="cta-glide inline-flex items-center justify-center gap-3 px-8 py-4 bg-gradient-to-r from-[#e9af88] to-[#ffd2b3] text-[#0C1E2E] hover:brightness-105 font-bold rounded-full shadow-[0_4px_22px_rgba(233,175,136,0.3)] text-center"
               >
                 Start with {act.title}
                 <svg
@@ -94,7 +171,7 @@ export default async function ServiceDetailPage(
                 </svg>
               </Link>
               <Link
-                href="/case-studies"
+                href="#proof"
                 className="inline-flex items-center justify-center px-8 py-4 text-white hover:text-[#e9af88] font-medium rounded-full border border-white/25 bg-white/5 hover:bg-white/10 transition-all duration-200 text-center"
               >
                 See Related Work
@@ -105,7 +182,7 @@ export default async function ServiceDetailPage(
       </section>
 
       {/* NARRATIVE */}
-      <section className="py-24 md:py-32 bg-white">
+      <section className="py-24 md:py-32 bg-white border-b border-border">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
             <Reveal className="lg:col-span-4">
@@ -117,7 +194,7 @@ export default async function ServiceDetailPage(
               <p className="font-serif text-xl md:text-2xl text-primary font-normal leading-relaxed">
                 {emphasize(act.content, "font-medium text-accent-hover")}
               </p>
-              <p className="text-base md:text-lg text-text-muted font-light leading-relaxed mt-6">
+              <p className="text-base md:text-lg text-text-muted font-normal leading-relaxed mt-6">
                 {emphasize(act.bullets)}
               </p>
             </Reveal>
@@ -125,27 +202,109 @@ export default async function ServiceDetailPage(
         </div>
       </section>
 
-      <SectionSeam from="white" to="soft" />
+      {/* INTERACTIVE PILLAR DIAGNOSTIC */}
+      <section className="py-16 md:py-24 bg-background-soft border-b border-border">
+        <div className="max-w-7xl mx-auto px-6 md:px-12">
+          <Reveal>
+            <PillarDiagnosticWidget actSlug={act.slug} actTitle={act.title} />
+          </Reveal>
+        </div>
+      </section>
+
+      {/* PROOF STRIP */}
+      <section
+        id="proof"
+        className="py-24 md:py-32 bg-background-soft border-b border-border"
+      >
+        <div className="max-w-7xl mx-auto px-6 md:px-12">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+            <Reveal className="lg:col-span-4">
+              <span className="text-xs font-mono uppercase tracking-widest text-accent font-semibold">
+                Evidence
+              </span>
+              <div className="mt-6">
+                <div className="font-serif text-6xl md:text-7xl text-primary font-medium tabular-nums leading-none">
+                  {act.proof.metric.value}
+                </div>
+                <div className="mt-4 text-base md:text-lg text-primary font-medium">
+                  {act.proof.metric.label}
+                </div>
+                {act.proof.metric.sub ? (
+                  <div className="mt-1 text-sm text-text-muted font-normal">
+                    {act.proof.metric.sub}
+                  </div>
+                ) : null}
+              </div>
+              <p className="mt-8 text-sm text-text-muted font-normal leading-relaxed max-w-sm">
+                A sample of engagements where {act.title} carried the outcome.
+              </p>
+            </Reveal>
+
+            <div className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {relatedStudies.map((study, idx) => (
+                <Reveal key={study.slug} delay={idx * 100}>
+                  <Link
+                    href={`/case-studies/${study.slug}`}
+                    className="h-full p-6 border border-border rounded-lg bg-white hover:border-accent/40 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group"
+                  >
+                    <div>
+                      <span className="text-xs font-mono uppercase tracking-widest text-accent font-semibold">
+                        Case Study
+                      </span>
+                      <h3 className="font-serif text-xl text-primary font-medium mt-3 group-hover:text-accent transition-colors">
+                        {study.name}
+                      </h3>
+                      <p className="text-sm text-text-muted font-normal mt-3 leading-relaxed">
+                        {study.description}
+                      </p>
+                    </div>
+                    {study.metric ? (
+                      <div className="mt-6 pt-4 border-t border-border">
+                        <div className="font-serif text-2xl text-primary font-medium tabular-nums">
+                          {study.metric.value}
+                        </div>
+                        <div className="text-xs text-text-muted font-normal mt-1">
+                          {study.metric.label}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="mt-6 pt-4 border-t border-border text-xs uppercase font-semibold text-accent tracking-widest inline-flex items-center gap-2">
+                        Read the work <span aria-hidden>&rarr;</span>
+                      </div>
+                    )}
+                  </Link>
+                </Reveal>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* DELIVERABLES */}
-      <section className="py-24 md:py-32 bg-background-soft">
+      <section className="py-24 md:py-32 bg-white border-b border-border">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <Reveal className="mb-16 border-b border-border pb-8">
-            <h2 className="font-serif text-4xl md:text-5xl text-primary font-medium max-w-2xl">
+            <span className="text-xs font-mono uppercase tracking-widest text-accent font-semibold">
+              Scope of work
+            </span>
+            <h2 className="font-serif text-4xl md:text-5xl text-primary font-medium max-w-2xl mt-4">
               Everything included under {act.title}.
             </h2>
           </Reveal>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {act.deliverables.map((item, idx) => (
-              <Reveal key={item} delay={idx * 60}>
-                <div className="h-full p-6 border border-border rounded-lg bg-white hover:border-accent/40 hover:-translate-y-1 transition-all duration-300">
+              <Reveal key={item.title} delay={idx * 60}>
+                <div className="h-full p-6 border border-border rounded-lg bg-background-soft/30 hover:border-accent/40 hover:bg-background-soft transition-all duration-300">
                   <span className="text-xs font-mono text-accent font-semibold tabular-nums">
                     {String(idx + 1).padStart(2, "0")}
                   </span>
                   <h3 className="font-serif text-xl text-primary font-medium mt-3">
-                    {item}
+                    {item.title}
                   </h3>
+                  <p className="text-sm text-text-muted font-normal mt-3 leading-relaxed">
+                    {item.description}
+                  </p>
                 </div>
               </Reveal>
             ))}
@@ -153,14 +312,92 @@ export default async function ServiceDetailPage(
         </div>
       </section>
 
-      <SectionSeam from="soft" to="white" />
+      {/* HOW THIS ACT RUNS */}
+      <section className="py-24 md:py-32 bg-background-soft border-b border-border">
+        <div className="max-w-7xl mx-auto px-6 md:px-12">
+          <Reveal className="mb-16 border-b border-border pb-8">
+            <span className="text-xs font-mono uppercase tracking-widest text-accent font-semibold">
+              How this act runs
+            </span>
+            <h2 className="font-serif text-4xl md:text-5xl text-primary font-medium max-w-2xl mt-4">
+              Three phases, one accountable team.
+            </h2>
+          </Reveal>
+
+          <ol className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {act.howItRuns.map((step, idx) => (
+              <Reveal key={step.title} delay={idx * 100}>
+                <li className="h-full p-6 border border-border rounded-lg bg-white flex flex-col">
+                  <span className="text-xs font-mono text-accent font-semibold tabular-nums">
+                    Phase {String(idx + 1).padStart(2, "0")}
+                  </span>
+                  <h3 className="font-serif text-xl text-primary font-medium mt-3">
+                    {step.title}
+                  </h3>
+                  <p className="text-sm text-text-muted font-normal mt-3 leading-relaxed">
+                    {step.description}
+                  </p>
+                  <div className="mt-6 pt-4 border-t border-border">
+                    <div className="text-[10px] uppercase font-mono tracking-widest text-text-muted font-semibold">
+                      Deliverable
+                    </div>
+                    <div className="text-sm text-primary font-medium mt-1">
+                      {step.deliverable}
+                    </div>
+                  </div>
+                </li>
+              </Reveal>
+            ))}
+          </ol>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      {actFaqs.length ? (
+        <section className="py-24 md:py-32 bg-white border-b border-border">
+          <div className="max-w-7xl mx-auto px-6 md:px-12">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+              <Reveal className="lg:col-span-4">
+                <span className="text-xs font-mono uppercase tracking-widest text-accent font-semibold">
+                  Buyer questions
+                </span>
+                <h2 className="font-serif text-4xl md:text-5xl text-primary font-medium leading-tight mt-4">
+                  The questions we&apos;re asked most about {act.title}.
+                </h2>
+                <Link
+                  href="/faqs"
+                  className="mt-6 inline-flex items-center gap-2 text-xs uppercase font-semibold text-accent tracking-widest"
+                >
+                  All FAQs <span aria-hidden>&rarr;</span>
+                </Link>
+              </Reveal>
+              <div className="lg:col-span-8 divide-y divide-border border-t border-border">
+                {actFaqs.map((faq, idx) => (
+                  <Reveal key={faq.q} delay={idx * 80}>
+                    <div className="py-8">
+                      <h3 className="font-serif text-xl md:text-2xl text-primary font-medium leading-snug">
+                        {faq.q}
+                      </h3>
+                      <p className="text-base text-text-muted font-normal leading-relaxed mt-4">
+                        {emphasize(faq.a)}
+                      </p>
+                    </div>
+                  </Reveal>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      <SectionSeam from="white" to="white" />
 
       {/* OTHER ACTS */}
       <section className="py-24 md:py-32 bg-white">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <Reveal className="mb-16 border-b border-border pb-8">
-            <h2 className="font-serif text-4xl md:text-5xl text-primary font-medium max-w-2xl">
-              {act.title} is one act. The full outcome comes from all four working together.
+            <h2 className="font-serif text-2xl sm:text-3xl md:text-5xl text-primary font-medium max-w-2xl text-balance line-clamp-2">
+              {act.title} is one act. Real outcomes take all four.
             </h2>
           </Reveal>
 
@@ -178,7 +415,7 @@ export default async function ServiceDetailPage(
                     <h3 className="font-serif text-xl text-primary font-medium mt-3 group-hover:text-accent transition-colors">
                       {other.title}
                     </h3>
-                    <p className="text-sm text-text-muted font-light mt-3 leading-relaxed">
+                    <p className="text-sm text-text-muted font-normal mt-3 leading-relaxed">
                       {other.subtitle}
                     </p>
                   </div>
@@ -192,16 +429,14 @@ export default async function ServiceDetailPage(
         </div>
       </section>
 
-      <SectionSeam from="white" to="soft" />
-
       {/* CTA */}
       <section className="relative isolate overflow-hidden py-24 md:py-32 bg-transparent">
         <PreFooterBackdrop />
         <Reveal className="max-w-4xl mx-auto px-6 text-center">
-          <h2 className="font-serif text-3xl md:text-5xl text-primary font-medium leading-tight">
-            Ready to move on {act.title.toLowerCase()}?
+          <h2 className="font-serif italic text-3xl md:text-5xl text-primary font-medium leading-tight">
+            Ready to move on {act.title}?
           </h2>
-          <p className="text-text-muted text-base font-light leading-relaxed mt-6 max-w-2xl mx-auto">
+          <p className="text-text-muted text-base font-normal leading-relaxed mt-6 max-w-2xl mx-auto">
             Most engagements begin with a short discovery conversation. We&apos;ll map where{" "}
             {act.title} sits inside your current pipeline and where it would create the{" "}
             <strong className="font-medium text-primary">most lift</strong>.
@@ -230,6 +465,21 @@ export default async function ServiceDetailPage(
           </div>
         </Reveal>
       </section>
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+      {faqJsonLd ? (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+        />
+      ) : null}
     </>
   );
 }

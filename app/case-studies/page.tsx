@@ -3,6 +3,7 @@ import Link from "next/link";
 import Reveal from "@/components/Reveal";
 import CaseStudiesGrid from "@/components/CaseStudiesGrid";
 import HeroDarkBackdrop from "@/components/HeroDarkBackdrop";
+import PreFooterBackdrop from "@/components/PreFooterBackdrop";
 
 export const metadata: Metadata = {
   title: "Our Work",
@@ -16,7 +17,7 @@ export default function CaseStudiesPage() {
     <>
       <section
         data-nav-theme="dark"
-        className="relative isolate overflow-hidden -mt-20 md:-mt-24 pt-32 md:pt-40 pb-16 md:pb-24 bg-primary text-white"
+        className="relative isolate overflow-hidden -mt-20 md:-mt-24 pt-32 md:pt-40 pb-14 md:pb-20 bg-primary text-white"
       >
         <HeroDarkBackdrop />
         <div className="relative max-w-7xl mx-auto px-6 md:px-12">
@@ -24,7 +25,7 @@ export default function CaseStudiesPage() {
             Turning ideas <br />
             <span className="font-serif italic text-[#e9af88]">into vision.</span>
           </h1>
-          <p className="text-white/70 text-base md:text-lg font-light leading-relaxed mt-6 max-w-2xl">
+          <p className="text-white/70 text-base md:text-lg font-normal leading-relaxed mt-6 max-w-2xl">
             A selection of the platforms, brands, and growth systems we&apos;ve shipped.
             <br />
             Every project is live in production. Click through to see the work in the wild.
@@ -38,7 +39,8 @@ export default function CaseStudiesPage() {
         </div>
       </section>
 
-      <section className="pt-16 md:pt-20 pb-20 md:pb-28 bg-background-soft">
+      <section className="relative isolate overflow-hidden pt-16 md:pt-20 pb-20 md:pb-28 bg-transparent">
+        <PreFooterBackdrop />
         <Reveal className="max-w-4xl mx-auto px-6 text-center">
           <h2 className="font-serif italic text-4xl md:text-5xl text-primary font-medium leading-tight">
             Build what you&apos;ve been thinking about.

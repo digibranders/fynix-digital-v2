@@ -20,7 +20,7 @@ export default function ServicesPage() {
     <>
       <section
         data-nav-theme="dark"
-        className="relative isolate overflow-hidden -mt-20 md:-mt-24 pt-32 md:pt-40 pb-16 md:pb-24 bg-primary text-white"
+        className="relative isolate overflow-hidden -mt-20 md:-mt-24 pt-32 md:pt-40 pb-14 md:pb-20 bg-primary text-white"
       >
         <HeroDarkBackdrop />
         <div className="relative max-w-7xl mx-auto px-6 md:px-12">
@@ -28,10 +28,25 @@ export default function ServicesPage() {
             The Four Growth Acts.{" "}
             <span className="font-serif italic text-[#e9af88] md:block">One connected system.</span>
           </h1>
-          <p className="text-white/70 text-base md:text-lg font-light leading-relaxed mt-6 max-w-2xl">
+          <p className="text-white/70 text-base md:text-lg font-normal leading-relaxed mt-6 max-w-2xl">
             A potential client forms a brand perception in seconds. Our four interconnected
             pillars build trust, guarantee speed, secure visibility, and generate pipeline.
           </p>
+
+          <div className="mt-8 flex flex-wrap items-center gap-3">
+            <span className="text-xs font-mono uppercase tracking-widest text-[#e9af88] font-semibold mr-2">
+              Run Act Diagnostic:
+            </span>
+            {acts.map((act) => (
+              <Link
+                key={act.slug}
+                href={`/services/${act.slug}#proof`}
+                className="px-3.5 py-1.5 rounded-full border border-white/20 bg-white/5 hover:bg-white/15 hover:border-[#e9af88] text-xs font-mono text-white/90 transition-all duration-200"
+              >
+                Act {act.num} · {act.title}
+              </Link>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -45,9 +60,7 @@ export default function ServicesPage() {
 
       <EngagementModels />
 
-      <SectionSeam from="white" to="soft" />
-
-      <section className="relative isolate overflow-hidden pt-16 md:pt-20 pb-20 md:pb-28 bg-transparent">
+      <section className="relative isolate overflow-hidden pt-16 md:pt-20 pb-10 md:pb-15 bg-transparent">
         <PreFooterBackdrop />
         <Reveal className="max-w-4xl mx-auto px-6 text-center">
           <h2 className="font-serif italic text-4xl md:text-5xl text-primary font-medium leading-tight">

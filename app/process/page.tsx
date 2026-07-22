@@ -13,12 +13,6 @@ export const metadata: Metadata = {
   alternates: { canonical: "/process" },
 };
 
-const agenda = [
-  { time: "0–5 min", topic: "What you're actually trying to move this quarter" },
-  { time: "5–20 min", topic: "Where we'd look first, and what a first step could be" },
-  { time: "20–30 min", topic: "Whether we're the right partner, honestly" },
-];
-
 export default function ProcessPage() {
   return (
     <>
@@ -35,7 +29,7 @@ export default function ProcessPage() {
               where the work is.
             </span>
           </h1>
-          <p className="text-white/70 text-base md:text-lg font-light leading-relaxed mt-8 max-w-2xl">
+          <p className="text-white/70 text-base md:text-lg font-normal leading-relaxed mt-8 max-w-2xl">
             Ten weeks. Six visible phases. Each with a duration, an owner, and a decision you control, so you never have to guess what&apos;s happening.
           </p>
         </div>
@@ -76,46 +70,14 @@ export default function ProcessPage() {
             </h2>
           </Reveal>
 
-          <Reveal variant="up" delay={160} className="mt-14">
-            <div className="mx-auto max-w-2xl border border-border bg-white/70 backdrop-blur-sm rounded-sm p-8 md:p-10">
-              <div className="flex items-center gap-3 text-[10px] font-mono uppercase tracking-[0.24em] text-primary font-semibold">
-                <span className="h-px w-6 bg-accent" aria-hidden />
-                Agenda
-              </div>
-              <ol className="mt-6 space-y-4">
-                {agenda.map((item) => (
-                  <li
-                    key={item.time}
-                    className="grid grid-cols-12 gap-4 pb-4 border-b border-border last:border-b-0 last:pb-0"
-                  >
-                    <span className="col-span-4 md:col-span-3 text-[11px] font-mono uppercase tracking-[0.18em] text-accent pt-1">
-                      {item.time}
-                    </span>
-                    <span className="col-span-8 md:col-span-9 text-[15px] md:text-base text-primary font-light leading-snug">
-                      {item.topic}
-                    </span>
-                  </li>
-                ))}
-              </ol>
-            </div>
-          </Reveal>
-
-          <Reveal variant="up" delay={240} className="mt-12 text-center">
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
-              <Link
-                href="/contact"
-                className="inline-flex items-center justify-center gap-3 px-8 py-4 bg-primary text-white hover:bg-primary-hover cta-primary font-medium rounded-full shadow-sm transition-all duration-200"
-              >
-                Book the 30 minutes
-                <span aria-hidden>→</span>
-              </Link>
-              <Link
-                href="/case-studies"
-                className="text-sm text-primary font-medium hover:text-accent transition-colors"
-              >
-                Or see how a past engagement ran
-              </Link>
-            </div>
+          <Reveal variant="up" delay={160} className="mt-12 text-center">
+            <Link
+              href="/contact"
+              className="inline-flex items-center justify-center gap-3 px-8 py-4 bg-primary text-white hover:bg-primary-hover cta-primary font-medium rounded-full shadow-sm transition-all duration-200"
+            >
+              Start the conversation
+              <span aria-hidden>→</span>
+            </Link>
           </Reveal>
         </div>
       </section>

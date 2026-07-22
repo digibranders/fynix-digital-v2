@@ -62,7 +62,7 @@ export default function AboutPage() {
       {/* ─── HERO ─────────────────────────────────────────────── */}
       <section
         data-nav-theme="dark"
-        className="relative isolate overflow-hidden -mt-20 md:-mt-24 pt-32 md:pt-40 pb-16 md:pb-24 bg-primary text-white"
+        className="relative isolate overflow-hidden -mt-20 md:-mt-24 pt-32 md:pt-40 pb-14 md:pb-20 bg-primary text-white"
       >
         <HeroDarkBackdrop />
         <div className="relative max-w-7xl mx-auto px-6 md:px-12">
@@ -72,7 +72,7 @@ export default function AboutPage() {
               Systems are.
             </span>
           </h1>
-          <p className="text-white/70 text-base md:text-lg font-light leading-relaxed mt-8 max-w-2xl">
+          <p className="text-white/70 text-base md:text-lg font-normal leading-relaxed mt-8 max-w-2xl">
             Activity without alignment is noise. Real momentum shows up when every
             discipline runs on one continuous pipeline, owned by one team.
           </p>
@@ -82,7 +82,7 @@ export default function AboutPage() {
       {/* ─── PIPELINE DIAGRAM ─────────────────────────────────── */}
       <section
         aria-label="Growth pipeline"
-        className="pt-16 md:pt-24 pb-16 md:pb-24 bg-background-soft"
+        className="pt-16 md:pt-24 pb-10 md:pb-14 bg-background-soft"
       >
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <Reveal className="max-w-2xl mb-14 md:mb-16">
@@ -103,7 +103,7 @@ export default function AboutPage() {
       {/* ─── COMMITMENTS ─────────────────────────────────────── */}
       <section
         aria-label="Working commitments"
-        className="pt-16 md:pt-24 pb-16 md:pb-24 bg-background-soft"
+        className="pt-10 md:pt-14 pb-16 md:pb-24 bg-background-soft"
       >
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <Reveal className="max-w-2xl mb-16 md:mb-20">
@@ -125,7 +125,7 @@ export default function AboutPage() {
                   <h3 className="font-serif text-2xl text-primary font-medium mt-5 leading-snug">
                     {p.title}
                   </h3>
-                  <p className="text-[15px] text-text-muted font-light leading-relaxed mt-4 flex-1">
+                  <p className="text-[15px] text-text-muted font-normal leading-relaxed mt-4 flex-1">
                     {p.body}
                   </p>
                 </div>

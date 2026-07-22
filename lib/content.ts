@@ -1,3 +1,12 @@
+export type ActDeliverable = { title: string; description: string };
+
+export type ActProof = {
+  metric: { value: string; label: string; sub?: string };
+  relatedCaseStudySlugs: string[];
+};
+
+export type ActStep = { title: string; description: string; deliverable: string };
+
 export type Act = {
   slug: "ui-ux" | "development" | "seo" | "lead-generation";
   num: string;
@@ -6,7 +15,10 @@ export type Act = {
   headline: string;
   content: string;
   bullets: string;
-  deliverables: string[];
+  deliverables: ActDeliverable[];
+  proof: ActProof;
+  howItRuns: ActStep[];
+  faqIndexes: number[];
 };
 
 export const acts: Act[] = [
@@ -15,62 +27,226 @@ export const acts: Act[] = [
     num: "01",
     title: "UI/UX",
     subtitle: "Act 1: Perception Shapes Trust",
-    headline:
-      "Your interface shapes trust before your team ever speaks.",
+    headline: "Interfaces earn trust before your team speaks.",
     content:
       "A cybersecurity buyer decides to stay in seconds. That decision runs on what the experience signals, **not on what the copy claims**.",
     bullets:
       "We design interfaces that **earn trust before a single line is read**. Purposeful hierarchy, considered motion, copy that meets the buyer's real question.",
     deliverables: [
-      "User Research",
-      "Wireframes",
-      "User Flows",
-      "Website Design",
-      "Landing Pages",
-      "Conversion Optimization",
+      {
+        title: "User Research",
+        description:
+          "Interviews, funnel analytics, and jobs-to-be-done grounded in the cybersecurity buyer, not a generic persona.",
+      },
+      {
+        title: "Wireframes",
+        description:
+          "Low-fidelity layouts that fix priority, hierarchy, and content order before a single pixel is designed.",
+      },
+      {
+        title: "User Flows",
+        description:
+          "Mapped journeys for the first-time visitor, the evaluator, and the returning stakeholder.",
+      },
+      {
+        title: "Website Design",
+        description:
+          "High-fidelity interfaces across desktop and mobile, delivered as a single design system your team can extend.",
+      },
+      {
+        title: "Landing Pages",
+        description:
+          "Campaign pages built for one intent, one CTA, and one measurable outcome.",
+      },
+      {
+        title: "Conversion Optimisation",
+        description:
+          "Ongoing experiments, funnel diagnostics, and iteration cycles tied to pipeline, not clicks.",
+      },
     ],
+    proof: {
+      metric: {
+        value: "2.4×",
+        label: "Average pipeline lift",
+        sub: "within 6 months of launch",
+      },
+      relatedCaseStudySlugs: ["payweek", "alsonotify", "photonmatters"],
+    },
+    howItRuns: [
+      {
+        title: "Buyer intent audit",
+        description:
+          "Stakeholder interviews, funnel analytics, and messaging review against real search intent.",
+        deliverable: "Prioritised UX brief",
+      },
+      {
+        title: "Interface and prototype",
+        description:
+          "Information architecture, high-fidelity design, and interactive prototype in one system.",
+        deliverable: "Production-ready design system",
+      },
+      {
+        title: "Post-launch conversion review",
+        description:
+          "Heatmaps, funnel diagnostics, and quarterly iteration tied to pipeline metrics.",
+        deliverable: "Quarterly optimisation report",
+      },
+    ],
+    faqIndexes: [0, 2],
   },
   {
     slug: "development",
     num: "02",
     title: "Development",
     subtitle: "Act 2: Performance Keeps the Promise",
-    headline:
-      "First impressions only hold if the site can keep the promise.",
+    headline: "First impressions hold only if the site keeps up.",
     content:
       "Slow loads and brittle interactions turn early confidence into hesitation. **Hesitation is where visitors quietly leave.**",
     bullets:
       "We build on a modern component stack with **Core Web Vitals as a hard gate**. Fast, accessible, easy for your team to keep growing.",
     deliverables: [
-      "Custom Websites",
-      "Mobile APPs",
-      "CMS Development",
-      "Integrations",
-      "Performance Optimization",
-      "Maintenance",
-      "Scalability",
+      {
+        title: "Custom Websites",
+        description:
+          "Component-driven front-end builds tuned to the exact narrative your team ships, not a template.",
+      },
+      {
+        title: "Mobile Apps",
+        description:
+          "React Native and native builds for products that live inside your customer's daily workflow.",
+      },
+      {
+        title: "CMS Development",
+        description:
+          "Editorial control for your team without letting design integrity or performance slip.",
+      },
+      {
+        title: "Integrations",
+        description:
+          "CRM, analytics, marketing automation, and product telemetry wired in at launch, not bolted on later.",
+      },
+      {
+        title: "Performance Optimisation",
+        description:
+          "Core Web Vitals treated as a hard gate before staging is signed off.",
+      },
+      {
+        title: "Accessibility and Security",
+        description:
+          "WCAG 2.2 AA baseline and security-hardened defaults on every ship, not a post-launch afterthought.",
+      },
+      {
+        title: "Maintenance",
+        description:
+          "Scheduled updates, uptime monitoring, and a rapid-fix window for the first weeks after launch.",
+      },
     ],
+    proof: {
+      metric: {
+        value: "<2.5s",
+        label: "LCP target on ship",
+        sub: "Core Web Vitals as a hard gate",
+      },
+      relatedCaseStudySlugs: ["cleanstart", "payweek", "alsonotify"],
+    },
+    howItRuns: [
+      {
+        title: "Architecture and stack",
+        description:
+          "Framework, CMS, integrations, and hosting model decided before any interface is built.",
+        deliverable: "Technical brief and repository scaffold",
+      },
+      {
+        title: "Build with performance as a gate",
+        description:
+          "Component build, integrations, accessibility QA, and Core Web Vitals verified on every merge.",
+        deliverable: "Production-ready site on staging",
+      },
+      {
+        title: "Launch and maintain",
+        description:
+          "Migration, monitoring, and a support window during the first weeks that matter most.",
+        deliverable: "Launch report and ongoing support",
+      },
+    ],
+    faqIndexes: [1, 2],
   },
   {
     slug: "seo",
     num: "03",
     title: "SEO / AEO",
     subtitle: "Act 3: Visibility Creates Opportunity",
-    headline: "The best site in the category is useless if buyers can't find it.",
+    headline: "The best site is useless if buyers can't find it.",
     content:
       "Visibility in cybersecurity is competitive and trust-driven. Search is **where enterprise buyers begin every shortlist**.",
     bullets:
       "Technical SEO, editorial content, and **answer-engine optimisation**, so the buyers you sell to discover you the moment they ask the question.",
     deliverables: [
-      "Technical SEO",
-      "Keyword Research",
-      "Content Strategy",
-      "Content Writing",
-      "On-Page SEO",
-      "Authority Building",
-      "LLM SEO",
-      "LLM Visibility",
+      {
+        title: "Technical SEO",
+        description:
+          "Site architecture, structured data, and Core Web Vitals fixed before a single piece of content ships.",
+      },
+      {
+        title: "Keyword Research",
+        description:
+          "Search demand, competitor gaps, and enterprise buyer language mapped to real buying intent.",
+      },
+      {
+        title: "Content Strategy",
+        description:
+          "Editorial calendar aligned to sales stage, not to publishing volume for its own sake.",
+      },
+      {
+        title: "Content Writing",
+        description:
+          "Long-form editorial for cybersecurity buyers, reviewed by domain leads, not generalist copy.",
+      },
+      {
+        title: "On-Page SEO",
+        description:
+          "Metadata, internal linking, and schema tuned on the pages that actually carry pipeline.",
+      },
+      {
+        title: "Authority Building",
+        description:
+          "Digital PR, expert quotes, and outreach earning cybersecurity-adjacent backlinks that pass trust.",
+      },
+      {
+        title: "Answer Engine Optimisation",
+        description:
+          "Structured pages and citations designed to be picked up by ChatGPT, Perplexity, and Gemini.",
+      },
     ],
+    proof: {
+      metric: {
+        value: "4,081",
+        label: "Monthly organic visitors",
+        sub: "Eventus Security",
+      },
+      relatedCaseStudySlugs: ["eventus", "cleanstart", "photonmatters"],
+    },
+    howItRuns: [
+      {
+        title: "Landscape and intent mapping",
+        description:
+          "Keyword, SERP, and answer-engine research against the cybersecurity buying committee.",
+        deliverable: "Opportunity map with ranked priorities",
+      },
+      {
+        title: "On-page and technical build",
+        description:
+          "Schema, information architecture, technical fixes, and an editorial calendar tied to sales stage.",
+        deliverable: "Content system ready to publish against",
+      },
+      {
+        title: "Authority and answers",
+        description:
+          "Publishing cadence, digital PR, and LLM visibility monitoring across the surfaces buyers actually use.",
+        deliverable: "Monthly visibility and pipeline report",
+      },
+    ],
+    faqIndexes: [4, 2],
   },
   {
     slug: "lead-generation",
@@ -83,13 +259,66 @@ export const acts: Act[] = [
     bullets:
       "Systematic outreach, high-intent lead magnets, and pipeline tracking built for **the way enterprise cybersecurity actually buys**.",
     deliverables: [
-      "ICP Research",
-      "Outreach Campaigns",
-      "Landing Pages",
-      "Demand Generation",
-      "Lead Qualification",
-      "Pipeline Growth",
+      {
+        title: "ICP Research",
+        description:
+          "Verified account lists built from firmographic, technographic, and buyer-signal data.",
+      },
+      {
+        title: "Outreach Campaigns",
+        description:
+          "Multi-channel sequences across email, LinkedIn, and calling, each tied to one specific intent.",
+      },
+      {
+        title: "Landing Pages",
+        description:
+          "Purpose-built pages for each campaign, tracked from first click through to booked meeting.",
+      },
+      {
+        title: "Demand Generation",
+        description:
+          "Content, ads, and events run against a defined pipeline target, not a vanity impression count.",
+      },
+      {
+        title: "Lead Qualification",
+        description:
+          "SDR handoff scripts, discovery frameworks, and meeting review checkpoints your sales team can trust.",
+      },
+      {
+        title: "Pipeline Growth",
+        description:
+          "Weekly reporting on sourced pipeline, meeting velocity, and win-rate contribution by campaign.",
+      },
     ],
+    proof: {
+      metric: {
+        value: "40+",
+        label: "Cybersecurity engagements",
+        sub: "since 2021",
+      },
+      relatedCaseStudySlugs: ["eventus", "alsonotify", "cleanstart"],
+    },
+    howItRuns: [
+      {
+        title: "ICP and offer definition",
+        description:
+          "Target account list, lead magnets, and positioning validated against real deals in your CRM.",
+        deliverable: "Outbound playbook and target list",
+      },
+      {
+        title: "Campaign build and launch",
+        description:
+          "Sequences, landing pages, and tracking wired into the tools your team already uses.",
+        deliverable: "Live campaigns with dashboards",
+      },
+      {
+        title: "Qualification and iteration",
+        description:
+          "Reply handling, meeting booking, and monthly pipeline review against sourced-revenue targets.",
+        deliverable: "Monthly QBR with revenue attribution",
+      },
+    ],
+    faqIndexes: [3, 0],
   },
 ];
 

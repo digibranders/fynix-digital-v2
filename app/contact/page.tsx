@@ -28,7 +28,7 @@ export default function ContactPage() {
             You&apos;re missing pipeline.{" "}
             <span className="font-serif italic text-[#e9af88] md:block">Let&apos;s fix that.</span>
           </h1>
-          <p className="text-white/70 text-base md:text-lg font-light leading-relaxed mt-6 max-w-2xl">
+          <p className="text-white/70 text-base md:text-lg font-normal leading-relaxed mt-6 max-w-2xl">
             Sometimes it&apos;s a website that isn&apos;t earning trust. Sometimes it&apos;s
             technology that isn&apos;t keeping pace. Sometimes it&apos;s visibility that never becomes opportunity.
           </p>
@@ -120,25 +120,25 @@ export default function ContactPage() {
         className="relative isolate overflow-hidden pt-16 md:pt-20 pb-24 md:pb-32 bg-transparent"
       >
         <PreFooterBackdrop />
-        <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <Reveal>
+        <div className="max-w-4xl mx-auto px-6 md:px-12">
+          <Reveal className="text-center">
             <h2
               id="contact-faq-heading"
-              className="font-serif text-4xl md:text-5xl text-primary font-medium leading-tight max-w-4xl"
+              className="font-serif text-4xl md:text-5xl text-primary font-medium leading-tight"
             >
               Answers to the questions we hear first.
             </h2>
-            <p className="text-text-muted text-base md:text-lg font-light leading-relaxed mt-6 max-w-2xl">
+            <p className="text-text-muted text-base md:text-lg font-normal leading-relaxed mt-6 max-w-2xl mx-auto">
               If your question isn&apos;t here, ask it in the form above. We reply{" "}
               <strong className="font-medium text-primary">within one business day</strong>.
             </p>
           </Reveal>
 
-          <Reveal delay={120} className="mt-14 max-w-4xl">
+          <Reveal delay={120} className="mt-14">
             <FaqAccordion faqs={faqs} />
           </Reveal>
 
-          <Reveal delay={200} className="mt-10">
+          <Reveal delay={200} className="mt-10 text-center">
             <Link
               href="/faqs"
               className="text-xs font-semibold uppercase tracking-widest text-accent border-b border-accent pb-1 hover:text-primary hover:border-primary cta-underline transition-all duration-200"

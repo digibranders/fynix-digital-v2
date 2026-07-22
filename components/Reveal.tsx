@@ -1,6 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+
+const useIsoLayoutEffect =
+  typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
 type Variant = "up" | "left" | "right" | "scale";
 
@@ -42,9 +45,18 @@ export default function Reveal({
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
 
-  useEffect(() => {
+  useIsoLayoutEffect(() => {
     const el = ref.current;
     if (!el) return;
+    const rect = el.getBoundingClientRect();
+    if (rect.top < window.innerHeight && rect.bottom > 0) {
+      setVisible(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || visible) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -61,7 +73,7 @@ export default function Reveal({
 
     observer.observe(el);
     return () => observer.disconnect();
-  }, []);
+  }, [visible]);
 
   const style: CSSProperties = {
     opacity: visible ? 1 : 0,

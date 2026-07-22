@@ -8,7 +8,6 @@ const siteLinks = [
   { href: "/services", label: "Services" },
   { href: "/process", label: "Process" },
   { href: "/case-studies", label: "Case Studies" },
-  { href: "/about", label: "Philosophy" },
 ];
 
 const serviceLinks = [
@@ -19,14 +18,14 @@ const serviceLinks = [
 ];
 
 const companyLinks = [
-  { href: "/about", label: "About Us" },
+  { href: "/about", label: "Philosophy" },
   { href: "/faqs", label: "FAQs" },
   { href: "/contact", label: "Contact" },
 ];
 
 const legalLinks = [
   { href: "/privacy", label: "Privacy Policy" },
-  { href: "/terms", label: "Terms of Service" },
+  { href: "/terms", label: "Terms & Conditions" },
 ];
 
 const socialLinks = [
@@ -106,12 +105,12 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-6 md:px-12 pt-16 md:pt-20 pb-8">
         <div className="grid grid-cols-2 md:grid-cols-12 gap-10 md:gap-8">
           {/* Brand */}
-          <div className="col-span-2 md:col-span-4">
+          <div className="col-span-2 md:col-span-4 flex flex-col">
             <Logo className="text-white" />
-            <p className="mt-6 text-sm text-white/60 font-light leading-relaxed max-w-sm">
+            <p className="mt-6 text-sm text-white/60 font-normal leading-relaxed max-w-sm">
               {siteConfig.description}
             </p>
-            <div className="mt-6 flex items-center gap-2">
+            <div className="mt-auto pt-6 flex items-center gap-2">
               {socialLinks.map((s) => {
                 const external = s.href.startsWith("http");
                 return (
@@ -177,7 +176,8 @@ export default function Footer() {
           width={1200}
           height={800}
           sizes="100vw"
-          loading="lazy"
+          priority
+          fetchPriority="high"
           className="absolute inset-x-0 top-1/2 -translate-y-[47%] w-full h-auto opacity-40 invert"
         />
       </div>

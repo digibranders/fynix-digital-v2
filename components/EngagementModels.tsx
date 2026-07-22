@@ -65,7 +65,7 @@ export default function EngagementModels() {
                 </div>
 
                 <p
-                  className={`text-sm mt-4 font-light leading-relaxed ${
+                  className={`text-sm mt-4 font-normal leading-relaxed ${
                     model.featured ? "text-white/80" : "text-text-muted"
                   }`}
                 >
@@ -83,7 +83,7 @@ export default function EngagementModels() {
                 </p>
 
                 <ul
-                  className={`mt-6 pt-6 border-t space-y-3 text-sm font-light ${
+                  className={`mt-6 pt-6 border-t space-y-3 text-sm font-normal ${
                     model.featured ? "border-white/15 text-white/85" : "border-border text-text-muted"
                   }`}
                 >

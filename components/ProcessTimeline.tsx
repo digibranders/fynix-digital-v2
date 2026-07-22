@@ -199,7 +199,7 @@ export default function ProcessTimeline() {
                     {step.title}
                   </h3>
 
-                  <p className="text-sm md:text-[15px] text-text-muted font-light leading-relaxed mt-3">
+                  <p className="text-sm md:text-[15px] text-text-muted font-normal leading-relaxed mt-3">
                     {step.short}
                   </p>
                 </div>

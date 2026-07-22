@@ -51,13 +51,13 @@ export default function CaseStudiesGrid() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {filtered.map((study, idx) => (
           <Reveal key={study.slug} delay={idx * 100} className="h-full">
-            <CaseStudyCard study={study} index={idx + 1} />
+            <CaseStudyCard study={study} />
           </Reveal>
         ))}
       </div>
 
       {filtered.length === 0 && (
-        <p className="text-center text-text-muted text-sm font-light py-12">
+        <p className="text-center text-text-muted text-sm font-normal py-12">
           No projects in this category yet.
         </p>
       )}

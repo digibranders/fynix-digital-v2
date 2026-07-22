@@ -14,12 +14,12 @@ export default function FeaturedCaseStudies({ studies }: Props) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
       <Reveal className="lg:col-span-7">
-        <FeaturedCard study={featured} index={1} />
+        <FeaturedCard study={featured} />
       </Reveal>
       <div className="lg:col-span-5 flex flex-col gap-6 lg:gap-8">
         {supporting.slice(0, 2).map((study, idx) => (
           <Reveal key={study.slug} delay={(idx + 1) * 120} className="flex-1">
-            <SupportingCard study={study} index={idx + 2} />
+            <SupportingCard study={study} />
           </Reveal>
         ))}
       </div>
@@ -27,7 +27,7 @@ export default function FeaturedCaseStudies({ studies }: Props) {
   );
 }
 
-function FeaturedCard({ study, index }: { study: CaseStudy; index: number }) {
+function FeaturedCard({ study }: { study: CaseStudy }) {
   return (
     <Link
       href={`/case-studies/${study.slug}`}
@@ -37,7 +37,6 @@ function FeaturedCard({ study, index }: { study: CaseStudy; index: number }) {
         <DossierTile
           domain={study.domain}
           name={study.name}
-          index={index}
           iconUrl={study.iconUrl}
           size="lg"
         />
@@ -49,9 +48,6 @@ function FeaturedCard({ study, index }: { study: CaseStudy; index: number }) {
             Featured Case
           </span>
           <span className="h-px flex-1 bg-border" aria-hidden />
-          <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-text-muted">
-            №{String(index).padStart(2, "0")}
-          </span>
         </div>
 
         <div className="mt-auto pt-10">
@@ -86,7 +82,7 @@ function FeaturedCard({ study, index }: { study: CaseStudy; index: number }) {
   );
 }
 
-function SupportingCard({ study, index }: { study: CaseStudy; index: number }) {
+function SupportingCard({ study }: { study: CaseStudy }) {
   return (
     <Link
       href={`/case-studies/${study.slug}`}
@@ -96,15 +92,14 @@ function SupportingCard({ study, index }: { study: CaseStudy; index: number }) {
         <DossierTile
           domain={study.domain}
           name={study.name}
-          index={index}
           iconUrl={study.iconUrl}
           size="sm"
         />
       </div>
       <div className="col-span-3 flex flex-col justify-between p-5 md:p-6">
         <div className="flex items-center gap-2">
-          <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-text-muted">
-            Case №{String(index).padStart(2, "0")}
+          <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-accent font-semibold">
+            {study.tags[0] ?? "Case Study"}
           </span>
           <span className="h-px flex-1 bg-border" aria-hidden />
         </div>
