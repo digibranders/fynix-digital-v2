@@ -29,9 +29,9 @@ export default function ImpactStats() {
                 <dd className="font-serif text-5xl md:text-6xl font-normal text-accent leading-none tabular-nums">
                   <CountUp value={stat.value} duration={1800} />
                 </dd>
-                <span className="text-sm text-white mt-4 font-medium">{stat.label}</span>
+                <span className="text-sm md:text-base lg:text-lg text-white mt-4 font-medium">{stat.label}</span>
                 {stat.sub ? (
-                  <span className="text-xs uppercase tracking-widest text-white/50 font-mono mt-2">
+                  <span className="text-xs md:text-sm lg:text-[13px] uppercase tracking-widest text-white/50 font-mono mt-2">
                     {stat.sub}
                   </span>
                 ) : null}

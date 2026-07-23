@@ -2,9 +2,9 @@ import Link from "next/link";
 import type { CaseStudy } from "@/lib/content";
 import DossierTile from "@/components/DossierTile";
 
-type Props = { study: CaseStudy; index?: number };
+type Props = { study: CaseStudy };
 
-export default function CaseStudyCard({ study, index }: Props) {
+export default function CaseStudyCard({ study }: Props) {
   return (
     <Link
       href={`/case-studies/${study.slug}`}
@@ -15,7 +15,6 @@ export default function CaseStudyCard({ study, index }: Props) {
           domain={study.domain}
           name={study.name}
           iconUrl={study.iconUrl}
-          index={index}
           size="lg"
           showName
         />

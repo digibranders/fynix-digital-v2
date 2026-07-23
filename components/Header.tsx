@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState, type MouseEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type MouseEvent } from "react";
 import { useLenis } from "lenis/react";
 import { acts, caseStudies, nav, siteConfig } from "@/lib/content";
 import DossierTile from "@/components/DossierTile";
@@ -76,7 +76,7 @@ export default function Header() {
 
   const darkSectionsRef = useRef<HTMLElement[]>([]);
 
-  const applyScrollState = (y: number) => {
+  const applyScrollState = useCallback((y: number) => {
     setScrolled(y > SCROLL_THRESHOLD);
     const sections = darkSectionsRef.current;
     if (sections.length === 0) {
@@ -88,7 +88,7 @@ export default function Header() {
       return r.top < HEADER_HEIGHT && r.bottom > 0;
     });
     setTheme(overDark ? "dark" : "light");
-  };
+  }, []);
 
   useEffect(() => {
     darkSectionsRef.current = Array.from(
@@ -129,7 +129,7 @@ export default function Header() {
       window.removeEventListener("scroll", schedule);
       window.removeEventListener("resize", schedule);
     };
-  }, []);
+  }, [applyScrollState]);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -209,7 +209,7 @@ export default function Header() {
 
           <nav
             aria-label="Primary"
-            className={`hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 items-center gap-10 text-base font-medium transition-colors duration-300 ${
+            className={`hidden lg:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 items-center gap-10 text-base font-medium transition-colors duration-300 ${
               isDark ? "text-white/70" : "text-text-muted"
             }`}
           >
@@ -295,7 +295,7 @@ export default function Header() {
                 closeMegaNow();
                 setMenuOpen((o) => !o);
               }}
-              className={`md:hidden h-10 w-10 -mr-2 flex items-center justify-center rounded-full transition-colors ${
+              className={`lg:hidden h-10 w-10 -mr-2 flex items-center justify-center rounded-full transition-colors ${
                 isDark
                   ? "text-white hover:bg-white/10"
                   : "text-primary hover:bg-primary/5"
@@ -327,7 +327,7 @@ export default function Header() {
           aria-hidden={!megaOpen}
           onMouseEnter={openMega}
           onMouseLeave={closeMegaDeferred}
-          className={`hidden md:block absolute inset-x-0 top-full mt-2 rounded-2xl border border-black/[0.06] bg-white/95 backdrop-blur-md shadow-[0_20px_40px_-30px_rgba(0,0,0,0.25)] transition-[opacity,transform,visibility] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+          className={`hidden lg:block absolute inset-x-0 top-full mt-2 rounded-2xl border border-black/[0.06] bg-white/95 backdrop-blur-md shadow-[0_20px_40px_-30px_rgba(0,0,0,0.25)] transition-[opacity,transform,visibility] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
             megaOpen
               ? "opacity-100 translate-y-0 visible"
               : "opacity-0 -translate-y-1 invisible"
@@ -413,7 +413,6 @@ export default function Header() {
                       domain={caseStudies[featuredIdx].domain}
                       name={caseStudies[featuredIdx].name}
                       iconUrl={caseStudies[featuredIdx].iconUrl}
-                      index={featuredIdx + 1}
                       size="lg"
                       showName
                     />
@@ -440,7 +439,7 @@ export default function Header() {
       <div
         aria-hidden
         onClick={closeMegaNow}
-        className={`hidden md:block fixed inset-0 z-40 bg-primary/20 backdrop-blur-md transition-opacity duration-300 ${
+        className={`hidden lg:block fixed inset-0 z-40 bg-primary/20 backdrop-blur-md transition-opacity duration-300 ${
           megaOpen ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
       />
@@ -451,7 +450,7 @@ export default function Header() {
         aria-modal="true"
         aria-label="Menu"
         hidden={!menuOpen}
-        className={`md:hidden fixed inset-x-0 top-20 bottom-0 z-40 bg-white transition-[opacity,transform] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+        className={`lg:hidden fixed inset-x-0 top-20 bottom-0 z-40 bg-white transition-[opacity,transform] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
           menuOpen
             ? "opacity-100 translate-y-0"
             : "opacity-0 pointer-events-none -translate-y-2"

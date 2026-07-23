@@ -1,7 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { processSteps } from "@/lib/content";
+
+const useIsoLayoutEffect =
+  typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
 type Props = {
   variant?: "compact" | "full";
@@ -18,9 +21,18 @@ export default function ProcessGantt({ variant = "full", className = "" }: Props
   const figRef = useRef<HTMLElement | null>(null);
   const [play, setPlay] = useState(false);
 
-  useEffect(() => {
+  useIsoLayoutEffect(() => {
     const el = figRef.current;
     if (!el) return;
+    const rect = el.getBoundingClientRect();
+    if (rect.top < window.innerHeight && rect.bottom > 0) {
+      setPlay(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    const el = figRef.current;
+    if (!el || play) return;
 
     // The global reduced-motion rule in globals.css clamps every
     // transition to ~0.01ms, so users who prefer reduced motion see
@@ -40,7 +52,7 @@ export default function ProcessGantt({ variant = "full", className = "" }: Props
 
     observer.observe(el);
     return () => observer.disconnect();
-  }, []);
+  }, [play]);
 
   // When the last row's transition finishes, fade the ongoing dashed line in.
   const lastRowDelay = (processSteps.length - 1) * ROW_STAGGER_MS;
@@ -49,13 +61,13 @@ export default function ProcessGantt({ variant = "full", className = "" }: Props
   return (
     <figure
       ref={figRef}
-      className={`not-prose ${className}`}
+      className={`not-prose overflow-x-auto -mx-6 px-6 md:mx-0 md:px-0 ${className}`}
       aria-label="Ten-week engagement schedule"
     >
       <div
         className={`grid ${
           isCompact ? "gap-y-1.5" : "gap-y-2"
-        }`}
+        } min-w-[640px]`}
         style={{
           gridTemplateColumns: `${isCompact ? "6.5rem" : "8rem"} minmax(0, 1fr)`,
         }}
@@ -88,7 +100,7 @@ export default function ProcessGantt({ variant = "full", className = "" }: Props
             <div key={step.num} className="contents">
               <div
                 className={`flex items-center gap-2 ${
-                  isCompact ? "text-[11px]" : "text-xs"
+                  isCompact ? "text-[11px]" : "text-sm"
                 } font-mono uppercase tracking-widest text-primary`}
               >
                 <span className="text-accent">{step.num}</span>

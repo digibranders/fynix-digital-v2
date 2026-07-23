@@ -1,6 +1,5 @@
 import Link from "next/link";
 import type { Act } from "@/lib/content";
-import { emphasize } from "@/lib/emphasize";
 
 const HEADER_HEIGHT = 80;
 const STACK_PEEK = 68;
@@ -48,24 +47,24 @@ export default function ActsStack({ acts }: Props) {
                 <div className="font-serif italic text-6xl md:text-7xl lg:text-[92px] text-primary font-normal leading-[0.9] tracking-tight mb-8 md:mb-10">
                   {act.title}
                 </div>
-                <h3 className="font-serif text-2xl md:text-4xl lg:text-[42px] text-primary font-medium leading-[1.15]">
+                <h3 className="font-serif text-xl md:text-3xl lg:text-4xl xl:text-[42px] text-primary font-medium leading-[1.15] text-balance line-clamp-2">
                   {act.headline}
                 </h3>
-                <p className="text-text-muted text-base md:text-lg font-light leading-relaxed mt-6 max-w-xl">
-                  {emphasize(act.content)}
+                <p className="text-text-muted text-base md:text-lg font-normal leading-relaxed mt-6 max-w-xl">
+                  {act.content.replace(/\*\*/g, "")}
                 </p>
 
                 <ul className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2.5">
                   {act.deliverables.map((item) => (
                     <li
-                      key={item}
-                      className="flex items-center gap-2 text-sm text-primary/85 font-light"
+                      key={item.title}
+                      className="flex items-center gap-2 text-sm text-primary/85 font-normal"
                     >
                       <span
                         aria-hidden
                         className="h-1.5 w-1.5 rounded-full bg-accent flex-shrink-0"
                       />
-                      {item}
+                      {item.title}
                     </li>
                   ))}
                 </ul>

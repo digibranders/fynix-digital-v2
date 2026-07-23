@@ -65,7 +65,7 @@ export default function TableOfContents({ items, className = "" }: Props) {
                   className={`leading-snug transition-all ${
                     isActive
                       ? "font-medium border-l-2 border-accent pl-3 -ml-3"
-                      : "font-light"
+                      : "font-normal"
                   }`}
                 >
                   {item.label}

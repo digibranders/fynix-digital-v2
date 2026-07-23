@@ -13,7 +13,7 @@ export default function SectionHeading({ title, description, align = "left" }: P
       <h2 className="font-serif text-4xl md:text-5xl text-primary font-medium">{title}</h2>
       {description ? (
         <p
-          className={`text-text-muted text-base font-light leading-relaxed mt-4 ${
+          className={`text-text-muted text-base font-normal leading-relaxed mt-4 ${
             centered ? "" : "max-w-2xl"
           }`}
         >

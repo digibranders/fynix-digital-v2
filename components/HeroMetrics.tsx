@@ -59,13 +59,13 @@ function MetricCard({ icon, title, value, change, featured, negative }: {
       }`}>
         <MetricIcon type={icon} />
       </span>
-      <p className="text-[10px] font-medium text-white/50 md:text-xs leading-none">{title}</p>
+      <p className="text-[10px] font-semibold text-white/75 md:text-xs leading-none">{title}</p>
       <p className="mt-2 font-sans font-extrabold text-[26px] leading-none tracking-tight text-white md:text-[32px]">{value}</p>
       <div className="mt-2.5">
-        <p className={`text-[10.5px] font-bold md:text-xs leading-none ${negative ? "text-[#ff6b6b]" : "text-[#8ae68a]"}`}>
+        <p className={`text-[10.5px] font-bold md:text-xs leading-none ${negative ? "text-[#ff8080]" : "text-[#9deb9d]"}`}>
           {negative ? "↓" : "↑"} {change}
         </p>
-        <p className="text-[9px] text-white/35 mt-1 font-medium">vs last 16 months</p>
+        <p className="text-[9px] text-white/55 mt-1 font-medium">vs last 16 months</p>
       </div>
     </div>
   );
@@ -79,13 +79,13 @@ export default function HeroMetrics() {
     <div className="relative w-full max-w-[700px] py-4 lg:py-7 lg:-mr-4 xl:-ml-4 select-none">
       {/* 3D Dashboard Card - Double layer for gradient border with a clean, dark drop-shadow */}
       <div
-        className="relative w-full p-[1.2px] rounded-[22px] bg-gradient-to-bl from-white/[0.12] via-white/[0.02] to-white/[0.04] shadow-[0_30px_80px_rgba(0,0,0,0.95)] lg:[transform-origin:right_center] lg:[transform:perspective(1800px)_rotateY(-16deg)_rotateX(6deg)_rotateZ(2.5deg)]"
+        className="relative w-full p-px rounded-[22px] bg-gradient-to-bl from-white/[0.12] via-white/[0.02] to-white/[0.04] shadow-[0_30px_80px_rgba(0,0,0,0.95)] lg:[transform-origin:right_center] lg:[transform:perspective(2400px)_rotateY(-9deg)_rotateX(3deg)_translateZ(0)] [transform-style:preserve-3d] [backface-visibility:hidden] [-webkit-font-smoothing:antialiased] [text-rendering:geometricPrecision] [will-change:transform]"
         role="img"
         aria-label="Organic Performance Overview dashboard with search performance metrics and impressions chart"
       >
 
         {/* Inner Card Container */}
-        <div className="relative overflow-hidden rounded-[21px] bg-[#0A131F]/98 backdrop-blur-md p-4 md:p-6 w-full h-full">
+        <div className="relative overflow-hidden rounded-[21px] bg-[#0A131F] p-4 md:p-6 w-full h-full [transform:translateZ(0)] [backface-visibility:hidden] [-webkit-font-smoothing:antialiased] [text-rendering:geometricPrecision]">
           {/* Subtle grid pattern overlay */}
           <div aria-hidden className="absolute inset-0 opacity-20 [background-image:radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.06)_1px,transparent_0)] [background-size:16px_16px]" />
           
@@ -93,9 +93,9 @@ export default function HeroMetrics() {
             {/* Header */}
             <div className="flex items-center justify-between gap-3">
               <h2 className="text-sm font-semibold tracking-tight text-white md:text-base">Organic Performance Overview</h2>
-              <span className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-white/[0.06] px-3 py-2 text-[10px] font-semibold text-white/60 md:text-xs border border-white/[0.03]">
-                <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 text-white/50" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2" /><path d="M8 3v4M16 3v4M4 10h16" /></svg>
-                Last 16 months <span className="text-white/35 font-light">⌄</span>
+              <span className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-white/[0.06] px-3 py-2 text-[10px] font-semibold text-white/75 md:text-xs border border-white/[0.05]">
+                <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 text-white/65" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2" /><path d="M8 3v4M16 3v4M4 10h16" /></svg>
+                Last 16 months <span className="text-white/55 font-normal">⌄</span>
               </span>
             </div>
 
@@ -104,7 +104,7 @@ export default function HeroMetrics() {
               <MetricCard icon="cursor" title="Total Clicks" value="48.1K" change="32.6%" />
               <MetricCard icon="eye" title="Total Impressions" value="7.31M" change="41.2%" featured />
               <MetricCard icon="trend" title="Average CTR" value="0.7%" change="8.7%" />
-              <MetricCard icon="target" title="Average Position" value="30.6" change="2.4" negative />
+              <MetricCard icon="target" title="Average Position" value="15.2" change="4.3%" />
             </div>
 
             {/* Chart */}
@@ -112,7 +112,7 @@ export default function HeroMetrics() {
               <p className="mb-3 text-[10px] font-semibold text-white/70 md:text-xs">Impressions</p>
               <div className="relative pl-8">
                 {/* Y-Axis Labels */}
-                <div className="absolute inset-y-0 left-0 flex flex-col justify-between pb-6 text-[9px] text-white/40 md:text-[10px] font-medium">
+                <div className="absolute inset-y-0 left-0 flex flex-col justify-between pb-6 text-[9px] text-white/60 md:text-[10px] font-semibold tabular-nums">
                   <span>60K</span><span>40K</span><span>20K</span><span>0</span>
                 </div>
                 
@@ -138,14 +138,14 @@ export default function HeroMetrics() {
                     transform: "translate(-85%, calc(-100% - 10px))",
                   }}
                 >
-                  <p className="text-xs font-bold text-white leading-tight font-sans">54.3K</p>
-                  <p className="text-[9px] text-white/50 leading-tight mt-0.5 font-medium font-sans">Jul 24, 2026</p>
+                  <p className="text-xs font-bold text-white leading-tight font-sans tabular-nums">54.3K</p>
+                  <p className="text-[9px] text-white/70 leading-tight mt-0.5 font-semibold font-sans tabular-nums">Jul 24, 2026</p>
                   {/* Tooltip Triangle Tail */}
                   <div className="absolute top-[calc(100%-5px)] left-[85%] -translate-x-1/2 w-2.5 h-2.5 rotate-45 bg-[#0B1521] border-r border-b border-[#e9af88]/30" />
                 </div>
 
                 {/* X-Axis Labels (9 labels distributed exactly) */}
-                <div className="mt-3 flex justify-between text-[9px] md:text-[10px] text-white/40 px-0.5 font-medium font-sans">
+                <div className="mt-3 flex justify-between text-[9px] md:text-[10px] text-white/60 px-0.5 font-semibold font-sans tabular-nums">
                   <span>Mar ’25</span>
                   <span>May ’25</span>
                   <span>Jul ’25</span>

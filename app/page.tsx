@@ -7,9 +7,10 @@ import TrustedBy from "@/components/TrustedBy";
 import ImpactStats from "@/components/ImpactStats";
 import TestimonialsRail from "@/components/TestimonialsRail";
 import SpotlightBackdrop from "@/components/SpotlightBackdrop";
-import HeroMetrics from "@/components/HeroMetrics";
+// import HeroMetrics from "@/components/HeroMetrics";
 import SpotlightInitiation from "@/components/SpotlightInitiation";
 import HeroDarkBackdrop from "@/components/HeroDarkBackdrop";
+import OrganicPerformanceOverview from "@/components/OrganicPerformanceOverview";
 
 export default function Home() {
   return (
@@ -22,19 +23,19 @@ export default function Home() {
         <HeroDarkBackdrop />
 
         <div className="relative max-w-7xl mx-auto px-6 md:px-12">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
-            <Reveal className="lg:col-span-5 flex flex-col items-start">
+          <div className="grid grid-cols-1 xl:grid-cols-12 gap-12 xl:gap-8 items-center">
+            <Reveal className="xl:col-span-5 flex flex-col items-start">
               {/* Headline using Figtree font as requested */}
-              <h1 className="font-sans text-5xl md:text-6.5xl lg:text-[76px] font-extrabold tracking-tight text-white leading-[1.08] text-left">
+              <h1 className="font-sans text-5xl md:text-6.5xl xl:text-[76px] font-extrabold tracking-tight text-white leading-[1.08] text-left">
                 Your <br />
                 Cybersecurity <br />
-                <span className="italic font-light text-transparent bg-clip-text bg-gradient-to-r from-[#e9af88] to-[#ffb57e] tracking-tight">Growth</span>{" "}
+                <span className="italic font-normal text-transparent bg-clip-text bg-gradient-to-r from-[#e9af88] to-[#ffb57e] tracking-tight">Growth</span>{" "}
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#e9af88] to-[#ffb57e] tracking-tight">Partner</span>
               </h1>
 
               {/* Glowing Divider & Lens Flare */}
               <div className="relative w-full max-w-md h-[1.5px] mt-7 mb-8 bg-gradient-to-r from-[#e9af88]/60 via-[#ffb57e]/25 to-transparent">
-                <div className="absolute top-1/2 left-[12%] -translate-y-1/2">
+                <div className="hero-lens absolute top-1/2 -translate-y-1/2">
                   {/* Central core */}
                   <div className="w-1.5 h-1.5 rounded-full bg-white shadow-[0_0_8px_2px_#ffb57e,0_0_16px_4px_#e9af88]" />
                   {/* Horizontal light beam */}
@@ -44,9 +45,9 @@ export default function Home() {
                 </div>
               </div>
 
-              <p className="text-white/70 text-base md:text-lg font-light leading-relaxed max-w-xl text-left">
+              <p className="text-white/70 text-base md:text-lg font-normal leading-relaxed max-w-xl text-left">
                 We help cybersecurity companies transform their websites into{" "}
-                rowth engines through
+                growth engines through
                 better user experience, technical excellence, AI-ready SEO, and{" "}
                 predictable lead generation.
               </p>
@@ -55,7 +56,7 @@ export default function Home() {
               <div className="mt-8 flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
                 <Link
                   href="/contact"
-                  className="inline-flex items-center justify-center gap-2.5 px-9 py-4 bg-gradient-to-r from-[#e9af88] to-[#ffd2b3] text-[#0C1E2E] hover:brightness-105 font-bold rounded-full shadow-[0_4px_22px_rgba(233,175,136,0.3)] transition-all duration-300 text-center group text-base"
+                  className="cta-glide inline-flex items-center justify-center gap-2.5 px-9 py-4 bg-gradient-to-r from-[#e9af88] to-[#ffd2b3] text-[#0C1E2E] hover:brightness-105 font-bold rounded-full shadow-[0_4px_22px_rgba(233,175,136,0.3)] text-center group text-base"
                 >
                   Let&apos;s Start Improving
                   <svg
@@ -77,8 +78,8 @@ export default function Home() {
 
             </Reveal>
 
-            <Reveal variant="left" delay={180} className="lg:col-span-7 w-full flex justify-center lg:justify-end">
-              <HeroMetrics />
+            <Reveal variant="left" delay={180} className="xl:col-span-7 w-full flex justify-center xl:justify-end">
+              <OrganicPerformanceOverview />
             </Reveal>
           </div>
         </div>
@@ -95,7 +96,7 @@ export default function Home() {
               <h2 className="font-serif text-4xl md:text-5xl text-primary font-medium whitespace-nowrap">
                 The Four Growth Acts
               </h2>
-              <p className="mt-4 text-base md:text-lg text-text-muted font-light leading-relaxed">
+              <p className="mt-4 text-base md:text-lg text-text-muted font-normal leading-relaxed">
                 Four disciplines. One connected engine.
                 <br />
                 Each act sets up the next, so nothing leaks between them.
@@ -119,7 +120,7 @@ export default function Home() {
       <section className="relative isolate overflow-hidden py-24 md:py-32 bg-transparent">
         <SpotlightBackdrop />
         <div className="relative max-w-7xl mx-auto px-6 md:px-12">
-          <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 border-b border-border pb-8">
+          <div className="flex flex-col md:flex-row md:items-end justify-between mb-16">
             <div>
               <h2 className="font-serif text-4xl md:text-5xl text-primary font-medium">
                 Recent Work

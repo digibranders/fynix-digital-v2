@@ -63,20 +63,20 @@ export default function ActPreviewPanels({ acts }: Props) {
               <h3 className="font-serif text-4xl md:text-5xl text-primary font-medium leading-tight">
                 {act.title}
               </h3>
-              <p className="text-base md:text-lg text-text-muted font-light mt-5 leading-relaxed max-w-sm">
+              <p className="text-base md:text-lg text-text-muted font-normal mt-5 leading-relaxed max-w-sm">
                 {act.subtitle}
               </p>
               <ul className="mt-7 grid grid-cols-1 gap-y-2.5">
                 {act.deliverables.slice(0, 4).map((d) => (
                   <li
-                    key={d}
-                    className="flex items-center gap-3 text-sm md:text-base text-primary/85 font-light"
+                    key={d.title}
+                    className="flex items-center gap-3 text-sm md:text-base text-primary/85 font-normal"
                   >
                     <span
                       aria-hidden
                       className="h-1.5 w-1.5 rounded-full bg-accent flex-shrink-0"
                     />
-                    {d}
+                    {d.title}
                   </li>
                 ))}
               </ul>

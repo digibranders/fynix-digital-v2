@@ -1,12 +1,14 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { testimonials } from "@/lib/content";
 import Reveal from "./Reveal";
 
 const SLIDE_DURATION_MS = 7000;
 const TRANSITION_MS = 700;
+const SWIPE_THRESHOLD_PX = 40;
+const SWIPE_DIRECTION_LOCK_PX = 10;
 
 function getInitials(company: string): string {
   return company
@@ -28,6 +30,38 @@ export default function TestimonialsRail() {
 
   const pause = useCallback(() => setPaused(true), []);
   const resume = useCallback(() => setPaused(false), []);
+
+  const swipeRef = useRef<{ startX: number; startY: number; locked: boolean } | null>(null);
+
+  const onPointerDown = useCallback(
+    (e: React.PointerEvent) => {
+      if (e.pointerType !== "touch") return;
+      swipeRef.current = { startX: e.clientX, startY: e.clientY, locked: false };
+      pause();
+    },
+    [pause],
+  );
+
+  const onPointerMove = useCallback((e: React.PointerEvent) => {
+    const s = swipeRef.current;
+    if (!s || s.locked) return;
+    const dx = Math.abs(e.clientX - s.startX);
+    const dy = Math.abs(e.clientY - s.startY);
+    if (dx > SWIPE_DIRECTION_LOCK_PX && dx > dy) s.locked = true;
+  }, []);
+
+  const onPointerEnd = useCallback(
+    (e: React.PointerEvent) => {
+      const s = swipeRef.current;
+      swipeRef.current = null;
+      resume();
+      if (!s || !s.locked) return;
+      const dx = e.clientX - s.startX;
+      if (Math.abs(dx) < SWIPE_THRESHOLD_PX) return;
+      setStep((prev) => prev + (dx < 0 ? 1 : -1));
+    },
+    [resume],
+  );
 
   const jumpToDupIdx = useCallback(
     (dupIdx: number) => {
@@ -83,7 +117,7 @@ export default function TestimonialsRail() {
               From Clients.{" "}
               <span className="italic text-accent">Not Copywriters.</span>
             </h2>
-            <p className="text-text-muted text-base font-light leading-relaxed mt-6">
+            <p className="text-text-muted text-lg md:text-xl font-normal leading-relaxed mt-6">
               We combine strategy, creativity, and{" "}
               <strong className="font-medium text-primary">AI-driven insights</strong> to grow
               your brand, attract high-quality leads, and drive measurable results.
@@ -99,8 +133,12 @@ export default function TestimonialsRail() {
           >
             <div
               aria-live="polite"
-              className="relative grid"
+              className="relative grid touch-pan-y select-none"
               style={{ gridTemplateAreas: '"stack"' }}
+              onPointerDown={onPointerDown}
+              onPointerMove={onPointerMove}
+              onPointerUp={onPointerEnd}
+              onPointerCancel={onPointerEnd}
             >
               {testimonials.map((t, i) => {
                 const isActive = i === activeIdx;

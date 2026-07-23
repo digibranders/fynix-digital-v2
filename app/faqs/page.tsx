@@ -3,7 +3,6 @@ import Link from "next/link";
 import FaqAccordion from "@/components/FaqAccordion";
 import Reveal from "@/components/Reveal";
 import PreFooterBackdrop from "@/components/PreFooterBackdrop";
-import SectionSeam from "@/components/SectionSeam";
 import HeroDarkBackdrop from "@/components/HeroDarkBackdrop";
 import { faqs, siteConfig } from "@/lib/content";
 
@@ -34,7 +33,7 @@ export default function FaqsPage() {
 
       <section
         data-nav-theme="dark"
-        className="relative isolate overflow-hidden -mt-20 md:-mt-24 pt-32 md:pt-40 pb-16 md:pb-24 bg-primary text-white"
+        className="relative isolate overflow-hidden -mt-20 md:-mt-24 pt-32 md:pt-40 pb-14 md:pb-20 bg-primary text-white"
       >
         <HeroDarkBackdrop />
         <div className="relative max-w-7xl mx-auto px-6 md:px-12">
@@ -42,7 +41,7 @@ export default function FaqsPage() {
             Questions worth asking.{" "}
             <span className="font-serif italic text-[#e9af88] md:block">Answered plainly.</span>
           </h1>
-          <p className="text-white/70 text-base md:text-lg font-light leading-relaxed mt-6 max-w-2xl">
+          <p className="text-white/70 text-base md:text-lg font-normal leading-relaxed mt-6 max-w-2xl">
             The questions cybersecurity leaders ask most often before starting an engagement with{" "}
             {siteConfig.name}.
           </p>
@@ -54,8 +53,6 @@ export default function FaqsPage() {
           <FaqAccordion faqs={faqs} />
         </Reveal>
       </section>
-
-      <SectionSeam from="white" to="soft" />
 
       <section className="relative isolate overflow-hidden py-20 md:py-28 bg-transparent">
         <PreFooterBackdrop />

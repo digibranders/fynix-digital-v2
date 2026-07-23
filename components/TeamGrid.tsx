@@ -16,7 +16,7 @@ export default function TeamGrid() {
             >
               A small, senior team owns the outcome end to end.
             </h2>
-            <p className="text-text-muted text-base font-light leading-relaxed mt-4">
+            <p className="text-text-muted text-base font-normal leading-relaxed mt-4">
               You work directly with the people doing the work.{" "}
               <strong className="font-medium text-primary">
                 No junior handoffs, no account layer
@@ -41,7 +41,7 @@ export default function TeamGrid() {
                 <span className="text-xs font-mono text-accent uppercase tracking-widest mt-2">
                   {member.role}
                 </span>
-                <p className="text-sm text-text-muted font-light leading-relaxed mt-4">
+                <p className="text-sm text-text-muted font-normal leading-relaxed mt-4">
                   {member.focus}
                 </p>
               </article>

@@ -91,6 +91,33 @@ html.lenis body {
   50%      { opacity: 0.55; transform: scale(1.35); }
 }
 
+/*
+ * Hero divider lens: on load, glides forward while gradually dimming until it
+ * fades out at the far end, then reappears at the start with a slow brighten
+ * and holds there. Plays once per load; no loop.
+ */
+@keyframes heroLensGlide {
+  0%   { left: 12%; opacity: 1; }
+  50%  { left: 92%; opacity: 0; }
+  60%  { left: 12%; opacity: 0; }
+  100% { left: 12%; opacity: 1; }
+}
+
+.hero-lens {
+  left: 12%;
+  opacity: 1;
+  animation: heroLensGlide 5.6s cubic-bezier(0.4, 0, 0.2, 1) 800ms 1 forwards;
+  will-change: left, opacity;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-lens {
+    animation: none;
+    left: 12%;
+    opacity: 1;
+  }
+}
+
 /* Continuously drifting dashed line - signals "ongoing" in the process Gantt. */
 @keyframes dashDrift {
   from { background-position: 0 center; }
@@ -273,14 +300,22 @@ select:not(:disabled) {
 :root {
   --cta-ease: cubic-bezier(0.22, 1, 0.36, 1);
   --cta-dur: 180ms;
+  --cta-color-dur: 1100ms;
+  --cta-color-ease: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* Primary pill: lift, deepen shadow, slide inner arrow */
-.cta-primary {
+/* Primary pill: lift, deepen shadow, slide inner arrow.
+   Color and shadow ease in slower than the transform for a
+   more premium, gliding-in feel. */
+.cta-primary,
+.cta-glide {
   transition:
     transform var(--cta-dur) var(--cta-ease),
-    background-color var(--cta-dur) var(--cta-ease),
-    box-shadow var(--cta-dur) var(--cta-ease) !important;
+    background-color var(--cta-color-dur) var(--cta-color-ease),
+    background-image var(--cta-color-dur) var(--cta-color-ease),
+    color var(--cta-color-dur) var(--cta-color-ease),
+    filter var(--cta-color-dur) var(--cta-color-ease),
+    box-shadow var(--cta-color-dur) var(--cta-color-ease) !important;
   will-change: transform;
 }
 .cta-primary:hover {
@@ -289,7 +324,7 @@ select:not(:disabled) {
 }
 .cta-primary:active {
   transform: translateY(0);
-  transition-duration: 80ms;
+  transition-duration: 100ms, 200ms, 200ms, 200ms, 200ms, 200ms;
 }
 .cta-primary svg {
   transition: transform var(--cta-dur) var(--cta-ease);
@@ -298,13 +333,37 @@ select:not(:disabled) {
   transform: translateX(3px);
 }
 
+/* Gradient reveal — for pill CTAs whose default is a solid color and
+   hover state is a gradient (bg-primary → gradient-to-r). Browsers
+   can't tween solid-color → gradient, so we cross-fade a gradient
+   pseudo-element on top of the base fill instead. Combined with
+   .cta-glide, this gives a truly premium, slow color reveal. */
+.cta-reveal-gradient {
+  position: relative;
+  isolation: isolate;
+}
+.cta-reveal-gradient::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(to right, #e9af88, #ffd2b3);
+  opacity: 0;
+  transition: opacity var(--cta-color-dur) var(--cta-color-ease);
+  z-index: -1;
+  pointer-events: none;
+}
+.cta-reveal-gradient:hover::before {
+  opacity: 1;
+}
+
 /* Secondary pill: lift, border darken, subtle bg lift */
 .cta-secondary {
   transition:
     transform var(--cta-dur) var(--cta-ease),
-    background-color var(--cta-dur) var(--cta-ease),
-    border-color var(--cta-dur) var(--cta-ease),
-    color var(--cta-dur) var(--cta-ease) !important;
+    background-color var(--cta-color-dur) var(--cta-color-ease),
+    border-color var(--cta-color-dur) var(--cta-color-ease),
+    color var(--cta-color-dur) var(--cta-color-ease) !important;
   will-change: transform;
 }
 .cta-secondary:hover {
@@ -313,7 +372,7 @@ select:not(:disabled) {
 }
 .cta-secondary:active {
   transform: translateY(0);
-  transition-duration: 80ms;
+  transition-duration: 100ms, 200ms, 200ms, 200ms;
 }
 
 /* Eyebrow link: underline animates from full → collapse → new color grows in */

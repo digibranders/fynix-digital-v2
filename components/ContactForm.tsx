@@ -92,7 +92,7 @@ export default function ContactForm() {
         <h3 className="font-serif text-2xl text-primary font-medium mb-2">
           Thank you, {formData.name}.
         </h3>
-        <p className="text-sm text-text-muted font-light max-w-sm">
+        <p className="text-sm text-text-muted font-normal max-w-sm">
           Our growth architect will review your brief and reach out within 24 hours.
         </p>
       </div>

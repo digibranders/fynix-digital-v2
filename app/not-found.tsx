@@ -7,7 +7,7 @@ export default function NotFound() {
         <h1 className="font-serif text-4xl md:text-5xl text-primary font-medium leading-tight">
           This page has moved on.
         </h1>
-        <p className="text-text-muted text-base font-light leading-relaxed mt-6">
+        <p className="text-text-muted text-base font-normal leading-relaxed mt-6">
           The page you&apos;re looking for isn&apos;t here. Head back to the homepage or explore our
           services.
         </p>

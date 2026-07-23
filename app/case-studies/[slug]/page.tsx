@@ -2,9 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import Reveal from "@/components/Reveal";
-import SpotlightBackdrop from "@/components/SpotlightBackdrop";
+import PreFooterBackdrop from "@/components/PreFooterBackdrop";
 import DossierTile from "@/components/DossierTile";
-import SectionSeam from "@/components/SectionSeam";
 import HeroDarkBackdrop from "@/components/HeroDarkBackdrop";
 import { caseStudies, type CaseStudy } from "@/lib/content";
 import { emphasize } from "@/lib/emphasize";
@@ -44,7 +43,6 @@ export default async function CaseStudyDetailPage({
   const study = caseStudies.find((s) => s.slug === slug);
   if (!study) notFound();
 
-  const orderIndex = caseStudies.findIndex((s) => s.slug === slug) + 1;
   const primaryTag = study.tags[0];
   const sameTag = caseStudies.filter(
     (s) => s.slug !== slug && s.tags.includes(primaryTag),
@@ -87,7 +85,7 @@ export default async function CaseStudyDetailPage({
               {study.name}
             </h1>
 
-            <p className="text-white/70 text-lg md:text-xl font-light leading-relaxed mt-6 max-w-2xl">
+            <p className="text-white/70 text-lg md:text-xl font-normal leading-relaxed mt-6 max-w-2xl">
               {study.description}.
             </p>
 
@@ -106,10 +104,10 @@ export default async function CaseStudyDetailPage({
       </section>
 
       {/* DETAILS + CTA */}
-      <section className="pt-20 md:pt-28 pb-16 md:pb-20 bg-background-soft">
+      <section className="pt-12 md:pt-16 pb-8 md:pb-12 bg-background-soft">
         <div className="max-w-6xl mx-auto px-6 md:px-12 grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16">
           <Reveal className="lg:col-span-7">
-            <p className="text-base md:text-lg text-primary/90 font-light leading-relaxed">
+            <p className="text-base md:text-lg text-primary/90 font-normal leading-relaxed">
               {study.description}. Shipped and live in production at{" "}
               <a
                 href={study.url}
@@ -178,7 +176,7 @@ export default async function CaseStudyDetailPage({
                   <dt className="text-[10px] font-mono uppercase tracking-widest text-text-muted">
                     Industry
                   </dt>
-                  <dd className="mt-1 text-sm text-primary/90 font-light">
+                  <dd className="mt-1 text-sm text-primary/90 font-normal">
                     {study.industry}
                   </dd>
                 </div>
@@ -207,7 +205,7 @@ export default async function CaseStudyDetailPage({
                     <span className="font-serif text-4xl text-primary leading-none">
                       {study.metric.value}
                     </span>
-                    <span className="text-xs font-light text-text-muted">
+                    <span className="text-xs font-normal text-text-muted">
                       {study.metric.label}
                     </span>
                   </dd>
@@ -224,8 +222,7 @@ export default async function CaseStudyDetailPage({
         study.execution?.length ||
         study.results?.length) && (
         <>
-        <SectionSeam from="soft" to="white" />
-        <section className="py-16 md:py-20 bg-white border-t border-border">
+        <section className="py-12 md:py-16 bg-white border-t border-border">
           <div className="max-w-6xl mx-auto px-6 md:px-12 grid grid-cols-1 gap-16 md:gap-20">
             {study.challenge && (
               <NarrativeBlock eyebrow="The Challenge">
@@ -241,7 +238,7 @@ export default async function CaseStudyDetailPage({
                   {study.solution.map((line, i) => (
                     <li
                       key={i}
-                      className="flex items-start gap-4 text-base md:text-lg text-primary/85 font-light leading-relaxed"
+                      className="flex items-start gap-4 text-base md:text-lg text-primary/85 font-normal leading-relaxed"
                     >
                       <span
                         aria-hidden
@@ -285,7 +282,6 @@ export default async function CaseStudyDetailPage({
             )}
           </div>
         </section>
-        <SectionSeam from="white" to="soft" />
         </>
       )}
 
@@ -317,12 +313,12 @@ export default async function CaseStudyDetailPage({
 
       {/* PRE-FOOTER CTA */}
       <section className="relative isolate overflow-hidden py-24 md:py-32 bg-transparent">
-        <SpotlightBackdrop />
+        <PreFooterBackdrop />
         <Reveal className="max-w-4xl mx-auto px-6 text-center">
           <h2 className="font-serif italic text-3xl md:text-5xl text-primary font-medium leading-tight">
             Have a project like {study.name}?
           </h2>
-          <p className="text-text-muted text-base md:text-lg font-light leading-relaxed mt-6 max-w-2xl mx-auto">
+          <p className="text-text-muted text-base md:text-lg font-normal leading-relaxed mt-6 max-w-2xl mx-auto">
             If this looks like something you&apos;re trying to build, let&apos;s
             talk about what your version could look like.
           </p>

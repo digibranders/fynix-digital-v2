@@ -18,11 +18,11 @@ export default function ServiceCard({ act }: Props) {
           {themes[act.slug]}
         </span>
         <h3 className="font-serif text-xl text-primary font-semibold mb-6">{act.title}</h3>
-        <ul className="space-y-3 text-sm text-text-muted font-light">
+        <ul className="space-y-3 text-sm text-text-muted font-normal">
           {act.deliverables.slice(0, 5).map((item) => (
-            <li key={item} className="flex items-center gap-2">
+            <li key={item.title} className="flex items-center gap-2">
               <span className="h-1.5 w-1.5 rounded-full bg-accent/60" aria-hidden />
-              {item}
+              {item.title}
             </li>
           ))}
         </ul>

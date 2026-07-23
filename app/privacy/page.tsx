@@ -83,7 +83,7 @@ export default function PrivacyPage() {
     <>
       <section
         data-nav-theme="dark"
-        className="relative isolate overflow-hidden -mt-20 md:-mt-24 pt-32 md:pt-40 pb-16 md:pb-24 bg-primary text-white"
+        className="relative isolate overflow-hidden -mt-20 md:-mt-24 pt-32 md:pt-40 pb-14 md:pb-20 bg-primary text-white"
       >
         <HeroDarkBackdrop />
         <div className="relative max-w-6xl mx-auto px-6 md:px-12">
@@ -112,7 +112,7 @@ export default function PrivacyPage() {
                   <h2 className="font-serif text-2xl md:text-3xl text-primary font-medium leading-tight">
                     {section.heading}
                   </h2>
-                  <p className="mt-4 text-base text-text-muted font-light leading-relaxed">
+                  <p className="mt-4 text-base text-text-muted font-normal leading-relaxed">
                     {section.body}
                   </p>
                 </article>
