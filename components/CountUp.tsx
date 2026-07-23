@@ -8,23 +8,35 @@ type Props = {
   className?: string;
 };
 
-type Parsed = { prefix: string; number: number; suffix: string; decimals: number };
+type Parsed = {
+  prefix: string;
+  number: number;
+  suffix: string;
+  decimals: number;
+  hasCommas: boolean;
+};
 
 function parse(input: string): Parsed | null {
   if (typeof input !== "string" || input.length === 0) return null;
-  const match = input.match(/^([^\d-]*?)(-?[\d.]+)(.*)$/);
+  const match = input.match(/^([^\d-]*?)(-?[\d,.]+)(.*)$/);
   if (!match) return null;
-  const numStr = match[2];
-  const number = parseFloat(numStr);
+  const rawNumStr = match[2];
+  const hasCommas = rawNumStr.includes(",");
+  const cleanNumStr = rawNumStr.replace(/,/g, "");
+  const number = parseFloat(cleanNumStr);
   if (Number.isNaN(number)) return null;
-  const decimals = numStr.includes(".") ? numStr.split(".")[1].length : 0;
-  return { prefix: match[1], number, suffix: match[3], decimals };
+  const decimals = cleanNumStr.includes(".") ? cleanNumStr.split(".")[1].length : 0;
+  return { prefix: match[1], number, suffix: match[3], decimals, hasCommas };
 }
 
 const easeOutQuint = (t: number) => 1 - Math.pow(1 - t, 5);
 
-const format = (p: Parsed, n: number) =>
-  `${p.prefix}${n.toFixed(p.decimals)}${p.suffix}`;
+const format = (p: Parsed, n: number) => {
+  const formattedNum = p.hasCommas
+    ? Math.round(n).toLocaleString("en-US")
+    : n.toFixed(p.decimals);
+  return `${p.prefix}${formattedNum}${p.suffix}`;
+};
 
 export default function CountUp({ value, duration = 1600, className = "" }: Props) {
   const parsed = useMemo(() => parse(value), [value]);

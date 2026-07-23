@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { useLenis } from "lenis/react";
 import { processSteps } from "@/lib/content";
 import Reveal from "./Reveal";
 
@@ -62,39 +63,42 @@ export default function ProcessTimeline() {
   const [progress, setProgress] = useState(0);
   const [drawn, setDrawn] = useState<boolean[]>(() => processSteps.map(() => false));
 
+  const updateProgress = useCallback(() => {
+    const ol = olRef.current;
+    if (!ol) return;
+    const olRect = ol.getBoundingClientRect();
+    const vpCenter = window.innerHeight * 0.5;
+    const usable = Math.max(1, olRect.height - 32);
+    const raw = (vpCenter - olRect.top - 16) / usable;
+    setProgress(Math.max(0, Math.min(1, raw)));
+
+    let closest = -1;
+    let minDist = Infinity;
+    itemRefs.current.forEach((el, i) => {
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      const mid = r.top + r.height / 2;
+      const dist = Math.abs(mid - vpCenter);
+      if (dist < minDist) {
+        minDist = dist;
+        closest = i;
+      }
+    });
+    const inView =
+      olRect.top < window.innerHeight * 0.75 &&
+      olRect.bottom > window.innerHeight * 0.25;
+    setActiveIndex(inView ? closest : -1);
+  }, []);
+
+  useLenis(updateProgress);
+
   useEffect(() => {
     let rafId = 0;
-    const update = () => {
-      const ol = olRef.current;
-      if (!ol) return;
-      const olRect = ol.getBoundingClientRect();
-      const vpCenter = window.innerHeight * 0.5;
-      const usable = Math.max(1, olRect.height - 32);
-      const raw = (vpCenter - olRect.top - 16) / usable;
-      setProgress(Math.max(0, Math.min(1, raw)));
-
-      let closest = -1;
-      let minDist = Infinity;
-      itemRefs.current.forEach((el, i) => {
-        if (!el) return;
-        const r = el.getBoundingClientRect();
-        const mid = r.top + r.height / 2;
-        const dist = Math.abs(mid - vpCenter);
-        if (dist < minDist) {
-          minDist = dist;
-          closest = i;
-        }
-      });
-      const inView =
-        olRect.top < window.innerHeight * 0.75 &&
-        olRect.bottom > window.innerHeight * 0.25;
-      setActiveIndex(inView ? closest : -1);
-    };
     const onScroll = () => {
       cancelAnimationFrame(rafId);
-      rafId = requestAnimationFrame(update);
+      rafId = requestAnimationFrame(updateProgress);
     };
-    update();
+    updateProgress();
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll);
     return () => {
@@ -102,7 +106,7 @@ export default function ProcessTimeline() {
       window.removeEventListener("resize", onScroll);
       cancelAnimationFrame(rafId);
     };
-  }, []);
+  }, [updateProgress]);
 
   useEffect(() => {
     const observers: IntersectionObserver[] = [];
@@ -139,10 +143,9 @@ export default function ProcessTimeline() {
       />
       <div
         aria-hidden
-        className="absolute left-6 md:left-1/2 top-4 w-px bg-accent md:-translate-x-1/2"
+        className="absolute left-6 md:left-1/2 top-4 w-px bg-accent md:-translate-x-1/2 will-change-[height]"
         style={{
           height: `calc((100% - 2rem) * ${progress})`,
-          transition: "height 500ms cubic-bezier(0.22, 1, 0.36, 1)",
         }}
       />
 
@@ -186,12 +189,9 @@ export default function ProcessTimeline() {
                     passed ? "border-accent/40 shadow-sm" : "border-border"
                   }`}
                 >
-                  <div className="flex items-baseline justify-between gap-4">
+                  <div>
                     <span className="font-mono text-xs text-accent font-bold">
                       {step.num}
-                    </span>
-                    <span className="font-mono text-[11px] uppercase tracking-widest text-text-muted">
-                      {step.duration}
                     </span>
                   </div>
 

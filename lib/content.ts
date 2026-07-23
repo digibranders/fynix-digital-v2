@@ -568,10 +568,10 @@ export const clients: Client[] = [
 export type Stat = { value: string; label: string; sub?: string };
 
 export const stats: Stat[] = [
-  { value: "40+", label: "Cybersecurity engagements", sub: "Since 2021" },
-  { value: "2.4×", label: "Average pipeline lift", sub: "Within 6 months of launch" },
-  { value: "5 years", label: "Focused on cybersecurity", sub: "One sector, deep patterns" },
-  { value: "<24h", label: "Response to inbound briefs", sub: "Business days" },
+  { value: "1,000+", label: "Ideas Pitched" },
+  { value: "50,000+", label: "Hours Spent" },
+  { value: "30+", label: "Brands Transformed" },
+  { value: "230%", label: "SEO Growth in 3 Months" },
 ];
 
 export type Testimonial = {

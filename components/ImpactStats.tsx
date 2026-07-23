@@ -14,9 +14,12 @@ export default function ImpactStats() {
           <div className="max-w-2xl">
             <h2
               id="impact-heading"
-              className="font-serif text-2xl sm:text-3xl md:text-5xl font-medium leading-tight text-balance"
+              className="font-serif text-3xl sm:text-4xl md:text-5xl lg:text-[56px] font-medium leading-[1.1] tracking-tight text-balance"
             >
-              Five years, measurable outcomes.
+              Real outcomes,{" "}
+              <span className="font-serif italic text-accent font-normal">
+                measurable impact.
+              </span>
             </h2>
           </div>
         </Reveal>
@@ -26,12 +29,14 @@ export default function ImpactStats() {
             <Reveal key={stat.label} delay={idx * 100}>
               <div className="flex flex-col">
                 <dt className="sr-only">{stat.label}</dt>
-                <dd className="font-serif text-5xl md:text-6xl font-normal text-accent leading-none tabular-nums">
+                <dd className="font-serif italic text-5xl sm:text-6xl md:text-7xl font-normal text-accent leading-none tracking-tight tabular-nums">
                   <CountUp value={stat.value} duration={1800} />
                 </dd>
-                <span className="text-sm md:text-base lg:text-lg text-white mt-4 font-medium">{stat.label}</span>
+                <span className="text-sm md:text-base text-white/85 mt-4 font-normal leading-snug">
+                  {stat.label}
+                </span>
                 {stat.sub ? (
-                  <span className="text-xs md:text-sm lg:text-[13px] uppercase tracking-widest text-white/50 font-mono mt-2">
+                  <span className="text-xs uppercase tracking-widest text-white/50 font-mono mt-2">
                     {stat.sub}
                   </span>
                 ) : null}

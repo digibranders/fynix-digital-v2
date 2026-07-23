@@ -1,9 +1,54 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
-import { ReactLenis } from "lenis/react";
+import { ReactLenis, useLenis } from "lenis/react";
+import { usePathname } from "next/navigation";
 
 type Props = { children: ReactNode };
+
+function ScrollReset() {
+  const pathname = usePathname();
+  const lenis = useLenis();
+
+  useEffect(() => {
+    if (lenis) {
+      lenis.scrollTo(0, { immediate: true });
+    } else {
+      window.scrollTo(0, 0);
+    }
+  }, [pathname, lenis]);
+
+  useEffect(() => {
+    const handleAnchorClick = (e: MouseEvent) => {
+      const target = (e.target as HTMLElement).closest("a");
+      if (!target) return;
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+
+      const href = target.getAttribute("href");
+      if (!href) return;
+
+      if (href.startsWith("#") || href.startsWith("javascript:")) return;
+
+      try {
+        const url = new URL(target.href, window.location.href);
+        if (url.pathname === window.location.pathname && !url.hash) {
+          if (lenis) {
+            lenis.scrollTo(0, { immediate: true });
+          } else {
+            window.scrollTo(0, 0);
+          }
+        }
+      } catch {
+        // Invalid URL
+      }
+    };
+
+    window.addEventListener("click", handleAnchorClick, true);
+    return () => window.removeEventListener("click", handleAnchorClick, true);
+  }, [lenis]);
+
+  return null;
+}
 
 export default function SmoothScroll({ children }: Props) {
   const [reducedMotion, setReducedMotion] = useState(false);
@@ -30,7 +75,9 @@ export default function SmoothScroll({ children }: Props) {
         touchMultiplier: 1.4,
       }}
     >
+      <ScrollReset />
       {children}
     </ReactLenis>
   );
 }
+

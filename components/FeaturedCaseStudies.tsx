@@ -42,15 +42,8 @@ function FeaturedCard({ study }: { study: CaseStudy }) {
         />
       </div>
 
-      <div className="flex flex-col justify-between p-8 md:p-10">
-        <div className="flex items-center gap-3">
-          <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-accent font-semibold">
-            Featured Case
-          </span>
-          <span className="h-px flex-1 bg-border" aria-hidden />
-        </div>
-
-        <div className="mt-auto pt-10">
+      <div className="flex flex-col justify-end p-8 md:p-10">
+        <div>
           <h3 className="font-serif italic text-4xl md:text-5xl text-primary font-medium leading-[1.05] group-hover:text-accent transition-colors">
             {study.name}
           </h3>
@@ -96,14 +89,7 @@ function SupportingCard({ study }: { study: CaseStudy }) {
           size="sm"
         />
       </div>
-      <div className="col-span-3 flex flex-col justify-between p-5 md:p-6">
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-accent font-semibold">
-            {study.tags[0] ?? "Case Study"}
-          </span>
-          <span className="h-px flex-1 bg-border" aria-hidden />
-        </div>
-
+      <div className="col-span-3 flex flex-col justify-end p-5 md:p-6">
         <div>
           <h3 className="font-serif italic text-2xl md:text-3xl text-primary font-medium leading-[1.1] group-hover:text-accent transition-colors">
             {study.name}
