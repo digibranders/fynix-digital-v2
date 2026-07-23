@@ -6,7 +6,7 @@ import PreFooterBackdrop from "@/components/PreFooterBackdrop";
 import HeroDarkBackdrop from "@/components/HeroDarkBackdrop";
 
 export const metadata: Metadata = {
-  title: "Process",
+  title: "10-Week Cybersecurity Growth Process & Methodology",
   description:
     "A transparent, six-step engagement (Discover, Diagnose, Design, Build, Launch, Grow) so cybersecurity teams know exactly what happens after they say yes.",
   alternates: { canonical: "/process" },

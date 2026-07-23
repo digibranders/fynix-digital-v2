@@ -9,15 +9,42 @@ import HeroDarkBackdrop from "@/components/HeroDarkBackdrop";
 import { faqs, siteConfig } from "@/lib/content";
 
 export const metadata: Metadata = {
-  title: "Contact",
+  title: "Contact Fynix Digital | Cybersecurity Growth Agency",
   description:
     "Brief your project with Fynix. We respond within 24 hours to cybersecurity growth enquiries.",
   alternates: { canonical: "/contact" },
 };
 
+const contactJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "ContactPage",
+  name: "Contact Fynix Digital",
+  description:
+    "Brief your project with Fynix. We respond within 24 hours to cybersecurity growth enquiries.",
+  url: `${siteConfig.url}/contact`,
+  mainEntity: {
+    "@type": "ProfessionalService",
+    name: siteConfig.name,
+    email: siteConfig.email,
+    telephone: siteConfig.phone,
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: siteConfig.address.line1,
+      addressLocality: "Thane West",
+      addressRegion: "Maharashtra",
+      postalCode: "400607",
+      addressCountry: "IN",
+    },
+  },
+};
+
 export default function ContactPage() {
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(contactJsonLd) }}
+      />
       <section
         data-nav-theme="dark"
         className="relative isolate overflow-hidden -mt-20 md:-mt-24 pt-32 md:pt-40 pb-14 md:pb-20 bg-primary text-white"

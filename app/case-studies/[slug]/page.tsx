@@ -5,7 +5,7 @@ import Reveal from "@/components/Reveal";
 import PreFooterBackdrop from "@/components/PreFooterBackdrop";
 import DossierTile from "@/components/DossierTile";
 import HeroDarkBackdrop from "@/components/HeroDarkBackdrop";
-import { caseStudies, type CaseStudy } from "@/lib/content";
+import { caseStudies, siteConfig, type CaseStudy } from "@/lib/content";
 import { emphasize } from "@/lib/emphasize";
 
 type Params = { slug: string };
@@ -49,6 +49,53 @@ export default async function CaseStudyDetailPage({
   );
   const fallback = caseStudies.filter((s) => s.slug !== slug);
   const related = (sameTag.length >= 2 ? sameTag : fallback).slice(0, 2);
+
+  const articleJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: `${study.name} · Cybersecurity Case Study`,
+    description: study.description,
+    image: `${siteConfig.url}${study.image}`,
+    author: {
+      "@type": "Organization",
+      name: siteConfig.name,
+      url: siteConfig.url,
+    },
+    publisher: {
+      "@type": "Organization",
+      name: siteConfig.name,
+      url: siteConfig.url,
+    },
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": `${siteConfig.url}/case-studies/${study.slug}`,
+    },
+  };
+
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: siteConfig.url,
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Case Studies",
+        item: `${siteConfig.url}/case-studies`,
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: study.name,
+        item: `${siteConfig.url}/case-studies/${study.slug}`,
+      },
+    ],
+  };
 
   return (
     <>
@@ -346,6 +393,15 @@ export default async function CaseStudyDetailPage({
           </div>
         </Reveal>
       </section>
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
     </>
   );
 }

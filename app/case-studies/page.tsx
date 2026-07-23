@@ -6,9 +6,9 @@ import HeroDarkBackdrop from "@/components/HeroDarkBackdrop";
 import PreFooterBackdrop from "@/components/PreFooterBackdrop";
 
 export const metadata: Metadata = {
-  title: "Our Work",
+  title: "Cybersecurity Case Studies & Proven Results",
   description:
-    "Selected projects across branding, UI/UX, SEO, social, and video: the systems Fynix has shipped for cybersecurity and product companies.",
+    "Selected projects across branding, UI/UX, SEO, social, and video: the growth systems Fynix has shipped for cybersecurity and technology product companies.",
   alternates: { canonical: "/case-studies" },
 };
 

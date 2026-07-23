@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { acts, siteConfig } from "@/lib/content";
+import { acts, caseStudies, siteConfig } from "@/lib/content";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
@@ -27,9 +27,19 @@ export default function sitemap(): MetadataRoute.Sitemap {
       url: `${siteConfig.url}/services/${act.slug}`,
       lastModified: now,
       changeFrequency: "monthly",
-      priority: 0.7,
+      priority: 0.8,
+    });
+  }
+
+  for (const study of caseStudies) {
+    entries.push({
+      url: `${siteConfig.url}/case-studies/${study.slug}`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.8,
     });
   }
 
   return entries;
 }
+
