@@ -4,12 +4,32 @@ import Reveal from "@/components/Reveal";
 import CaseStudiesGrid from "@/components/CaseStudiesGrid";
 import HeroDarkBackdrop from "@/components/HeroDarkBackdrop";
 import PreFooterBackdrop from "@/components/PreFooterBackdrop";
+import { siteConfig } from "@/lib/content";
 
 export const metadata: Metadata = {
   title: "Cybersecurity Case Studies & Proven Results",
   description:
     "Selected projects across branding, UI/UX, SEO, social, and video: the growth systems Fynix has shipped for cybersecurity and technology product companies.",
   alternates: { canonical: "/case-studies" },
+};
+
+const breadcrumbJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Home",
+      item: siteConfig.url,
+    },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: "Case Studies",
+      item: `${siteConfig.url}/case-studies`,
+    },
+  ],
 };
 
 export default function CaseStudiesPage() {
@@ -55,6 +75,11 @@ export default function CaseStudiesPage() {
           </div>
         </Reveal>
       </section>
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
     </>
   );
 }

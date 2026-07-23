@@ -13,14 +13,37 @@ export const metadata: Metadata = {
   alternates: { canonical: "/faqs" },
 };
 
+function stripEmphasis(text: string): string {
+  return text.replace(/\*\*/g, "");
+}
+
 const faqJsonLd = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
   mainEntity: faqs.map((faq) => ({
     "@type": "Question",
     name: faq.q,
-    acceptedAnswer: { "@type": "Answer", text: faq.a },
+    acceptedAnswer: { "@type": "Answer", text: stripEmphasis(faq.a) },
   })),
+};
+
+const breadcrumbJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Home",
+      item: siteConfig.url,
+    },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: "FAQs",
+      item: `${siteConfig.url}/faqs`,
+    },
+  ],
 };
 
 export default function FaqsPage() {
@@ -29,6 +52,10 @@ export default function FaqsPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
 
       <section

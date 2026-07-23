@@ -417,9 +417,9 @@ function NarrativeBlock({
     <Reveal>
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-10">
         <div className="md:col-span-3">
-          <span className="text-xs md:text-sm font-mono uppercase tracking-widest text-accent font-semibold">
+          <h2 className="text-xs md:text-sm font-mono uppercase tracking-widest text-accent font-semibold">
             {eyebrow}
-          </span>
+          </h2>
           <span
             aria-hidden
             className="hidden md:block h-px w-10 bg-border mt-4"

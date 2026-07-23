@@ -85,7 +85,7 @@ const organizationJsonLd = {
   "@id": `${siteConfig.url}/#organization`,
   name: siteConfig.name,
   url: siteConfig.url,
-  logo: `${siteConfig.url}/clients/eventus-icon.png`,
+  logo: `${siteConfig.url}/og-image.png`,
   image: `${siteConfig.url}/og-image.png`,
   description: siteConfig.description,
   email: siteConfig.email,

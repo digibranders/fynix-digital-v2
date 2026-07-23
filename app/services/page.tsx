@@ -6,13 +6,32 @@ import EngagementModels from "@/components/EngagementModels";
 import PreFooterBackdrop from "@/components/PreFooterBackdrop";
 import SectionSeam from "@/components/SectionSeam";
 import HeroDarkBackdrop from "@/components/HeroDarkBackdrop";
-import { acts } from "@/lib/content";
+import { acts, siteConfig } from "@/lib/content";
 
 export const metadata: Metadata = {
   title: "Cybersecurity Web Design, SEO & Growth Services",
   description:
     "Fynix delivers UI/UX design, custom web development, technical SEO/AEO, and B2B lead generation for cybersecurity companies, delivered as one integrated growth system.",
   alternates: { canonical: "/services" },
+};
+
+const breadcrumbJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Home",
+      item: siteConfig.url,
+    },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: "Services",
+      item: `${siteConfig.url}/services`,
+    },
+  ],
 };
 
 export default function ServicesPage() {
@@ -75,6 +94,11 @@ export default function ServicesPage() {
           </div>
         </Reveal>
       </section>
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
     </>
   );
 }

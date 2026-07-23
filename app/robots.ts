@@ -2,12 +2,11 @@ import type { MetadataRoute } from "next";
 import { siteConfig } from "@/lib/content";
 
 export default function robots(): MetadataRoute.Robots {
-  const isProductionDomain =
-    process.env.NEXT_PUBLIC_SITE_URL?.includes("fynix.digital") ||
-    process.env.VERCEL_PROJECT_PRODUCTION_URL?.includes("fynix.digital") ||
-    process.env.VERCEL_ENV === "production";
+  const isPreview =
+    process.env.VERCEL_ENV === "preview" ||
+    process.env.NEXT_PUBLIC_VERCEL_ENV === "preview";
 
-  if (!isProductionDomain) {
+  if (isPreview) {
     return {
       rules: [{ userAgent: "*", disallow: "/" }],
     };

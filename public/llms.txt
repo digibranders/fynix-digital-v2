@@ -1,0 +1,24 @@
+# Fynix Digital
+
+> A specialized digital growth agency and web studio for cybersecurity, tech product, and SaaS companies.
+
+## Overview
+Fynix Digital builds high-performance digital growth systems for cybersecurity companies. We integrate UI/UX design, custom web development, technical SEO / Answer Engine Optimization (AEO), and B2B lead generation into one accountable growth pipeline.
+
+## Core Capabilities
+- **UI/UX Design**: Buyer research, information architecture, wireframing, high-fidelity design systems, and conversion rate optimization (CRO) tuned for enterprise B2B software buyers.
+- **Custom Development**: Headless web applications built on Next.js, React, and TypeScript with Core Web Vitals (<2.5s LCP) as a hard quality gate.
+- **SEO & Answer Engine Optimisation (AEO)**: Technical SEO, structured data (Schema.org), content strategy, and optimization for AI engines (ChatGPT Search, Perplexity, Google Gemini).
+- **B2B Lead Generation**: ICP research, multi-channel outbound sequences (email, LinkedIn), landing pages, and revenue attribution.
+
+## Proven Impact
+- **Eventus Security**: 4,081 monthly organic visitors, 2,251 indexed keywords, #1 ranking for "Cyber Attack India" (3,600 monthly searches).
+- **CleanStart**: Brand identity and web platform for hardened container security.
+- **PhotonMatters**: Advanced deep-tech automation translated for enterprise decision makers.
+- **Payweek**: Modern HR & payroll platform UI/UX design system.
+
+## Key Information
+- **Website**: https://fynix.digital
+- **Services**: https://fynix.digital/services
+- **Case Studies**: https://fynix.digital/case-studies
+- **Contact**: https://fynix.digital/contact | contact@fynix.digital

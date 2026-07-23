@@ -4,12 +4,32 @@ import ProcessTimeline from "@/components/ProcessTimeline";
 import Reveal from "@/components/Reveal";
 import PreFooterBackdrop from "@/components/PreFooterBackdrop";
 import HeroDarkBackdrop from "@/components/HeroDarkBackdrop";
+import { siteConfig } from "@/lib/content";
 
 export const metadata: Metadata = {
   title: "10-Week Cybersecurity Growth Process & Methodology",
   description:
     "A transparent, six-step engagement (Discover, Diagnose, Design, Build, Launch, Grow) so cybersecurity teams know exactly what happens after they say yes.",
   alternates: { canonical: "/process" },
+};
+
+const breadcrumbJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Home",
+      item: siteConfig.url,
+    },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: "Process",
+      item: `${siteConfig.url}/process`,
+    },
+  ],
 };
 
 export default function ProcessPage() {
@@ -69,6 +89,11 @@ export default function ProcessPage() {
           </Reveal>
         </div>
       </section>
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
     </>
   );
 }

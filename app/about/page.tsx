@@ -5,12 +5,32 @@ import Reveal from "@/components/Reveal";
 import TeamGrid from "@/components/TeamGrid";
 import PreFooterBackdrop from "@/components/PreFooterBackdrop";
 import HeroDarkBackdrop from "@/components/HeroDarkBackdrop";
+import { siteConfig } from "@/lib/content";
 
 export const metadata: Metadata = {
   title: "Philosophy",
   description:
     "Most agencies deliver activities. Fynix builds systems for growth: a unified UX, engineering, SEO, and lead-generation pipeline for cybersecurity companies.",
   alternates: { canonical: "/about" },
+};
+
+const breadcrumbJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Home",
+      item: siteConfig.url,
+    },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: "Philosophy",
+      item: `${siteConfig.url}/about`,
+    },
+  ],
 };
 
 const pillars: { numeral: string; title: string; body: React.ReactNode }[] = [
@@ -167,6 +187,11 @@ export default function AboutPage() {
           </Reveal>
         </div>
       </section>
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
     </>
   );
 }
