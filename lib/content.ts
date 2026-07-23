@@ -384,7 +384,7 @@ export const caseStudies: CaseStudy[] = [
     description: "AI-powered threat detection and security platform",
     tags: ["SEO", "UI/UX Design"],
     image: "/case-studies/eventus.webp",
-    iconUrl: "/clients/eventus-icon.webp",
+    iconUrl: "/clients/eventus-icon.png",
     metric: { value: "4,081", label: "Monthly organic visitors" },
     industry: "Cybersecurity · SOC & Managed Security",
     challenge:
@@ -601,7 +601,7 @@ export const testimonials: Testimonial[] = [
   },
   {
     company: "Eventus",
-    logo: "/clients/eventus-icon.webp",
+    logo: "/clients/eventus-icon.png",
     quote:
       "Fynix Digital has been our go-to digital marketing agency for over two years now. Brilliant execution, stunning design, and reliable delivery!",
     name: "Sanjay Khera",

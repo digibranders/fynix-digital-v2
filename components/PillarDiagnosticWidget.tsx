@@ -131,7 +131,7 @@ export default function PillarDiagnosticWidget({ actSlug, actTitle }: Props) {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mt-8 items-start">
         {/* INPUT CONTROLS */}
-        <div className="lg:col-span-6 space-y-6">
+        <div className="lg:col-span-6 space-y-6 pt-4">
           {actSlug === "ui-ux" && (
             <>
               <div>
