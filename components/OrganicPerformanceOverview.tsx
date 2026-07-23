@@ -388,7 +388,7 @@ export default function OrganicPerformanceOverview() {
   const tooltipAlignRight = cursorX > CHART_WIDTH * 0.78;
 
   return (
-    <section className="relative isolate mx-auto w-full max-w-[780px] select-none py-5 text-white [font-family:var(--font-sans),ui-sans-serif,sans-serif]" aria-label="Organic Performance Overview">
+    <section className="relative isolate mx-auto w-full max-w-[780px] select-none py-2 lg:py-0 text-white [font-family:var(--font-sans),ui-sans-serif,sans-serif]" aria-label="Organic Performance Overview">
       <style>{`
         @keyframes organicPerformanceDraw { to { stroke-dashoffset: 0; } }
         @keyframes organicPerformanceFill { to { opacity: 1; } }
@@ -399,11 +399,11 @@ export default function OrganicPerformanceOverview() {
         }
       `}</style>
 
-      <div aria-hidden className="absolute -inset-x-10 inset-y-10 -z-10 rounded-[48px] bg-[#f28d55]/15 blur-[70px]" />
-      <div className="relative overflow-hidden rounded-[25px] border border-[#e2b09c]/55 border-r-[#ffc69b]/90 bg-[linear-gradient(135deg,#111c2d_0%,#0c1422_55%,#101b2b_100%)] p-4 shadow-[0_0_0_1px_rgba(255,229,213,0.07),0_28px_60px_rgba(0,0,0,0.7),4px_1px_3px_-2px_rgba(255,223,190,0.8),9px_4px_15px_0_rgba(255,139,67,0.38),16px_9px_34px_3px_rgba(236,99,37,0.18)] will-change-transform [transform-style:preserve-3d] [backface-visibility:hidden] [-webkit-font-smoothing:antialiased] [text-rendering:geometricPrecision] sm:p-6 md:p-7 md:[transform-origin:right_center] md:[transform:perspective(2400px)_rotateY(-9deg)_rotateX(3deg)_translateZ(0)]">
+      <div aria-hidden className="absolute -inset-x-10 inset-y-10 -z-10 rounded-[48px] bg-[#f28d55]/10 blur-[70px]" />
+      <div className="relative overflow-hidden rounded-[25px] border border-[#e2b09c]/45 border-r-[#ffc69b]/70 bg-[linear-gradient(135deg,#111c2d_0%,#0c1422_55%,#101b2b_100%)] p-4 shadow-[0_0_0_1px_rgba(255,229,213,0.06),0_28px_60px_rgba(0,0,0,0.7),4px_1px_3px_-2px_rgba(255,223,190,0.6),9px_4px_15px_0_rgba(255,139,67,0.24),16px_9px_34px_3px_rgba(236,99,37,0.11)] will-change-transform [transform-style:preserve-3d] [backface-visibility:hidden] [-webkit-font-smoothing:antialiased] [text-rendering:geometricPrecision] sm:p-6 md:p-7 lg:[transform-origin:right_center] lg:[transform:perspective(2400px)_rotateY(-9deg)_rotateX(3deg)_translateZ(0)]">
         <div aria-hidden className="pointer-events-none absolute inset-0 opacity-35 [background-image:radial-gradient(rgba(255,255,255,0.15)_0.7px,transparent_0.7px)] [background-size:16px_16px]" />
         {/* A restrained copper edge with only a small lower-corner light spill. */}
-        <div aria-hidden className="pointer-events-none absolute bottom-0 right-[2%] z-20 h-px w-[30%] rounded-full bg-[linear-gradient(to_left,rgba(255,213,173,0.9),rgba(255,131,60,0.65)_45%,transparent)] shadow-[0_2px_5px_rgba(255,126,48,0.42),5px_4px_12px_rgba(255,101,32,0.22)]" />
+        <div aria-hidden className="pointer-events-none absolute bottom-0 right-[2%] z-20 h-px w-[30%] rounded-full bg-[linear-gradient(to_left,rgba(255,213,173,0.8),rgba(255,131,60,0.5)_45%,transparent)] shadow-[0_2px_5px_rgba(255,126,48,0.28),5px_4px_12px_rgba(255,101,32,0.14)]" />
 
         <div className="relative">
           <header className="flex items-center justify-between gap-4">

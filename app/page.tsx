@@ -18,20 +18,20 @@ export default function Home() {
       {/* HERO */}
       <section
         data-nav-theme="dark"
-        className="relative isolate overflow-hidden -mt-20 md:-mt-24 pt-32 md:pt-40 pb-24 md:pb-32 bg-primary text-white"
+        className="relative isolate overflow-hidden -mt-20 md:-mt-24 pt-28 lg:pt-32 pb-12 lg:pb-14 lg:min-h-screen lg:flex lg:items-center bg-primary text-white"
       >
         <HeroDarkBackdrop />
 
         <div className="relative max-w-7xl mx-auto px-6 md:px-12">
-          <div className="grid grid-cols-1 xl:grid-cols-12 gap-12 xl:gap-8 items-center">
-            <Reveal className="xl:col-span-5 flex flex-col items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-6 xl:gap-8 items-center">
+            <div className="lg:col-span-5 flex flex-col items-start">
               {/* Eyebrow */}
-              <p className="text-lg md:text-xl font-normal text-white/80 mb-2 tracking-tight text-left">
-                A studio for
+              <p className="text-xl md:text-2xl font-semibold text-white/90 mb-3 tracking-tight text-left">
+                A digital studio for
               </p>
 
               {/* Headline using Figtree font as requested */}
-              <h1 className="font-sans text-4xl sm:text-5xl lg:text-[64px] font-extrabold tracking-tight text-white leading-[1.08] text-left">
+              <h1 className="font-sans text-4xl sm:text-5xl lg:text-[68px] xl:text-[88px] font-extrabold tracking-tight text-white leading-[1.02] text-left">
                 Evolving <br />
                 <span className="italic font-normal text-transparent bg-clip-text bg-gradient-to-r from-[#e9af88] to-[#ffb57e] tracking-tight">Brands</span>
               </h1>
@@ -48,14 +48,9 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="space-y-2 text-base md:text-lg max-w-xl text-left">
-                <p className="font-bold text-white text-base md:text-lg leading-relaxed">
-                  Marketing that start conversations.
-                </p>
-                <p className="text-white/70 font-normal text-base md:text-lg leading-relaxed">
-                  Every plan, decision &amp; design crafted by humans optimized by AI.
-                </p>
-              </div>
+              <p className="text-base md:text-lg font-normal leading-relaxed max-w-xl text-left text-white/70">
+                Marketing that start conversations. Every plan, decision &amp; design crafted by humans optimized by AI.
+              </p>
 
               {/* Pill Button with copper-gold gradient */}
               <div className="mt-8 flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
@@ -81,11 +76,11 @@ export default function Home() {
                 </Link>
               </div>
 
-            </Reveal>
+            </div>
 
-            <Reveal variant="left" delay={180} className="xl:col-span-7 w-full flex justify-center xl:justify-end">
+            <div className="lg:col-span-7 w-full flex justify-center lg:justify-end">
               <OrganicPerformanceOverview />
-            </Reveal>
+            </div>
           </div>
         </div>
       </section>

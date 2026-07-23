@@ -97,16 +97,36 @@ html.lenis body {
  * and holds there. Plays once per load; no loop.
  */
 @keyframes heroLensGlide {
-  0%   { left: 12%; opacity: 1; }
-  50%  { left: 92%; opacity: 0; }
-  60%  { left: 12%; opacity: 0; }
-  100% { left: 12%; opacity: 1; }
+  0% {
+    left: 0%;
+    opacity: 1;
+  }
+  55% {
+    left: 92%;
+    opacity: 0.15;
+  }
+  65% {
+    left: 96%;
+    opacity: 0;
+  }
+  70% {
+    left: 0%;
+    opacity: 0;
+  }
+  88% {
+    left: 0%;
+    opacity: 1;
+  }
+  100% {
+    left: 0%;
+    opacity: 1;
+  }
 }
 
 .hero-lens {
-  left: 12%;
+  left: 0%;
   opacity: 1;
-  animation: heroLensGlide 5.6s cubic-bezier(0.4, 0, 0.2, 1) 800ms 1 forwards;
+  animation: heroLensGlide 2.2s linear 300ms 1 forwards;
   will-change: left, opacity;
 }
 
