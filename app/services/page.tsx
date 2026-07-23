@@ -33,7 +33,7 @@ export default function ServicesPage() {
             pillars build trust, guarantee speed, secure visibility, and generate pipeline.
           </p>
 
-          <div className="mt-8 flex flex-wrap items-center gap-3">
+          {/* <div className="mt-8 flex flex-wrap items-center gap-3">
             <span className="text-xs font-mono uppercase tracking-widest text-[#e9af88] font-semibold mr-2">
               Run Act Diagnostic:
             </span>
@@ -46,7 +46,7 @@ export default function ServicesPage() {
                 Act {act.num} · {act.title}
               </Link>
             ))}
-          </div>
+          </div> */}
         </div>
       </section>
 
