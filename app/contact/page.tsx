@@ -97,12 +97,6 @@ export default function ContactPage() {
               </a>
             </div>
 
-            <div>
-              <span className="text-xs uppercase font-mono text-text-muted font-bold block mb-2">
-                Response
-              </span>
-              <span className="text-sm font-serif text-primary">Within 24 business hours</span>
-            </div>
 
             <div className="pt-4">
               <WorldMap />
@@ -128,10 +122,6 @@ export default function ContactPage() {
             >
               Answers to the questions we hear first.
             </h2>
-            <p className="text-text-muted text-base md:text-lg font-normal leading-relaxed mt-6 max-w-2xl mx-auto">
-              If your question isn&apos;t here, ask it in the form above. We reply{" "}
-              <strong className="font-medium text-primary">within one business day</strong>.
-            </p>
           </Reveal>
 
           <Reveal delay={120} className="mt-14">

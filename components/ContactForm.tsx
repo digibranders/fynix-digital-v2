@@ -2,42 +2,20 @@
 
 import { useState } from "react";
 
-const BUSINESS_TYPES = [
-  "Cybersecurity Vendor",
-  "MSSP / MDR",
-  "Consulting Firm",
-  "SaaS / Platform",
-  "Enterprise IT",
-  "Other",
-] as const;
-
-const PROJECT_BUDGETS = [
-  "Under $5K",
-  "$5K – $10K",
-  "$10K – $20K",
-  "$20K – $50K",
-  "$50K+",
-  "Not sure yet",
-] as const;
-
 const SERVICES = [
   "UI/UX Design",
   // "Branding",
   "CRO",
-  "Mobile App",
   "SEO",
   "Development",
   "Web Design",
   // "Paid Ads",
-  "Other",
 ] as const;
 
 type FormState = {
   name: string;
   email: string;
   phone: string;
-  businessType: string;
-  budget: string;
   services: string[];
   message: string;
 };
@@ -46,8 +24,6 @@ const INITIAL_STATE: FormState = {
   name: "",
   email: "",
   phone: "",
-  businessType: "",
-  budget: "",
   services: [],
   message: "",
 };
@@ -71,8 +47,6 @@ export default function ContactForm() {
     formData.name.trim().length > 0 &&
     formData.email.trim().length > 0 &&
     formData.phone.trim().length > 0 &&
-    formData.businessType.length > 0 &&
-    formData.budget.length > 0 &&
     formData.services.length > 0;
 
   const handleFormSubmit = (e: React.FormEvent) => {
@@ -157,79 +131,6 @@ export default function ContactForm() {
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label htmlFor="businessType" className={fieldLabel}>
-            Business Type {REQUIRED_LABEL}
-          </label>
-          <div className="relative">
-            <select
-              id="businessType"
-              name="businessType"
-              required
-              value={formData.businessType}
-              onChange={(e) => setFormData({ ...formData, businessType: e.target.value })}
-              className={`${inputBase} appearance-none pr-11 ${
-                formData.businessType ? "text-primary" : "text-text-muted/70"
-              }`}
-            >
-              <option value="" disabled>
-                Select business type
-              </option>
-              {BUSINESS_TYPES.map((type) => (
-                <option key={type} value={type} className="text-primary">
-                  {type}
-                </option>
-              ))}
-            </select>
-            <svg
-              className="pointer-events-none absolute right-5 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              aria-hidden
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </div>
-        </div>
-
-        <div>
-          <label htmlFor="budget" className={fieldLabel}>
-            Project Budget {REQUIRED_LABEL}
-          </label>
-          <div className="relative">
-            <select
-              id="budget"
-              name="budget"
-              required
-              value={formData.budget}
-              onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
-              className={`${inputBase} appearance-none pr-11 ${
-                formData.budget ? "text-primary" : "text-text-muted/70"
-              }`}
-            >
-              <option value="" disabled>
-                Select project budget
-              </option>
-              {PROJECT_BUDGETS.map((b) => (
-                <option key={b} value={b} className="text-primary">
-                  {b}
-                </option>
-              ))}
-            </select>
-            <svg
-              className="pointer-events-none absolute right-5 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              aria-hidden
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </div>
-        </div>
-      </div>
 
       <fieldset>
         <legend className={fieldLabel}>

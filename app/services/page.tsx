@@ -38,13 +38,12 @@ export default function ServicesPage() {
               Run Act Diagnostic:
             </span>
             {acts.map((act) => (
-              <Link
+              <span
                 key={act.slug}
-                href={`/services/${act.slug}#proof`}
-                className="px-3.5 py-1.5 rounded-full border border-white/20 bg-white/5 hover:bg-white/15 hover:border-[#e9af88] text-xs font-mono text-white/90 transition-all duration-200"
+                className="px-3.5 py-1.5 rounded-full border border-white/20 bg-white/5 text-xs font-mono text-white/90"
               >
                 Act {act.num} · {act.title}
-              </Link>
+              </span>
             ))}
           </div>
         </div>

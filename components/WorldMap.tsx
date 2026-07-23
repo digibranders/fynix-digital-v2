@@ -54,8 +54,8 @@ export default function WorldMap({
       <div
         className="w-full h-full relative"
         style={{
-          transform: "rotateX(18deg)",
-          transformOrigin: "center bottom",
+          transform: "rotateX(10deg) scale(1.15)",
+          transformOrigin: "center center",
         }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element -- inline SVG data URI, not optimizable by next/image */}
@@ -82,12 +82,12 @@ export default function WorldMap({
           </radialGradient>
         </defs>
 
-        {/* Vertical beam from top of viewport down to the marker */}
+        {/* Vertical beam — short, stops just above the tooltip */}
         <rect
           x={x - 1}
-          y={0}
+          y={y - 55}
           width={2}
-          height={y}
+          height={55}
           fill="url(#beam-gradient)"
         />
 
@@ -135,14 +135,15 @@ export default function WorldMap({
 
       {/* "We are here" tooltip anchored to the marker, kept flat above the tilted map */}
       <div
-        className="absolute -translate-x-1/2 -translate-y-full pointer-events-none"
+        className="absolute -translate-x-1/2 pointer-events-none"
         style={{
           left: `${leftPct}%`,
           top: `${topPct}%`,
+          transform: `translate(-50%, calc(-100% - 10px))`,
         }}
       >
         <div
-          className={`relative mb-6 rounded-md border border-black/10 bg-white px-2.5 py-1 text-xs text-[#1a1a1a] shadow-sm whitespace-nowrap transition-opacity duration-200 ${
+          className={`relative rounded-md border border-black/10 bg-white px-2.5 py-1 text-xs text-[#1a1a1a] shadow-sm whitespace-nowrap transition-opacity duration-200 ${
             isHovered ? "opacity-0" : "opacity-100"
           }`}
         >
@@ -156,12 +157,13 @@ export default function WorldMap({
 
       {/* Preview card revealed on hover */}
       <div
-        className={`absolute -translate-x-1/2 -translate-y-full pointer-events-none transition-all duration-200 ${
-          isHovered ? "opacity-100 translate-y-[calc(-100%-2px)]" : "opacity-0"
+        className={`absolute pointer-events-none transition-all duration-200 ${
+          isHovered ? "opacity-100" : "opacity-0"
         }`}
         style={{
           left: `${leftPct}%`,
           top: `${topPct}%`,
+          transform: `translate(-50%, calc(-100% - 14px))`,
         }}
       >
         <div className="relative mb-6 rounded-lg border border-black/10 bg-white p-2 shadow-lg">

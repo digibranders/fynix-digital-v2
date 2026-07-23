@@ -18,7 +18,7 @@ export default function Home() {
       {/* HERO */}
       <section
         data-nav-theme="dark"
-        className="relative isolate overflow-hidden -mt-20 md:-mt-24 pt-28 lg:pt-32 pb-12 lg:pb-14 lg:min-h-screen lg:flex lg:items-center bg-primary text-white"
+        className="relative isolate overflow-hidden -mt-20 md:-mt-24 pt-32 lg:pt-36 pb-24 lg:pb-28 bg-primary text-white"
       >
         <HeroDarkBackdrop />
 
