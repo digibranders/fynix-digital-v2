@@ -66,7 +66,7 @@ export default function AboutPage() {
       >
         <HeroDarkBackdrop />
         <div className="relative max-w-7xl mx-auto px-6 md:px-12">
-          <h1 className="font-serif text-4xl md:text-6xl text-white font-medium leading-tight tracking-tight max-w-4xl text-balance">
+          <h1 className="font-serif text-4xl sm:text-5xl lg:text-[64px] text-white font-medium leading-tight tracking-tight max-w-4xl text-balance">
             Activities aren&apos;t growth.{" "}
             <span className="font-serif italic text-[#e9af88] md:block">
               Systems are.

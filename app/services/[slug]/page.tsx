@@ -141,7 +141,7 @@ export default async function ServiceDetailPage(
               </Link>
             </div>
 
-            <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-white font-medium tracking-tight leading-[1.08] text-balance">
+            <h1 className="font-serif text-4xl sm:text-5xl lg:text-[64px] text-white font-medium tracking-tight leading-[1.08] text-balance">
               {act.headline}
             </h1>
 

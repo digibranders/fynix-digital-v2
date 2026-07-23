@@ -25,12 +25,15 @@ export default function Home() {
         <div className="relative max-w-7xl mx-auto px-6 md:px-12">
           <div className="grid grid-cols-1 xl:grid-cols-12 gap-12 xl:gap-8 items-center">
             <Reveal className="xl:col-span-5 flex flex-col items-start">
+              {/* Eyebrow */}
+              <p className="text-lg md:text-xl font-normal text-white/80 mb-2 tracking-tight text-left">
+                A studio for
+              </p>
+
               {/* Headline using Figtree font as requested */}
-              <h1 className="font-sans text-5xl md:text-6.5xl xl:text-[76px] font-extrabold tracking-tight text-white leading-[1.08] text-left">
-                Your <br />
-                Cybersecurity <br />
-                <span className="italic font-normal text-transparent bg-clip-text bg-gradient-to-r from-[#e9af88] to-[#ffb57e] tracking-tight">Growth</span>{" "}
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#e9af88] to-[#ffb57e] tracking-tight">Partner</span>
+              <h1 className="font-sans text-4xl sm:text-5xl lg:text-[64px] font-extrabold tracking-tight text-white leading-[1.08] text-left">
+                Evolving <br />
+                <span className="italic font-normal text-transparent bg-clip-text bg-gradient-to-r from-[#e9af88] to-[#ffb57e] tracking-tight">Brands</span>
               </h1>
 
               {/* Glowing Divider & Lens Flare */}
@@ -45,12 +48,14 @@ export default function Home() {
                 </div>
               </div>
 
-              <p className="text-white/70 text-base md:text-lg font-normal leading-relaxed max-w-xl text-left">
-                We help cybersecurity companies transform their websites into{" "}
-                growth engines through
-                better user experience, technical excellence, AI-ready SEO, and{" "}
-                predictable lead generation.
-              </p>
+              <div className="space-y-2 text-base md:text-lg max-w-xl text-left">
+                <p className="font-bold text-white text-base md:text-lg leading-relaxed">
+                  Marketing that start conversations.
+                </p>
+                <p className="text-white/70 font-normal text-base md:text-lg leading-relaxed">
+                  Every plan, decision &amp; design crafted by humans optimized by AI.
+                </p>
+              </div>
 
               {/* Pill Button with copper-gold gradient */}
               <div className="mt-8 flex flex-col sm:flex-row gap-4 w-full sm:w-auto">

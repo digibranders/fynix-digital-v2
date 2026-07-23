@@ -21,7 +21,7 @@ export default function CaseStudiesPage() {
       >
         <HeroDarkBackdrop />
         <div className="relative max-w-7xl mx-auto px-6 md:px-12">
-          <h1 className="font-serif text-5xl md:text-7xl text-white font-medium leading-[1.05] tracking-tight">
+          <h1 className="font-serif text-4xl sm:text-5xl lg:text-[64px] text-white font-medium leading-[1.05] tracking-tight">
             Turning ideas <br />
             <span className="font-serif italic text-[#e9af88]">into vision.</span>
           </h1>

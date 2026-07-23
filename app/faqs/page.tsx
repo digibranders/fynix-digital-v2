@@ -37,7 +37,7 @@ export default function FaqsPage() {
       >
         <HeroDarkBackdrop />
         <div className="relative max-w-7xl mx-auto px-6 md:px-12">
-          <h1 className="font-serif text-4xl md:text-6xl text-white font-medium leading-tight max-w-4xl">
+          <h1 className="font-serif text-4xl sm:text-5xl lg:text-[64px] text-white font-medium leading-tight max-w-4xl">
             Questions worth asking.{" "}
             <span className="font-serif italic text-[#e9af88] md:block">Answered plainly.</span>
           </h1>

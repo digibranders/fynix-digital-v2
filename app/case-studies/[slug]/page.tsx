@@ -81,7 +81,7 @@ export default async function CaseStudyDetailPage({
           </Link>
 
           <div className="mt-10">
-            <h1 className="font-serif text-4xl md:text-6xl text-white font-medium leading-[1.05] tracking-tight max-w-4xl">
+            <h1 className="font-serif text-4xl sm:text-5xl lg:text-[64px] text-white font-medium leading-[1.05] tracking-tight max-w-4xl">
               {study.name}
             </h1>
 
