@@ -5,7 +5,7 @@ import Reveal from "@/components/Reveal";
 import PreFooterBackdrop from "@/components/PreFooterBackdrop";
 import DossierTile from "@/components/DossierTile";
 import HeroDarkBackdrop from "@/components/HeroDarkBackdrop";
-import { caseStudies, type CaseStudy } from "@/lib/content";
+import { caseStudies, siteConfig, type CaseStudy } from "@/lib/content";
 import { emphasize } from "@/lib/emphasize";
 
 type Params = { slug: string };
@@ -50,6 +50,53 @@ export default async function CaseStudyDetailPage({
   const fallback = caseStudies.filter((s) => s.slug !== slug);
   const related = (sameTag.length >= 2 ? sameTag : fallback).slice(0, 2);
 
+  const articleJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: `${study.name} · Cybersecurity Case Study`,
+    description: study.description,
+    image: `${siteConfig.url}${study.image}`,
+    author: {
+      "@type": "Organization",
+      name: siteConfig.name,
+      url: siteConfig.url,
+    },
+    publisher: {
+      "@type": "Organization",
+      name: siteConfig.name,
+      url: siteConfig.url,
+    },
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": `${siteConfig.url}/case-studies/${study.slug}`,
+    },
+  };
+
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: siteConfig.url,
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Case Studies",
+        item: `${siteConfig.url}/case-studies`,
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: study.name,
+        item: `${siteConfig.url}/case-studies/${study.slug}`,
+      },
+    ],
+  };
+
   return (
     <>
       {/* HEADER */}
@@ -81,7 +128,7 @@ export default async function CaseStudyDetailPage({
           </Link>
 
           <div className="mt-10">
-            <h1 className="font-serif text-4xl md:text-6xl text-white font-medium leading-[1.05] tracking-tight max-w-4xl">
+            <h1 className="font-serif text-4xl sm:text-5xl lg:text-[64px] text-white font-medium leading-[1.05] tracking-tight max-w-4xl">
               {study.name}
             </h1>
 
@@ -346,6 +393,15 @@ export default async function CaseStudyDetailPage({
           </div>
         </Reveal>
       </section>
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
     </>
   );
 }
@@ -361,9 +417,9 @@ function NarrativeBlock({
     <Reveal>
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-10">
         <div className="md:col-span-3">
-          <span className="text-xs md:text-sm font-mono uppercase tracking-widest text-accent font-semibold">
+          <h2 className="text-xs md:text-sm font-mono uppercase tracking-widest text-accent font-semibold">
             {eyebrow}
-          </span>
+          </h2>
           <span
             aria-hidden
             className="hidden md:block h-px w-10 bg-border mt-4"

@@ -6,13 +6,32 @@ import EngagementModels from "@/components/EngagementModels";
 import PreFooterBackdrop from "@/components/PreFooterBackdrop";
 import SectionSeam from "@/components/SectionSeam";
 import HeroDarkBackdrop from "@/components/HeroDarkBackdrop";
-import { acts } from "@/lib/content";
+import { acts, siteConfig } from "@/lib/content";
 
 export const metadata: Metadata = {
-  title: "Services",
+  title: "Cybersecurity Web Design, SEO & Growth Services",
   description:
-    "Fynix delivers UI/UX, custom development, technical SEO/AEO, and B2B lead generation for cybersecurity companies, delivered as one integrated growth system.",
+    "Fynix delivers UI/UX design, custom web development, technical SEO/AEO, and B2B lead generation for cybersecurity companies, delivered as one integrated growth system.",
   alternates: { canonical: "/services" },
+};
+
+const breadcrumbJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Home",
+      item: siteConfig.url,
+    },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: "Services",
+      item: `${siteConfig.url}/services`,
+    },
+  ],
 };
 
 export default function ServicesPage() {
@@ -24,7 +43,7 @@ export default function ServicesPage() {
       >
         <HeroDarkBackdrop />
         <div className="relative max-w-7xl mx-auto px-6 md:px-12">
-          <h1 className="font-serif text-4xl md:text-6xl text-white font-medium leading-tight max-w-4xl">
+          <h1 className="font-serif text-4xl sm:text-5xl lg:text-[64px] text-white font-medium leading-tight max-w-4xl">
             The Four Growth Acts.{" "}
             <span className="font-serif italic text-[#e9af88] md:block">One connected system.</span>
           </h1>
@@ -32,21 +51,6 @@ export default function ServicesPage() {
             A potential client forms a brand perception in seconds. Our four interconnected
             pillars build trust, guarantee speed, secure visibility, and generate pipeline.
           </p>
-
-          {/* <div className="mt-8 flex flex-wrap items-center gap-3">
-            <span className="text-xs font-mono uppercase tracking-widest text-[#e9af88] font-semibold mr-2">
-              Run Act Diagnostic:
-            </span>
-            {acts.map((act) => (
-              <Link
-                key={act.slug}
-                href={`/services/${act.slug}#proof`}
-                className="px-3.5 py-1.5 rounded-full border border-white/20 bg-white/5 hover:bg-white/15 hover:border-[#e9af88] text-xs font-mono text-white/90 transition-all duration-200"
-              >
-                Act {act.num} · {act.title}
-              </Link>
-            ))}
-          </div> */}
         </div>
       </section>
 
@@ -76,6 +80,11 @@ export default function ServicesPage() {
           </div>
         </Reveal>
       </section>
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
     </>
   );
 }

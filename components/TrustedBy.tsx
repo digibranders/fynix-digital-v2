@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { clients } from "@/lib/content";
 import Reveal from "./Reveal";
 
@@ -30,12 +31,11 @@ export default function TrustedBy() {
                 title={client.name}
                 className="flex items-center justify-center w-full"
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                <Image
                   src={client.logo}
-                  alt={client.name}
-                  loading="lazy"
-                  decoding="async"
+                  alt={`${client.name} logo`}
+                  width={160}
+                  height={40}
                   className="max-h-8 md:max-h-10 max-w-[140px] md:max-w-[160px] w-auto h-auto object-contain"
                 />
               </li>

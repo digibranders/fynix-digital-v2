@@ -9,22 +9,49 @@ import HeroDarkBackdrop from "@/components/HeroDarkBackdrop";
 import { faqs, siteConfig } from "@/lib/content";
 
 export const metadata: Metadata = {
-  title: "Contact",
+  title: "Contact Fynix Digital | Cybersecurity Growth Agency",
   description:
     "Brief your project with Fynix. We respond within 24 hours to cybersecurity growth enquiries.",
   alternates: { canonical: "/contact" },
 };
 
+const contactJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "ContactPage",
+  name: "Contact Fynix Digital",
+  description:
+    "Brief your project with Fynix. We respond within 24 hours to cybersecurity growth enquiries.",
+  url: `${siteConfig.url}/contact`,
+  mainEntity: {
+    "@type": "ProfessionalService",
+    name: siteConfig.name,
+    email: siteConfig.email,
+    telephone: siteConfig.phone,
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: siteConfig.address.line1,
+      addressLocality: "Thane West",
+      addressRegion: "Maharashtra",
+      postalCode: "400607",
+      addressCountry: "IN",
+    },
+  },
+};
+
 export default function ContactPage() {
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(contactJsonLd) }}
+      />
       <section
         data-nav-theme="dark"
         className="relative isolate overflow-hidden -mt-20 md:-mt-24 pt-32 md:pt-40 pb-14 md:pb-20 bg-primary text-white"
       >
         <HeroDarkBackdrop />
         <div className="relative max-w-7xl mx-auto px-6 md:px-12">
-          <h1 className="font-serif text-4xl md:text-[56px] text-white font-medium leading-tight max-w-4xl">
+          <h1 className="font-serif text-4xl sm:text-5xl lg:text-[64px] text-white font-medium leading-tight max-w-4xl">
             You&apos;re missing pipeline.{" "}
             <span className="font-serif italic text-[#e9af88] md:block">Let&apos;s fix that.</span>
           </h1>
@@ -97,12 +124,6 @@ export default function ContactPage() {
               </a>
             </div>
 
-            <div>
-              <span className="text-xs uppercase font-mono text-text-muted font-bold block mb-2">
-                Response
-              </span>
-              <span className="text-sm font-serif text-primary">Within 24 business hours</span>
-            </div>
 
             <div className="pt-4">
               <WorldMap />
@@ -128,10 +149,6 @@ export default function ContactPage() {
             >
               Answers to the questions we hear first.
             </h2>
-            <p className="text-text-muted text-base md:text-lg font-normal leading-relaxed mt-6 max-w-2xl mx-auto">
-              If your question isn&apos;t here, ask it in the form above. We reply{" "}
-              <strong className="font-medium text-primary">within one business day</strong>.
-            </p>
           </Reveal>
 
           <Reveal delay={120} className="mt-14">

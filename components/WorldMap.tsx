@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import Image from "next/image";
 import DottedMap from "dotted-map";
 
@@ -30,6 +30,10 @@ function projectPoint(lat: number, lng: number) {
   return { x, y };
 }
 
+const ROTATE_X_DEG = 10;
+const TILT_SCALE = 1.15;
+const PERSPECTIVE_PX = 1200;
+
 export default function WorldMap({
   marker = { lat: 2.490811289312971, lng: 77.29931092228902 },
   markerLabel = "We are here",
@@ -41,21 +45,77 @@ export default function WorldMap({
   const { x, y } = projectPoint(marker.lat, marker.lng);
   const [isHovered, setIsHovered] = useState(false);
 
-  const leftPct = (x / 800) * 100;
-  const topPct = (y / 400) * 100;
+  const containerRef = useRef<HTMLDivElement>(null);
+  const pinRef = useRef<SVGCircleElement>(null);
+  const [pinPosition, setPinPosition] = useState<{ left: number; top: number } | null>(null);
+
+  // The pin is drawn inside a 3D-tilted (rotateX + scale) layer, so its
+  // rendered screen position doesn't match a flat percentage of the
+  // container box. Measuring the actual rendered pin via
+  // getBoundingClientRect (rather than re-deriving the CSS transform math)
+  // means this stays correct no matter what ancestor transforms are
+  // currently in effect.
+  //
+  // That matters here because the whole map sits inside a <Reveal>
+  // entrance-animation wrapper, which holds an additional
+  // `translate3d(...) scale(0.98)` transform until it scrolls into view,
+  // then animates to `scale(1)` via a CSS transition. A ResizeObserver on
+  // the container alone won't catch that transition finishing (the
+  // container's own box size never changes, only its ancestor's
+  // transform), so a stale pre-animation position would stick permanently.
+  // Re-measure on any transitionend bubbling up from that animation too.
+  useLayoutEffect(() => {
+    const container = containerRef.current;
+    const pin = pinRef.current;
+    if (!container || !pin) return;
+
+    const updatePosition = () => {
+      const containerRect = container.getBoundingClientRect();
+      const pinRect = pin.getBoundingClientRect();
+
+      // getBoundingClientRect reports rendered/visual pixels, which can
+      // differ from the element's layout size (offsetWidth/offsetHeight) —
+      // e.g. under a page/viewport zoom. CSS `left`/`top` are resolved in
+      // layout pixels, so convert the measured screen-space offset back to
+      // layout pixels before assigning it, or the overlay drifts from the
+      // pin by exactly that zoom ratio.
+      const scaleX = containerRect.width / (container.offsetWidth || containerRect.width);
+      const scaleY = containerRect.height / (container.offsetHeight || containerRect.height);
+
+      setPinPosition({
+        left: (pinRect.left + pinRect.width / 2 - containerRect.left) / scaleX,
+        top: (pinRect.top + pinRect.height / 2 - containerRect.top) / scaleY,
+      });
+    };
+
+    updatePosition();
+
+    const resizeObserver = new ResizeObserver(updatePosition);
+    resizeObserver.observe(container);
+
+    document.addEventListener("transitionend", updatePosition);
+    window.addEventListener("resize", updatePosition);
+
+    return () => {
+      resizeObserver.disconnect();
+      document.removeEventListener("transitionend", updatePosition);
+      window.removeEventListener("resize", updatePosition);
+    };
+  }, []);
 
   return (
     <div
+      ref={containerRef}
       className="w-full aspect-[2/1] bg-transparent rounded-lg relative font-sans"
       style={{
-        perspective: "1200px",
+        perspective: `${PERSPECTIVE_PX}px`,
       }}
     >
       <div
         className="w-full h-full relative"
         style={{
-          transform: "rotateX(18deg)",
-          transformOrigin: "center bottom",
+          transform: `rotateX(${ROTATE_X_DEG}deg) scale(${TILT_SCALE})`,
+          transformOrigin: "center center",
         }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element -- inline SVG data URI, not optimizable by next/image */}
@@ -82,12 +142,12 @@ export default function WorldMap({
           </radialGradient>
         </defs>
 
-        {/* Vertical beam from top of viewport down to the marker */}
+        {/* Vertical beam — short, stops just above the tooltip */}
         <rect
           x={x - 1}
-          y={0}
+          y={y - 55}
           width={2}
-          height={y}
+          height={55}
           fill="url(#beam-gradient)"
         />
 
@@ -95,7 +155,7 @@ export default function WorldMap({
         <ellipse cx={x} cy={y} rx={24} ry={8} fill="url(#beam-glow)" />
 
         {/* Solid pin */}
-        <circle cx={x} cy={y} r={3} fill={beamColor} />
+        <circle ref={pinRef} cx={x} cy={y} r={3} fill={beamColor} />
 
         {/* Pulsing ring */}
         <circle cx={x} cy={y} r={3} fill={beamColor} opacity={0.5}>
@@ -119,70 +179,80 @@ export default function WorldMap({
         </svg>
       </div>
 
-      {/* Interactive hover zone over the marker (kept flat above the tilted map) */}
-      <div
-        className="absolute -translate-x-1/2 -translate-y-1/2"
-        style={{ left: `${leftPct}%`, top: `${topPct}%` }}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-        onFocus={() => setIsHovered(true)}
-        onBlur={() => setIsHovered(false)}
-        tabIndex={0}
-        aria-label={`${markerLabel} — ${previewCaption}`}
-      >
-        <div className="h-6 w-6 rounded-full" />
-      </div>
-
-      {/* "We are here" tooltip anchored to the marker, kept flat above the tilted map */}
-      <div
-        className="absolute -translate-x-1/2 -translate-y-full pointer-events-none"
-        style={{
-          left: `${leftPct}%`,
-          top: `${topPct}%`,
-        }}
-      >
-        <div
-          className={`relative mb-6 rounded-md border border-black/10 bg-white px-2.5 py-1 text-xs text-[#1a1a1a] shadow-sm whitespace-nowrap transition-opacity duration-200 ${
-            isHovered ? "opacity-0" : "opacity-100"
-          }`}
-        >
-          {markerLabel}
-          <span
-            aria-hidden
-            className="absolute left-1/2 top-full -translate-x-1/2 -mt-px h-2 w-2 rotate-45 border-b border-r border-black/10 bg-white"
+      {pinPosition ? (
+        <>
+          {/* Interactive hover zone spanning the tooltip bubble down to the pin
+              (kept flat above the tilted map) */}
+          <div
+            className="absolute -translate-x-1/2"
+            style={{
+              left: `${pinPosition.left}px`,
+              top: `${pinPosition.top - 56}px`,
+              width: "110px",
+              height: "70px",
+            }}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+            onFocus={() => setIsHovered(true)}
+            onBlur={() => setIsHovered(false)}
+            tabIndex={0}
+            aria-label={`${markerLabel} — ${previewCaption}`}
           />
-        </div>
-      </div>
 
-      {/* Preview card revealed on hover */}
-      <div
-        className={`absolute -translate-x-1/2 -translate-y-full pointer-events-none transition-all duration-200 ${
-          isHovered ? "opacity-100 translate-y-[calc(-100%-2px)]" : "opacity-0"
-        }`}
-        style={{
-          left: `${leftPct}%`,
-          top: `${topPct}%`,
-        }}
-      >
-        <div className="relative mb-6 rounded-lg border border-black/10 bg-white p-2 shadow-lg">
-          <div className="relative h-32 w-24 overflow-hidden rounded-md bg-neutral-100">
-            <Image
-              src={previewImageSrc}
-              alt={previewImageAlt}
-              fill
-              sizes="96px"
-              className="object-cover"
-            />
+          {/* "We are here" tooltip anchored to the marker, kept flat above the tilted map */}
+          <div
+            className="absolute pointer-events-none"
+            style={{
+              left: `${pinPosition.left}px`,
+              top: `${pinPosition.top}px`,
+              transform: `translate(-50%, calc(-100% - 14px))`,
+            }}
+          >
+            <div
+              className={`relative mb-6 rounded-md border border-black/10 bg-white px-2.5 py-1 text-xs text-[#1a1a1a] shadow-sm whitespace-nowrap transition-opacity duration-200 ${
+                isHovered ? "opacity-0" : "opacity-100"
+              }`}
+            >
+              {markerLabel}
+              <span
+                aria-hidden
+                className="absolute left-1/2 top-full -translate-x-1/2 -mt-px h-2 w-2 rotate-45 border-b border-r border-black/10 bg-white"
+              />
+            </div>
           </div>
-          <div className="mt-1.5 text-center text-[11px] font-medium text-[#1a1a1a] whitespace-nowrap">
-            {previewCaption}
+
+          {/* Preview card revealed on hover */}
+          <div
+            className={`absolute pointer-events-none transition-all duration-200 ${
+              isHovered ? "opacity-100" : "opacity-0"
+            }`}
+            style={{
+              left: `${pinPosition.left}px`,
+              top: `${pinPosition.top}px`,
+              transform: `translate(-50%, calc(-100% - 14px))`,
+            }}
+          >
+            <div className="relative mb-6 rounded-lg border border-black/10 bg-white p-2 shadow-lg">
+              <div className="relative h-32 w-24 overflow-hidden rounded-md bg-neutral-100">
+                <Image
+                  src={previewImageSrc}
+                  alt={previewImageAlt}
+                  fill
+                  sizes="96px"
+                  className="object-cover"
+                />
+              </div>
+              <div className="mt-1.5 text-center text-[11px] font-medium text-[#1a1a1a] whitespace-nowrap">
+                {previewCaption}
+              </div>
+              <span
+                aria-hidden
+                className="absolute left-1/2 top-full -translate-x-1/2 -mt-px h-2 w-2 rotate-45 border-b border-r border-black/10 bg-white"
+              />
+            </div>
           </div>
-          <span
-            aria-hidden
-            className="absolute left-1/2 top-full -translate-x-1/2 -mt-px h-2 w-2 rotate-45 border-b border-r border-black/10 bg-white"
-          />
-        </div>
-      </div>
+        </>
+      ) : null}
     </div>
   );
 }

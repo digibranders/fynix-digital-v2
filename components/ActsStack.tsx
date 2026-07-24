@@ -42,19 +42,19 @@ export default function ActsStack({ acts }: Props) {
               </span>
             </header>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 p-6 md:p-10 lg:p-14 flex-1">
-              <div className="lg:col-span-6 flex flex-col justify-center">
-                <div className="font-serif italic text-6xl md:text-7xl lg:text-[92px] text-primary font-normal leading-[0.9] tracking-tight mb-8 md:mb-10">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 px-6 md:px-8 lg:px-10 pt-4 md:pt-6 lg:pt-8 pb-6 md:pb-8 lg:pb-10 flex-1">
+              <div className="lg:col-span-6 flex flex-col">
+                <div className="font-serif italic text-4xl md:text-5xl lg:text-[64px] text-primary font-normal leading-tight tracking-tight mb-3 md:mb-4">
                   {act.title}
                 </div>
-                <h3 className="font-serif text-xl md:text-3xl lg:text-4xl xl:text-[42px] text-primary font-medium leading-[1.15] text-balance line-clamp-2">
+                <h3 className="font-serif text-lg md:text-2xl lg:text-3xl text-primary font-medium leading-[1.2] text-balance line-clamp-2">
                   {act.headline}
                 </h3>
-                <p className="text-text-muted text-base md:text-lg font-normal leading-relaxed mt-6 max-w-xl">
+                <p className="text-text-muted text-base md:text-lg font-normal leading-relaxed mt-4 max-w-xl">
                   {act.content.replace(/\*\*/g, "")}
                 </p>
 
-                <ul className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2.5">
+                <ul className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
                   {act.deliverables.map((item) => (
                     <li
                       key={item.title}
@@ -71,7 +71,7 @@ export default function ActsStack({ acts }: Props) {
 
                 <Link
                   href={`/services/${act.slug}`}
-                  className="mt-10 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-accent border-b border-accent pb-1 hover:text-primary hover:border-primary cta-underline transition-colors self-start"
+                  className="mt-6 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-accent border-b border-accent pb-1 hover:text-primary hover:border-primary cta-underline transition-colors self-start"
                 >
                   Explore {act.title}
                   <span aria-hidden>&rarr;</span>

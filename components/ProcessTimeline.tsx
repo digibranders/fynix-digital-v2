@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { useLenis } from "lenis/react";
 import { processSteps } from "@/lib/content";
 import Reveal from "./Reveal";
 
@@ -62,39 +63,42 @@ export default function ProcessTimeline() {
   const [progress, setProgress] = useState(0);
   const [drawn, setDrawn] = useState<boolean[]>(() => processSteps.map(() => false));
 
+  const updateProgress = useCallback(() => {
+    const ol = olRef.current;
+    if (!ol) return;
+    const olRect = ol.getBoundingClientRect();
+    const vpCenter = window.innerHeight * 0.5;
+    const usable = Math.max(1, olRect.height - 32);
+    const raw = (vpCenter - olRect.top - 16) / usable;
+    setProgress(Math.max(0, Math.min(1, raw)));
+
+    let closest = -1;
+    let minDist = Infinity;
+    itemRefs.current.forEach((el, i) => {
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      const mid = r.top + r.height / 2;
+      const dist = Math.abs(mid - vpCenter);
+      if (dist < minDist) {
+        minDist = dist;
+        closest = i;
+      }
+    });
+    const inView =
+      olRect.top < window.innerHeight * 0.75 &&
+      olRect.bottom > window.innerHeight * 0.25;
+    setActiveIndex(inView ? closest : -1);
+  }, []);
+
+  useLenis(updateProgress);
+
   useEffect(() => {
     let rafId = 0;
-    const update = () => {
-      const ol = olRef.current;
-      if (!ol) return;
-      const olRect = ol.getBoundingClientRect();
-      const vpCenter = window.innerHeight * 0.5;
-      const usable = Math.max(1, olRect.height - 32);
-      const raw = (vpCenter - olRect.top - 16) / usable;
-      setProgress(Math.max(0, Math.min(1, raw)));
-
-      let closest = -1;
-      let minDist = Infinity;
-      itemRefs.current.forEach((el, i) => {
-        if (!el) return;
-        const r = el.getBoundingClientRect();
-        const mid = r.top + r.height / 2;
-        const dist = Math.abs(mid - vpCenter);
-        if (dist < minDist) {
-          minDist = dist;
-          closest = i;
-        }
-      });
-      const inView =
-        olRect.top < window.innerHeight * 0.75 &&
-        olRect.bottom > window.innerHeight * 0.25;
-      setActiveIndex(inView ? closest : -1);
-    };
     const onScroll = () => {
       cancelAnimationFrame(rafId);
-      rafId = requestAnimationFrame(update);
+      rafId = requestAnimationFrame(updateProgress);
     };
-    update();
+    updateProgress();
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll);
     return () => {
@@ -102,7 +106,7 @@ export default function ProcessTimeline() {
       window.removeEventListener("resize", onScroll);
       cancelAnimationFrame(rafId);
     };
-  }, []);
+  }, [updateProgress]);
 
   useEffect(() => {
     const observers: IntersectionObserver[] = [];
@@ -139,10 +143,9 @@ export default function ProcessTimeline() {
       />
       <div
         aria-hidden
-        className="absolute left-6 md:left-1/2 top-4 w-px bg-accent md:-translate-x-1/2"
+        className="absolute left-6 md:left-1/2 top-4 w-px bg-accent md:-translate-x-1/2 will-change-[height]"
         style={{
           height: `calc((100% - 2rem) * ${progress})`,
-          transition: "height 500ms cubic-bezier(0.22, 1, 0.36, 1)",
         }}
       />
 
@@ -182,26 +185,41 @@ export default function ProcessTimeline() {
                 }
               >
                 <div
-                  className={`bg-white border rounded-xl p-6 md:p-7 shadow-xs transition-[border-color,box-shadow] duration-500 ${
+                  className={`relative overflow-hidden isolate bg-white border rounded-xl p-6 md:p-7 shadow-xs transition-[border-color,box-shadow] duration-500 ${
                     passed ? "border-accent/40 shadow-sm" : "border-border"
                   }`}
                 >
-                  <div className="flex items-baseline justify-between gap-4">
-                    <span className="font-mono text-xs text-accent font-bold">
-                      {step.num}
-                    </span>
-                    <span className="font-mono text-[11px] uppercase tracking-widest text-text-muted">
-                      {step.duration}
-                    </span>
+                  {/* Mobile Faded Watermark Icon */}
+                  <div
+                    aria-hidden
+                    className="md:hidden absolute -right-3 -bottom-3 w-28 h-28 pointer-events-none select-none text-accent/15 opacity-35"
+                  >
+                    <div className="relative w-full h-full">
+                      <span
+                        aria-hidden
+                        className={`absolute inset-0 rounded-full border transition-colors duration-500 ${
+                          passed ? "border-accent/25" : "border-accent/15"
+                        }`}
+                      />
+                      <div className="absolute inset-4">{icon}</div>
+                    </div>
                   </div>
 
-                  <h3 className="font-serif text-2xl md:text-[26px] text-primary font-medium mt-3 leading-tight">
-                    {step.title}
-                  </h3>
+                  <div className="relative z-10">
+                    <div>
+                      <span className="font-mono text-xs text-accent font-bold">
+                        {step.num}
+                      </span>
+                    </div>
 
-                  <p className="text-sm md:text-[15px] text-text-muted font-normal leading-relaxed mt-3">
-                    {step.short}
-                  </p>
+                    <h3 className="font-serif text-2xl md:text-[26px] text-primary font-medium mt-3 leading-tight">
+                      {step.title}
+                    </h3>
+
+                    <p className="text-sm md:text-[15px] text-text-muted font-normal leading-relaxed mt-3">
+                      {step.short}
+                    </p>
+                  </div>
                 </div>
               </div>
 

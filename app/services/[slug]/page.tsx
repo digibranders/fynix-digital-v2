@@ -15,6 +15,13 @@ export function generateStaticParams(): Params[] {
   return acts.map((act) => ({ slug: act.slug }));
 }
 
+const serviceTitles: Record<Act["slug"], string> = {
+  "ui-ux": "Cybersecurity UI/UX Design & Product Strategy",
+  development: "Custom Cybersecurity Web Development & Core Web Vitals",
+  seo: "Technical SEO & Answer Engine Optimisation (AEO) for Cybersecurity",
+  "lead-generation": "B2B Cybersecurity Lead Generation & Demand Gen",
+};
+
 export async function generateMetadata(
   { params }: { params: Promise<Params> },
 ): Promise<Metadata> {
@@ -22,12 +29,14 @@ export async function generateMetadata(
   const act = acts.find((a) => a.slug === slug);
   if (!act) return {};
 
+  const fullTitle = serviceTitles[act.slug] || act.title;
+
   return {
-    title: act.title,
+    title: fullTitle,
     description: act.headline,
     alternates: { canonical: `/services/${act.slug}` },
     openGraph: {
-      title: `${act.title} · ${act.subtitle}`,
+      title: `${fullTitle} · ${act.subtitle}`,
       description: act.headline,
     },
   };
@@ -141,7 +150,7 @@ export default async function ServiceDetailPage(
               </Link>
             </div>
 
-            <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-white font-medium tracking-tight leading-[1.08] text-balance">
+            <h1 className="font-serif text-4xl sm:text-5xl lg:text-[64px] text-white font-medium tracking-tight leading-[1.08] text-balance">
               {act.headline}
             </h1>
 

@@ -1,16 +1,35 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import ProcessTimeline from "@/components/ProcessTimeline";
-import ProcessGantt from "@/components/ProcessGantt";
 import Reveal from "@/components/Reveal";
 import PreFooterBackdrop from "@/components/PreFooterBackdrop";
 import HeroDarkBackdrop from "@/components/HeroDarkBackdrop";
+import { siteConfig } from "@/lib/content";
 
 export const metadata: Metadata = {
-  title: "Process",
+  title: "10-Week Cybersecurity Growth Process & Methodology",
   description:
     "A transparent, six-step engagement (Discover, Diagnose, Design, Build, Launch, Grow) so cybersecurity teams know exactly what happens after they say yes.",
   alternates: { canonical: "/process" },
+};
+
+const breadcrumbJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Home",
+      item: siteConfig.url,
+    },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: "Process",
+      item: `${siteConfig.url}/process`,
+    },
+  ],
 };
 
 export default function ProcessPage() {
@@ -23,7 +42,7 @@ export default function ProcessPage() {
       >
         <HeroDarkBackdrop />
         <div className="relative max-w-7xl mx-auto px-6 md:px-12">
-          <h1 className="font-serif text-4xl md:text-6xl lg:text-7xl text-white font-medium leading-[1.05] tracking-tight max-w-4xl">
+          <h1 className="font-serif text-4xl sm:text-5xl lg:text-[64px] text-white font-medium leading-[1.05] tracking-tight max-w-4xl">
             You&apos;ll always know{" "}
             <span className="font-serif italic text-[#e9af88] md:block">
               where the work is.
@@ -36,22 +55,11 @@ export default function ProcessPage() {
       </section>
 
       {/* ─── TIMELINE ─────────────────────────────────────────── */}
-      <section className="pt-16 md:pt-20 pb-10 md:pb-14 bg-background-soft">
-        <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <Reveal variant="up">
-            <ProcessGantt variant="full" />
-          </Reveal>
-        </div>
-      </section>
-
-      {/* ─── TIMELINE ─────────────────────────────────────────── */}
       <section aria-label="Timeline" className="pt-16 md:pt-20 pb-12 md:pb-16 bg-background-soft">
         <div className="max-w-6xl mx-auto px-6 md:px-12">
           <Reveal className="max-w-4xl mb-16">
             <h2 className="font-serif text-4xl md:text-5xl text-primary font-medium leading-tight text-balance">
               From first call to a live growth system.
-              <br />
-              What we ship keeps compounding.
             </h2>
           </Reveal>
 
@@ -81,6 +89,11 @@ export default function ProcessPage() {
           </Reveal>
         </div>
       </section>
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
     </>
   );
 }

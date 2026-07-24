@@ -7,11 +7,15 @@ import HeroDarkBackdrop from "@/components/HeroDarkBackdrop";
 import { faqs, siteConfig } from "@/lib/content";
 
 export const metadata: Metadata = {
-  title: "FAQs",
+  title: "Cybersecurity Growth & Web Development FAQs",
   description:
     "Answers to the questions cybersecurity leaders most often ask Fynix about website performance, SEO, lead generation, and unified growth systems.",
   alternates: { canonical: "/faqs" },
 };
+
+function stripEmphasis(text: string): string {
+  return text.replace(/\*\*/g, "");
+}
 
 const faqJsonLd = {
   "@context": "https://schema.org",
@@ -19,8 +23,27 @@ const faqJsonLd = {
   mainEntity: faqs.map((faq) => ({
     "@type": "Question",
     name: faq.q,
-    acceptedAnswer: { "@type": "Answer", text: faq.a },
+    acceptedAnswer: { "@type": "Answer", text: stripEmphasis(faq.a) },
   })),
+};
+
+const breadcrumbJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Home",
+      item: siteConfig.url,
+    },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: "FAQs",
+      item: `${siteConfig.url}/faqs`,
+    },
+  ],
 };
 
 export default function FaqsPage() {
@@ -30,6 +53,10 @@ export default function FaqsPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
 
       <section
         data-nav-theme="dark"
@@ -37,7 +64,7 @@ export default function FaqsPage() {
       >
         <HeroDarkBackdrop />
         <div className="relative max-w-7xl mx-auto px-6 md:px-12">
-          <h1 className="font-serif text-4xl md:text-6xl text-white font-medium leading-tight max-w-4xl">
+          <h1 className="font-serif text-4xl sm:text-5xl lg:text-[64px] text-white font-medium leading-tight max-w-4xl">
             Questions worth asking.{" "}
             <span className="font-serif italic text-[#e9af88] md:block">Answered plainly.</span>
           </h1>

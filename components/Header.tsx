@@ -22,6 +22,7 @@ export default function Header() {
   const prevMegaOpen = useRef(false);
   const megaCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pathname = usePathname();
+  const lenis = useLenis();
 
   useEffect(() => {
     if (!megaOpen && prevMegaOpen.current) {
@@ -35,7 +36,11 @@ export default function Header() {
       if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
       if (pathname !== href) return;
       e.preventDefault();
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      if (lenis) {
+        lenis.scrollTo(0, { immediate: true });
+      } else {
+        window.scrollTo(0, 0);
+      }
     };
 
   const clearMegaTimer = () => {
@@ -73,6 +78,10 @@ export default function Header() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [megaOpen]);
+
+  useEffect(() => {
+    setMegaOpen(false);
+  }, [pathname]);
 
   const darkSectionsRef = useRef<HTMLElement[]>([]);
 
@@ -159,8 +168,12 @@ export default function Header() {
       >
         <div
           aria-hidden
-          className={`pointer-events-none absolute inset-x-0 top-0 h-2 md:h-3 backdrop-blur-md transition-opacity duration-[900ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
-            pillActive ? "opacity-100" : "opacity-0"
+          className={`pointer-events-none absolute inset-x-0 top-0 h-3 md:h-4 backdrop-blur-3xl transition-[opacity,background-color] duration-[900ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
+            pillActive
+              ? isDark
+                ? "bg-primary/40 opacity-100"
+                : "bg-white/50 opacity-100"
+              : "opacity-0"
           }`}
         />
         <div
@@ -173,7 +186,7 @@ export default function Header() {
         <div
           className={`relative rounded-2xl border transition-[background-color,border-color,box-shadow,backdrop-filter] duration-[900ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
             pillActive
-              ? `backdrop-blur-xl shadow-[0_18px_50px_-24px_rgba(12,30,46,0.35)] ${
+              ? `backdrop-blur-3xl shadow-[0_18px_50px_-24px_rgba(12,30,46,0.35)] ${
                   isDark ? "border-white/20" : "border-black/[0.08]"
                 }`
               : "backdrop-blur-none shadow-none border-transparent"
@@ -227,26 +240,30 @@ export default function Header() {
 
               if (isServices) {
                 return (
-                  <div
-                    key={item.href}
-                    className="relative"
-                    onMouseEnter={openMega}
-                    onMouseLeave={closeMegaDeferred}
-                    onFocus={openMega}
-                    onBlur={closeMegaDeferred}
-                  >
-                    <Link
-                      href={item.href}
+                  <div key={item.href} className="relative">
+                    <button
+                      type="button"
                       aria-haspopup="true"
                       aria-expanded={megaOpen}
-                      className={linkClass}
-                      onClick={(e) => {
-                        closeMegaNow();
-                        handleSamePageNav(item.href)(e);
-                      }}
+                      className={`${linkClass} flex items-center gap-1.5 cursor-pointer bg-transparent border-0 p-0 text-inherit font-inherit`}
+                      onClick={() => setMegaOpen((o) => !o)}
                     >
                       {item.label}
-                    </Link>
+                      <svg
+                        className={`w-3.5 h-3.5 transition-transform duration-300 ${
+                          megaOpen ? "rotate-180" : ""
+                        }`}
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden
+                      >
+                        <path d="M6 9l6 6 6-6" />
+                      </svg>
+                    </button>
                   </div>
                 );
               }
@@ -295,7 +312,7 @@ export default function Header() {
                 closeMegaNow();
                 setMenuOpen((o) => !o);
               }}
-              className={`lg:hidden h-10 w-10 -mr-2 flex items-center justify-center rounded-full transition-colors ${
+              className={`lg:hidden h-11 w-11 -mr-2 flex items-center justify-center rounded-full transition-colors ${
                 isDark
                   ? "text-white hover:bg-white/10"
                   : "text-primary hover:bg-primary/5"
@@ -325,8 +342,6 @@ export default function Header() {
           role="region"
           aria-label="Services menu"
           aria-hidden={!megaOpen}
-          onMouseEnter={openMega}
-          onMouseLeave={closeMegaDeferred}
           className={`hidden lg:block absolute inset-x-0 top-full mt-2 rounded-2xl border border-black/[0.06] bg-white/95 backdrop-blur-md shadow-[0_20px_40px_-30px_rgba(0,0,0,0.25)] transition-[opacity,transform,visibility] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
             megaOpen
               ? "opacity-100 translate-y-0 visible"
@@ -336,50 +351,52 @@ export default function Header() {
           <div className="max-w-7xl mx-auto px-6 md:px-10 py-6 md:py-8">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
               {/* LEFT - Acts list */}
-              <div className="lg:col-span-6">
-                <div className="flex items-center gap-6 mb-4">
-                  <span className="text-xs uppercase tracking-widest text-text-muted font-mono">
-                    Growth Acts
-                  </span>
-                  <span aria-hidden className="h-px flex-1 bg-border" />
-                </div>
-                <ul>
-                  {acts.map((act, idx) => (
-                    <li
-                      key={act.slug}
-                      style={{
-                        transitionDelay: megaOpen ? `${idx * MEGA_ITEM_STAGGER}ms` : "0ms",
-                      }}
-                      className={`transition-[opacity,transform,filter] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
-                        megaOpen
-                          ? "opacity-100 translate-y-0 blur-0"
-                          : "opacity-0 -translate-y-2 blur-[3px]"
-                      }`}
-                    >
-                      <Link
-                        href={`/services/${act.slug}`}
-                        onClick={(e) => {
-                          closeMegaNow();
-                          handleSamePageNav(`/services/${act.slug}`)(e);
+              <div className="lg:col-span-6 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center gap-6 mb-4">
+                    <span className="text-xs uppercase tracking-widest text-text-muted font-mono">
+                      Growth Acts
+                    </span>
+                    <span aria-hidden className="h-px flex-1 bg-border" />
+                  </div>
+                  <ul>
+                    {acts.map((act, idx) => (
+                      <li
+                        key={act.slug}
+                        style={{
+                          transitionDelay: megaOpen ? `${idx * MEGA_ITEM_STAGGER}ms` : "0ms",
                         }}
-                        className="group flex items-center gap-4 py-3"
+                        className={`transition-[opacity,transform,filter] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+                          megaOpen
+                            ? "opacity-100 translate-y-0 blur-0"
+                            : "opacity-0 -translate-y-2 blur-[3px]"
+                        }`}
                       >
-                        <span className="font-mono text-xs text-accent font-semibold tabular-nums shrink-0 w-6">
-                          {act.num}
-                        </span>
-                        <span className="font-serif text-xl text-primary group-hover:text-accent transition-colors">
-                          {act.title}
-                        </span>
-                        <span
-                          aria-hidden
-                          className="ml-auto text-accent text-base opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300"
+                        <Link
+                          href={`/services/${act.slug}`}
+                          onClick={(e) => {
+                            closeMegaNow();
+                            handleSamePageNav(`/services/${act.slug}`)(e);
+                          }}
+                          className="group flex items-center gap-4 py-2.5"
                         >
-                          &rarr;
-                        </span>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
+                          <span className="font-mono text-xs text-accent font-semibold tabular-nums shrink-0 w-6">
+                            {act.num}
+                          </span>
+                          <span className="font-serif text-xl text-primary group-hover:text-accent transition-colors">
+                            {act.title}
+                          </span>
+                          <span
+                            aria-hidden
+                            className="ml-auto text-accent text-base opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300"
+                          >
+                            &rarr;
+                          </span>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
 
               {/* RIGHT - Featured case study */}
@@ -405,7 +422,10 @@ export default function Header() {
                 <Link
                   key={caseStudies[featuredIdx].slug}
                   href={`/case-studies/${caseStudies[featuredIdx].slug}`}
-                  onClick={closeMegaNow}
+                  onClick={(e) => {
+                    closeMegaNow();
+                    handleSamePageNav(`/case-studies/${caseStudies[featuredIdx].slug}`)(e);
+                  }}
                   className="group flex flex-col flex-1 min-h-0 rounded-xl overflow-hidden border border-black/[0.06] bg-background-soft hover:border-accent/40 transition-colors"
                 >
                   <div className="relative w-full flex-1 min-h-0 overflow-hidden">
@@ -429,6 +449,28 @@ export default function Header() {
                   </div>
                 </Link>
               </div>
+            </div>
+
+            {/* BOTTOM CTA BAR */}
+            <div className="mt-6 pt-4 border-t border-border flex items-center justify-between gap-4">
+              <div className="flex items-center gap-2">
+                <span className="font-serif italic text-base text-primary font-medium">
+                  Looking for the full service architecture?
+                </span>
+                <span className="hidden sm:inline text-xs text-text-muted font-normal">
+                  Explore how all 4 Growth Acts connect into one engine.
+                </span>
+              </div>
+              <Link
+                href="/services"
+                onClick={(e) => {
+                  closeMegaNow();
+                  handleSamePageNav("/services")(e);
+                }}
+                className="inline-flex items-center gap-2 text-xs font-mono font-semibold uppercase tracking-widest text-accent hover:text-primary transition-colors shrink-0"
+              >
+                Explore All Services &rarr;
+              </Link>
             </div>
           </div>
         </div>
@@ -461,28 +503,55 @@ export default function Header() {
           className="h-full overflow-y-auto px-6 pt-8 pb-12 flex flex-col"
         >
           <ul className="flex flex-col divide-y divide-border">
-            {nav.map((item, idx) => (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  onClick={(e) => {
-                    setMenuOpen(false);
-                    handleSamePageNav(item.href)(e);
-                  }}
-                  className="flex items-center justify-between py-6 group"
-                >
-                  <span className="font-serif text-3xl text-primary group-hover:text-accent transition-colors">
-                    {item.label}
-                  </span>
-                  <span
-                    aria-hidden
-                    className="text-xs font-mono text-text-muted tabular-nums"
+            {nav.map((item, idx) => {
+              const isServices = item.href === "/services";
+              return (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    onClick={(e) => {
+                      setMenuOpen(false);
+                      handleSamePageNav(item.href)(e);
+                    }}
+                    className="flex items-center justify-between py-5 group"
                   >
-                    {String(idx + 1).padStart(2, "0")}
-                  </span>
-                </Link>
-              </li>
-            ))}
+                    <span className="font-serif text-3xl text-primary group-hover:text-accent transition-colors">
+                      {item.label}
+                    </span>
+                    <span
+                      aria-hidden
+                      className="text-xs font-mono text-text-muted tabular-nums"
+                    >
+                      {String(idx + 1).padStart(2, "0")}
+                    </span>
+                  </Link>
+
+                  {isServices && (
+                    <ul className="pl-4 pb-4 space-y-3 border-l-2 border-accent/30 ml-1 mb-2">
+                      {acts.map((act) => (
+                        <li key={act.slug}>
+                          <Link
+                            href={`/services/${act.slug}`}
+                            onClick={(e) => {
+                              setMenuOpen(false);
+                              handleSamePageNav(`/services/${act.slug}`)(e);
+                            }}
+                            className="flex items-center gap-3 group/sub text-sm"
+                          >
+                            <span className="font-mono text-xs font-semibold text-accent shrink-0">
+                              {act.num}
+                            </span>
+                            <span className="font-serif text-lg text-primary/85 group-hover/sub:text-accent transition-colors">
+                              {act.title}
+                            </span>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </li>
+              );
+            })}
           </ul>
 
           <div className="mt-auto pt-10 space-y-4 text-sm">
