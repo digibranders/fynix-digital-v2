@@ -51,20 +51,6 @@ export default function ServicesPage() {
             A potential client forms a brand perception in seconds. Our four interconnected
             pillars build trust, guarantee speed, secure visibility, and generate pipeline.
           </p>
-
-          <div className="mt-8 flex flex-wrap items-center gap-3">
-            <span className="text-xs font-mono uppercase tracking-widest text-[#e9af88] font-semibold mr-2">
-              Run Act Diagnostic:
-            </span>
-            {acts.map((act) => (
-              <span
-                key={act.slug}
-                className="px-3.5 py-1.5 rounded-full border border-white/20 bg-white/5 text-xs font-mono text-white/90"
-              >
-                Act {act.num} · {act.title}
-              </span>
-            ))}
-          </div>
         </div>
       </section>
 

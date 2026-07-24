@@ -257,9 +257,9 @@ function MetricCard({ metric, active, onSelect }: { metric: Metric; active: bool
       aria-pressed={active}
       title={active ? `${metric.label} — currently viewing` : `View ${metric.label}`}
       style={activeStyle}
-      className={`group/card relative text-left rounded-[13px] border px-3.5 py-3.5 outline-none cursor-pointer transition-[background-color,border-color,box-shadow,transform] duration-200 focus-visible:ring-2 focus-visible:ring-white/40 sm:px-4 sm:py-4 ${active ? "" : "border-white/[0.075] bg-[#0d1726]/30 shadow-[inset_0_1px_0_rgba(255,255,255,0.018)] hover:border-white/20 hover:bg-[#0d1726]/60 hover:-translate-y-[1px]"}`}
+      className={`group/card relative text-left rounded-[13px] border px-2.5 py-2.5 sm:px-3 sm:py-3 md:px-3.5 md:py-3.5 outline-none cursor-pointer transition-[background-color,border-color,box-shadow,transform] duration-200 focus-visible:ring-2 focus-visible:ring-white/40 ${active ? "" : "border-white/[0.075] bg-[#0d1726]/30 shadow-[inset_0_1px_0_rgba(255,255,255,0.018)] hover:border-white/20 hover:bg-[#0d1726]/60 hover:-translate-y-[1px]"}`}
     >
-      {/* Interactivity signal — a tiny chevron in the top-right corner. Solid on the active card, ghosted on inactive, brightens on hover. */}
+      {/* Interactivity signal */}
       <span
         aria-hidden
         style={
@@ -267,13 +267,13 @@ function MetricCard({ metric, active, onSelect }: { metric: Metric; active: bool
             ? { backgroundColor: rgba(palette.line, 0.22), color: palette.peakDot }
             : undefined
         }
-        className={`pointer-events-none absolute top-2.5 right-2.5 inline-flex h-4 w-4 items-center justify-center rounded-full transition-[background-color,color,opacity] duration-200 ${
+        className={`pointer-events-none absolute top-2 right-2 sm:top-2.5 sm:right-2.5 inline-flex h-3.5 w-3.5 sm:h-4 sm:w-4 items-center justify-center rounded-full transition-[background-color,color,opacity] duration-200 ${
           active
             ? "opacity-100"
             : "text-white/40 opacity-60 group-hover/card:text-white/85 group-hover/card:opacity-100"
         }`}
       >
-        <svg viewBox="0 0 16 16" className="h-2.5 w-2.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <svg viewBox="0 0 16 16" className="h-2 w-2 sm:h-2.5 sm:w-2.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <polyline points="6 3 11 8 6 13" />
         </svg>
       </span>
@@ -287,12 +287,12 @@ function MetricCard({ metric, active, onSelect }: { metric: Metric; active: bool
               }
             : undefined
         }
-        className={`mb-4 inline-flex h-8 w-8 items-center justify-center rounded-full transition-colors ${active ? "" : "bg-[#223047] text-white/75 group-hover/card:bg-[#2b3a55]"}`}
+        className={`mb-2 sm:mb-3 inline-flex h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 items-center justify-center rounded-full transition-colors ${active ? "" : "bg-[#223047] text-white/75 group-hover/card:bg-[#2b3a55]"}`}
       >
         <MetricIcon name={metric.icon} />
       </span>
-      <p className="text-[11px] font-semibold tracking-[-0.015em] text-white/75 sm:text-xs">{metric.label}</p>
-      <p className="mt-1.5 text-[31px] font-normal leading-none tracking-[-0.065em] text-white sm:text-[36px] tabular-nums">{metric.value}</p>
+      <p className="text-[10px] font-semibold tracking-[-0.015em] text-white/75 sm:text-[11px] md:text-xs truncate">{metric.label}</p>
+      <p className="mt-1 text-lg font-normal leading-none tracking-[-0.05em] text-white sm:text-2xl md:text-[28px] lg:text-[36px] tabular-nums">{metric.value}</p>
     </button>
   );
 }
@@ -318,8 +318,6 @@ export default function OrganicPerformanceOverview() {
   useEffect(() => {
     const start = Math.floor((data.length - 1) / 2);
     const end = peakIndex;
-    // Constant perceived speed: scale duration by distance so a short slide isn't
-    // over instantly and a long one doesn't feel rushed. Clamped to a comfortable range.
     const distance = Math.abs(end - start);
     const duration = Math.min(3600, Math.max(1600, distance * 70));
     const startTime = performance.now();
@@ -387,8 +385,43 @@ export default function OrganicPerformanceOverview() {
   const tooltipAbove = cursorY > CHART_HEIGHT * 0.35;
   const tooltipAlignRight = cursorX > CHART_WIDTH * 0.78;
 
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
+  const [scaledHeight, setScaledHeight] = useState<number | undefined>(undefined);
+
+  useEffect(() => {
+    const wrapper = wrapperRef.current;
+    const card = cardRef.current;
+    if (!wrapper || !card) return;
+
+    const handleResize = () => {
+      const parentWidth = wrapper.getBoundingClientRect().width;
+      const targetWidth = 660;
+      if (parentWidth > 0 && parentWidth < targetWidth) {
+        const s = parentWidth / targetWidth;
+        setScale(s);
+        setScaledHeight(card.offsetHeight * s);
+      } else {
+        setScale(1);
+        setScaledHeight(undefined);
+      }
+    };
+
+    const observer = new ResizeObserver(handleResize);
+    observer.observe(wrapper);
+    handleResize();
+
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <section className="relative isolate mx-auto w-full max-w-[780px] select-none py-2 lg:py-0 text-white [font-family:var(--font-sans),ui-sans-serif,sans-serif]" aria-label="Organic Performance Overview">
+    <section
+      ref={wrapperRef}
+      className="@container/dashboard relative isolate mx-auto w-full max-w-[660px] select-none py-2 lg:py-0 text-white [font-family:var(--font-sans),ui-sans-serif,sans-serif]"
+      style={scaledHeight ? { height: `${scaledHeight}px` } : undefined}
+      aria-label="Organic Performance Overview"
+    >
       <style>{`
         @keyframes organicPerformanceDraw { to { stroke-dashoffset: 0; } }
         @keyframes organicPerformanceFill { to { opacity: 1; } }
@@ -400,29 +433,42 @@ export default function OrganicPerformanceOverview() {
       `}</style>
 
       <div aria-hidden className="absolute -inset-x-10 inset-y-10 -z-10 rounded-[48px] bg-[#f28d55]/10 blur-[70px]" />
-      <div className="relative overflow-hidden rounded-[25px] border border-[#e2b09c]/45 border-r-[#ffc69b]/70 bg-[linear-gradient(135deg,#111c2d_0%,#0c1422_55%,#101b2b_100%)] p-4 shadow-[0_0_0_1px_rgba(255,229,213,0.06),0_28px_60px_rgba(0,0,0,0.7),4px_1px_3px_-2px_rgba(255,223,190,0.6),9px_4px_15px_0_rgba(255,139,67,0.24),16px_9px_34px_3px_rgba(236,99,37,0.11)] will-change-transform [transform-style:preserve-3d] [backface-visibility:hidden] [-webkit-font-smoothing:antialiased] [text-rendering:geometricPrecision] sm:p-6 md:p-7 lg:[transform-origin:right_center] lg:[transform:perspective(2400px)_rotateY(-9deg)_rotateX(3deg)_translateZ(0)]">
+      <div
+        ref={cardRef}
+        style={
+          scale < 1
+            ? {
+                transform: `scale(${scale}) perspective(2400px) rotateY(-9deg) rotateX(3deg)`,
+                transformOrigin: "top left",
+                width: "660px",
+                maxWidth: "660px",
+              }
+            : undefined
+        }
+        className="relative overflow-hidden rounded-[25px] border border-[#e2b09c]/45 border-r-[#ffc69b]/70 bg-[linear-gradient(135deg,#111c2d_0%,#0c1422_55%,#101b2b_100%)] p-4 shadow-[0_0_0_1px_rgba(255,229,213,0.06),0_28px_60px_rgba(0,0,0,0.7),4px_1px_3px_-2px_rgba(255,223,190,0.6),9px_4px_15px_0_rgba(255,139,67,0.24),16px_9px_34px_3px_rgba(236,99,37,0.11)] will-change-transform [transform-style:preserve-3d] [backface-visibility:hidden] [-webkit-font-smoothing:antialiased] [text-rendering:geometricPrecision] sm:p-5 md:p-6 lg:p-7 md:[transform-origin:right_center] md:[transform:perspective(2400px)_rotateY(-9deg)_rotateX(3deg)_translateZ(0)]"
+      >
         <div aria-hidden className="pointer-events-none absolute inset-0 opacity-35 [background-image:radial-gradient(rgba(255,255,255,0.15)_0.7px,transparent_0.7px)] [background-size:16px_16px]" />
         {/* A restrained copper edge with only a small lower-corner light spill. */}
         <div aria-hidden className="pointer-events-none absolute bottom-0 right-[2%] z-20 h-px w-[30%] rounded-full bg-[linear-gradient(to_left,rgba(255,213,173,0.8),rgba(255,131,60,0.5)_45%,transparent)] shadow-[0_2px_5px_rgba(255,126,48,0.28),5px_4px_12px_rgba(255,101,32,0.14)]" />
 
         <div className="relative">
           <header className="flex items-center justify-between gap-4">
-            <h2 className="text-sm font-semibold tracking-[-0.035em] text-white/90 sm:text-base">Organic Performance Overview</h2>
-            <button type="button" className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-white/[0.06] bg-white/[0.06] px-3 py-2 text-[10px] font-semibold text-white/85 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] sm:px-3.5 sm:text-xs" aria-label="Date range: Last 16 months">
+            <h2 className="text-xs font-semibold tracking-[-0.035em] text-white/90 sm:text-base">Organic Performance Overview</h2>
+            <button type="button" className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-white/[0.06] bg-white/[0.06] px-2.5 py-1.5 text-[10px] font-semibold text-white/85 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] sm:px-3.5 sm:py-2 sm:text-xs" aria-label="Date range: Last 16 months">
               <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2" /><path d="M8 3v4M16 3v4M4 10h16" /></svg>
               Last 16 months
               <svg viewBox="0 0 16 16" className="h-3 w-3 text-white/60" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="m4 6 4 4 4-4" /></svg>
             </button>
           </header>
 
-          <div className="mt-5 flex items-center">
+          <div className="mt-4 sm:mt-5 flex items-center">
             <span className="text-[9px] font-mono uppercase tracking-[0.28em] text-white/55 font-semibold whitespace-nowrap">
               Select a metric
               <span aria-hidden className="ml-1.5 text-[#ffb079]">→</span>
             </span>
           </div>
 
-          <div className="mt-3 grid grid-cols-2 gap-2.5 lg:grid-cols-4 lg:gap-3.5" role="tablist" aria-label="Metrics">
+          <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-2.5 md:gap-3" role="tablist" aria-label="Metrics">
             {METRICS.map((metric) => (
               <MetricCard key={metric.key} metric={metric} active={metric.key === activeKey} onSelect={() => setActiveKey(metric.key)} />
             ))}

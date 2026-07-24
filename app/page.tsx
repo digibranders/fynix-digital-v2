@@ -23,15 +23,15 @@ export default function Home() {
         <HeroDarkBackdrop />
 
         <div className="relative max-w-7xl mx-auto px-6 md:px-12">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-6 xl:gap-8 items-center">
-            <div className="lg:col-span-5 flex flex-col items-start">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-6 xl:gap-8 items-center">
+            <div className="md:col-span-6 lg:col-span-5 flex flex-col items-start">
               {/* Eyebrow */}
               <p className="text-xl md:text-2xl font-semibold text-white/90 mb-3 tracking-tight text-left">
                 A digital studio for
               </p>
 
               {/* Headline using Figtree font as requested */}
-              <h1 className="font-sans text-4xl sm:text-5xl lg:text-[68px] xl:text-[88px] font-extrabold tracking-tight text-white leading-[1.02] text-left">
+              <h1 className="font-sans text-6xl sm:text-7xl lg:text-[76px] xl:text-[92px] font-extrabold tracking-tight text-white leading-[1.02] text-left">
                 Evolving <br />
                 <span className="italic font-normal text-transparent bg-clip-text bg-gradient-to-r from-[#e9af88] to-[#ffb57e] tracking-tight">Brands</span>
               </h1>
@@ -78,7 +78,8 @@ export default function Home() {
 
             </div>
 
-            <div className="lg:col-span-7 w-full flex justify-center lg:justify-end">
+            {/* Hidden on mobile (< md), visible on tablet & desktop (md:flex) */}
+            <div className="hidden md:flex md:col-span-6 lg:col-span-7 w-full justify-center lg:justify-end">
               <OrganicPerformanceOverview />
             </div>
           </div>
@@ -89,7 +90,7 @@ export default function Home() {
       <TrustedBy />
 
       {/* FOUR ACTS PREVIEW */}
-      <section className="pt-16 md:pt-20 pb-24 md:pb-32 bg-white">
+      <section className="pt-12 md:pt-20 pb-8 md:pb-32 bg-white">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-6 mb-14 md:mb-16">
             <div className="max-w-2xl">
@@ -117,7 +118,7 @@ export default function Home() {
       </section>
 
       {/* CASE STUDY TEASER */}
-      <section className="relative isolate overflow-hidden py-24 md:py-32 bg-transparent">
+      <section className="relative isolate overflow-hidden pt-8 md:pt-32 pb-16 md:pb-32 bg-transparent">
         <SpotlightBackdrop />
         <div className="relative max-w-7xl mx-auto px-6 md:px-12">
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-16">

@@ -33,6 +33,8 @@ const REQUIRED_LABEL = <span className="text-accent ml-0.5">*</span>;
 export default function ContactForm() {
   const [formData, setFormData] = useState<FormState>(INITIAL_STATE);
   const [formSubmitted, setFormSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const toggleService = (service: string) => {
     setFormData((prev) => ({
@@ -49,10 +51,34 @@ export default function ContactForm() {
     formData.phone.trim().length > 0 &&
     formData.services.length > 0;
 
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isValid) return;
-    setFormSubmitted(true);
+    if (!isValid || isSubmitting) return;
+
+    setIsSubmitting(true);
+    setSubmitError(null);
+
+    try {
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        throw new Error(data?.error || "Something went wrong. Please try again.");
+      }
+
+      setFormSubmitted(true);
+    } catch (error) {
+      setSubmitError(
+        error instanceof Error ? error.message : "Something went wrong. Please try again."
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (formSubmitted) {
@@ -173,13 +199,19 @@ export default function ContactForm() {
         />
       </div>
 
+      {submitError ? (
+        <p role="alert" className="text-sm text-red-600 text-center">
+          {submitError}
+        </p>
+      ) : null}
+
       <div className="pt-2 flex justify-center">
         <button
           type="submit"
-          disabled={!isValid}
+          disabled={!isValid || isSubmitting}
           className="inline-flex items-center justify-center gap-3 px-8 py-4 bg-primary text-white hover:bg-primary-hover cta-primary font-medium rounded-full shadow-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-primary"
         >
-          Submit
+          {isSubmitting ? "Submitting..." : "Submit"}
         </button>
       </div>
     </form>

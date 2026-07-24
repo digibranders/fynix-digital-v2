@@ -185,23 +185,41 @@ export default function ProcessTimeline() {
                 }
               >
                 <div
-                  className={`bg-white border rounded-xl p-6 md:p-7 shadow-xs transition-[border-color,box-shadow] duration-500 ${
+                  className={`relative overflow-hidden isolate bg-white border rounded-xl p-6 md:p-7 shadow-xs transition-[border-color,box-shadow] duration-500 ${
                     passed ? "border-accent/40 shadow-sm" : "border-border"
                   }`}
                 >
-                  <div>
-                    <span className="font-mono text-xs text-accent font-bold">
-                      {step.num}
-                    </span>
+                  {/* Mobile Faded Watermark Icon */}
+                  <div
+                    aria-hidden
+                    className="md:hidden absolute -right-3 -bottom-3 w-28 h-28 pointer-events-none select-none text-accent/15 opacity-35"
+                  >
+                    <div className="relative w-full h-full">
+                      <span
+                        aria-hidden
+                        className={`absolute inset-0 rounded-full border transition-colors duration-500 ${
+                          passed ? "border-accent/25" : "border-accent/15"
+                        }`}
+                      />
+                      <div className="absolute inset-4">{icon}</div>
+                    </div>
                   </div>
 
-                  <h3 className="font-serif text-2xl md:text-[26px] text-primary font-medium mt-3 leading-tight">
-                    {step.title}
-                  </h3>
+                  <div className="relative z-10">
+                    <div>
+                      <span className="font-mono text-xs text-accent font-bold">
+                        {step.num}
+                      </span>
+                    </div>
 
-                  <p className="text-sm md:text-[15px] text-text-muted font-normal leading-relaxed mt-3">
-                    {step.short}
-                  </p>
+                    <h3 className="font-serif text-2xl md:text-[26px] text-primary font-medium mt-3 leading-tight">
+                      {step.title}
+                    </h3>
+
+                    <p className="text-sm md:text-[15px] text-text-muted font-normal leading-relaxed mt-3">
+                      {step.short}
+                    </p>
+                  </div>
                 </div>
               </div>
 
