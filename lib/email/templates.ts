@@ -26,23 +26,23 @@ const BRAND = {
   backgroundSoft: "#F5F4F1",
   border: "#E8E7E3",
   textMuted: "#565D64",
-  // Once the site is deployed, this must resolve to a real hosted image
-  // (PNG/SVG) of the Fynix wordmark, e.g. exported from components/Logo.tsx.
-  // Until then, email clients that display images will show nothing here,
-  // and clients that block images fall back to the styled alt text below.
-  logoUrl: "https://fynix.digital/email/logo.png",
+  // White wordmark exported from components/Logo.tsx via
+  // scripts/generate-email-logo.tsx, hosted at public/email/logo.svg.
+  // Outlook desktop can't render SVG <img> sources, so the header below
+  // falls back to a styled text wordmark for mso clients.
+  logoUrl: "https://fynix.digital/email/logo.svg",
 } as const;
 
 const SOCIAL_LINKS = [
   {
     name: "Instagram",
     href: "https://www.instagram.com/fynix_digital/",
-    iconUrl: "https://cdn.simpleicons.org/instagram/565D64",
+    iconUrl: "https://fynix.digital/email/icons/instagram.svg",
   },
   {
     name: "LinkedIn",
     href: "https://in.linkedin.com/company/fynixofficial",
-    iconUrl: "https://cdn.simpleicons.org/linkedin/565D64",
+    iconUrl: "https://fynix.digital/email/icons/linkedin.svg",
   },
 ] as const;
 

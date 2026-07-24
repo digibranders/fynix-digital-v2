@@ -8,7 +8,7 @@ const SERVICES = [
   "CRO",
   "SEO",
   "Development",
-  "Web Design",
+  "Lead Generation",
   // "Paid Ads",
 ] as const;
 
