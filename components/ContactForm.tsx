@@ -95,6 +95,16 @@ export default function ContactForm() {
         <p className="text-sm text-text-muted font-normal max-w-sm">
           Our growth architect will review your brief and reach out within 24 hours.
         </p>
+        <button
+          type="button"
+          onClick={() => {
+            setFormData(INITIAL_STATE);
+            setFormSubmitted(false);
+          }}
+          className="mt-6 text-xs font-semibold uppercase tracking-widest text-accent border-b border-accent pb-1 hover:text-primary hover:border-primary transition-all duration-200"
+        >
+          Send another message
+        </button>
       </div>
     );
   }
