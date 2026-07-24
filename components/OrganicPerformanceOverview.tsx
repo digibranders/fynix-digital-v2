@@ -436,7 +436,7 @@ export default function OrganicPerformanceOverview() {
               </div>
               <svg
                 viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`}
-                className="block h-[158px] w-full cursor-crosshair overflow-visible touch-none sm:h-[210px]"
+                className="block h-[158px] w-full cursor-crosshair overflow-visible touch-pan-y sm:h-[210px]"
                 preserveAspectRatio="none"
                 role="img"
                 aria-label={`${chartLabel} trend over the last 16 months. Hover to inspect any point.`}

@@ -325,14 +325,14 @@ export default function PillarDiagnosticWidget({ actSlug, actTitle }: Props) {
                   placeholder="work.email@company.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="px-3.5 py-2.5 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/40 text-sm focus:outline-none focus:border-[#e9af88]"
+                  className="px-3.5 py-2.5 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/40 text-base md:text-sm focus:outline-none focus:border-[#e9af88]"
                 />
                 <input
                   type="text"
                   placeholder="Company Name (optional)"
                   value={company}
                   onChange={(e) => setCompany(e.target.value)}
-                  className="px-3.5 py-2.5 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/40 text-sm focus:outline-none focus:border-[#e9af88]"
+                  className="px-3.5 py-2.5 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/40 text-base md:text-sm focus:outline-none focus:border-[#e9af88]"
                 />
               </div>
               <button

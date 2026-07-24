@@ -76,7 +76,7 @@ export default function ContactForm() {
   const fieldLabel =
     "block text-sm font-medium text-primary mb-2";
   const inputBase =
-    "w-full px-5 py-3.5 bg-background-soft border border-border rounded-full text-sm text-primary placeholder:text-text-muted/70 focus:outline-hidden focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all duration-200";
+    "w-full px-5 py-3.5 bg-background-soft border border-border rounded-full text-base md:text-sm text-primary placeholder:text-text-muted/70 focus:outline-hidden focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all duration-200";
 
   return (
     <form onSubmit={handleFormSubmit} className="space-y-6" noValidate>
@@ -169,7 +169,7 @@ export default function ContactForm() {
           value={formData.message}
           onChange={(e) => setFormData({ ...formData, message: e.target.value })}
           placeholder="Tell us more about your project"
-          className="w-full px-5 py-4 bg-background-soft border border-border rounded-2xl text-sm text-primary placeholder:text-text-muted/70 focus:outline-hidden focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all duration-200 resize-none"
+          className="w-full px-5 py-4 bg-background-soft border border-border rounded-2xl text-base md:text-sm text-primary placeholder:text-text-muted/70 focus:outline-hidden focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all duration-200 resize-none"
         />
       </div>
 

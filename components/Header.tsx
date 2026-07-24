@@ -312,7 +312,7 @@ export default function Header() {
                 closeMegaNow();
                 setMenuOpen((o) => !o);
               }}
-              className={`lg:hidden h-10 w-10 -mr-2 flex items-center justify-center rounded-full transition-colors ${
+              className={`lg:hidden h-11 w-11 -mr-2 flex items-center justify-center rounded-full transition-colors ${
                 isDark
                   ? "text-white hover:bg-white/10"
                   : "text-primary hover:bg-primary/5"
@@ -503,28 +503,55 @@ export default function Header() {
           className="h-full overflow-y-auto px-6 pt-8 pb-12 flex flex-col"
         >
           <ul className="flex flex-col divide-y divide-border">
-            {nav.map((item, idx) => (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  onClick={(e) => {
-                    setMenuOpen(false);
-                    handleSamePageNav(item.href)(e);
-                  }}
-                  className="flex items-center justify-between py-6 group"
-                >
-                  <span className="font-serif text-3xl text-primary group-hover:text-accent transition-colors">
-                    {item.label}
-                  </span>
-                  <span
-                    aria-hidden
-                    className="text-xs font-mono text-text-muted tabular-nums"
+            {nav.map((item, idx) => {
+              const isServices = item.href === "/services";
+              return (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    onClick={(e) => {
+                      setMenuOpen(false);
+                      handleSamePageNav(item.href)(e);
+                    }}
+                    className="flex items-center justify-between py-5 group"
                   >
-                    {String(idx + 1).padStart(2, "0")}
-                  </span>
-                </Link>
-              </li>
-            ))}
+                    <span className="font-serif text-3xl text-primary group-hover:text-accent transition-colors">
+                      {item.label}
+                    </span>
+                    <span
+                      aria-hidden
+                      className="text-xs font-mono text-text-muted tabular-nums"
+                    >
+                      {String(idx + 1).padStart(2, "0")}
+                    </span>
+                  </Link>
+
+                  {isServices && (
+                    <ul className="pl-4 pb-4 space-y-3 border-l-2 border-accent/30 ml-1 mb-2">
+                      {acts.map((act) => (
+                        <li key={act.slug}>
+                          <Link
+                            href={`/services/${act.slug}`}
+                            onClick={(e) => {
+                              setMenuOpen(false);
+                              handleSamePageNav(`/services/${act.slug}`)(e);
+                            }}
+                            className="flex items-center gap-3 group/sub text-sm"
+                          >
+                            <span className="font-mono text-xs font-semibold text-accent shrink-0">
+                              {act.num}
+                            </span>
+                            <span className="font-serif text-lg text-primary/85 group-hover/sub:text-accent transition-colors">
+                              {act.title}
+                            </span>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </li>
+              );
+            })}
           </ul>
 
           <div className="mt-auto pt-10 space-y-4 text-sm">
