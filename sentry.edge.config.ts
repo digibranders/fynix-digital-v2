@@ -14,12 +14,12 @@ Sentry.init({
     httpBodies: [],
   },
 
-  // Full sampling in development, 10% in production to keep quota predictable.
+  // Full sampling in development, 10% in production. The free plan allows 5M
+  // spans a month, which 10% keeps us comfortably inside.
   tracesSampleRate: isDevelopment ? 1.0 : 0.1,
 
   enableLogs: true,
 
-  // No profiling here — the Edge runtime cannot load the native V8 profiler.
   integrations: [
     Sentry.consoleLoggingIntegration({ levels: ["warn", "error"] }),
   ],

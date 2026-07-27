@@ -16,31 +16,25 @@ Sentry.init({
     httpBodies: [],
   },
 
-  // Full sampling in development, 10% in production to keep quota predictable.
+  // Full sampling in development, 10% in production. The free plan allows 5M
+  // spans a month, which 10% keeps us comfortably inside.
   tracesSampleRate: isDevelopment ? 1.0 : 0.1,
 
-  // Session Replay. Record a quarter of sessions outright, and every session
-  // that hits an error — the latter is where the debugging value is.
-  replaysSessionSampleRate: isDevelopment ? 1.0 : 0.25,
+  // Session Replay. The free plan includes only 50 replays a month, so record
+  // nothing speculatively — spend the entire budget on sessions that errored,
+  // which are the only ones worth watching back.
+  replaysSessionSampleRate: 0,
   replaysOnErrorSampleRate: 1.0,
-
-  // Browser profiling is Chromium-only and silently no-ops elsewhere. It also
-  // requires the Document-Policy: js-profiling header set in next.config.ts.
-  profileSessionSampleRate: isDevelopment ? 1.0 : 0.1,
-  profileLifecycle: "trace",
 
   enableLogs: true,
 
   integrations: [
-    // Text and media are masked by default; the lead forms rely on that.
+    // Text, inputs and media are masked so the lead forms stay redacted.
     Sentry.replayIntegration({
       maskAllText: true,
       maskAllInputs: true,
       blockAllMedia: true,
     }),
-    // browserTracingIntegration must be registered before the profiler.
-    Sentry.browserTracingIntegration(),
-    Sentry.browserProfilingIntegration(),
     Sentry.consoleLoggingIntegration({ levels: ["warn", "error"] }),
   ],
 });

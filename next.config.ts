@@ -22,12 +22,6 @@ const nextConfig: NextConfig = {
             key: "Referrer-Policy",
             value: "strict-origin-when-cross-origin",
           },
-          {
-            // Unlocks the JS Self-Profiling API that Sentry browser profiling
-            // depends on. Without it profiling silently no-ops in Chromium.
-            key: "Document-Policy",
-            value: "js-profiling",
-          },
         ],
       },
     ];
