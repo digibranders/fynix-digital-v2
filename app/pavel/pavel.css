@@ -1,0 +1,36 @@
+/* Scoped styles for the /pavel Semantic SEO workshop landing page.
+   These class names only exist on the /pavel route, so importing this
+   globally has no effect on the rest of the fynix site. */
+
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Hero entrance. Pure CSS so it self-completes on the document timeline even
+   when the page first loads in a background/hidden tab. */
+@keyframes hero-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.hero-rise {
+  animation: hero-rise 0.55s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.hero-rise-delayed {
+  animation: hero-rise 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: 0.1s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-rise,
+  .hero-rise-delayed {
+    animation: none;
+  }
+}

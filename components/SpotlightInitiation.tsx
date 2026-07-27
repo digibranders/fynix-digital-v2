@@ -35,7 +35,7 @@ export default function SpotlightInitiation() {
         <div className="mt-10">
           <Link
             href="/contact"
-            className="group cta-glide spotlight-initiation-cta inline-flex items-center justify-center gap-2.5 px-9 py-4 bg-primary text-white hover:text-[#0C1E2E] hover:shadow-[0_4px_22px_rgba(233,175,136,0.3)] font-bold rounded-full shadow-sm text-base"
+            className="group cta-glide spotlight-initiation-cta inline-flex items-center justify-center gap-2.5 px-9 py-4 bg-primary text-white hover:text-[#0C1E2E] hover:shadow-sm font-bold rounded-full shadow-sm text-base"
           >
             Start The Conversation
             <svg

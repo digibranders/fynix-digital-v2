@@ -1,8 +1,5 @@
 import type { Metadata } from "next";
 import { Figtree, Cormorant } from "next/font/google";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-import SmoothScroll from "@/components/SmoothScroll";
 import { siteConfig } from "@/lib/content";
 import "./globals.css";
 
@@ -149,19 +146,7 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col bg-background text-foreground selection:bg-accent selection:text-white">
-        <a
-          href="#main"
-          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 z-50 px-4 py-2 bg-accent text-white font-mono text-xs rounded-md shadow-lg transition-all"
-        >
-          Skip to main content
-        </a>
-        <SmoothScroll>
-          <Header />
-          <main id="main" className="flex-1 flex flex-col">
-            {children}
-          </main>
-          <Footer />
-        </SmoothScroll>
+        {children}
       </body>
     </html>
   );

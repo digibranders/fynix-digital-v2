@@ -406,6 +406,27 @@ select:not(:disabled) {
   transform: translateX(3px);
 }
 
+/* Gold pill CTA — hover lift + gold glow and an arrow that slides. Responsive
+   on interaction, with no shimmer. */
+.cta-glide:hover {
+  transform: translateY(-2px);
+}
+.cta-glide:active {
+  transform: translateY(0);
+  transition-duration: 100ms;
+}
+.cta-glide svg {
+  transition: transform var(--cta-dur) var(--cta-ease);
+}
+.cta-glide:hover svg {
+  transform: translateX(4px);
+}
+.cta-glide:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 9999px;
+}
+
 /* Gradient reveal — for pill CTAs whose default is a solid color and
    hover state is a gradient (bg-primary → gradient-to-r). Browsers
    can't tween solid-color → gradient, so we cross-fade a gradient
@@ -504,13 +525,17 @@ select:not(:disabled) {
   .cta-secondary,
   .cta-underline,
   .cta-primary svg,
+  .cta-glide,
+  .cta-glide svg,
   .cta-underline::after,
   .cta-underline::before {
     transition: none !important;
   }
   .cta-primary:hover,
   .cta-secondary:hover,
-  .cta-primary:hover svg {
+  .cta-primary:hover svg,
+  .cta-glide:hover,
+  .cta-glide:hover svg {
     transform: none !important;
   }
   .cta-underline:hover::after {

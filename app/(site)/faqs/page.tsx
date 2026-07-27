@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import FaqAccordion from "@/components/FaqAccordion";
+import FaqHub from "@/components/FaqHub";
 import Reveal from "@/components/Reveal";
 import PreFooterBackdrop from "@/components/PreFooterBackdrop";
 import HeroDarkBackdrop from "@/components/HeroDarkBackdrop";
-import { faqs, siteConfig } from "@/lib/content";
+import { faqCategories, siteConfig } from "@/lib/content";
 
 export const metadata: Metadata = {
   title: "Cybersecurity Growth & Web Development FAQs",
@@ -17,10 +17,12 @@ function stripEmphasis(text: string): string {
   return text.replace(/\*\*/g, "");
 }
 
+const allFaqs = faqCategories.flatMap((c) => c.items);
+
 const faqJsonLd = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
-  mainEntity: faqs.map((faq) => ({
+  mainEntity: allFaqs.map((faq) => ({
     "@type": "Question",
     name: faq.q,
     acceptedAnswer: { "@type": "Answer", text: stripEmphasis(faq.a) },
@@ -76,9 +78,9 @@ export default function FaqsPage() {
       </section>
 
       <section className="py-20 md:py-28 bg-white">
-        <Reveal className="max-w-4xl mx-auto px-6">
-          <FaqAccordion faqs={faqs} />
-        </Reveal>
+        <div className="max-w-7xl mx-auto px-6 md:px-12">
+          <FaqHub categories={faqCategories} />
+        </div>
       </section>
 
       <section className="relative isolate overflow-hidden py-20 md:py-28 bg-transparent">

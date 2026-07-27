@@ -6,7 +6,6 @@ import Logo from "@/components/Logo";
 const siteLinks = [
   { href: "/", label: "Home" },
   { href: "/services", label: "Services" },
-  { href: "/process", label: "Process" },
   { href: "/case-studies", label: "Case Studies" },
 ];
 

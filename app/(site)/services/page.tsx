@@ -2,9 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import ActsStack from "@/components/ActsStack";
 import Reveal from "@/components/Reveal";
-import EngagementModels from "@/components/EngagementModels";
+import ProcessTimeline from "@/components/ProcessTimeline";
 import PreFooterBackdrop from "@/components/PreFooterBackdrop";
-import SectionSeam from "@/components/SectionSeam";
 import HeroDarkBackdrop from "@/components/HeroDarkBackdrop";
 import { acts, siteConfig } from "@/lib/content";
 
@@ -60,9 +59,18 @@ export default function ServicesPage() {
         </div>
       </section>
 
-      <SectionSeam from="soft" to="white" />
+      {/* ─── TIMELINE ─────────────────────────────────────────── */}
+      <section aria-label="Timeline" className="pt-16 md:pt-20 pb-12 md:pb-16 bg-background-soft">
+        <div className="max-w-6xl mx-auto px-6 md:px-12">
+          <Reveal className="max-w-4xl mb-16">
+            <h2 className="font-serif text-4xl md:text-5xl text-primary font-medium leading-tight text-balance">
+              From first call to a live growth system.
+            </h2>
+          </Reveal>
 
-      <EngagementModels />
+          <ProcessTimeline />
+        </div>
+      </section>
 
       <section className="relative isolate overflow-hidden pt-16 md:pt-20 pb-10 md:pb-15 bg-transparent">
         <PreFooterBackdrop />
