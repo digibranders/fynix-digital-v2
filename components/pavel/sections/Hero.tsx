@@ -32,7 +32,7 @@ export const Hero: React.FC = () => {
         }}
       >
         <Image
-          src="/pavel/new_hero.png"
+          src="/pavel/new_hero.webp"
           alt="Pavel Klimakov presenting: What is Semantic SEO?"
           fill
           priority
@@ -121,7 +121,7 @@ export const Hero: React.FC = () => {
           <div className="hero-rise-delayed lg:col-span-5">
             <div className="relative w-full aspect-[3/2] lg:hidden">
               <Image
-                src="/pavel/new_hero.png"
+                src="/pavel/new_hero.webp"
                 alt="Pavel Klimakov presenting: What is Semantic SEO?"
                 fill
                 priority

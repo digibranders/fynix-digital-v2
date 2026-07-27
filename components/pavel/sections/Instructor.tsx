@@ -12,43 +12,43 @@ import { Container } from "../ui/Container";
 // they read immediately after the leftmost portrait.
 const COLLAGE = [
   {
-    src: "/pavel/pavel-klimakov.jpg",
+    src: "/pavel/pavel-klimakov.webp",
     alt: "Pavel Klimakov",
     caption: "Portrait",
     span: "solo",
   },
   {
-    src: "/pavel/korey1.jpeg",
+    src: "/pavel/korey1.webp",
     alt: "Koray Tuğberk Gübür, framework originator",
     caption: "Koray Tuğberk Gübür",
     span: "third",
   },
   {
-    src: "/pavel/korey2.jpeg",
+    src: "/pavel/korey2.webp",
     alt: "Koray Tuğberk Gübür on Semantic SEO",
     caption: "Koray Tuğberk Gübür",
     span: "third",
   },
   {
-    src: "/pavel/Kulturalnie-o-SEO-warsaw-pavel.jpg",
+    src: "/pavel/Kulturalnie-o-SEO-warsaw-pavel.webp",
     alt: "Pavel presenting at Kulturalnie o SEO, Warsaw",
     caption: "Kulturalnie o SEO, Warsaw",
     span: "third",
   },
   {
-    src: "/pavel/seo-vibes-zakopane.jpg",
+    src: "/pavel/seo-vibes-zakopane.webp",
     alt: "SEO Vibes conference, Zakopane",
     caption: "SEO Vibes, Zakopane",
     span: "third",
   },
   {
-    src: "/pavel/pavel-seo-mastery-summit-2025.jpg",
+    src: "/pavel/pavel-seo-mastery-summit-2025.webp",
     alt: "SEO Mastery Summit, 2025",
     caption: "SEO Mastery Summit, 2025",
     span: "third",
   },
   {
-    src: "/pavel/Kulturalnie-o-SEO-warsaw.jpg",
+    src: "/pavel/Kulturalnie-o-SEO-warsaw.webp",
     alt: "Kulturalnie o SEO venue, Warsaw",
     caption: "Kulturalnie o SEO, Warsaw",
     span: "third",
@@ -67,7 +67,7 @@ export const Instructor: React.FC = () => {
           <Reveal className="lg:col-span-5">
             <div className="relative rounded-[16px] overflow-hidden aspect-[4/5] shadow-[0_1px_2px_rgba(15,14,12,0.06),0_24px_50px_-24px_rgba(15,14,12,0.28)]">
               <Image
-                src="/pavel/pavel-klimakov.jpg"
+                src="/pavel/pavel-klimakov.webp"
                 alt="Pavel Klimakov"
                 fill
                 sizes="(min-width: 1024px) 40vw, 100vw"
