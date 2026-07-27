@@ -1,7 +1,10 @@
 import * as Sentry from "@sentry/nextjs";
+import { nodeProfilingIntegration } from "@sentry/profiling-node";
 
 const SENTRY_DSN =
   "https://5f053848abf91622d8c8aa6d5b6d86fa@o4511098086227968.ingest.us.sentry.io/4511806892474368";
+
+const isDevelopment = process.env.NODE_ENV === "development";
 
 Sentry.init({
   dsn: process.env.SENTRY_DSN ?? SENTRY_DSN,
@@ -15,8 +18,20 @@ Sentry.init({
   },
 
   // Full sampling in development, 10% in production to keep quota predictable.
-  tracesSampleRate: process.env.NODE_ENV === "development" ? 1.0 : 0.1,
+  tracesSampleRate: isDevelopment ? 1.0 : 0.1,
+
+  profileSessionSampleRate: isDevelopment ? 1.0 : 0.1,
+  profileLifecycle: "trace",
 
   // Attach local variable values to stack frames for faster root-causing.
   includeLocalVariables: true,
+
+  enableLogs: true,
+
+  integrations: [
+    nodeProfilingIntegration(),
+    // Deliberately excludes "log": app/api/lead-diagnostic logs submitter
+    // emails and free-text summaries at that level, which must not reach Sentry.
+    Sentry.consoleLoggingIntegration({ levels: ["warn", "error"] }),
+  ],
 });
