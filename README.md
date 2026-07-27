@@ -2,28 +2,7 @@
 
 Marketing site for [fynix.digital](https://fynix.digital) — a studio that helps cybersecurity companies turn their websites into growth engines through UI/UX, technical excellence, AI-ready SEO, and predictable lead generation.
 
-[![Uptime](https://uptime.betterstack.com/status-badges/v1/monitor/2tett.svg)](https://uptime.betterstack.com/?utm_source=status_badge)
-
-**Core**
-
-![Next.js](https://img.shields.io/badge/Next.js-16.2-000000?style=flat-square&logo=nextdotjs&logoColor=white)
-![React](https://img.shields.io/badge/React-19.2-61DAFB?style=flat-square&logo=react&logoColor=black)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?style=flat-square&logo=typescript&logoColor=white)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4.3-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)
-
-**Interface**
-
-![Motion](https://img.shields.io/badge/Motion-12.42-FF0055?style=flat-square&logo=framer&logoColor=white)
-![OGL](https://img.shields.io/badge/OGL-1.0-990000?style=flat-square&logo=webgl&logoColor=white)
-![Lenis](https://img.shields.io/badge/Lenis-1.3-111111?style=flat-square)
-
-**Platform**
-
-![Vercel](https://img.shields.io/badge/Vercel-deployed-000000?style=flat-square&logo=vercel&logoColor=white)
-![Sentry](https://img.shields.io/badge/Sentry-10.68-362D59?style=flat-square&logo=sentry&logoColor=white)
-![Brevo](https://img.shields.io/badge/Brevo-transactional-0B996E?style=flat-square&logo=brevo&logoColor=white)
-![Better Stack](https://img.shields.io/badge/Better_Stack-uptime-000000?style=flat-square&logo=betterstack&logoColor=white)
-![ESLint](https://img.shields.io/badge/ESLint-9.39-4B32C3?style=flat-square&logo=eslint&logoColor=white)
+[![Uptime](https://uptime.betterstack.com/status-badges/v1/monitor/2tett.svg)](https://uptime.betterstack.com/?utm_source=status_badge) ![Next.js](https://img.shields.io/badge/Next.js-16.2-000000?style=flat-square&logo=nextdotjs&logoColor=white) ![React](https://img.shields.io/badge/React-19.2-61DAFB?style=flat-square&logo=react&logoColor=black) ![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?style=flat-square&logo=typescript&logoColor=white) ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4.3-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white) ![Motion](https://img.shields.io/badge/Motion-12.42-FF0055?style=flat-square&logo=framer&logoColor=white) ![Sentry](https://img.shields.io/badge/Sentry-10.68-362D59?style=flat-square&logo=sentry&logoColor=white) ![Vercel](https://img.shields.io/badge/Vercel-deployed-000000?style=flat-square&logo=vercel&logoColor=white)
 
 ---
 
