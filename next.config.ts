@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { withSentryConfig } from "@sentry/nextjs";
 
 const nextConfig: NextConfig = {
   images: {
@@ -27,5 +28,20 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default withSentryConfig(nextConfig, {
+  org: "fynix-digital",
+  project: "fynix-digital-web",
+
+  // Build-time secret, set in the Vercel project env. Without it the build
+  // still succeeds, but production stack traces stay minified.
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+
+  // Upload a wider set of client bundles so browser stack traces resolve.
+  widenClientFileUpload: true,
+
+  // Proxy events through our own origin so ad blockers don't drop them.
+  tunnelRoute: "/monitoring",
+
+  silent: !process.env.CI,
+});
 
