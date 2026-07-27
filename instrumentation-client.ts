@@ -20,21 +20,9 @@ Sentry.init({
   // spans a month, which 10% keeps us comfortably inside.
   tracesSampleRate: isDevelopment ? 1.0 : 0.1,
 
-  // Session Replay. The free plan includes only 50 replays a month, so record
-  // nothing speculatively — spend the entire budget on sessions that errored,
-  // which are the only ones worth watching back.
-  replaysSessionSampleRate: 0,
-  replaysOnErrorSampleRate: 1.0,
-
   enableLogs: true,
 
   integrations: [
-    // Text, inputs and media are masked so the lead forms stay redacted.
-    Sentry.replayIntegration({
-      maskAllText: true,
-      maskAllInputs: true,
-      blockAllMedia: true,
-    }),
     Sentry.consoleLoggingIntegration({ levels: ["warn", "error"] }),
   ],
 });
