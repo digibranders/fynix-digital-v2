@@ -11,8 +11,11 @@ import SpotlightBackdrop from "@/components/SpotlightBackdrop";
 import SpotlightInitiation from "@/components/SpotlightInitiation";
 import HeroDarkBackdrop from "@/components/HeroDarkBackdrop";
 import OrganicPerformanceOverview from "@/components/OrganicPerformanceOverview";
+import GrowthFramework from "@/components/GrowthFramework";
+import SectionSeam from "@/components/SectionSeam";
 
 export default function Home() {
+
   return (
     <>
       {/* HERO */}
@@ -27,12 +30,12 @@ export default function Home() {
             <div className="md:col-span-6 lg:col-span-5 flex flex-col items-start">
               {/* Eyebrow */}
               <p className="text-xl md:text-2xl font-semibold text-white/90 mb-3 tracking-tight text-left">
-                A digital studio for
+                A digital marketing studio for
               </p>
 
               {/* Headline using Figtree font as requested */}
               <h1 className="font-sans text-6xl sm:text-7xl lg:text-[76px] xl:text-[92px] font-extrabold tracking-tight text-white leading-[1.02] text-left">
-                Evolving <br />
+                Growing <br />
                 <span className="italic font-normal text-transparent bg-clip-text bg-gradient-to-r from-[#e9af88] to-[#ffb57e] tracking-tight">Brands</span>
               </h1>
 
@@ -49,14 +52,14 @@ export default function Home() {
               </div>
 
               <p className="text-base md:text-lg font-normal leading-relaxed max-w-xl text-left text-white/70">
-                Marketing that start conversations. Every plan, decision &amp; design crafted by humans optimized by AI.
+              Helping B2B companies build visibility, earn trust, and generate qualified opportunities, with specialized expertise in cybersecurity.
               </p>
 
               {/* Pill Button with copper-gold gradient */}
               <div className="mt-8 flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
                 <Link
                   href="/contact"
-                  className="cta-glide inline-flex items-center justify-center gap-2.5 px-9 py-4 bg-gradient-to-r from-[#e9af88] to-[#ffd2b3] text-[#0C1E2E] hover:brightness-105 font-bold rounded-full shadow-[0_4px_22px_rgba(233,175,136,0.3)] text-center group text-base"
+                  className="cta-glide inline-flex items-center justify-center gap-2.5 px-9 py-4 bg-gradient-to-r from-[#e9af88] to-[#ffd2b3] text-[#0C1E2E] hover:brightness-105 font-bold rounded-full shadow-sm text-center group text-base"
                 >
                   Let&apos;s Start Improving
                   <svg
@@ -95,12 +98,10 @@ export default function Home() {
           <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-6 mb-14 md:mb-16">
             <div className="max-w-2xl">
               <h2 className="font-serif text-4xl md:text-5xl text-primary font-medium whitespace-nowrap">
-                The Four Growth Acts
+              Your Complete Growth Ecosystem
               </h2>
               <p className="mt-4 text-base md:text-lg text-text-muted font-normal leading-relaxed">
-                Four disciplines. One connected engine.
-                <br />
-                Each act sets up the next, so nothing leaks between them.
+              Growth isn&apos;t driven by a single service. It comes from aligning strategy, technology, user experience, and customer acquisition.
               </p>
             </div>
             <Link
@@ -124,8 +125,11 @@ export default function Home() {
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-16">
             <div>
               <h2 className="font-serif text-4xl md:text-5xl text-primary font-medium">
-                Recent Work
+                Case Studies
               </h2>
+              <p className="mt-4 text-base md:text-lg text-text-muted font-normal leading-relaxed">
+              Explore how we&apos;ve helped businesses improve visibility, strengthen their digital presence <br></br>and generate measurable growth across multiple industries.
+              </p>
             </div>
             <Link
               href="/case-studies"
@@ -138,6 +142,11 @@ export default function Home() {
           <FeaturedCaseStudies studies={caseStudies.slice(0, 3)} />
         </div>
       </section>
+
+      <SectionSeam from="white" to="soft" />
+
+      {/* GROWTH FRAMEWORK */}
+      <GrowthFramework />
 
       {/* IMPACT STATS */}
       <ImpactStats />

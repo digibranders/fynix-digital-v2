@@ -10,13 +10,17 @@ export default function TrustedBy() {
     >
       <div className="max-w-7xl mx-auto px-6 md:px-12">
         <Reveal>
-          <div className="border-b border-border pb-8 mb-12 md:mb-16">
+          <div className="pb-8 mb-12 md:mb-16">
             <h2
               id="trusted-by-heading"
               className="font-serif text-3xl md:text-5xl text-primary font-medium leading-tight"
             >
-              Trusted by Global Brands
+              Trusted by Growing Businesses
             </h2>
+            <p className="mt-4 text-base md:text-lg text-text-muted font-normal leading-relaxed">
+              From startups to established enterprises, businesses trust Fynix
+              Digital to strengthen <br></br>their digital presence and accelerate sustainable growth.
+            </p>
           </div>
         </Reveal>
 

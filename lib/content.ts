@@ -347,6 +347,92 @@ export const faqs: Faq[] = [
   },
 ];
 
+// Categorised FAQs powering the /faqs "Jump To" hub. `general` reuses the
+// list above; the service categories mirror each dedicated service page.
+export type FaqCategory = { id: string; label: string; items: Faq[] };
+
+export const faqCategories: FaqCategory[] = [
+  {
+    id: "general",
+    label: "General questions",
+    items: faqs,
+  },
+  {
+    id: "ui-ux",
+    label: "UI/UX Design",
+    items: [
+      {
+        q: "Why is UI/UX important for business growth?",
+        a: "A well-designed experience makes it easier for customers to understand your products, complete tasks, and make purchasing decisions. Better experiences lead to higher engagement, stronger customer trust, and improved conversions.",
+      },
+      {
+        q: "Do you redesign existing websites?",
+        a: "Yes. We help businesses modernize outdated websites by improving usability, navigation, accessibility, visual consistency, and conversion performance.",
+      },
+      {
+        q: "Do you design SaaS platforms and dashboards?",
+        a: "Yes. We design intuitive SaaS applications, enterprise dashboards, customer portals, and web applications that simplify complex workflows and improve user productivity.",
+      },
+      {
+        q: "Will the designs be responsive?",
+        a: "Absolutely. Every interface is designed to provide a consistent experience across desktop, tablet, and mobile devices.",
+      },
+      {
+        q: "Do you work with developers?",
+        a: "Yes. We create developer-ready designs with reusable components, design systems, prototypes, and detailed specifications to ensure a smooth development process.",
+      },
+    ],
+  },
+  {
+    id: "development",
+    label: "Website Development",
+    items: [
+      {
+        q: "Why should I choose Next.js over a traditional website?",
+        a: "Next.js delivers faster performance, stronger security, improved search engine optimization, and greater scalability than many traditional website platforms. It is an excellent choice for businesses looking to build future-ready digital experiences.",
+      },
+      {
+        q: "Can you redesign my existing website?",
+        a: "Yes. We redesign outdated websites to improve usability, performance, visual appeal, accessibility, and conversions while preserving your existing search visibility where appropriate.",
+      },
+      {
+        q: "Do you provide ongoing website maintenance?",
+        a: "Yes. Our maintenance services include security updates, performance monitoring, backups, technical improvements, bug fixes, and continuous optimization to keep your website running smoothly.",
+      },
+      {
+        q: "Will my website be mobile responsive?",
+        a: "Absolutely. Every website we develop is fully responsive and optimized to deliver a consistent experience across desktop, tablet, and mobile devices.",
+      },
+      {
+        q: "Do you optimize websites for SEO?",
+        a: "Yes. Every website is developed with SEO best practices in mind, including clean code, structured data, technical optimization, Core Web Vitals, mobile responsiveness, and search-friendly architecture.",
+      },
+    ],
+  },
+  {
+    id: "seo",
+    label: "SEO & AI Search",
+    items: [
+      {
+        q: "How long does SEO take to show results?",
+        a: "SEO is a long-term investment. While technical improvements can deliver early gains, meaningful business results typically become visible within 3 to 6 months, depending on your industry, competition, and website authority.",
+      },
+      {
+        q: "Do you optimize for AI-powered search?",
+        a: "Yes. Our strategies include semantic SEO, entity optimization, structured data, and content architecture designed to improve visibility across AI-powered search experiences in addition to traditional search engines.",
+      },
+      {
+        q: "Can you work with enterprise websites?",
+        a: "Absolutely. We help businesses manage SEO across large websites, multiple markets, and complex digital ecosystems through scalable enterprise SEO strategies.",
+      },
+      {
+        q: "Is SEO suitable for local businesses?",
+        a: "Yes. Local SEO helps businesses improve visibility within specific geographic markets, making it easier for nearby customers to find and contact your business.",
+      },
+    ],
+  },
+];
+
 export const caseStudyCategories = [
   "All",
   "Branding",
@@ -532,9 +618,8 @@ export const caseStudies: CaseStudy[] = [
 
 export const nav = [
   { href: "/services", label: "Services" },
-  { href: "/process", label: "Process" },
   { href: "/case-studies", label: "Case Studies" },
-  { href: "/about", label: "Philosophy" },
+  { href: "/about", label: "About Us" },
 ];
 
 export const footerNav = [
@@ -569,7 +654,7 @@ export type Stat = { value: string; label: string; sub?: string };
 
 export const stats: Stat[] = [
   { value: "1,000+", label: "Ideas Pitched" },
-  { value: "50,000+", label: "Hours Spent" },
+  { value:"30,000+", label: "Hours Spent" },
   { value: "30+", label: "Brands Transformed" },
   { value: "230%", label: "SEO Growth in 3 Months" },
 ];
@@ -822,3 +907,38 @@ export const siteConfig = {
   description:
     "We help cybersecurity companies transform their websites into growth engines through UI/UX, technical excellence, AI-ready SEO, and predictable lead generation.",
 };
+
+export type FrameworkStep = {
+  num: string;
+  stepLabel: string;
+  title: string;
+  description: string;
+};
+
+export const frameworkSteps: FrameworkStep[] = [
+  {
+    num: "01",
+    stepLabel: "Step 1",
+    title: "Discover",
+    description: "We understand your business, market, competitors, and customers.",
+  },
+  {
+    num: "02",
+    stepLabel: "Step 2",
+    title: "Strategize",
+    description: "We build a tailored digital growth roadmap aligned with your objectives.",
+  },
+  {
+    num: "03",
+    stepLabel: "Step 3",
+    title: "Execute",
+    description: "Our specialists implement, optimize, and continuously improve every initiative.",
+  },
+  {
+    num: "04",
+    stepLabel: "Step 4",
+    title: "Grow",
+    description: "We measure performance, uncover new opportunities, and help your business scale sustainably.",
+  },
+];
+

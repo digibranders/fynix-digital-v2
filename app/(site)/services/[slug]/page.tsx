@@ -8,6 +8,9 @@ import PreFooterBackdrop from "@/components/PreFooterBackdrop";
 import SectionSeam from "@/components/SectionSeam";
 import HeroDarkBackdrop from "@/components/HeroDarkBackdrop";
 import PillarDiagnosticWidget from "@/components/PillarDiagnosticWidget";
+import SeoServiceContent from "@/components/SeoServiceContent";
+import UiUxServiceContent from "@/components/UiUxServiceContent";
+import DevelopmentServiceContent from "@/components/DevelopmentServiceContent";
 
 type Params = { slug: Act["slug"] };
 
@@ -52,6 +55,12 @@ export default async function ServiceDetailPage(
   const { slug } = await params;
   const act = acts.find((a) => a.slug === slug);
   if (!act) notFound();
+
+  // These acts have dedicated, content-rich pages; the remaining acts share the
+  // generic service template below.
+  if (act.slug === "seo") return <SeoServiceContent act={act} />;
+  if (act.slug === "ui-ux") return <UiUxServiceContent act={act} />;
+  if (act.slug === "development") return <DevelopmentServiceContent act={act} />;
 
   const others = acts.filter((a) => a.slug !== act.slug);
   const relatedStudies = act.proof.relatedCaseStudySlugs
@@ -137,19 +146,6 @@ export default async function ServiceDetailPage(
         <HeroDarkBackdrop />
         <div className="relative max-w-7xl mx-auto px-6 md:px-12">
           <div className="max-w-4xl">
-            <div className="flex items-center gap-4 mb-8">
-              <span className="text-xs font-mono text-[#e9af88] font-semibold uppercase tracking-widest">
-                Act {act.num} · {act.title}
-              </span>
-              <span className="h-px w-10 bg-white/15" aria-hidden />
-              <Link
-                href="/services"
-                className="text-xs font-mono uppercase tracking-widest text-white/60 hover:text-white transition-colors"
-              >
-                All Services
-              </Link>
-            </div>
-
             <h1 className="font-serif text-4xl sm:text-5xl lg:text-[64px] text-white font-medium tracking-tight leading-[1.08] text-balance">
               {act.headline}
             </h1>
@@ -161,7 +157,7 @@ export default async function ServiceDetailPage(
             <div className="mt-10 flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
               <Link
                 href="/contact"
-                className="cta-glide inline-flex items-center justify-center gap-3 px-8 py-4 bg-gradient-to-r from-[#e9af88] to-[#ffd2b3] text-[#0C1E2E] hover:brightness-105 font-bold rounded-full shadow-[0_4px_22px_rgba(233,175,136,0.3)] text-center"
+                className="cta-glide inline-flex items-center justify-center gap-3 px-8 py-4 bg-gradient-to-r from-[#e9af88] to-[#ffd2b3] text-[#0C1E2E] hover:brightness-105 font-bold rounded-full shadow-sm text-center"
               >
                 Start with {act.title}
                 <svg
@@ -179,19 +175,13 @@ export default async function ServiceDetailPage(
                   />
                 </svg>
               </Link>
-              <Link
-                href="#proof"
-                className="inline-flex items-center justify-center px-8 py-4 text-white hover:text-[#e9af88] font-medium rounded-full border border-white/25 bg-white/5 hover:bg-white/10 transition-all duration-200 text-center"
-              >
-                See Related Work
-              </Link>
             </div>
           </div>
         </div>
       </section>
 
       {/* NARRATIVE */}
-      <section className="py-24 md:py-32 bg-white border-b border-border">
+      <section className="py-24 md:py-32 bg-white">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
             <Reveal className="lg:col-span-4">
@@ -211,8 +201,10 @@ export default async function ServiceDetailPage(
         </div>
       </section>
 
+      <SectionSeam from="white" to="soft" />
+
       {/* INTERACTIVE PILLAR DIAGNOSTIC */}
-      <section className="py-16 md:py-24 bg-background-soft border-b border-border">
+      <section className="py-16 md:py-24 bg-background-soft">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <Reveal>
             <PillarDiagnosticWidget actSlug={act.slug} actTitle={act.title} />
@@ -223,7 +215,7 @@ export default async function ServiceDetailPage(
       {/* PROOF STRIP */}
       <section
         id="proof"
-        className="py-24 md:py-32 bg-background-soft border-b border-border"
+        className="py-24 md:py-32 bg-background-soft"
       >
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
@@ -289,8 +281,10 @@ export default async function ServiceDetailPage(
         </div>
       </section>
 
+      <SectionSeam from="soft" to="white" />
+
       {/* DELIVERABLES */}
-      <section className="py-24 md:py-32 bg-white border-b border-border">
+      <section className="py-24 md:py-32 bg-white">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <Reveal className="mb-16 border-b border-border pb-8">
             <span className="text-xs font-mono uppercase tracking-widest text-accent font-semibold">
@@ -321,8 +315,10 @@ export default async function ServiceDetailPage(
         </div>
       </section>
 
+      <SectionSeam from="white" to="soft" />
+
       {/* HOW THIS ACT RUNS */}
-      <section className="py-24 md:py-32 bg-background-soft border-b border-border">
+      <section className="py-24 md:py-32 bg-background-soft">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <Reveal className="mb-16 border-b border-border pb-8">
             <span className="text-xs font-mono uppercase tracking-widest text-accent font-semibold">
@@ -361,9 +357,11 @@ export default async function ServiceDetailPage(
         </div>
       </section>
 
+      <SectionSeam from="soft" to="white" />
+
       {/* FAQ */}
       {actFaqs.length ? (
-        <section className="py-24 md:py-32 bg-white border-b border-border">
+        <section className="py-24 md:py-32 bg-white">
           <div className="max-w-7xl mx-auto px-6 md:px-12">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
               <Reveal className="lg:col-span-4">
@@ -445,11 +443,6 @@ export default async function ServiceDetailPage(
           <h2 className="font-serif italic text-3xl md:text-5xl text-primary font-medium leading-tight">
             Ready to move on {act.title}?
           </h2>
-          <p className="text-text-muted text-base font-normal leading-relaxed mt-6 max-w-2xl mx-auto">
-            Most engagements begin with a short discovery conversation. We&apos;ll map where{" "}
-            {act.title} sits inside your current pipeline and where it would create the{" "}
-            <strong className="font-medium text-primary">most lift</strong>.
-          </p>
           <div className="mt-10">
             <Link
               href="/contact"

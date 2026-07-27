@@ -114,13 +114,10 @@ export default function TestimonialsRail() {
               id="testimonials-heading"
               className="font-serif text-3xl md:text-5xl text-primary font-medium leading-tight"
             >
-              From Clients.{" "}
-              <span className="italic text-accent">Not Copywriters.</span>
+              Trusted by Businesses That Expect Results
             </h2>
             <p className="text-text-muted text-lg md:text-xl font-normal leading-relaxed mt-6">
-              We combine strategy, creativity, and{" "}
-              <strong className="font-medium text-primary">AI-driven insights</strong> to grow
-              your brand, attract high-quality leads, and drive measurable results.
+              Long-term partnerships are built on trust, transparency, and measurable outcomes. Here&apos;s what our clients say about working with Fynix Digital.
             </p>
           </div>
         </Reveal>

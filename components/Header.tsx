@@ -4,12 +4,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, type MouseEvent } from "react";
 import { useLenis } from "lenis/react";
-import { acts, caseStudies, nav, siteConfig } from "@/lib/content";
-import DossierTile from "@/components/DossierTile";
+import { acts, nav, siteConfig } from "@/lib/content";
 import Logo from "@/components/Logo";
 
 const HEADER_HEIGHT = 80;
-const MEGA_CLOSE_DELAY = 140;
 const MEGA_ITEM_STAGGER = 70;
 const SCROLL_THRESHOLD = 12;
 
@@ -18,18 +16,8 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [megaOpen, setMegaOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [featuredIdx, setFeaturedIdx] = useState(0);
-  const prevMegaOpen = useRef(false);
-  const megaCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pathname = usePathname();
   const lenis = useLenis();
-
-  useEffect(() => {
-    if (!megaOpen && prevMegaOpen.current) {
-      setFeaturedIdx((i) => (i + 1) % caseStudies.length);
-    }
-    prevMegaOpen.current = megaOpen;
-  }, [megaOpen]);
 
   const handleSamePageNav =
     (href: string) => (e: MouseEvent<HTMLAnchorElement>) => {
@@ -43,35 +31,14 @@ export default function Header() {
       }
     };
 
-  const clearMegaTimer = () => {
-    if (megaCloseTimer.current) {
-      clearTimeout(megaCloseTimer.current);
-      megaCloseTimer.current = null;
-    }
-  };
-
-  const openMega = () => {
-    clearMegaTimer();
-    setMegaOpen(true);
-  };
-
-  const closeMegaDeferred = () => {
-    clearMegaTimer();
-    megaCloseTimer.current = setTimeout(() => setMegaOpen(false), MEGA_CLOSE_DELAY);
-  };
-
   const closeMegaNow = () => {
-    clearMegaTimer();
     setMegaOpen(false);
   };
-
-  useEffect(() => clearMegaTimer, []);
 
   useEffect(() => {
     if (!megaOpen) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        clearMegaTimer();
         setMegaOpen(false);
       }
     };
@@ -79,14 +46,27 @@ export default function Header() {
     return () => window.removeEventListener("keydown", onKey);
   }, [megaOpen]);
 
-  useEffect(() => {
+  // Reset the mega menu when the route changes. Adjusting state during render
+  // (React's recommended pattern) avoids a setState-in-effect cascade.
+  const [prevPathname, setPrevPathname] = useState(pathname);
+  if (pathname !== prevPathname) {
+    setPrevPathname(pathname);
     setMegaOpen(false);
-  }, [pathname]);
+  }
 
   const darkSectionsRef = useRef<HTMLElement[]>([]);
+  const heroHeadingRef = useRef<HTMLElement | null>(null);
 
   const applyScrollState = useCallback((y: number) => {
-    setScrolled(y > SCROLL_THRESHOLD);
+    // The navbar only shrinks once the hero's first heading has scrolled up to
+    // touch the bottom edge of the navbar — not on the very first pixel of
+    // scroll. Falls back to a small threshold on pages with no hero heading.
+    const heading = heroHeadingRef.current;
+    setScrolled(
+      heading
+        ? heading.getBoundingClientRect().top <= HEADER_HEIGHT
+        : y > SCROLL_THRESHOLD,
+    );
     const sections = darkSectionsRef.current;
     if (sections.length === 0) {
       setTheme("light");
@@ -103,6 +83,8 @@ export default function Header() {
     darkSectionsRef.current = Array.from(
       document.querySelectorAll<HTMLElement>('[data-nav-theme="dark"]'),
     );
+    // The hero's first heading is the shrink trigger for this page.
+    heroHeadingRef.current = document.querySelector<HTMLElement>("main h1");
 
     if (darkSectionsRef.current.length === 0) {
       const frame = requestAnimationFrame(() => applyScrollState(window.scrollY));
@@ -264,6 +246,81 @@ export default function Header() {
                         <path d="M6 9l6 6 6-6" />
                       </svg>
                     </button>
+
+                    {/* Mega menu — anchored to open under the Services trigger */}
+                    <div
+                      role="region"
+                      aria-label="Services menu"
+                      aria-hidden={!megaOpen}
+                      className={`hidden lg:block absolute left-0 top-full mt-4 w-[380px] rounded-2xl border border-black/[0.06] bg-white/95 backdrop-blur-md shadow-[0_20px_40px_-30px_rgba(0,0,0,0.25)] transition-[opacity,transform,visibility] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+                        megaOpen
+                          ? "opacity-100 translate-y-0 visible"
+                          : "opacity-0 -translate-y-1 invisible"
+                      }`}
+                    >
+                      <div className="px-6 md:px-8 py-6 md:py-8">
+                        {/* Services */}
+                        <div className="flex items-center gap-6 mb-4">
+                          <span className="text-xs uppercase tracking-widest text-text-muted font-mono">
+                            Growth Acts
+                          </span>
+                          <span aria-hidden className="h-px flex-1 bg-border" />
+                        </div>
+                        <ul>
+                          {acts.map((act, idx) => (
+                            <li
+                              key={act.slug}
+                              style={{
+                                transitionDelay: megaOpen
+                                  ? `${idx * MEGA_ITEM_STAGGER}ms`
+                                  : "0ms",
+                              }}
+                              className={`transition-[opacity,transform,filter] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+                                megaOpen
+                                  ? "opacity-100 translate-y-0 blur-0"
+                                  : "opacity-0 -translate-y-2 blur-[3px]"
+                              }`}
+                            >
+                              <Link
+                                href={`/services/${act.slug}`}
+                                onClick={(e) => {
+                                  closeMegaNow();
+                                  handleSamePageNav(`/services/${act.slug}`)(e);
+                                }}
+                                className="group flex items-center gap-4 py-2.5"
+                              >
+                                <span className="font-mono text-xs text-accent font-semibold tabular-nums shrink-0 w-6">
+                                  {act.num}
+                                </span>
+                                <span className="font-serif text-xl text-primary group-hover:text-accent transition-colors">
+                                  {act.title}
+                                </span>
+                                <span
+                                  aria-hidden
+                                  className="ml-auto text-accent text-base opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300"
+                                >
+                                  &rarr;
+                                </span>
+                              </Link>
+                            </li>
+                          ))}
+                        </ul>
+
+                        {/* BOTTOM CTA BAR */}
+                        <div className="mt-6 pt-4 border-t border-border flex items-center justify-start">
+                          <Link
+                            href="/services"
+                            onClick={(e) => {
+                              closeMegaNow();
+                              handleSamePageNav("/services")(e);
+                            }}
+                            className="inline-flex items-center gap-2 text-xs font-mono font-semibold uppercase tracking-widest text-accent hover:text-primary transition-colors"
+                          >
+                            Explore All Services &rarr;
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 );
               }
@@ -335,143 +392,6 @@ export default function Header() {
                 )}
               </svg>
             </button>
-          </div>
-        </div>
-
-        <div
-          role="region"
-          aria-label="Services menu"
-          aria-hidden={!megaOpen}
-          className={`hidden lg:block absolute inset-x-0 top-full mt-2 rounded-2xl border border-black/[0.06] bg-white/95 backdrop-blur-md shadow-[0_20px_40px_-30px_rgba(0,0,0,0.25)] transition-[opacity,transform,visibility] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
-            megaOpen
-              ? "opacity-100 translate-y-0 visible"
-              : "opacity-0 -translate-y-1 invisible"
-          }`}
-        >
-          <div className="max-w-7xl mx-auto px-6 md:px-10 py-6 md:py-8">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-              {/* LEFT - Acts list */}
-              <div className="lg:col-span-6 flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center gap-6 mb-4">
-                    <span className="text-xs uppercase tracking-widest text-text-muted font-mono">
-                      Growth Acts
-                    </span>
-                    <span aria-hidden className="h-px flex-1 bg-border" />
-                  </div>
-                  <ul>
-                    {acts.map((act, idx) => (
-                      <li
-                        key={act.slug}
-                        style={{
-                          transitionDelay: megaOpen ? `${idx * MEGA_ITEM_STAGGER}ms` : "0ms",
-                        }}
-                        className={`transition-[opacity,transform,filter] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
-                          megaOpen
-                            ? "opacity-100 translate-y-0 blur-0"
-                            : "opacity-0 -translate-y-2 blur-[3px]"
-                        }`}
-                      >
-                        <Link
-                          href={`/services/${act.slug}`}
-                          onClick={(e) => {
-                            closeMegaNow();
-                            handleSamePageNav(`/services/${act.slug}`)(e);
-                          }}
-                          className="group flex items-center gap-4 py-2.5"
-                        >
-                          <span className="font-mono text-xs text-accent font-semibold tabular-nums shrink-0 w-6">
-                            {act.num}
-                          </span>
-                          <span className="font-serif text-xl text-primary group-hover:text-accent transition-colors">
-                            {act.title}
-                          </span>
-                          <span
-                            aria-hidden
-                            className="ml-auto text-accent text-base opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300"
-                          >
-                            &rarr;
-                          </span>
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-
-              {/* RIGHT - Featured case study */}
-              <div
-                className={`lg:col-span-6 flex flex-col h-full transition-[opacity,transform,filter] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
-                  megaOpen
-                    ? "opacity-100 translate-y-0 blur-0"
-                    : "opacity-0 -translate-y-2 blur-[3px]"
-                }`}
-                style={{
-                  transitionDelay: megaOpen
-                    ? `${acts.length * MEGA_ITEM_STAGGER}ms`
-                    : "0ms",
-                }}
-              >
-                <div className="flex items-center gap-6 mb-4">
-                  <span className="text-xs uppercase tracking-widest text-text-muted font-mono">
-                    Featured Work
-                  </span>
-                  <span aria-hidden className="h-px flex-1 bg-border" />
-                </div>
-
-                <Link
-                  key={caseStudies[featuredIdx].slug}
-                  href={`/case-studies/${caseStudies[featuredIdx].slug}`}
-                  onClick={(e) => {
-                    closeMegaNow();
-                    handleSamePageNav(`/case-studies/${caseStudies[featuredIdx].slug}`)(e);
-                  }}
-                  className="group flex flex-col flex-1 min-h-0 rounded-xl overflow-hidden border border-black/[0.06] bg-background-soft hover:border-accent/40 transition-colors"
-                >
-                  <div className="relative w-full flex-1 min-h-0 overflow-hidden">
-                    <DossierTile
-                      domain={caseStudies[featuredIdx].domain}
-                      name={caseStudies[featuredIdx].name}
-                      iconUrl={caseStudies[featuredIdx].iconUrl}
-                      size="lg"
-                      showName
-                    />
-                  </div>
-                  <div className="p-5 shrink-0">
-                    <div className="flex items-center justify-between">
-                      <span className="font-serif text-lg text-primary group-hover:text-accent transition-colors">
-                        {caseStudies[featuredIdx].name}
-                      </span>
-                      <span className="font-mono text-[10px] uppercase tracking-widest text-text-muted">
-                        {caseStudies[featuredIdx].domain}
-                      </span>
-                    </div>
-                  </div>
-                </Link>
-              </div>
-            </div>
-
-            {/* BOTTOM CTA BAR */}
-            <div className="mt-6 pt-4 border-t border-border flex items-center justify-between gap-4">
-              <div className="flex items-center gap-2">
-                <span className="font-serif italic text-base text-primary font-medium">
-                  Looking for the full service architecture?
-                </span>
-                <span className="hidden sm:inline text-xs text-text-muted font-normal">
-                  Explore how all 4 Growth Acts connect into one engine.
-                </span>
-              </div>
-              <Link
-                href="/services"
-                onClick={(e) => {
-                  closeMegaNow();
-                  handleSamePageNav("/services")(e);
-                }}
-                className="inline-flex items-center gap-2 text-xs font-mono font-semibold uppercase tracking-widest text-accent hover:text-primary transition-colors shrink-0"
-              >
-                Explore All Services &rarr;
-              </Link>
-            </div>
           </div>
         </div>
       </div>
