@@ -7,6 +7,12 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   className?: string;
 }
 
+/**
+ * Pill CTA matching the Fynix brand system: rounded-full, navy `primary` fill
+ * for the main action, bordered white for the secondary. The `cta-primary` /
+ * `cta-secondary` classes (defined in globals.css) add the shared hover/press
+ * motion used across the rest of the site.
+ */
 export const Button: React.FC<ButtonProps> = ({
   children,
   variant = "primary",
@@ -15,23 +21,22 @@ export const Button: React.FC<ButtonProps> = ({
   ...props
 }) => {
   const base =
-    "inline-flex items-center justify-center gap-2 font-medium transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2F4B3A] disabled:opacity-50 disabled:pointer-events-none active:scale-[0.99] whitespace-nowrap";
+    "inline-flex items-center justify-center gap-3 font-medium rounded-full transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:opacity-50 disabled:pointer-events-none whitespace-nowrap";
 
   const variants = {
-    primary:
-      "bg-[#0F0E0C] text-[#FDFBF5] hover:bg-[#1A1815] border border-[#0F0E0C]",
+    primary: "bg-primary text-white hover:bg-primary-hover cta-primary shadow-sm",
     secondary:
-      "bg-[#2F4B3A] text-[#FDFBF5] hover:bg-[#25382C] border border-[#2F4B3A]",
+      "bg-accent text-primary hover:bg-accent-hover cta-primary shadow-sm",
     outline:
-      "bg-transparent text-[#0F0E0C] hover:bg-[#EBE5D3] border border-[#0F0E0C]/25 hover:border-[#0F0E0C]/50",
+      "bg-white text-primary border border-border hover:bg-background-soft cta-secondary",
     ghost:
-      "bg-transparent text-[#0F0E0C] hover:bg-[#EBE5D3] border border-transparent",
+      "bg-transparent text-primary hover:bg-background-soft border border-transparent",
   };
 
   const sizes = {
-    sm: "px-4 py-2 text-[13px] rounded-[10px] tracking-tight",
-    md: "px-5 py-2.5 text-sm rounded-[10px] tracking-tight",
-    lg: "px-7 py-3.5 text-[15px] rounded-[10px] tracking-tight",
+    sm: "px-5 py-2.5 text-[13px] tracking-tight",
+    md: "px-6 py-3 text-sm tracking-tight",
+    lg: "px-8 py-4 text-[15px] tracking-tight",
   };
 
   return (

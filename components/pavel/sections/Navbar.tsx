@@ -32,26 +32,26 @@ export const Navbar: React.FC = () => {
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         scrolled
-          ? "bg-[#F4EFE3]/92 backdrop-blur-[8px] border-b border-[#DDD3BC]"
-          : "bg-[#F4EFE3]/85 backdrop-blur-[6px] border-b border-[#DDD3BC]/60"
+          ? "bg-background-soft/92 backdrop-blur-[8px] border-b border-border"
+          : "bg-background-soft/85 backdrop-blur-[6px] border-b border-border/60"
       }`}
     >
       <Container>
         <div className="flex items-center justify-between h-[68px]">
           <button
             onClick={() => scrollTo("hero")}
-            className="text-[22px] font-semibold tracking-[-0.015em] text-[#0F0E0C] leading-none"
+            className="text-[22px] font-semibold tracking-[-0.015em] text-primary leading-none"
             aria-label="Pavel Klimakov"
           >
             Pavel Klimakov
           </button>
 
-          <nav className="hidden md:flex items-center gap-9 text-[16px] font-normal text-[#4A4640]">
+          <nav className="hidden md:flex items-center gap-9 text-[16px] font-normal text-text-muted">
             {NAV_ITEMS.map((item) => (
               <button
                 key={item.id}
                 onClick={() => scrollTo(item.id)}
-                className="hover:text-[#0F0E0C] transition-colors py-1 italic font-normal"
+                className="hover:text-primary transition-colors py-1 italic font-normal"
               >
                 {item.label}
               </button>
@@ -67,7 +67,7 @@ export const Navbar: React.FC = () => {
 
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 -mr-2 text-[#0F0E0C]"
+            className="md:hidden p-2 -mr-2 text-primary"
             aria-label="Toggle navigation menu"
           >
             {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -75,12 +75,12 @@ export const Navbar: React.FC = () => {
         </div>
 
         {mobileMenuOpen && (
-          <div className="md:hidden pb-5 pt-2 border-t border-[#DDD3BC] space-y-1">
+          <div className="md:hidden pb-5 pt-2 border-t border-border space-y-1">
             {NAV_ITEMS.map((item) => (
               <button
                 key={item.id}
                 onClick={() => scrollTo(item.id)}
-                className="block w-full text-left py-2.5 text-[17px] italic font-normal text-[#0F0E0C]"
+                className="block w-full text-left py-2.5 text-[17px] italic font-normal text-primary"
               >
                 {item.label}
               </button>

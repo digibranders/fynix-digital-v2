@@ -17,7 +17,7 @@ const serviceLinks = [
 ];
 
 const companyLinks = [
-  { href: "/about", label: "Philosophy" },
+  { href: "/about", label: "About Us" },
   { href: "/faqs", label: "FAQs" },
   { href: "/contact", label: "Contact" },
 ];
@@ -106,9 +106,6 @@ export default function Footer() {
           {/* Brand */}
           <div className="col-span-2 md:col-span-4 flex flex-col">
             <Logo className="text-white" />
-            <p className="mt-6 text-sm text-white/60 font-normal leading-relaxed max-w-sm">
-              {siteConfig.description}
-            </p>
             <div className="mt-auto pt-6 flex items-center gap-2">
               {socialLinks.map((s) => {
                 const external = s.href.startsWith("http");

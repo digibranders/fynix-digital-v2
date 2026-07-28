@@ -147,12 +147,11 @@ export default async function ServiceDetailPage(
         <div className="relative max-w-7xl mx-auto px-6 md:px-12">
           <div className="max-w-4xl">
             <h1 className="font-serif text-4xl sm:text-5xl lg:text-[64px] text-white font-medium tracking-tight leading-[1.08] text-balance">
-              {act.headline}
+              Growth goes{" "}
+              <span className="font-serif italic font-medium text-[#e9af88] md:block">
+                beyond traffic
+              </span>
             </h1>
-
-            <p className="font-serif text-lg md:text-xl text-white/70 font-normal leading-snug mt-8 max-w-2xl">
-              {act.subtitle}
-            </p>
 
             <div className="mt-10 flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
               <Link
@@ -397,8 +396,6 @@ export default async function ServiceDetailPage(
         </section>
       ) : null}
 
-      <SectionSeam from="white" to="white" />
-
       {/* OTHER ACTS */}
       <section className="py-24 md:py-32 bg-white">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
@@ -446,7 +443,7 @@ export default async function ServiceDetailPage(
           <div className="mt-10">
             <Link
               href="/contact"
-              className="inline-flex items-center justify-center gap-3 px-8 py-4 bg-primary text-white hover:bg-primary-hover cta-primary font-medium rounded-full shadow-sm transition-all duration-200"
+              className="inline-flex items-center justify-center gap-3 px-8 py-4 cta-glide cta-reveal-gradient bg-primary text-white hover:text-[#0C1E2E] font-medium rounded-full shadow-sm"
             >
               Book a discovery call
               <svg

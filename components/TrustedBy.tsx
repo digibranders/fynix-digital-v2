@@ -15,11 +15,11 @@ export default function TrustedBy() {
               id="trusted-by-heading"
               className="font-serif text-3xl md:text-5xl text-primary font-medium leading-tight"
             >
-              Trusted by Growing Businesses
+              Trusted by <span className="font-serif italic font-medium">Growing Businesses</span>
             </h2>
             <p className="mt-4 text-base md:text-lg text-text-muted font-normal leading-relaxed">
               From startups to established enterprises, businesses trust Fynix
-              Digital to strengthen <br></br>their digital presence and accelerate sustainable growth.
+              Digital to strengthen their digital presence and accelerate sustainable growth.
             </p>
           </div>
         </Reveal>
@@ -33,14 +33,14 @@ export default function TrustedBy() {
               <li
                 key={client.name}
                 title={client.name}
-                className="flex items-center justify-center w-full"
+                className="flex items-center justify-center w-full h-11 md:h-12"
               >
                 <Image
                   src={client.logo}
                   alt={`${client.name} logo`}
                   width={160}
-                  height={40}
-                  className="max-h-8 md:max-h-10 max-w-[140px] md:max-w-[160px] w-auto h-auto object-contain"
+                  height={48}
+                  className="max-h-10 md:max-h-12 max-w-[130px] md:max-w-[150px] w-auto object-contain"
                 />
               </li>
             ))}

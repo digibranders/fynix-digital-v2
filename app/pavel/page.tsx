@@ -29,14 +29,14 @@ export const metadata: Metadata = {
 
 export default function PavelWorkshopPage() {
   return (
-    <div className="min-h-screen bg-[#F4EFE3] text-[#0F0E0C] tnum">
+    <div className="min-h-screen bg-background-soft text-primary tnum">
       <Navbar />
       <Hero />
       <Problem />
       <Instructor />
-      <Testimonials />
       <Shift />
       <Curriculum />
+      <Testimonials />
       <Audience />
       <Deliverables />
       <Pricing />

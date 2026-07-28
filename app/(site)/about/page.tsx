@@ -4,7 +4,25 @@ import Reveal from "@/components/Reveal";
 import SectionSeam from "@/components/SectionSeam";
 import PreFooterBackdrop from "@/components/PreFooterBackdrop";
 import HeroDarkBackdrop from "@/components/HeroDarkBackdrop";
+import { actAccents } from "@/components/ActsStack";
 import { siteConfig } from "@/lib/content";
+
+// The four pillar hues from the services "act stack", reused here as a restrained
+// editorial accent system — applied sparingly (a whisper in the hero, the four
+// "why" cards, and the values numerals) rather than in every section.
+type Accent = { from: string; to: string; ink: string };
+const actColors: Accent[] = [
+  actAccents["ui-ux"], // gold
+  actAccents.development, // sage
+  actAccents.seo, // rose
+  actAccents["lead-generation"], // violet
+];
+
+// Decorative numeral colour: keep each pillar's hue but deepen it toward its
+// ink so it stays legible on the light backgrounds.
+function numeralColor(c: Accent): string {
+  return `color-mix(in srgb, ${c.from} 74%, ${c.ink})`;
+}
 
 export const metadata: Metadata = {
   title: "About Us",
@@ -35,31 +53,15 @@ const breadcrumbJsonLd = {
 // Prose kept as string constants so JSX stays free of unescaped-entity issues.
 const heroLead1 =
   "Fynix Digital was built on one belief: businesses need clarity, not digital noise. We help B2B brands grow through strategy, technology, and exceptional experiences.";
-// const heroLead2 =
-//   "We partner with ambitious B2B companies to build stronger digital brands, attract the right customers, and create sustainable business growth through strategy, technology, and creativity.";
 
 const story = [
-  "Digital marketing has changed dramatically. Businesses have more channels, more tools, and more data than ever before. Yet many still struggle to turn digital investments into measurable business outcomes.",
-  "We started Fynix Digital to change that.",
-  "Our goal isn't simply to deliver websites, SEO, or marketing campaigns. Our goal is to help businesses build a digital foundation that creates long-term competitive advantage.",
+  "Digital marketing has changed dramatically, yet many businesses still struggle to turn digital investment into measurable outcomes.",
+  "We started Fynix Digital to change that, helping businesses build a digital foundation that creates long-term competitive advantage.",
 ];
 const storyQuestion = "How can we help this business grow?";
 
-const believe = [
-  "Digital growth isn't created by a single campaign.",
-  "It happens when strategy, branding, user experience, technology, search visibility, and customer acquisition work together as one connected system.",
-  "That's why our team combines multiple disciplines into one integrated approach, ensuring every decision contributes to measurable business success.",
-];
-
-const approach = [
-  "We don't believe in recommending services simply because they're popular.",
-  "Instead, we begin by understanding your business, your customers, your competitors, and your goals.",
-  "Only then do we build a strategy designed specifically for your business.",
-  "Because sustainable growth starts with understanding, not assumptions.",
-];
-
 const whyIntro =
-  "We don't believe in disconnected marketing activities. Every recommendation, campaign, design, and technology decision is aligned with one objective: helping your business grow.";
+  "Every recommendation, campaign, design, and technology decision is aligned with one objective: helping your business grow.";
 
 const whyChoose: { title: string; body: string }[] = [
   {
@@ -90,8 +92,6 @@ const expertise = [
   "Lead Generation",
   "Conversion Optimization",
 ];
-const expertiseNote =
-  "We also bring deep experience working with cybersecurity companies, helping them communicate complex solutions, build trust, and generate qualified business opportunities.";
 
 const values: { numeral: string; title: string; body: string }[] = [
   {
@@ -121,19 +121,13 @@ const values: { numeral: string; title: string; body: string }[] = [
   },
 ];
 
-const moreThanMarketing = [
-  "Businesses choose us because we combine strategic thinking, creative design, technical expertise, and data-driven decision-making into one connected growth system.",
-  "We don't simply help businesses look better online.",
-  "We help them become easier to discover, easier to trust, and easier to choose.",
-];
-
 export default function AboutPage() {
   return (
     <>
       {/* ─── HERO ─────────────────────────────────────────────── */}
       <section
         data-nav-theme="dark"
-        className="relative isolate overflow-hidden -mt-20 md:-mt-24 pt-32 md:pt-40 pb-14 md:pb-20 bg-primary text-white"
+        className="relative isolate overflow-hidden -mt-20 md:-mt-24 pt-32 md:pt-40 pb-14 md:pb-20 md:min-h-[491px] bg-primary text-white"
       >
         <HeroDarkBackdrop />
         <div className="relative max-w-7xl mx-auto px-6 md:px-12">
@@ -183,60 +177,6 @@ export default function AboutPage() {
 
       <SectionSeam from="white" to="soft" />
 
-      {/* ─── WHAT WE BELIEVE ──────────────────────────────────── */}
-      <section className="py-20 md:py-28 bg-background-soft">
-        <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16">
-            <Reveal className="lg:col-span-5">
-              <h2 className="font-serif text-3xl md:text-5xl text-primary font-medium leading-[1.1] tracking-tight">
-                Growth happens when everything works together.
-              </h2>
-            </Reveal>
-            <Reveal className="lg:col-span-7" delay={120}>
-              {believe.map((p, i) => (
-                <p
-                  key={i}
-                  className={`text-base md:text-lg text-text-muted font-normal leading-relaxed ${
-                    i === 0 ? "" : "mt-5"
-                  }`}
-                >
-                  {p}
-                </p>
-              ))}
-            </Reveal>
-          </div>
-        </div>
-      </section>
-
-      <SectionSeam from="soft" to="white" />
-
-      {/* ─── OUR APPROACH ─────────────────────────────────────── */}
-      <section className="py-20 md:py-28 bg-white">
-        <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16">
-            <Reveal className="lg:col-span-5">
-              <h2 className="font-serif text-3xl md:text-5xl text-primary font-medium leading-[1.1] tracking-tight">
-                Strategy before execution.
-              </h2>
-            </Reveal>
-            <Reveal className="lg:col-span-7" delay={120}>
-              {approach.map((p, i) => (
-                <p
-                  key={i}
-                  className={`text-base md:text-lg text-text-muted font-normal leading-relaxed ${
-                    i === 0 ? "" : "mt-5"
-                  }`}
-                >
-                  {p}
-                </p>
-              ))}
-            </Reveal>
-          </div>
-        </div>
-      </section>
-
-      <SectionSeam from="white" to="soft" />
-
       {/* ─── WHY BUSINESSES CHOOSE FYNIX ──────────────────────── */}
       <section className="py-20 md:py-28 bg-background-soft">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
@@ -250,24 +190,33 @@ export default function AboutPage() {
           </Reveal>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-10 gap-y-12">
-            {whyChoose.map((item, idx) => (
-              <Reveal key={item.title} delay={idx * 100} className="h-full">
-                <div className="h-full pt-8 border-t border-primary/70 flex flex-col">
-                  <span
-                    aria-hidden
-                    className="font-mono text-xs text-accent font-semibold tabular-nums"
-                  >
-                    {String(idx + 1).padStart(2, "0")}
-                  </span>
-                  <h3 className="font-serif text-2xl text-primary font-medium mt-4 leading-snug">
-                    {item.title}
-                  </h3>
-                  <p className="text-[15px] text-text-muted font-normal leading-relaxed mt-4 flex-1">
-                    {item.body}
-                  </p>
-                </div>
-              </Reveal>
-            ))}
+            {whyChoose.map((item, idx) => {
+              const c = actColors[idx];
+              return (
+                <Reveal key={item.title} delay={idx * 100} className="h-full">
+                  <div className="relative h-full pt-8 flex flex-col">
+                    <span
+                      aria-hidden
+                      className="absolute left-0 top-0 h-[3px] w-full rounded-full"
+                      style={{ background: `linear-gradient(to right, ${c.from}, ${c.to})` }}
+                    />
+                    <span
+                      aria-hidden
+                      className="font-mono text-xs font-semibold tabular-nums"
+                      style={{ color: numeralColor(c) }}
+                    >
+                      {String(idx + 1).padStart(2, "0")}
+                    </span>
+                    <h3 className="font-serif text-2xl text-primary font-medium mt-4 leading-snug">
+                      {item.title}
+                    </h3>
+                    <p className="text-[15px] text-text-muted font-normal leading-relaxed mt-4 flex-1">
+                      {item.body}
+                    </p>
+                  </div>
+                </Reveal>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -298,9 +247,6 @@ export default function AboutPage() {
                 </li>
               ))}
             </ul>
-            <p className="text-base md:text-lg text-text-muted font-normal leading-relaxed mt-10 max-w-3xl">
-              {expertiseNote}
-            </p>
           </Reveal>
         </div>
       </section>
@@ -308,7 +254,7 @@ export default function AboutPage() {
       <SectionSeam from="white" to="soft" />
 
       {/* ─── OUR VALUES ───────────────────────────────────────── */}
-      <section className="py-20 md:py-28 bg-background-soft">
+      <section className="pt-20 md:pt-28 pb-12 md:pb-16 bg-background-soft">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <Reveal className="max-w-2xl mb-14 md:mb-16">
             <h2 className="font-serif text-3xl md:text-5xl text-primary font-medium leading-[1.1] tracking-tight">
@@ -317,57 +263,36 @@ export default function AboutPage() {
           </Reveal>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-10 gap-y-12">
-            {values.map((v, idx) => (
-              <Reveal key={v.title} delay={idx * 90} className="h-full">
-                <div className="h-full pt-8 border-t border-primary/70 flex flex-col">
-                  <span
-                    aria-hidden
-                    className="font-serif italic text-4xl text-accent-hover leading-none block"
-                  >
-                    {v.numeral}.
-                  </span>
-                  <h3 className="font-serif text-2xl text-primary font-medium mt-5 leading-snug">
-                    {v.title}
-                  </h3>
-                  <p className="text-[15px] text-text-muted font-normal leading-relaxed mt-4 flex-1">
-                    {v.body}
-                  </p>
-                </div>
-              </Reveal>
-            ))}
+            {values.map((v, idx) => {
+              const c = actColors[idx % actColors.length];
+              return (
+                <Reveal key={v.title} delay={idx * 90} className="h-full">
+                  <div className="h-full pt-8 border-t border-primary/70 flex flex-col">
+                    <span
+                      aria-hidden
+                      className="font-serif italic text-4xl leading-none block"
+                      style={{ color: numeralColor(c) }}
+                    >
+                      {v.numeral}.
+                    </span>
+                    <h3 className="font-serif text-2xl text-primary font-medium mt-5 leading-snug">
+                      {v.title}
+                    </h3>
+                    <p className="text-[15px] text-text-muted font-normal leading-relaxed mt-4 flex-1">
+                      {v.body}
+                    </p>
+                  </div>
+                </Reveal>
+              );
+            })}
           </div>
         </div>
       </section>
 
       <SectionSeam from="soft" to="white" />
 
-      {/* ─── MORE THAN MARKETING ──────────────────────────────── */}
-      <section className="py-20 md:py-28 bg-white">
-        <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16">
-            <Reveal className="lg:col-span-5">
-              <h2 className="font-serif text-3xl md:text-5xl text-primary font-medium leading-[1.1] tracking-tight">
-                Because growth requires more than marketing.
-              </h2>
-            </Reveal>
-            <Reveal className="lg:col-span-7" delay={120}>
-              {moreThanMarketing.map((p, i) => (
-                <p
-                  key={i}
-                  className={`text-base md:text-lg text-text-muted font-normal leading-relaxed ${
-                    i === 0 ? "" : "mt-5"
-                  }`}
-                >
-                  {p}
-                </p>
-              ))}
-            </Reveal>
-          </div>
-        </div>
-      </section>
-
       {/* ─── CLOSING CTA ─────────────────────────────────────── */}
-      <section className="relative isolate overflow-hidden pt-16 md:pt-24 pb-24 md:pb-32 bg-transparent">
+      <section className="relative isolate overflow-hidden pt-12 md:pt-16 pb-24 md:pb-32 bg-transparent">
         <PreFooterBackdrop />
         <div className="relative max-w-4xl mx-auto px-6 md:px-12 text-center">
           <Reveal>
@@ -380,7 +305,7 @@ export default function AboutPage() {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link
                 href="/contact"
-                className="inline-flex items-center justify-center gap-3 px-8 py-4 bg-primary text-white hover:bg-primary-hover cta-primary font-medium rounded-full shadow-sm transition-all duration-200"
+                className="inline-flex items-center justify-center gap-3 px-8 py-4 cta-glide cta-reveal-gradient bg-primary text-white hover:text-[#0C1E2E] font-medium rounded-full shadow-sm"
               >
                 Book a Strategy Call
                 <span aria-hidden>→</span>

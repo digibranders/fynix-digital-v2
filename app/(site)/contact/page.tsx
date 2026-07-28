@@ -47,7 +47,7 @@ export default function ContactPage() {
       />
       <section
         data-nav-theme="dark"
-        className="relative isolate overflow-hidden -mt-20 md:-mt-24 pt-32 md:pt-40 pb-14 md:pb-20 bg-primary text-white"
+        className="relative isolate overflow-hidden -mt-20 md:-mt-24 pt-32 md:pt-40 pb-14 md:pb-20 md:min-h-[491px] bg-primary text-white"
       >
         <HeroDarkBackdrop />
         <div className="relative max-w-7xl mx-auto px-6 md:px-12">
@@ -145,7 +145,7 @@ export default function ContactPage() {
           <Reveal className="text-center">
             <h2
               id="contact-faq-heading"
-              className="font-serif text-4xl md:text-5xl text-primary font-medium leading-tight"
+              className="font-serif italic text-4xl md:text-5xl text-primary font-medium leading-tight"
             >
               Answers to the questions we hear first.
             </h2>

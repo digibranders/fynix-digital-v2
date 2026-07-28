@@ -9,7 +9,7 @@ export const WORKSHOP = {
   format: "Live 3-hour workshop",
   audience: "practising SEOs",
   platform: "Zoom",
-  // Placeholder — replace with the exact confirmed date, e.g. "Saturday, 30 August 2026".
+  // Placeholder: replace with the exact confirmed date, e.g. "Saturday, 30 August 2026".
   dateLabel: "Late August 2026",
   time: "10:00 AM IST",
   timezone: "GMT+5:30",

@@ -4,6 +4,14 @@ import React from "react";
 import Reveal from "@/components/Reveal";
 import { Container } from "../ui/Container";
 import { ArrowRight } from "lucide-react";
+import { WORKSHOP } from "../workshopDetails";
+
+const FACTS = [
+  { label: "Date", value: WORKSHOP.dateLabel },
+  { label: "Time", value: `${WORKSHOP.time} (${WORKSHOP.timezone})` },
+  { label: "Format", value: `Live on ${WORKSHOP.platform}, 3 hours` },
+  { label: "Seats", value: `${WORKSHOP.seats} only` },
+];
 
 export const FinalCTA: React.FC = () => {
   const scrollTo = (id: string) => {
@@ -12,38 +20,58 @@ export const FinalCTA: React.FC = () => {
   };
 
   return (
-    <section className="relative py-28 md:py-40 bg-[#1A1815] text-[#F4EFE3] overflow-hidden">
+    <section
+      id="reserve"
+      className="relative py-20 md:py-28 bg-primary text-white overflow-hidden"
+    >
+      {/* Faint dot-grid texture, matching the Shift section's dark moment. */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 opacity-[0.06]"
         style={{
-          backgroundImage: "radial-gradient(#F4EFE3 1px, transparent 1px)",
+          backgroundImage: "radial-gradient(#FCFCFB 1px, transparent 1px)",
           backgroundSize: "22px 22px",
         }}
       />
 
       <Container className="relative">
-        <Reveal className="max-w-[860px]">
-          <h2 className="text-[2.4rem] sm:text-[3.15rem] lg:text-[3.9rem] leading-[1.05] font-medium tracking-[-0.028em] text-[#F4EFE3]">
-            The SEOs who win the next few years won&rsquo;t have the biggest
-            budgets.{" "}
-            <span className="italic font-normal text-[#C9C0A6]">
-              They&rsquo;ll understand how search actually reads the web.
-            </span>
+        <Reveal className="max-w-[760px] mx-auto text-center">
+          <h2 className="text-[2.2rem] sm:text-[2.8rem] lg:text-[3.4rem] leading-[1.06] font-medium tracking-[-0.028em] text-white">
+            Reserve your seat before{" "}
+            <span className="font-serif italic font-normal">it&rsquo;s gone.</span>
           </h2>
 
-          <p className="mt-10 text-[1.25rem] text-[#C9C0A6] leading-[1.55] max-w-[620px] italic font-normal">
-            Spend one afternoon learning the system, and stop guessing for good.
+          <p className="mt-6 text-[1.15rem] text-white/70 leading-[1.6] max-w-[560px] mx-auto font-normal">
+            One live session, {WORKSHOP.seats} seats. You leave with the workbook,
+            the topical-map template, and the slide deck. Yours to revisit long
+            after the workshop.
           </p>
 
-          <div className="mt-12">
+          {/* Essentials: the concrete details at the decision point. */}
+          <div className="mt-12 grid grid-cols-2 sm:grid-cols-4 gap-y-6 gap-x-4 max-w-[640px] mx-auto border-y border-white/10 py-8">
+            {FACTS.map((f) => (
+              <div key={f.label} className="text-center">
+                <p className="text-[11px] uppercase tracking-[0.14em] text-accent font-semibold">
+                  {f.label}
+                </p>
+                <p className="mt-1.5 text-[15px] text-white leading-snug">
+                  {f.value}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-11 flex flex-col items-center gap-4">
             <button
               onClick={() => scrollTo("pricing")}
-              className="inline-flex items-center gap-2.5 px-8 py-4 text-[15px] font-medium bg-[#F4EFE3] text-[#0F0E0C] rounded-[10px] hover:bg-white transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#F4EFE3]"
+              className="inline-flex items-center gap-3 px-8 py-4 text-[15px] font-medium bg-accent text-primary rounded-full shadow-sm cta-primary hover:bg-accent-hover transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
             >
-              Reserve my seat, $79
+              Reserve my seat, {WORKSHOP.price}
               <ArrowRight className="w-4 h-4" />
             </button>
+            <p className="text-[13px] italic text-white/55">
+              {WORKSHOP.price} one-time &middot; live-only &middot; seats are capped.
+            </p>
           </div>
         </Reveal>
       </Container>
