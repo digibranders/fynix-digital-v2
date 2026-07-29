@@ -41,7 +41,7 @@ export const FAQ: React.FC = () => {
           <div className="lg:col-span-4 lg:sticky lg:top-32">
             <h2 className="text-[2.15rem] sm:text-[2.65rem] lg:text-[3.05rem] leading-[1.08] font-medium tracking-[-0.026em] text-primary">
               Questions,{" "}
-              <span className="italic font-normal text-accent">answered plainly.</span>
+              <span className="font-serif italic font-medium">answered plainly.</span>
             </h2>
             <p className="mt-6 text-[1.1rem] text-text-muted leading-[1.65] italic font-normal max-w-[340px]">
               Still have a specific question? Email us and we will reply

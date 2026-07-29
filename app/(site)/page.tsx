@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { acts, caseStudies } from "@/lib/content";
 import ActPreviewPanels from "@/components/ActPreviewPanels";
@@ -15,6 +16,12 @@ import GrowthFramework from "@/components/GrowthFramework";
 import SectionSeam from "@/components/SectionSeam";
 import TechnicalSeoAudit from "@/components/TechnicalSeoAudit";
 
+export const metadata: Metadata = {
+  // `absolute` bypasses the root layout's "%s | Fynix" template so the
+  // homepage <title> is exactly this string.
+  title: { absolute: "Fynix Digital | A digital marketing studio for Growing Brands" },
+};
+
 export default function Home() {
 
   return (
@@ -30,7 +37,7 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-6 xl:gap-8 items-center">
             <div className="md:col-span-6 lg:col-span-5 flex flex-col items-start">
               {/* Eyebrow */}
-              <p className="text-xl md:text-2xl font-semibold text-white/90 mb-3 tracking-tight text-left">
+              <p className="text-[17px] sm:text-xl md:text-2xl font-semibold text-white/90 mb-3 tracking-tight text-left whitespace-nowrap">
                 A digital marketing studio for
               </p>
 
@@ -129,7 +136,9 @@ export default function Home() {
                 Case Studies
               </h2>
               <p className="mt-4 text-base md:text-lg text-text-muted font-normal leading-relaxed">
-              Explore how we&apos;ve helped businesses improve visibility, strengthen their digital presence and generate measurable growth across multiple industries.
+              Explore how we&apos;ve helped businesses improve visibility, strengthen their digital presence
+              <br />
+              and generate measurable growth across multiple industries.
               </p>
             </div>
             <Link

@@ -44,7 +44,7 @@ export const Testimonials: React.FC = () => {
               in their own words.
             </span> */}
             Experiences That Speak{" "}
-            <span className="italic font-normal text-accent whitespace-nowrap">
+            <span className="font-serif italic font-medium whitespace-nowrap">
               for Themselves.
             </span>
           </h2>

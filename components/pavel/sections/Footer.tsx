@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { ArrowUpRight } from "lucide-react";
 import { Container } from "../ui/Container";
 
 export const Footer: React.FC = () => {
@@ -20,6 +21,15 @@ export const Footer: React.FC = () => {
             <p className="font-serif italic font-normal text-[14px] text-text-muted max-w-[380px] leading-[1.6]">
               Semantic SEO, taught from the machinery of search itself.
             </p>
+            <a
+              href="/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-[13px] text-text-muted hover:text-white transition-colors"
+            >
+              A Fynix Digital workshop
+              <ArrowUpRight className="w-3.5 h-3.5" />
+            </a>
           </div>
 
           <div className="md:col-span-3 space-y-3">

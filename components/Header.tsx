@@ -200,7 +200,7 @@ export default function Header() {
       >
         <div
           aria-hidden
-          className={`pointer-events-none absolute inset-x-0 top-0 h-3 md:h-4 backdrop-blur-3xl transition-[opacity,background-color] duration-[900ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
+          className={`pointer-events-none absolute inset-x-0 top-0 h-3 md:h-4 backdrop-blur-3xl transition-[opacity,background-color] duration-[1584ms] ease-[cubic-bezier(0.65,0,0.35,1)] ${
             pillActive
               ? isDark
                 ? "bg-primary/40 opacity-100"
@@ -209,14 +209,14 @@ export default function Header() {
           }`}
         />
         <div
-          className={`mx-auto transition-[max-width,padding-left,padding-right] duration-[1500ms] ease-[cubic-bezier(0.18,1,0.16,1)] ${
+          className={`mx-auto transition-[max-width,padding-left,padding-right] duration-[1584ms] ease-[cubic-bezier(0.65,0,0.35,1)] ${
             pillActive
               ? "max-w-7xl px-6 md:px-12"
               : "max-w-full px-2 md:px-4"
           }`}
         >
         <div
-          className={`relative rounded-2xl border transition-[background-color,border-color,box-shadow,backdrop-filter] duration-[900ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
+          className={`relative rounded-2xl border transition-[background-color,border-color,box-shadow,backdrop-filter] duration-[1584ms] ease-[cubic-bezier(0.65,0,0.35,1)] ${
             pillActive
               ? `backdrop-blur-3xl shadow-[0_18px_50px_-24px_rgba(12,30,46,0.35)] ${
                   isDark ? "border-white/20" : "border-black/[0.08]"

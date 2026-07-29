@@ -28,7 +28,7 @@ export const Audience: React.FC = () => {
           <h2 className="text-[2.15rem] sm:text-[2.65rem] lg:text-[3.05rem] leading-[1.08] font-medium tracking-[-0.026em] text-primary">
             An honest word,{" "}
             <br className="sm:hidden" />
-            <span className="italic font-normal text-accent">before you register.</span>
+            <span className="font-serif italic font-medium">before you register.</span>
           </h2>
           <p className="mt-6 text-[1.2rem] text-text-muted leading-[1.65] max-w-[680px] font-normal">
             This workshop is not for everyone.
@@ -42,7 +42,7 @@ export const Audience: React.FC = () => {
             </p>
             <ul className="mt-6 space-y-5">
               {FOR.map((item, i) => (
-                <li key={i} className="flex gap-4 text-[15.5px] leading-[1.6]">
+                <li key={i} className="flex gap-4 text-[15.5px] leading-[1.6] min-h-[3.2em]">
                   <span className="font-serif text-[16px] italic font-normal text-accent tnum pt-0.5 shrink-0 min-w-[24px]">
                     {String(i + 1).padStart(2, "0")}
                   </span>
@@ -58,7 +58,7 @@ export const Audience: React.FC = () => {
             </p>
             <ul className="mt-6 space-y-5">
               {NOT_FOR.map((item, i) => (
-                <li key={i} className="flex gap-4 text-[15.5px] leading-[1.6]">
+                <li key={i} className="flex gap-4 text-[15.5px] leading-[1.6] min-h-[3.2em]">
                   <span className="font-serif text-[16px] italic font-normal text-text-muted tnum pt-0.5 shrink-0 min-w-[24px]">
                     {String(i + 1).padStart(2, "0")}
                   </span>

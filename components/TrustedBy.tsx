@@ -18,8 +18,9 @@ export default function TrustedBy() {
               Trusted by <span className="font-serif italic font-medium">Growing Businesses</span>
             </h2>
             <p className="mt-4 text-base md:text-lg text-text-muted font-normal leading-relaxed">
-              From startups to established enterprises, businesses trust Fynix
-              Digital to strengthen their digital presence and accelerate sustainable growth.
+              From startups to established enterprises, businesses trust Fynix Digital
+              <br />
+              to strengthen their digital presence and accelerate sustainable growth.
             </p>
           </div>
         </Reveal>

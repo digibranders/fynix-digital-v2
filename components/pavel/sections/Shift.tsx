@@ -41,7 +41,7 @@ export const Shift: React.FC = () => {
           <div className="lg:col-span-6 lg:sticky lg:top-32">
             <h2 className="text-[2.15rem] sm:text-[2.65rem] lg:text-[3.05rem] leading-[1.08] font-medium tracking-[-0.026em] text-white">
               Make your site{" "}
-              <span className="italic font-normal text-accent">
+              <span className="font-serif italic font-medium">
                 cheaper to retrieve
               </span>{" "}
               and more trustworthy.

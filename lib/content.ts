@@ -894,7 +894,7 @@ export const engagementModels: EngagementModel[] = [
 ];
 
 export const siteConfig = {
-  name: "Fynix",
+  name: "Fynix Digital",
   url: "https://fynix.digital",
   email: "hello@fynix.digital",
   phone: "+91 789 789 6607",
@@ -906,8 +906,25 @@ export const siteConfig = {
   },
   gst: "27AAICD9268J1ZO",
   description:
-    "We help cybersecurity companies transform their websites into growth engines through UI/UX, technical excellence, AI-ready SEO, and predictable lead generation.",
+    "We help companies transform their websites into growth engines through UI/UX, technical excellence, AI-ready SEO, and predictable lead generation.",
 };
+
+/**
+ * Single source of truth for "is this the real production site?".
+ *
+ * Both the `<meta robots>` tag (app/layout.tsx) and robots.txt (app/robots.ts)
+ * gate crawling/indexing on this — so they can never disagree and accidentally
+ * `noindex` production while robots.txt says "allow" (or vice versa). Only the
+ * live production deploy should be indexable; every preview/other environment
+ * is kept out of the index.
+ */
+export function isProductionSite(): boolean {
+  return Boolean(
+    process.env.NEXT_PUBLIC_SITE_URL?.includes("fynix.digital") ||
+      process.env.VERCEL_PROJECT_PRODUCTION_URL?.includes("fynix.digital") ||
+      process.env.VERCEL_ENV === "production",
+  );
+}
 
 export type FrameworkStep = {
   num: string;
