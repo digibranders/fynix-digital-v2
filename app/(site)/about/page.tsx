@@ -87,16 +87,14 @@ const founders: {
   name: string;
   role: string;
   initials: string;
-  bio: string;
   accent: Accent;
   photo?: string;
   quote: string;
 }[] = [
   {
     name: "Siddique",
-    role: "Co-Founder & Creative Director",
+    role: "Co-Founder",
     initials: "S",
-    bio: "Leads strategy and growth, translating business goals into digital decisions that compound over time.",
     accent: actColors[0], // gold
     photo: "/siddique.webp",
     quote:
@@ -104,9 +102,8 @@ const founders: {
   },
   {
     name: "Savita Katiyar",
-    role: "Co-Founder & Chief Executive Officer",
+    role: "Co-Founder",
     initials: "SK",
-    bio: "Shapes the brand, product, and experience work so every touchpoint feels as considered as it is effective.",
     accent: actColors[2], // rose
     photo: "/savita-katiyar-2.webp",
     quote:
@@ -315,9 +312,6 @@ export default function AboutPage() {
                       style={{ color: numeralColor(f.accent) }}
                     >
                       {f.role}
-                    </p>
-                    <p className="text-[15px] text-text-muted font-normal leading-relaxed mt-4">
-                      {f.bio}
                     </p>
                   </figcaption>
                 </figure>
