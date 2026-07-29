@@ -37,10 +37,10 @@ export const Problem: React.FC = () => {
         <div className="max-w-[820px] mb-16 md:mb-20">
           <h2 className="text-[2.15rem] sm:text-[2.65rem] lg:text-[3.15rem] leading-[1.08] font-medium tracking-[-0.026em] text-primary">
             You already know more about SEO than{" "}
-            <span className="italic font-normal text-accent">95% of the people</span>{" "}
+            <span className="font-serif italic font-medium">95% of the people</span>{" "}
             calling themselves SEOs.
           </h2>
-          <p className="mt-8 text-[1.3rem] sm:text-[1.45rem] text-text-muted leading-[1.6] max-w-[700px] font-normal">
+          <p className="mt-8 text-[1.3rem] sm:text-[1.45rem] text-text-muted leading-[1.6] max-w-[820px] md:whitespace-nowrap font-normal">
             You&apos;ve done the work, yet less experienced competitors keep
             outranking you.
           </p>

@@ -18,8 +18,9 @@ export default function TrustedBy() {
               Trusted by <span className="font-serif italic font-medium">Growing Businesses</span>
             </h2>
             <p className="mt-4 text-base md:text-lg text-text-muted font-normal leading-relaxed">
-              From startups to established enterprises, businesses trust Fynix
-              Digital to strengthen their digital presence and accelerate sustainable growth.
+              From startups to established enterprises, businesses trust Fynix Digital
+              <br />
+              to strengthen their digital presence and accelerate sustainable growth.
             </p>
           </div>
         </Reveal>
@@ -40,7 +41,12 @@ export default function TrustedBy() {
                   alt={`${client.name} logo`}
                   width={160}
                   height={48}
-                  className="max-h-10 md:max-h-12 max-w-[130px] md:max-w-[150px] w-auto object-contain"
+                  // Logos have varying intrinsic ratios; `object-contain` + `w/h-auto`
+                  // preserves each one within the box. Both max constraints are kept
+                  // strictly below the width/height props (max-w 150 < 160, max-h 44 < 48)
+                  // so a rendered dimension can never equal its attribute — which is
+                  // exactly what next/image's aspect-ratio dev warning checks for.
+                  className="max-h-10 md:max-h-11 max-w-[130px] md:max-w-[150px] w-auto h-auto object-contain"
                 />
               </li>
             ))}

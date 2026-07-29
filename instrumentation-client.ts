@@ -8,6 +8,10 @@ const isDevelopment = process.env.NODE_ENV === "development";
 Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN ?? SENTRY_DSN,
 
+  // Disabled in local development — no events or spans are sent while running
+  // `next dev`. Sentry only reports from deployed (production/preview) builds.
+  enabled: !isDevelopment,
+
   environment: process.env.NEXT_PUBLIC_VERCEL_ENV ?? process.env.NODE_ENV,
 
   dataCollection: {

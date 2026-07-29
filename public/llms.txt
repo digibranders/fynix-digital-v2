@@ -3,7 +3,7 @@
 > A specialized digital growth agency and web studio for cybersecurity, tech product, and SaaS companies.
 
 ## Overview
-Fynix Digital builds high-performance digital growth systems for cybersecurity companies. We integrate UI/UX design, custom web development, technical SEO / Answer Engine Optimization (AEO), and B2B lead generation into one accountable growth pipeline.
+Fynix Digital builds high-performance digital growth systems for growing companies. We integrate UI/UX design, custom web development, technical SEO / Answer Engine Optimization (AEO), and B2B lead generation into one accountable growth pipeline.
 
 ## Core Capabilities
 - **UI/UX Design**: Buyer research, information architecture, wireframing, high-fidelity design systems, and conversion rate optimization (CRO) tuned for enterprise B2B software buyers.
@@ -21,4 +21,4 @@ Fynix Digital builds high-performance digital growth systems for cybersecurity c
 - **Website**: https://fynix.digital
 - **Services**: https://fynix.digital/services
 - **Case Studies**: https://fynix.digital/case-studies
-- **Contact**: https://fynix.digital/contact | contact@fynix.digital
+- **Contact**: https://fynix.digital/contact | hello@fynix.digital

@@ -242,11 +242,6 @@ export default function HeroBackdrop() {
       {/* WebGL host - mounts the OGL canvas. Behind everything else, dialed
           down so the peach wash sits softly behind the copy. */}
       <div ref={hostRef} className="absolute inset-0 z-0 opacity-50" />
-
-      <span className="absolute top-24 left-6 md:top-28 md:left-10 h-4 w-4 border-l border-t border-border z-10" />
-      <span className="absolute top-24 right-6 md:top-28 md:right-10 h-4 w-4 border-r border-t border-border z-10" />
-      <span className="absolute bottom-6 left-6 md:bottom-10 md:left-10 h-4 w-4 border-l border-b border-border z-10" />
-      <span className="absolute bottom-6 right-6 md:bottom-10 md:right-10 h-4 w-4 border-r border-b border-border z-10" />
     </div>
   );
 }

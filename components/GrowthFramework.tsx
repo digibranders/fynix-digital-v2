@@ -116,20 +116,8 @@ export default function GrowthFramework() {
                       </p>
                     </div>
 
-                    {/* Subtle bottom indicator — desktop hover flourish only; hidden on
-                        touch/mobile where there is no hover to reveal the arrow. */}
-                    <div className="mt-8 pt-4 border-t border-border/40 hidden lg:flex items-center justify-between text-xs font-mono text-text-muted/60 group-hover:text-accent transition-colors">
-                      <svg
-                        className="w-4 h-4 transform -translate-x-1 group-hover:translate-x-0 opacity-0 group-hover:opacity-100 transition-all duration-300"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        viewBox="0 0 24 24"
-                        aria-hidden="true"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                      </svg>
-                    </div>
+                    {/* Subtle bottom divider — desktop only. */}
+                    <div className="mt-8 pt-4 border-t border-border/40 hidden lg:block" />
                   </div>
 
                   {/* Outgoing connector — draws from this card toward the next on hover (no glow) */}

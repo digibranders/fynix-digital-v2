@@ -470,7 +470,7 @@ export const caseStudies: CaseStudy[] = [
     description: "AI-powered threat detection and security platform",
     tags: ["SEO", "UI/UX Design"],
     image: "/case-studies/eventus.webp",
-    iconUrl: "/clients/eventus-icon.png",
+    iconUrl: "/clients/eventus-icon.webp",
     metric: { value: "4,081", label: "Monthly organic visitors" },
     industry: "Cybersecurity · SOC & Managed Security",
     challenge:
@@ -631,7 +631,7 @@ export const footerNav = [
 export type Client = { name: string; logo: string };
 
 export const clients: Client[] = [
-  { name: "CleanStart", logo: "/clients/cleanstart.webp" },
+  { name: "PhotonMatters", logo: "/clients/photonmatters.webp" },
   { name: "Counterpoint Risk", logo: "/clients/counterpoint-risk.webp" },
   { name: "Creative Mind Technologies", logo: "/clients/creative-mind-technologies.webp" },
   { name: "Currycook", logo: "/clients/currycook.webp" },
@@ -639,7 +639,7 @@ export const clients: Client[] = [
   { name: "EZIGOLD", logo: "/clients/ezi-gold.webp" },
   { name: "North Star", logo: "/clients/north-star.webp" },
   { name: "Payweek", logo: "/clients/payweek.webp" },
-  { name: "PhotonMatters", logo: "/clients/photonmatters.webp" },
+  { name: "CleanStart", logo: "/clients/cleanstart.webp" },
   { name: "Pioneer Metals", logo: "/clients/pioneer-metals.webp" },
   { name: "Support305", logo: "/clients/support305.webp" },
   { name: "The Alfeco Foundation", logo: "/clients/the-alfeco-foundation.webp" },
@@ -648,6 +648,7 @@ export const clients: Client[] = [
   { name: "Veer Aluminium", logo: "/clients/veer-alimunium.webp" },
   { name: "Veer Energy", logo: "/clients/veer-energy.webp" },
   { name: "Veer Steel Mile", logo: "/clients/veer-steel-mile.webp" },
+  { name: "GKR Hospitality", logo: "/clients/gkr-logo.webp" },
 ];
 
 export type Stat = { value: string; label: string; sub?: string };
@@ -686,7 +687,7 @@ export const testimonials: Testimonial[] = [
   },
   {
     company: "Eventus",
-    logo: "/clients/eventus-icon.png",
+    logo: "/clients/eventus-icon.webp",
     quote:
       "Fynix Digital has been our go-to digital marketing agency for over two years now. Brilliant execution, stunning design, and reliable delivery!",
     name: "Sanjay Khera",
@@ -893,7 +894,7 @@ export const engagementModels: EngagementModel[] = [
 ];
 
 export const siteConfig = {
-  name: "Fynix",
+  name: "Fynix Digital",
   url: "https://fynix.digital",
   email: "hello@fynix.digital",
   phone: "+91 789 789 6607",
@@ -905,8 +906,25 @@ export const siteConfig = {
   },
   gst: "27AAICD9268J1ZO",
   description:
-    "We help cybersecurity companies transform their websites into growth engines through UI/UX, technical excellence, AI-ready SEO, and predictable lead generation.",
+    "We help companies transform their websites into growth engines through UI/UX, technical excellence, AI-ready SEO, and predictable lead generation.",
 };
+
+/**
+ * Single source of truth for "is this the real production site?".
+ *
+ * Both the `<meta robots>` tag (app/layout.tsx) and robots.txt (app/robots.ts)
+ * gate crawling/indexing on this — so they can never disagree and accidentally
+ * `noindex` production while robots.txt says "allow" (or vice versa). Only the
+ * live production deploy should be indexable; every preview/other environment
+ * is kept out of the index.
+ */
+export function isProductionSite(): boolean {
+  return Boolean(
+    process.env.NEXT_PUBLIC_SITE_URL?.includes("fynix.digital") ||
+      process.env.VERCEL_PROJECT_PRODUCTION_URL?.includes("fynix.digital") ||
+      process.env.VERCEL_ENV === "production",
+  );
+}
 
 export type FrameworkStep = {
   num: string;

@@ -1,12 +1,12 @@
 import type { MetadataRoute } from "next";
-import { siteConfig } from "@/lib/content";
+import { siteConfig, isProductionSite } from "@/lib/content";
 
 export default function robots(): MetadataRoute.Robots {
-  const isPreview =
-    process.env.VERCEL_ENV === "preview" ||
-    process.env.NEXT_PUBLIC_VERCEL_ENV === "preview";
-
-  if (isPreview) {
+  // Only the real production site is crawlable. Every other environment
+  // (preview, local, misconfigured) is fully disallowed. This uses the same
+  // gate as the <meta robots> tag in app/layout.tsx so the two can never
+  // disagree and silently de-index production.
+  if (!isProductionSite()) {
     return {
       rules: [{ userAgent: "*", disallow: "/" }],
     };

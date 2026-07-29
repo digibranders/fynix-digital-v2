@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import Reveal from "@/components/Reveal";
 import SectionSeam from "@/components/SectionSeam";
@@ -82,15 +83,35 @@ const whyChoose: { title: string; body: string }[] = [
   },
 ];
 
-const expertiseIntro =
-  "Our expertise spans every stage of the digital growth journey.";
-const expertise = [
-  "Digital Strategy",
-  "Website Design & Development",
-  "User Experience Design",
-  "Search & AI Visibility",
-  "Lead Generation",
-  "Conversion Optimization",
+const founders: {
+  name: string;
+  role: string;
+  initials: string;
+  bio: string;
+  accent: Accent;
+  photo?: string;
+  quote: string;
+}[] = [
+  {
+    name: "Siddique",
+    role: "Co-Founder & Creative Director",
+    initials: "S",
+    bio: "Leads strategy and growth, translating business goals into digital decisions that compound over time.",
+    accent: actColors[0], // gold
+    photo: "/siddique.webp",
+    quote:
+      "Digital strategy isn't about following short-term trends — it's about building unfair competitive advantages that compound over years.",
+  },
+  {
+    name: "Savita Katiyar",
+    role: "Co-Founder & Chief Executive Officer",
+    initials: "SK",
+    bio: "Shapes the brand, product, and experience work so every touchpoint feels as considered as it is effective.",
+    accent: actColors[2], // rose
+    photo: "/savita-katiyar-2.webp",
+    quote:
+      "Every design and technical choice must serve a single goal: creating meaningful, measurable business clarity.",
+  },
 ];
 
 const values: { numeral: string; title: string; body: string }[] = [
@@ -147,7 +168,7 @@ export default function AboutPage() {
       </section>
 
       {/* ─── OUR STORY ────────────────────────────────────────── */}
-      <section className="py-20 md:py-28 bg-white">
+      <section className="py-16 md:py-20 bg-white">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16">
             <Reveal className="lg:col-span-5">
@@ -178,7 +199,7 @@ export default function AboutPage() {
       <SectionSeam from="white" to="soft" />
 
       {/* ─── WHY BUSINESSES CHOOSE FYNIX ──────────────────────── */}
-      <section className="py-20 md:py-28 bg-background-soft">
+      <section className="py-16 md:py-20 bg-background-soft">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <Reveal className="max-w-2xl mb-14 md:mb-16">
             <h2 className="font-serif text-3xl md:text-5xl text-primary font-medium leading-[1.1] tracking-tight">
@@ -223,38 +244,93 @@ export default function AboutPage() {
 
       <SectionSeam from="soft" to="white" />
 
-      {/* ─── OUR EXPERTISE ────────────────────────────────────── */}
-      <section className="py-20 md:py-28 bg-white">
+      {/* ─── FOUNDERS ─────────────────────────────────────────── */}
+      <section className="py-16 md:py-20 bg-white">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <Reveal className="max-w-2xl mb-12">
+          <Reveal className="max-w-2xl mb-14 md:mb-16">
             <h2 className="font-serif text-3xl md:text-5xl text-primary font-medium leading-[1.1] tracking-tight">
-              Helping businesses grow across digital.
+              The people behind Fynix Digital.
             </h2>
             <p className="text-base md:text-lg text-text-muted font-normal leading-relaxed mt-6">
-              {expertiseIntro}
+              Two founders, one commitment: turning digital investment into
+              growth that lasts.
             </p>
           </Reveal>
 
-          <Reveal delay={80}>
-            <ul className="flex flex-wrap gap-3">
-              {expertise.map((item) => (
-                <li
-                  key={item}
-                  className="inline-flex items-center gap-2.5 rounded-full border border-border bg-background-soft/50 px-5 py-2.5 text-primary font-medium"
-                >
-                  <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-accent flex-shrink-0" />
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </Reveal>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 md:gap-10 max-w-3xl">
+            {founders.map((f, idx) => (
+              <Reveal key={f.name} delay={idx * 120}>
+                <figure className="group">
+                  {/* Portrait — real headshot when a photo is set, else a monogram placeholder. */}
+                  <div
+                    className="relative aspect-[4/5] rounded-2xl overflow-hidden shadow-[0_1px_2px_rgba(15,14,12,0.06),0_24px_50px_-24px_rgba(15,14,12,0.28)]"
+                    style={
+                      f.photo
+                        ? undefined
+                        : {
+                            background: `linear-gradient(150deg, #0C1E2E 0%, color-mix(in srgb, ${f.accent.from} 55%, #0C1E2E) 100%)`,
+                          }
+                    }
+                  >
+                    {f.photo ? (
+                      <Image
+                        src={f.photo}
+                        alt={f.name}
+                        fill
+                        sizes="(min-width: 640px) 50vw, 100vw"
+                        className="object-cover object-center transition-transform duration-700 group-hover:scale-[1.03]"
+                      />
+                    ) : (
+                      <>
+                        <span
+                          aria-hidden
+                          className="absolute inset-0"
+                          style={{
+                            backgroundImage:
+                              "radial-gradient(circle at 30% 22%, rgba(255,255,255,0.16), transparent 58%)",
+                          }}
+                        />
+                        <span
+                          aria-hidden
+                          className="absolute inset-0 flex items-center justify-center font-serif text-white/90 text-6xl md:text-7xl tracking-tight select-none"
+                        >
+                          {f.initials}
+                        </span>
+                      </>
+                    )}
+                    <span
+                      aria-hidden
+                      className="absolute left-0 bottom-0 h-[3px] w-full"
+                      style={{
+                        background: `linear-gradient(to right, ${f.accent.from}, ${f.accent.to})`,
+                      }}
+                    />
+                  </div>
+                  <figcaption className="mt-6">
+                    <h3 className="font-serif text-2xl text-primary font-medium leading-snug">
+                      {f.name}
+                    </h3>
+                    <p
+                      className="text-xs font-semibold uppercase tracking-[0.12em] mt-2"
+                      style={{ color: numeralColor(f.accent) }}
+                    >
+                      {f.role}
+                    </p>
+                    <p className="text-[15px] text-text-muted font-normal leading-relaxed mt-4">
+                      {f.bio}
+                    </p>
+                  </figcaption>
+                </figure>
+              </Reveal>
+            ))}
+          </div>
         </div>
       </section>
 
       <SectionSeam from="white" to="soft" />
 
       {/* ─── OUR VALUES ───────────────────────────────────────── */}
-      <section className="pt-20 md:pt-28 pb-12 md:pb-16 bg-background-soft">
+      <section className="pt-16 md:pt-20 pb-12 md:pb-16 bg-background-soft">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <Reveal className="max-w-2xl mb-14 md:mb-16">
             <h2 className="font-serif text-3xl md:text-5xl text-primary font-medium leading-[1.1] tracking-tight">

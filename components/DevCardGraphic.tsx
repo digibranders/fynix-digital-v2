@@ -204,57 +204,89 @@ export default function DevCardGraphic() {
           />
           <rect x="43" y="40" width="22" height="1.5" rx="0.75" fill="white" fillOpacity="0.4" />
 
-          {/* Embossed Sidebar Icons */}
-          {/* Icon 1: Hamburger Menu */}
-          <g>
-            <rect x="43" y="88" width="22" height="3.5" rx="1.75" fill="#3D434B" />
-            <rect x="43" y="88" width="22" height="1" rx="0.5" fill="#58616D" />
-            
-            <rect x="43" y="95" width="22" height="3.5" rx="1.75" fill="#3D434B" />
-            <rect x="43" y="95" width="22" height="1" rx="0.5" fill="#58616D" />
-            
-            <rect x="43" y="102" width="22" height="3.5" rx="1.75" fill="#3D434B" />
-            <rect x="43" y="102" width="22" height="1" rx="0.5" fill="#58616D" />
-          </g>
+          {/* ── Real Antigravity IDE Activity Bar Icons ── */}
+          <g id="antigravitySidebarIcons">
+            {/* 1. Explorer / Files */}
+            <g>
+              {/* Background File Sheet */}
+              <path
+                d="M 49 88 L 56 88 L 59 91 L 59 104 C 59 105.1 58.1 106 57 106 L 49 106 C 47.9 106 47 105.1 47 104 L 47 90 C 47 88.9 47.9 88 49 88 Z"
+                fill="none"
+                stroke="#58616D"
+                strokeWidth="1.4"
+                strokeLinejoin="round"
+              />
+              {/* Primary File Sheet */}
+              <path
+                d="M 44 92 L 52 92 L 56 96 L 56 108 C 56 109.1 55.1 110 54 110 L 44 110 C 42.9 110 42 109.1 42 108 L 42 94 C 42 92.9 42.9 92 44 92 Z"
+                fill="#24272B"
+                stroke="#64748B"
+                strokeWidth="1.6"
+                strokeLinejoin="round"
+              />
+              <path d="M 52 92 L 52 96 L 56 96" fill="none" stroke="#64748B" strokeWidth="1.4" />
+            </g>
 
-          {/* Icon 2: File Tree List */}
-          <g>
-            <rect x="43" y="122" width="22" height="3" rx="1.5" fill="#3D434B" />
-            <rect x="43" y="122" width="22" height="1" rx="0.5" fill="#58616D" />
+            {/* 2. Global Search */}
+            <g>
+              <circle
+                cx="50"
+                cy="131"
+                r="5.5"
+                fill="none"
+                stroke="#64748B"
+                strokeWidth="1.6"
+              />
+              <line
+                x1="54"
+                y1="135"
+                x2="59"
+                y2="140"
+                stroke="#64748B"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+              />
+            </g>
 
-            <rect x="43" y="128" width="16" height="3" rx="1.5" fill="#3D434B" />
-            <rect x="43" y="128" width="16" height="1" rx="0.5" fill="#58616D" />
+            {/* 3. Source Control / Git */}
+            <g>
+              <line x1="47" y1="162" x2="47" y2="176" stroke="#64748B" strokeWidth="1.6" strokeLinecap="round" />
+              <path
+                d="M 47 173 C 47 168 57 170 57 166"
+                fill="none"
+                stroke="#64748B"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+              />
+              <circle cx="47" cy="162" r="2.2" fill="#24272B" stroke="#64748B" strokeWidth="1.5" />
+              <circle cx="47" cy="176" r="2.2" fill="#24272B" stroke="#64748B" strokeWidth="1.5" />
+              <circle cx="57" cy="166" r="2.2" fill="#24272B" stroke="#64748B" strokeWidth="1.5" />
+            </g>
 
-            <rect x="43" y="134" width="22" height="3" rx="1.5" fill="#3D434B" />
-            <rect x="43" y="134" width="22" height="1" rx="0.5" fill="#58616D" />
+            {/* 4. Run & Debug */}
+            <g>
+              {/* Play symbol */}
+              <path
+                d="M 44 196 L 52 201 L 44 206 Z"
+                fill="#64748B"
+                stroke="#64748B"
+                strokeWidth="1"
+                strokeLinejoin="round"
+              />
+              {/* Bug icon body */}
+              <rect x="54" y="198" width="5" height="6" rx="2.5" fill="#64748B" />
+              <line x1="53" y1="199" x2="60" y2="199" stroke="#64748B" strokeWidth="1" strokeLinecap="round" />
+              <line x1="53" y1="201" x2="60" y2="201" stroke="#64748B" strokeWidth="1" strokeLinecap="round" />
+              <line x1="53" y1="203" x2="60" y2="203" stroke="#64748B" strokeWidth="1" strokeLinecap="round" />
+            </g>
 
-            <rect x="43" y="140" width="12" height="3" rx="1.5" fill="#3D434B" />
-            <rect x="43" y="140" width="12" height="1" rx="0.5" fill="#58616D" />
-          </g>
-
-          {/* Icon 3: Sliders */}
-          <g>
-            <rect x="43" y="160" width="22" height="3" rx="1.5" fill="#3D434B" />
-            <circle cx="50" cy="161.5" r="3" fill="#2E333A" stroke="#484F59" strokeWidth="1.2" />
-
-            <rect x="43" y="169" width="22" height="3" rx="1.5" fill="#3D434B" />
-            <circle cx="58" cy="170.5" r="3" fill="#2E333A" stroke="#484F59" strokeWidth="1.2" />
-          </g>
-
-          {/* Icon 4: Ribbon */}
-          <g>
-            <path
-              d="M 46 191 C 46 187 62 187 62 191 C 62 195 58 197 56 201 L 52 201 C 50 197 46 195 46 191 Z"
-              fill="#3D434B"
-            />
-          </g>
-
-          {/* Icon 5: Target Spheres */}
-          <g>
-            <circle cx="54" cy="222" r="3" fill="#3D434B" />
-            <circle cx="54" cy="235" r="3" fill="#3D434B" />
-            <circle cx="54" cy="248" r="3" fill="#3D434B" />
-            <circle cx="54" cy="261" r="3" fill="#3D434B" />
+            {/* 5. Extensions / Plugins */}
+            <g>
+              <rect x="44" y="230" width="6" height="6" rx="1.2" fill="#64748B" />
+              <rect x="52" y="230" width="6" height="6" rx="1.2" fill="#64748B" />
+              <rect x="44" y="238" width="6" height="6" rx="1.2" fill="#64748B" />
+              <rect x="52" y="238" width="6" height="6" rx="1.2" fill="#64748B" />
+            </g>
           </g>
         </motion.g>
 

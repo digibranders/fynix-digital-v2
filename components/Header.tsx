@@ -35,15 +35,8 @@ export default function Header() {
     setMegaOpen(false);
   };
 
-  // The "Technical SEO" mega-menu item points at the home-page audit section.
-  // On the home page we smooth-scroll to it; elsewhere we let the link route to
-  // "/#technical-seo-audit" and the browser jumps to the anchor on load.
-  const handleAuditNav = (e: MouseEvent<HTMLAnchorElement>) => {
-    setMegaOpen(false);
-    setMenuOpen(false);
-    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
-    if (pathname !== "/") return;
-    e.preventDefault();
+  // Smooth-scroll to the home-page Technical SEO Audit section.
+  const scrollToAudit = useCallback(() => {
     const target = document.getElementById("technical-seo-audit");
     if (!target) return;
     if (lenis) {
@@ -51,7 +44,46 @@ export default function Header() {
     } else {
       target.scrollIntoView({ behavior: "smooth" });
     }
+  }, [lenis]);
+
+  // When the audit link is tapped from the mobile menu, the scroll has to wait
+  // until the menu closes: the open menu locks the page with `overflow: hidden`
+  // on <body>, which clamps any scroll to 0. This ref defers the scroll until
+  // that lock is released (see the effect below).
+  const pendingAuditScroll = useRef(false);
+
+  // The "Technical SEO" mega-menu item points at the home-page audit section.
+  // On the home page we smooth-scroll to it; elsewhere we let the link route to
+  // "/#technical-seo-audit" and the browser jumps to the anchor on load.
+  const handleAuditNav = (e: MouseEvent<HTMLAnchorElement>) => {
+    setMegaOpen(false);
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) {
+      setMenuOpen(false);
+      return;
+    }
+    if (pathname !== "/") {
+      // Let the Link route to "/#technical-seo-audit"; the anchor resolves on load.
+      setMenuOpen(false);
+      return;
+    }
+    e.preventDefault();
+    if (menuOpen) {
+      // Defer until the mobile menu's body-scroll lock is released.
+      pendingAuditScroll.current = true;
+      setMenuOpen(false);
+    } else {
+      scrollToAudit();
+    }
   };
+
+  // Runs after the mobile menu closes: React flushes every effect cleanup
+  // (which restores <body> overflow) before this setup runs, so the scroll now
+  // lands on the audit section instead of being clamped.
+  useEffect(() => {
+    if (menuOpen || !pendingAuditScroll.current) return;
+    pendingAuditScroll.current = false;
+    scrollToAudit();
+  }, [menuOpen, scrollToAudit]);
 
   useEffect(() => {
     if (!megaOpen) return;
@@ -168,7 +200,7 @@ export default function Header() {
       >
         <div
           aria-hidden
-          className={`pointer-events-none absolute inset-x-0 top-0 h-3 md:h-4 backdrop-blur-3xl transition-[opacity,background-color] duration-[900ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
+          className={`pointer-events-none absolute inset-x-0 top-0 h-3 md:h-4 backdrop-blur-3xl transition-[opacity,background-color] duration-[1584ms] ease-[cubic-bezier(0.65,0,0.35,1)] ${
             pillActive
               ? isDark
                 ? "bg-primary/40 opacity-100"
@@ -177,14 +209,14 @@ export default function Header() {
           }`}
         />
         <div
-          className={`mx-auto transition-[max-width,padding-left,padding-right] duration-[1500ms] ease-[cubic-bezier(0.18,1,0.16,1)] ${
+          className={`mx-auto transition-[max-width,padding-left,padding-right] duration-[1584ms] ease-[cubic-bezier(0.65,0,0.35,1)] ${
             pillActive
               ? "max-w-7xl px-6 md:px-12"
               : "max-w-full px-2 md:px-4"
           }`}
         >
         <div
-          className={`relative rounded-2xl border transition-[background-color,border-color,box-shadow,backdrop-filter] duration-[900ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
+          className={`relative rounded-2xl border transition-[background-color,border-color,box-shadow,backdrop-filter] duration-[1584ms] ease-[cubic-bezier(0.65,0,0.35,1)] ${
             pillActive
               ? `backdrop-blur-3xl shadow-[0_18px_50px_-24px_rgba(12,30,46,0.35)] ${
                   isDark ? "border-white/20" : "border-black/[0.08]"

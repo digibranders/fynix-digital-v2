@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Figtree, Cormorant } from "next/font/google";
-import { siteConfig } from "@/lib/content";
+import { siteConfig, isProductionSite } from "@/lib/content";
 import "./globals.css";
 
 const figtree = Figtree({
@@ -18,10 +18,9 @@ const cormorant = Cormorant({
   display: "swap",
 });
 
-const isProductionDomain =
-  process.env.NEXT_PUBLIC_SITE_URL?.includes("fynix.digital") ||
-  process.env.VERCEL_PROJECT_PRODUCTION_URL?.includes("fynix.digital") ||
-  process.env.VERCEL_ENV === "production";
+// Shared gate — see isProductionSite() in lib/content.ts. Keeps this <meta robots>
+// tag and robots.txt in lock-step so production is never accidentally de-indexed.
+const isProductionDomain = isProductionSite();
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
@@ -61,7 +60,7 @@ export const metadata: Metadata = {
     siteName: siteConfig.name,
     images: [
       {
-        url: `${siteConfig.url}/og-image.png`,
+        url: `${siteConfig.url}/og-image.jpg`,
         width: 1200,
         height: 630,
         alt: "Fynix Digital - Cybersecurity Growth Partner",
@@ -72,7 +71,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: `${siteConfig.name} | Cybersecurity Growth Partner`,
     description: siteConfig.description,
-    images: [`${siteConfig.url}/og-image.png`],
+    images: [`${siteConfig.url}/og-image.jpg`],
   },
 };
 
@@ -82,8 +81,8 @@ const organizationJsonLd = {
   "@id": `${siteConfig.url}/#organization`,
   name: siteConfig.name,
   url: siteConfig.url,
-  logo: `${siteConfig.url}/og-image.png`,
-  image: `${siteConfig.url}/og-image.png`,
+  logo: `${siteConfig.url}/og-image.jpg`,
+  image: `${siteConfig.url}/og-image.jpg`,
   description: siteConfig.description,
   email: siteConfig.email,
   telephone: siteConfig.phone,

@@ -41,7 +41,7 @@ export const FinalCTA: React.FC = () => {
             <span className="font-serif italic font-normal">it&rsquo;s gone.</span>
           </h2>
 
-          <p className="mt-6 text-[1.15rem] text-white/70 leading-[1.6] max-w-[560px] mx-auto font-normal">
+          <p className="mt-6 text-[1.15rem] text-white/70 leading-[1.6] max-w-[680px] mx-auto font-normal">
             One live session, {WORKSHOP.seats} seats. You leave with the workbook,
             the topical-map template, and the slide deck. Yours to revisit long
             after the workshop.
