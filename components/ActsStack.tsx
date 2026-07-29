@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { CSSProperties } from "react";
 import type { Act } from "@/lib/content";
 
 const HEADER_HEIGHT = 80;
@@ -23,8 +24,8 @@ export default function ActsStack({ acts }: Props) {
         return (
           <article
             key={act.slug}
-            style={{ top: `${stickyTop}px`, zIndex: 10 + i }}
-            className="relative lg:sticky mb-6 lg:mb-0 rounded-2xl overflow-hidden border border-border bg-white shadow-[0_30px_60px_-40px_rgba(0,0,0,0.15)] lg:min-h-[calc(100vh-160px)] flex flex-col"
+            style={{ "--stack-top": `${stickyTop}px`, zIndex: 10 + i } as CSSProperties}
+            className="relative lg:sticky lg:top-[var(--stack-top)] mb-6 lg:mb-0 rounded-2xl overflow-hidden border border-border bg-white shadow-[0_30px_60px_-40px_rgba(0,0,0,0.15)] lg:min-h-[calc(100vh-160px)] flex flex-col"
           >
             <header
               className="flex items-center gap-4 px-6 md:px-10 border-b border-border bg-white"

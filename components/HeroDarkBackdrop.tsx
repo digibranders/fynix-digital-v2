@@ -45,12 +45,6 @@ export default function HeroDarkBackdrop() {
             "radial-gradient(circle at 15% 90%, rgba(0,0,0,0.35), transparent 60%)",
         }}
       />
-
-      {/* Corner crop marks */}
-      <span className="absolute top-24 left-6 md:top-28 md:left-10 h-4 w-4 border-l border-t border-white/15" />
-      <span className="absolute top-24 right-6 md:top-28 md:right-10 h-4 w-4 border-r border-t border-white/15" />
-      <span className="absolute bottom-6 left-6 md:bottom-10 md:left-10 h-4 w-4 border-l border-b border-white/15" />
-      <span className="absolute bottom-6 right-6 md:bottom-10 md:right-10 h-4 w-4 border-r border-b border-white/15" />
     </div>
   );
 }

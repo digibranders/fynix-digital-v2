@@ -147,7 +147,7 @@ export default function AboutPage() {
       </section>
 
       {/* ─── OUR STORY ────────────────────────────────────────── */}
-      <section className="py-20 md:py-28 bg-white">
+      <section className="py-16 md:py-20 bg-white">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16">
             <Reveal className="lg:col-span-5">
@@ -178,7 +178,7 @@ export default function AboutPage() {
       <SectionSeam from="white" to="soft" />
 
       {/* ─── WHY BUSINESSES CHOOSE FYNIX ──────────────────────── */}
-      <section className="py-20 md:py-28 bg-background-soft">
+      <section className="py-16 md:py-20 bg-background-soft">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <Reveal className="max-w-2xl mb-14 md:mb-16">
             <h2 className="font-serif text-3xl md:text-5xl text-primary font-medium leading-[1.1] tracking-tight">
@@ -224,7 +224,7 @@ export default function AboutPage() {
       <SectionSeam from="soft" to="white" />
 
       {/* ─── OUR EXPERTISE ────────────────────────────────────── */}
-      <section className="py-20 md:py-28 bg-white">
+      <section className="py-16 md:py-20 bg-white">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <Reveal className="max-w-2xl mb-12">
             <h2 className="font-serif text-3xl md:text-5xl text-primary font-medium leading-[1.1] tracking-tight">
@@ -254,7 +254,7 @@ export default function AboutPage() {
       <SectionSeam from="white" to="soft" />
 
       {/* ─── OUR VALUES ───────────────────────────────────────── */}
-      <section className="pt-20 md:pt-28 pb-12 md:pb-16 bg-background-soft">
+      <section className="pt-16 md:pt-20 pb-12 md:pb-16 bg-background-soft">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <Reveal className="max-w-2xl mb-14 md:mb-16">
             <h2 className="font-serif text-3xl md:text-5xl text-primary font-medium leading-[1.1] tracking-tight">

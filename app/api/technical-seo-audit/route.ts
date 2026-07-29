@@ -15,6 +15,8 @@ const WEBSITE_REGEX =
   /^(https?:\/\/)?([a-z0-9-]+\.)+[a-z]{2,}(\/[^\s]*)?$/i;
 const MAX_FIELD_LENGTH = 2000;
 
+// SENDER must be a Brevo-verified sender or mail is silently undelivered.
+// steve@fynix.digital is NOT verified; hello@fynix.digital is.
 const SENDER = { email: "hello@fynix.digital", name: siteConfig.name };
 const ADMIN_RECIPIENT = { email: "hello@fynix.digital", name: siteConfig.name };
 
@@ -24,13 +26,11 @@ function isNonEmptyString(value: unknown): value is string {
 
 function parseSubmission(body: unknown): AuditSubmission | null {
   if (typeof body !== "object" || body === null) return null;
-  const { name, email, phone, website, message } = body as Record<string, unknown>;
+  const { name, email, company, website, message } = body as Record<string, unknown>;
 
   if (!isNonEmptyString(name) || name.length > MAX_FIELD_LENGTH) return null;
   if (!isNonEmptyString(email) || !EMAIL_REGEX.test(email.trim())) return null;
-  if (phone !== undefined && (typeof phone !== "string" || phone.length > MAX_FIELD_LENGTH)) {
-    return null;
-  }
+  if (!isNonEmptyString(company) || company.length > MAX_FIELD_LENGTH) return null;
   if (
     !isNonEmptyString(website) ||
     website.length > MAX_FIELD_LENGTH ||
@@ -45,7 +45,7 @@ function parseSubmission(body: unknown): AuditSubmission | null {
   return {
     name: name.trim(),
     email: email.trim(),
-    phone: typeof phone === "string" ? phone.trim() : "",
+    company: company.trim(),
     website: website.trim(),
     message: typeof message === "string" ? message.trim() : "",
   };
@@ -57,6 +57,24 @@ export async function POST(request: Request) {
     body = await request.json();
   } catch {
     return NextResponse.json({ error: "Invalid JSON payload." }, { status: 400 });
+  }
+
+  // Honeypot: the `phone` field is invisible to real users, so any non-empty
+  // value means an automated bot filled it in. Drop the submission but return a
+  // benign success so the bot can't distinguish this from a real send.
+  if (typeof body === "object" && body !== null) {
+    const honeypot = (body as Record<string, unknown>).phone;
+    if (typeof honeypot === "string" && honeypot.trim().length > 0) {
+      console.warn("[technical-seo-audit] honeypot triggered — dropping submission");
+      return NextResponse.json(
+        {
+          success: true,
+          message:
+            "Thank you. Our SEO specialists will review your site and share your audit within 3-5 business days.",
+        },
+        { status: 200 }
+      );
+    }
   }
 
   const submission = parseSubmission(body);

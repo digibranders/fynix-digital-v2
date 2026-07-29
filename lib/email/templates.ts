@@ -9,7 +9,7 @@ export type ContactSubmission = {
 export type AuditSubmission = {
   name: string;
   email: string;
-  phone: string;
+  company: string;
   website: string;
   message: string;
 };
@@ -22,7 +22,6 @@ export type EmailTemplate = {
 
 const BRAND = {
   name: "Fynix Digital",
-  tagline: "Cybersecurity Growth Agency",
   url: "https://fynix.digital",
   email: "hello@fynix.digital",
   phone: "+91 789 789 6607",
@@ -80,9 +79,6 @@ function header(): string {
             <!--[if mso]>
             <span style="font-family:Georgia,'Times New Roman',serif;font-size:22px;font-weight:600;letter-spacing:0.02em;color:#FFFFFF;">${escapeHtml(BRAND.name)}</span>
             <![endif]-->
-            <p style="margin:6px 0 0;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:${BRAND.accent};font-weight:600;">
-              ${escapeHtml(BRAND.tagline)}
-            </p>
           </td>
         </tr>
       </table>
@@ -392,12 +388,7 @@ export function buildAuditAdminEmail(submission: AuditSubmission): EmailTemplate
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 8px;">
       ${detailRow("Name", escapeHtml(submission.name))}
       ${detailRow("Email", `<a href="mailto:${escapeHtml(submission.email)}" style="color:${BRAND.primary};">${escapeHtml(submission.email)}</a>`)}
-      ${detailRow(
-        "Phone",
-        submission.phone
-          ? `<a href="tel:${escapeHtml(submission.phone.replace(/\s+/g, ""))}" style="color:${BRAND.primary};">${escapeHtml(submission.phone)}</a>`
-          : `<em style="color:${BRAND.textMuted};">Not provided</em>`
-      )}
+      ${detailRow("Company", escapeHtml(submission.company))}
       ${detailRow("Website", `<a href="${escapeHtml(websiteHref)}" style="color:${BRAND.primary};">${escapeHtml(submission.website)}</a>`)}
       ${detailRow("Message", submission.message ? escapeHtml(submission.message).replace(/\n/g, "<br />") : `<em style="color:${BRAND.textMuted};">No message provided</em>`)}
     </table>
@@ -410,7 +401,7 @@ export function buildAuditAdminEmail(submission: AuditSubmission): EmailTemplate
 
 Name: ${submission.name}
 Email: ${submission.email}
-Phone: ${submission.phone || "Not provided"}
+Company: ${submission.company}
 Website: ${submission.website}
 Message: ${submission.message || "No message provided"}`;
 
