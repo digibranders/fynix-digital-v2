@@ -1,5 +1,96 @@
 "use client";
 
+import { motion } from "motion/react";
+
+// Code lines grouped into 11 rows for sequential row-by-row typing animation
+const CODE_ROWS = [
+  // Row 1
+  {
+    id: 1,
+    pills: [
+      { x: 115, y: 86, width: 75, height: 11.5, rx: 5.75, grad: "url(#cyanPillGrad)", highlightWidth: 71 },
+      { isCircle: true, cx: 202, cy: 91.75, r: 5.75, grad: "url(#cyanPillGrad)" },
+    ],
+  },
+  // Row 2
+  {
+    id: 2,
+    pills: [
+      { x: 127, y: 105, width: 55, height: 11.5, rx: 5.75, grad: "url(#orangePillGrad)", highlightWidth: 51 },
+      { x: 190, y: 105, width: 65, height: 11.5, rx: 5.75, grad: "url(#cyanPillGrad)", highlightWidth: 61 },
+    ],
+  },
+  // Row 3
+  {
+    id: 3,
+    pills: [
+      { x: 150, y: 124, width: 85, height: 11.5, rx: 5.75, grad: "url(#greenPillGrad)", highlightWidth: 81 },
+      { x: 243, y: 124, width: 55, height: 11.5, rx: 5.75, grad: "url(#cyanPillGrad)", highlightWidth: 51 },
+    ],
+  },
+  // Row 4
+  {
+    id: 4,
+    pills: [
+      { x: 150, y: 143, width: 105, height: 11.5, rx: 5.75, grad: "url(#orangePillGrad)", highlightWidth: 101 },
+    ],
+  },
+  // Row 5
+  {
+    id: 5,
+    pills: [
+      { x: 150, y: 162, width: 65, height: 11.5, rx: 5.75, grad: "url(#orangePillGrad)", highlightWidth: 61 },
+      { x: 223, y: 162, width: 95, height: 11.5, rx: 5.75, grad: "url(#cyanPillGrad)", highlightWidth: 91 },
+    ],
+  },
+  // Row 6
+  {
+    id: 6,
+    pills: [
+      { x: 150, y: 181, width: 115, height: 11.5, rx: 5.75, grad: "url(#orangePillGrad)", highlightWidth: 111 },
+      { x: 273, y: 181, width: 45, height: 11.5, rx: 5.75, grad: "url(#greenPillGrad)", highlightWidth: 41 },
+    ],
+  },
+  // Row 7
+  {
+    id: 7,
+    pills: [
+      { x: 150, y: 200, width: 65, height: 11.5, rx: 5.75, grad: "url(#greenPillGrad)", highlightWidth: 61 },
+    ],
+  },
+  // Row 8
+  {
+    id: 8,
+    pills: [
+      { x: 127, y: 219, width: 45, height: 11.5, rx: 5.75, grad: "url(#greenPillGrad)", highlightWidth: 41 },
+    ],
+  },
+  // Row 9
+  {
+    id: 9,
+    pills: [
+      { x: 150, y: 238, width: 45, height: 11.5, rx: 5.75, grad: "url(#orangePillGrad)", highlightWidth: 41 },
+      { x: 203, y: 238, width: 75, height: 11.5, rx: 5.75, grad: "url(#greenPillGrad)", highlightWidth: 71 },
+    ],
+  },
+  // Row 10
+  {
+    id: 10,
+    pills: [
+      { x: 150, y: 257, width: 55, height: 11.5, rx: 5.75, grad: "url(#orangePillGrad)", highlightWidth: 51 },
+      { x: 213, y: 257, width: 65, height: 11.5, rx: 5.75, grad: "url(#greenPillGrad)", highlightWidth: 61 },
+    ],
+  },
+  // Row 11
+  {
+    id: 11,
+    pills: [
+      { x: 150, y: 276, width: 95, height: 11.5, rx: 5.75, grad: "url(#orangePillGrad)", highlightWidth: 91 },
+      { x: 253, y: 276, width: 45, height: 11.5, rx: 5.75, grad: "url(#cyanPillGrad)", highlightWidth: 41 },
+    ],
+  },
+];
+
 export default function DevCardGraphic() {
   return (
     <div className="relative w-full max-w-[500px] aspect-[500/380] select-none mx-auto">
@@ -7,7 +98,7 @@ export default function DevCardGraphic() {
         viewBox="0 0 500 380"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        className="w-full h-full"
+        className="w-full h-full overflow-visible"
       >
         <defs>
           {/* ── Main Dark Body Gradient ── */}
@@ -53,9 +144,13 @@ export default function DevCardGraphic() {
           </linearGradient>
         </defs>
 
-        {/* ── 1. Main Dark Window Body (Standardized y=25, height=305) ── */}
-        <g>
-          {/* Main Rounded Box */}
+        {/* ── STAGE 1: Main Blank Code Editor Frame ── */}
+        <motion.g
+          initial={{ opacity: 0, y: 15, scale: 0.97 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+        >
+          {/* Main Dark Box Window */}
           <rect
             x="20"
             y="25"
@@ -90,10 +185,14 @@ export default function DevCardGraphic() {
           {/* Top Horizontal Header Line Groove */}
           <line x1="83" y1="68" x2="390" y2="68" stroke="#121315" strokeWidth="2" />
           <line x1="83" y1="69" x2="390" y2="69" stroke="#3A3E46" strokeWidth="0.8" />
-        </g>
+        </motion.g>
 
-        {/* ── 2. Sidebar Elements ── */}
-        <g>
+        {/* ── Sidebar Elements ── */}
+        <motion.g
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
           {/* Top Orange Square Button */}
           <rect
             x="41"
@@ -157,90 +256,96 @@ export default function DevCardGraphic() {
             <circle cx="54" cy="248" r="3" fill="#3D434B" />
             <circle cx="54" cy="261" r="3" fill="#3D434B" />
           </g>
-        </g>
+        </motion.g>
 
-        {/* ── 3. Top Header Bar Pills ── */}
-        <g>
+        {/* ── Top Header Bar Pills ── */}
+        <motion.g
+          initial={{ opacity: 0, x: -10 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.4, delay: 0.5 }}
+        >
           <rect x="102" y="42" width="32" height="11" rx="5.5" fill="url(#orangePillGrad)" />
           <rect x="104" y="43" width="28" height="1.5" rx="0.75" fill="white" fillOpacity="0.4" />
 
           <rect x="142" y="42" width="45" height="11" rx="5.5" fill="url(#greenPillGrad)" />
           <rect x="144" y="43" width="41" height="1.5" rx="0.75" fill="white" fillOpacity="0.4" />
+        </motion.g>
+
+        {/* ── STAGE 2: Sequential Automatic Line Writing (Row by Row Typing) ── */}
+        <g id="codePillsContainer">
+          {CODE_ROWS.map((row, index) => {
+            // Typing delay starts at 0.6s and staggers by 0.12s per line up to ~1.9s
+            const rowDelay = 0.6 + index * 0.12;
+
+            return (
+              <g key={row.id}>
+                {row.pills.map((pill, pIdx) => {
+                  if (pill.isCircle) {
+                    return (
+                      <motion.circle
+                        key={pIdx}
+                        cx={pill.cx}
+                        cy={pill.cy}
+                        r={pill.r}
+                        fill={pill.grad}
+                        initial={{ opacity: 0, scale: 0 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{
+                          duration: 0.25,
+                          delay: rowDelay + pIdx * 0.05,
+                          ease: "easeOut",
+                        }}
+                      />
+                    );
+                  }
+
+                  return (
+                    <motion.g
+                      key={pIdx}
+                      initial={{ opacity: 0, scaleX: 0 }}
+                      animate={{ opacity: 1, scaleX: 1 }}
+                      transition={{
+                        duration: 0.35,
+                        delay: rowDelay + pIdx * 0.05,
+                        ease: [0.25, 1, 0.5, 1],
+                      }}
+                      style={{
+                        transformOrigin: `${pill.x ?? 0}px ${(pill.y ?? 0) + (pill.height ?? 0) / 2}px`,
+                      }}
+                    >
+                      <rect
+                        x={pill.x}
+                        y={pill.y}
+                        width={pill.width}
+                        height={pill.height}
+                        rx={pill.rx}
+                        fill={pill.grad}
+                      />
+                      {pill.highlightWidth && (
+                        <rect
+                          x={(pill.x ?? 0) + 2}
+                          y={(pill.y ?? 0) + 1}
+                          width={pill.highlightWidth}
+                          height={1.5}
+                          rx={0.75}
+                          fill="white"
+                          fillOpacity={0.45}
+                        />
+                      )}
+                    </motion.g>
+                  );
+                })}
+              </g>
+            );
+          })}
         </g>
 
-        {/* ── 4. 3D Code Capsules ── */}
-        <g>
-          {/* Row 1 */}
-          <rect x="115" y="86" width="75" height="11.5" rx="5.75" fill="url(#cyanPillGrad)" />
-          <rect x="117" y="87" width="71" height="1.5" rx="0.75" fill="white" fillOpacity="0.45" />
-
-          <circle cx="202" cy="91.75" r="5.75" fill="url(#cyanPillGrad)" />
-          <circle cx="202" cy="89.5" r="2.5" fill="white" fillOpacity="0.4" />
-
-          {/* Row 2 */}
-          <rect x="127" y="105" width="55" height="11.5" rx="5.75" fill="url(#orangePillGrad)" />
-          <rect x="129" y="106" width="51" height="1.5" rx="0.75" fill="white" fillOpacity="0.45" />
-
-          <rect x="190" y="105" width="65" height="11.5" rx="5.75" fill="url(#cyanPillGrad)" />
-          <rect x="192" y="106" width="61" height="1.5" rx="0.75" fill="white" fillOpacity="0.45" />
-
-          {/* Row 3 (Indented) */}
-          <rect x="150" y="124" width="85" height="11.5" rx="5.75" fill="url(#greenPillGrad)" />
-          <rect x="152" y="125" width="81" height="1.5" rx="0.75" fill="white" fillOpacity="0.45" />
-
-          <rect x="243" y="124" width="55" height="11.5" rx="5.75" fill="url(#cyanPillGrad)" />
-          <rect x="245" y="125" width="51" height="1.5" rx="0.75" fill="white" fillOpacity="0.45" />
-
-          {/* Row 4 (Indented) */}
-          <rect x="150" y="143" width="105" height="11.5" rx="5.75" fill="url(#orangePillGrad)" />
-          <rect x="152" y="144" width="101" height="1.5" rx="0.75" fill="white" fillOpacity="0.45" />
-
-          {/* Row 5 (Indented) */}
-          <rect x="150" y="162" width="65" height="11.5" rx="5.75" fill="url(#orangePillGrad)" />
-          <rect x="152" y="163" width="61" height="1.5" rx="0.75" fill="white" fillOpacity="0.45" />
-
-          <rect x="223" y="162" width="95" height="11.5" rx="5.75" fill="url(#cyanPillGrad)" />
-          <rect x="225" y="163" width="91" height="1.5" rx="0.75" fill="white" fillOpacity="0.45" />
-
-          {/* Row 6 (Indented) */}
-          <rect x="150" y="181" width="115" height="11.5" rx="5.75" fill="url(#orangePillGrad)" />
-          <rect x="152" y="182" width="111" height="1.5" rx="0.75" fill="white" fillOpacity="0.45" />
-
-          <rect x="273" y="181" width="45" height="11.5" rx="5.75" fill="url(#greenPillGrad)" />
-          <rect x="275" y="182" width="41" height="1.5" rx="0.75" fill="white" fillOpacity="0.45" />
-
-          {/* Row 7 (Indented) */}
-          <rect x="150" y="200" width="65" height="11.5" rx="5.75" fill="url(#greenPillGrad)" />
-          <rect x="152" y="201" width="61" height="1.5" rx="0.75" fill="white" fillOpacity="0.45" />
-
-          {/* Row 8 */}
-          <rect x="127" y="219" width="45" height="11.5" rx="5.75" fill="url(#greenPillGrad)" />
-          <rect x="129" y="220" width="41" height="1.5" rx="0.75" fill="white" fillOpacity="0.45" />
-
-          {/* Row 9 (Indented) */}
-          <rect x="150" y="238" width="45" height="11.5" rx="5.75" fill="url(#orangePillGrad)" />
-          <rect x="152" y="239" width="41" height="1.5" rx="0.75" fill="white" fillOpacity="0.45" />
-
-          <rect x="203" y="238" width="75" height="11.5" rx="5.75" fill="url(#greenPillGrad)" />
-          <rect x="205" y="239" width="71" height="1.5" rx="0.75" fill="white" fillOpacity="0.45" />
-
-          {/* Row 10 (Indented) */}
-          <rect x="150" y="257" width="55" height="11.5" rx="5.75" fill="url(#orangePillGrad)" />
-          <rect x="152" y="258" width="51" height="1.5" rx="0.75" fill="white" fillOpacity="0.45" />
-
-          <rect x="213" y="257" width="65" height="11.5" rx="5.75" fill="url(#greenPillGrad)" />
-          <rect x="215" y="258" width="61" height="1.5" rx="0.75" fill="white" fillOpacity="0.45" />
-
-          {/* Row 11 (Indented) */}
-          <rect x="150" y="276" width="95" height="11.5" rx="5.75" fill="url(#orangePillGrad)" />
-          <rect x="152" y="277" width="91" height="1.5" rx="0.75" fill="white" fillOpacity="0.45" />
-
-          <rect x="253" y="276" width="45" height="11.5" rx="5.75" fill="url(#cyanPillGrad)" />
-          <rect x="255" y="277" width="41" height="1.5" rx="0.75" fill="white" fillOpacity="0.45" />
-        </g>
-
-        {/* ── 5. Terminal Prompt (Bottom Left) ── */}
-        <g>
+        {/* ── Terminal Prompt (Bottom Left) ── */}
+        <motion.g
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3, delay: 2.1 }}
+        >
           <path
             d="M 117 298 L 122 302 L 117 306"
             stroke="#636B77"
@@ -259,94 +364,129 @@ export default function DevCardGraphic() {
           />
           <rect x="130" y="298" width="46" height="1.5" rx="0.75" fill="white" fillOpacity="0.4" />
 
-          <circle cx="187" cy="302" r="3.5" fill="#424750" />
-        </g>
+          {/* 200 OK Green Status Badge Text */}
+          <motion.text
+            x="186"
+            y="305"
+            fill="#7EC93B"
+            fontSize="10.5"
+            fontWeight="700"
+            fontFamily="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
+            letterSpacing="0.6px"
+            initial={{ opacity: 0, scale: 0.85 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.35, delay: 2.15, ease: "easeOut" }}
+          >
+            200 OK
+          </motion.text>
+        </motion.g>
 
-        {/* ── 6. Overlapping Floating White Clay Badge (Standardized Bottom y=365) ── */}
-        <g>
-          <rect
-            x="295"
-            y="225"
-            width="155"
-            height="140"
-            rx="30"
-            ry="30"
-            fill="url(#whiteClayGrad)"
-            stroke="#EBE7DE"
-            strokeWidth="1.5"
-          />
+        {/* ── STAGE 3: Overlapping Floating White Clay Badge (Placed after typing) ── */}
+        <motion.g
+          initial={{ opacity: 0, scale: 0.6, y: 40, x: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0, x: 0 }}
+          transition={{
+            duration: 0.7,
+            delay: 2.3,
+            ease: [0.34, 1.56, 0.64, 1], // Spring pop-in bounce
+          }}
+        >
+          {/* Floating Subtle Ambient Bobbing Motion wrapper */}
+          <motion.g
+            animate={{ y: [0, -6, 0] }}
+            transition={{
+              duration: 4,
+              repeat: Infinity,
+              repeatType: "mirror",
+              ease: "easeInOut",
+              delay: 3.0,
+            }}
+          >
+            {/* White Clay Card Base */}
+            <rect
+              x="295"
+              y="225"
+              width="155"
+              height="140"
+              rx="30"
+              ry="30"
+              fill="url(#whiteClayGrad)"
+              stroke="#EBE7DE"
+              strokeWidth="1.5"
+            />
 
-          <rect
-            x="298"
-            y="227"
-            width="149"
-            height="136"
-            rx="28"
-            ry="28"
-            fill="none"
-            stroke="#F7F5EE"
-            strokeWidth="1.5"
-          />
+            <rect
+              x="298"
+              y="227"
+              width="149"
+              height="136"
+              rx="28"
+              ry="28"
+              fill="none"
+              stroke="#F7F5EE"
+              strokeWidth="1.5"
+            />
 
-          <path
-            d="M 327 226 L 418 226"
-            stroke="white"
-            strokeWidth="2"
-            strokeLinecap="round"
-          />
-        </g>
+            <path
+              d="M 327 226 L 418 226"
+              stroke="white"
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
 
-        {/* ── 7. Orange Brackets (< />) ── */}
-        <g>
-          {/* Left Bracket < */}
-          <path
-            d="M 348 280 L 330 295 L 348 310"
-            stroke="url(#orangePillGrad)"
-            strokeWidth="9"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M 348 278 L 330 293 L 348 308"
-            stroke="white"
-            strokeOpacity="0.35"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
+            {/* Orange Brackets (< />) inside badge */}
+            <g>
+              {/* Left Bracket < */}
+              <path
+                d="M 348 280 L 330 295 L 348 310"
+                stroke="url(#orangePillGrad)"
+                strokeWidth="9"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M 348 278 L 330 293 L 348 308"
+                stroke="white"
+                strokeOpacity="0.35"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
 
-          {/* Slash / */}
-          <path
-            d="M 377 274 L 365 316"
-            stroke="url(#orangePillGrad)"
-            strokeWidth="9"
-            strokeLinecap="round"
-          />
-          <path
-            d="M 377 272 L 365 314"
-            stroke="white"
-            strokeOpacity="0.35"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-          />
+              {/* Slash / */}
+              <path
+                d="M 377 274 L 365 316"
+                stroke="url(#orangePillGrad)"
+                strokeWidth="9"
+                strokeLinecap="round"
+              />
+              <path
+                d="M 377 272 L 365 314"
+                stroke="white"
+                strokeOpacity="0.35"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+              />
 
-          {/* Right Bracket > */}
-          <path
-            d="M 395 280 L 413 295 L 395 310"
-            stroke="url(#orangePillGrad)"
-            strokeWidth="9"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M 395 278 L 413 293 L 395 308"
-            stroke="white"
-            strokeOpacity="0.35"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </g>
+              {/* Right Bracket > */}
+              <path
+                d="M 395 280 L 413 295 L 395 310"
+                stroke="url(#orangePillGrad)"
+                strokeWidth="9"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M 395 278 L 413 293 L 395 308"
+                stroke="white"
+                strokeOpacity="0.35"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </g>
+          </motion.g>
+        </motion.g>
       </svg>
     </div>
   );

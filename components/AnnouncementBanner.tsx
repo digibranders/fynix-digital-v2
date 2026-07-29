@@ -19,11 +19,11 @@ export default function AnnouncementBanner() {
 
   return (
     <div className="relative z-[60] w-full border-b border-white/10 bg-primary text-white">
-      <div className="mx-auto max-w-7xl px-10 md:px-14">
+      <div className="mx-auto max-w-7xl px-4 sm:px-10 md:px-14">
         <div className="flex min-h-[42px] items-center justify-center py-2 text-center">
           <Link
             href="/pavel"
-            className="group inline-flex flex-wrap items-center justify-center gap-x-3 gap-y-0.5 text-[14px] leading-tight"
+            className="group inline-flex flex-wrap items-center justify-center gap-x-3 gap-y-0.5 text-[12px] sm:text-[14px] leading-tight"
           >
             <span className="font-semibold text-white">
               Live Semantic SEO Workshop with Pavel Klimakov
@@ -31,7 +31,7 @@ export default function AnnouncementBanner() {
             <span aria-hidden className="hidden sm:inline text-white/25">
               |
             </span>
-            <span className="text-white/65 transition-colors group-hover:text-white/85">
+            <span className="hidden sm:inline text-white/65 transition-colors group-hover:text-white/85">
               Learn the system that lets smaller sites outrank bigger link
               budgets.
             </span>

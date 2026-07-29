@@ -13,6 +13,7 @@ import HeroDarkBackdrop from "@/components/HeroDarkBackdrop";
 import OrganicPerformanceOverview from "@/components/OrganicPerformanceOverview";
 import GrowthFramework from "@/components/GrowthFramework";
 import SectionSeam from "@/components/SectionSeam";
+import TechnicalSeoAudit from "@/components/TechnicalSeoAudit";
 
 export default function Home() {
 
@@ -97,8 +98,8 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-6 mb-14 md:mb-16">
             <div className="max-w-2xl">
-              <h2 className="font-serif text-4xl md:text-5xl text-primary font-medium whitespace-nowrap">
-              Your Complete Growth Ecosystem
+              <h2 className="font-serif text-4xl md:text-5xl text-primary font-medium text-balance">
+              Your Complete <span className="font-serif italic font-medium">Growth Ecosystem</span>
               </h2>
               <p className="mt-4 text-base md:text-lg text-text-muted font-normal leading-relaxed">
               Growth isn&apos;t driven by a single service. It comes from aligning strategy, technology, user experience, and customer acquisition.
@@ -128,7 +129,7 @@ export default function Home() {
                 Case Studies
               </h2>
               <p className="mt-4 text-base md:text-lg text-text-muted font-normal leading-relaxed">
-              Explore how we&apos;ve helped businesses improve visibility, strengthen their digital presence <br></br>and generate measurable growth across multiple industries.
+              Explore how we&apos;ve helped businesses improve visibility, strengthen their digital presence and generate measurable growth across multiple industries.
               </p>
             </div>
             <Link
@@ -153,6 +154,11 @@ export default function Home() {
 
       {/* TESTIMONIALS */}
       <TestimonialsRail />
+
+      <SectionSeam from="soft" to="white" />
+
+      {/* FREE TECHNICAL SEO AUDIT */}
+      <TechnicalSeoAudit />
 
       {/* CTA */}
       <SpotlightInitiation />

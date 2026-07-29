@@ -17,17 +17,17 @@ export const Section: React.FC<SectionProps> = ({
   ...props
 }) => {
   const bg = {
-    paper: "bg-[#F4EFE3] text-[#0F0E0C]",
-    "paper-2": "bg-[#EBE5D3] text-[#0F0E0C]",
-    surface: "bg-[#FDFBF5] text-[#0F0E0C]",
-    ink: "bg-[#1A1815] text-[#F4EFE3]",
+    paper: "bg-background-soft text-primary",
+    "paper-2": "bg-background-soft text-primary",
+    surface: "bg-white text-primary",
+    ink: "bg-primary text-white",
   };
 
   return (
     <section
       id={id}
       className={`py-20 md:py-28 lg:py-32 ${bg[variant]} ${
-        borderBottom ? "border-b border-[#DDD3BC]" : ""
+        borderBottom ? "border-b border-border" : ""
       } ${className}`}
       {...props}
     >

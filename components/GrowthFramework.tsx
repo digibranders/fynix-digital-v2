@@ -4,65 +4,43 @@ import { ReactNode } from "react";
 import { frameworkSteps } from "@/lib/content";
 import Reveal from "./Reveal";
 
+const ICON_NAVY = "#102234";
+const ICON_COPPER = "#D27B1F";
+
 const stepIcons: Record<string, ReactNode> = {
   "01": (
-    <svg
-      className="w-6 h-6"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <circle cx="11" cy="11" r="8" />
-      <path d="m21 21-4.3-4.3" />
-      <circle cx="11" cy="11" r="3" />
+    <svg className="w-9 h-9" viewBox="0 0 128 128" fill="none" aria-hidden="true">
+      <circle cx="57" cy="57" r="37" stroke={ICON_NAVY} strokeWidth="3.2" />
+      <path d="M84 84 L103 103" stroke={ICON_NAVY} strokeWidth="8" strokeLinecap="round" />
+      <path d="M88 88 L104 104" stroke={ICON_COPPER} strokeWidth="5" strokeLinecap="round" />
+      <path d="M43 43 H70" stroke={ICON_COPPER} strokeWidth="3.2" strokeLinecap="round" />
+      <path d="M43 57 H70" stroke={ICON_NAVY} strokeWidth="3.2" strokeLinecap="round" />
+      <path d="M43 71 H70" stroke={ICON_NAVY} strokeWidth="3.2" strokeLinecap="round" />
     </svg>
   ),
   "02": (
-    <svg
-      className="w-6 h-6"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d="M2 12h5l2-6 4 12 2-6h7" />
-      <circle cx="12" cy="12" r="2" />
+    <svg className="w-9 h-9" viewBox="0 0 128 128" fill="none" aria-hidden="true">
+      <path d="M15 68 H46 L61 29 L78 107 L94 55 L106 76 H117" stroke={ICON_NAVY} strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="119" cy="76" r="9" fill={ICON_COPPER} />
     </svg>
   ),
   "03": (
-    <svg
-      className="w-6 h-6"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+    <svg className="w-9 h-9" viewBox="0 0 128 128" fill="none" aria-hidden="true">
+      <circle cx="64" cy="64" r="45" stroke="#939AA2" strokeWidth="3" strokeDasharray="3 7" strokeLinecap="round" />
+      <circle cx="64" cy="64" r="20" fill="#E6A664" stroke={ICON_NAVY} strokeWidth="3.4" />
+      <circle cx="64" cy="19" r="10" fill="#FCFBF9" stroke={ICON_NAVY} strokeWidth="3.5" />
+      <circle cx="109" cy="64" r="10" fill="#FCFBF9" stroke={ICON_NAVY} strokeWidth="3.5" />
+      <circle cx="64" cy="109" r="10" fill="#FCFBF9" stroke={ICON_NAVY} strokeWidth="3.5" />
+      <circle cx="19" cy="64" r="10" fill="#FCFBF9" stroke={ICON_NAVY} strokeWidth="3.5" />
     </svg>
   ),
   "04": (
-    <svg
-      className="w-6 h-6"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d="M3 17l6-6 4 4 8-8" />
-      <path d="M14 7h7v7" />
+    <svg className="w-9 h-9" viewBox="0 0 128 128" fill="none" aria-hidden="true">
+      <rect x="23" y="82" width="18" height="22" rx="1.5" stroke={ICON_NAVY} strokeWidth="3.5" />
+      <rect x="54" y="63" width="18" height="41" rx="1.5" stroke={ICON_NAVY} strokeWidth="3.5" />
+      <rect x="85" y="39" width="18" height="65" rx="1.5" stroke={ICON_NAVY} strokeWidth="3.5" />
+      <path d="M22 58 C48 55 74 39 104 9" stroke={ICON_COPPER} strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M85 11 L105 8 L102 28" stroke={ICON_COPPER} strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   ),
 };
@@ -83,7 +61,7 @@ export default function GrowthFramework() {
                 id="framework-heading"
                 className="font-serif text-3xl sm:text-4xl md:text-5xl text-primary font-medium tracking-tight leading-[1.12]"
               >
-                A Proven Framework
+                A Proven <span className="font-serif italic font-medium">Framework</span>
               </h2>
             </Reveal>
             <Reveal delay={100}>
@@ -105,14 +83,16 @@ export default function GrowthFramework() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 xl:gap-8 relative z-10">
             {frameworkSteps.map((step, idx) => {
               const icon = stepIcons[step.num];
+              const hasOutgoing = idx < frameworkSteps.length - 1;
 
               return (
                 <Reveal key={step.num} delay={idx * 100} variant="up">
+                  <div className="group/step relative h-full">
                   <div className="group relative h-full bg-white rounded-2xl p-7 md:p-8 border border-border/80 shadow-xs hover:shadow-xl hover:border-accent/40 transition-all duration-300 flex flex-col justify-between overflow-hidden">
                     <div>
                       {/* Step Header: Icon & Step Badge */}
                       <div className="flex items-center justify-between mb-6">
-                        <div className="w-12 h-12 rounded-xl bg-background-soft group-hover:bg-accent/10 text-primary group-hover:text-accent flex items-center justify-center transition-all duration-300 border border-border/60 group-hover:border-accent/30 shadow-2xs">
+                        <div className="w-14 h-14 rounded-2xl bg-background-soft group-hover:bg-accent/10 flex items-center justify-center transition-all duration-300 border border-border/60 group-hover:border-accent/30 shadow-2xs">
                           {icon}
                         </div>
                       </div>
@@ -136,8 +116,9 @@ export default function GrowthFramework() {
                       </p>
                     </div>
 
-                    {/* Subtle bottom indicator */}
-                    <div className="mt-8 pt-4 border-t border-border/40 flex items-center justify-between text-xs font-mono text-text-muted/60 group-hover:text-accent transition-colors">
+                    {/* Subtle bottom indicator — desktop hover flourish only; hidden on
+                        touch/mobile where there is no hover to reveal the arrow. */}
+                    <div className="mt-8 pt-4 border-t border-border/40 hidden lg:flex items-center justify-between text-xs font-mono text-text-muted/60 group-hover:text-accent transition-colors">
                       <svg
                         className="w-4 h-4 transform -translate-x-1 group-hover:translate-x-0 opacity-0 group-hover:opacity-100 transition-all duration-300"
                         fill="none"
@@ -149,6 +130,17 @@ export default function GrowthFramework() {
                         <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                       </svg>
                     </div>
+                  </div>
+
+                  {/* Outgoing connector — draws from this card toward the next on hover (no glow) */}
+                  {hasOutgoing && (
+                    <span
+                      aria-hidden="true"
+                      className="hidden lg:block pointer-events-none absolute top-[155px] left-full w-6 xl:w-8 z-20"
+                    >
+                      <span className="absolute inset-x-0 top-0 h-[1.5px] rounded-full bg-accent origin-left scale-x-0 group-hover/step:scale-x-100 transition-transform duration-500 ease-out" />
+                    </span>
+                  )}
                   </div>
                 </Reveal>
               );

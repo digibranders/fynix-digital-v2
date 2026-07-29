@@ -34,35 +34,35 @@ export const FAQ: React.FC = () => {
   return (
     <section
       id="faq"
-      className="py-24 md:py-32 border-b border-[#DDD3BC] bg-[#F4EFE3]"
+      className="py-16 md:py-20 pv-seam bg-background-soft"
     >
       <Container>
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-14 lg:gap-16 items-start">
           <div className="lg:col-span-4 lg:sticky lg:top-32">
-            <h2 className="text-[2.15rem] sm:text-[2.65rem] lg:text-[3.05rem] leading-[1.08] font-medium tracking-[-0.026em] text-[#0F0E0C]">
+            <h2 className="text-[2.15rem] sm:text-[2.65rem] lg:text-[3.05rem] leading-[1.08] font-medium tracking-[-0.026em] text-primary">
               Questions,{" "}
-              <span className="italic font-normal text-[#2F4B3A]">answered plainly.</span>
+              <span className="italic font-normal text-accent">answered plainly.</span>
             </h2>
-            <p className="mt-6 text-[1.1rem] text-[#6B6659] leading-[1.65] italic font-normal max-w-[340px]">
+            <p className="mt-6 text-[1.1rem] text-text-muted leading-[1.65] italic font-normal max-w-[340px]">
               Still have a specific question? Email us and we will reply
               personally.
             </p>
           </div>
 
-          <div className="lg:col-span-8 border-t border-[#DDD3BC]">
+          <div className="lg:col-span-8 pv-seam-t">
             {FAQS.map((faq, i) => {
               const isOpen = open === i;
               return (
-                <div key={i} className="border-b border-[#DDD3BC]">
+                <div key={i} className="pv-seam">
                   <button
                     onClick={() => setOpen(isOpen ? null : i)}
                     className="w-full py-6 text-left flex items-start justify-between gap-6 group"
                     aria-expanded={isOpen}
                   >
-                    <h3 className="font-serif text-[1.2rem] sm:text-[1.3rem] leading-[1.35] font-medium text-[#0F0E0C] group-hover:text-[#2F4B3A] transition-colors">
+                    <h3 className="font-serif text-[1.2rem] sm:text-[1.3rem] leading-[1.35] font-medium text-primary group-hover:text-accent transition-colors">
                       {faq.q}
                     </h3>
-                    <span className="shrink-0 pt-1 text-[#4A4640] group-hover:text-[#0F0E0C] transition-colors">
+                    <span className="shrink-0 pt-1 text-text-muted group-hover:text-primary transition-colors">
                       {isOpen ? (
                         <Minus className="w-4 h-4" strokeWidth={1.5} />
                       ) : (
@@ -81,7 +81,7 @@ export const FAQ: React.FC = () => {
                         className="overflow-hidden"
                       >
                         <p
-                          className="pb-7 pr-8 text-[15.5px] text-[#4A4640] leading-[1.7] max-w-[620px]"
+                          className="pb-7 pr-8 text-[15.5px] text-text-muted leading-[1.7] max-w-[620px]"
                           dangerouslySetInnerHTML={{ __html: faq.a }}
                         />
                       </motion.div>

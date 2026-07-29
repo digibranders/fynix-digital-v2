@@ -5,27 +5,19 @@ import Image from "next/image";
 import Reveal from "@/components/Reveal";
 import { Container } from "../ui/Container";
 
-// Collage layout: 4 cols x 2 rows on desktop. Col 1 is a solo tall portrait
-// (row-span-2). Cols 2, 3 & 4 each hold two stacked images. Reading order:
-// [Col 1 solo], [Col 2 top], [Col 3 top], [Col 4 top], [Col 2 bot],
-// [Col 3 bot], [Col 4 bot]. Koray photos sit in the first stacked row so
-// they read immediately after the leftmost portrait.
+// Collage layout: 3 cols x 2 rows on desktop. Col 1 is a solo tall portrait
+// (row-span-2); cols 2 & 3 each hold two stacked images. Five photos total,
+// Koray (framework originator) first, then Pavel's on-stage conference shots.
 const COLLAGE = [
   {
-    src: "/pavel/pavel-klimakov.webp",
-    alt: "Pavel Klimakov",
-    caption: "Portrait",
+    src: "/pavel/pavel-seo-vibes-summit-2025.webp",
+    alt: "Pavel Klimakov presenting at SEO Vibes Summit 2025",
+    caption: "SEO Vibes Summit, 2025",
     span: "solo",
   },
   {
     src: "/pavel/korey1.webp",
     alt: "Koray Tuğberk Gübür, framework originator",
-    caption: "Koray Tuğberk Gübür",
-    span: "third",
-  },
-  {
-    src: "/pavel/korey2.webp",
-    alt: "Koray Tuğberk Gübür on Semantic SEO",
     caption: "Koray Tuğberk Gübür",
     span: "third",
   },
@@ -47,19 +39,13 @@ const COLLAGE = [
     caption: "SEO Mastery Summit, 2025",
     span: "third",
   },
-  {
-    src: "/pavel/Kulturalnie-o-SEO-warsaw.webp",
-    alt: "Kulturalnie o SEO venue, Warsaw",
-    caption: "Kulturalnie o SEO, Warsaw",
-    span: "third",
-  },
 ];
 
 export const Instructor: React.FC = () => {
   return (
     <section
       id="instructor"
-      className="py-24 md:py-36 lg:py-44 border-b border-[#DDD3BC] bg-[#FDFBF5]"
+      className="py-16 md:py-20 pv-seam bg-background-soft"
     >
       <Container>
         {/* Header block: instructor card left, text right */}
@@ -90,7 +76,7 @@ export const Instructor: React.FC = () => {
                   </p>
                 </div>
 
-                <div className="pt-8 border-t border-white/25">
+                <div className="pt-8 pv-seam-td">
                   <p className="text-[13.5px] italic font-normal text-white/75">
                     Experience
                   </p>
@@ -103,32 +89,26 @@ export const Instructor: React.FC = () => {
           </Reveal>
 
           <Reveal delay={100} className="lg:col-span-7 space-y-7">
-            <h2 className="text-[2.05rem] sm:text-[2.55rem] lg:text-[2.9rem] leading-[1.1] font-medium tracking-[-0.026em] text-[#0F0E0C]">
-              Pavel has spent eight years inside the systems modern search is
-              built on.{" "}
-              <span className="italic font-normal text-[#2F4B3A]">
-                Information retrieval, NLP, text-understanding algorithms.
-              </span>
+            <h2 className="text-[2.05rem] sm:text-[2.55rem] lg:text-[2.9rem] leading-[1.1] font-medium tracking-[-0.026em] text-primary">
+              Eight years in information retrieval, NLP, and modern search.
             </h2>
 
-            <p className="text-[1.175rem] text-[#4A4640] leading-[1.65] font-normal">
-              He grows organic traffic by combining Koray&rsquo;s Semantic SEO
-              framework with programming methods. When Pavel explains why
-              something ranked, you will finally be able to repeat it on
-              purpose.
+            <p className="text-[1.175rem] text-text-muted leading-[1.65] font-normal">
+              He pairs Koray&rsquo;s Semantic SEO framework with programming,
+              so you can finally repeat what ranked on purpose.
             </p>
           </Reveal>
         </div>
 
-        {/* 4-column collage: 1 tall portrait + 3 stacked columns of 2 */}
+        {/* 3-column collage: 1 tall portrait + 2 stacked columns of 2 */}
         <Reveal
           delay={100}
-          className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 auto-rows-[180px] md:auto-rows-[210px] lg:auto-rows-[240px]"
+          className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 auto-rows-[180px] md:auto-rows-[210px] lg:auto-rows-[240px]"
         >
           {COLLAGE.map((item, i) => (
             <figure
               key={i}
-              className={`relative rounded-2xl overflow-hidden bg-[#EBE5D3] group ${
+              className={`relative rounded-2xl overflow-hidden bg-background-soft group ${
                 item.span === "solo" ? "md:row-span-2" : ""
               }`}
             >

@@ -114,7 +114,8 @@ export default function TestimonialsRail() {
               id="testimonials-heading"
               className="font-serif text-3xl md:text-5xl text-primary font-medium leading-tight"
             >
-              Trusted by Businesses That Expect Results
+              Trusted by Businesses That{" "}
+              <span className="font-serif italic font-medium">Expect Results</span>
             </h2>
             <p className="text-text-muted text-lg md:text-xl font-normal leading-relaxed mt-6">
               Long-term partnerships are built on trust, transparency, and measurable outcomes. Here&apos;s what our clients say about working with Fynix Digital.
@@ -148,9 +149,9 @@ export default function TestimonialsRail() {
                     onMouseLeave={isActive ? resume : undefined}
                     onFocus={isActive ? pause : undefined}
                     onBlur={isActive ? resume : undefined}
-                    className={`bg-white border border-border rounded-3xl shadow-sm px-6 py-14 md:px-16 md:py-20 flex flex-col justify-center transition-[opacity,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+                    className={`bg-white border border-border rounded-3xl shadow-sm px-6 py-14 md:px-16 md:py-20 flex flex-col justify-center ${
                       isActive
-                        ? "opacity-100 translate-y-0 relative z-10"
+                        ? "opacity-100 translate-y-0 relative z-10 transition-[opacity,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"
                         : "opacity-0 translate-y-2 pointer-events-none"
                     }`}
                   >

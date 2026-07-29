@@ -6,6 +6,14 @@ export type ContactSubmission = {
   message: string;
 };
 
+export type AuditSubmission = {
+  name: string;
+  email: string;
+  phone: string;
+  website: string;
+  message: string;
+};
+
 export type EmailTemplate = {
   subject: string;
   html: string;
@@ -271,6 +279,144 @@ Message: ${submission.message || "No message provided"}`;
   return {
     subject: `New lead: ${submission.name} (${servicesLine || "General enquiry"})`,
     html: emailShell(bodyHtml, `New contact form submission from ${submission.name}`),
+    text,
+  };
+}
+
+const AUDIT_DELIVERABLES = [
+  "A comprehensive Technical SEO Audit report",
+  "A prioritised list of issues based on business impact",
+  "Clear recommendations to improve your organic visibility",
+  "Actionable fixes your team can implement immediately",
+] as const;
+
+function deliverableList(): string {
+  return AUDIT_DELIVERABLES.map(
+    (item) =>
+      `<tr>
+        <td style="padding:6px 0;font-size:14px;line-height:1.6;color:${BRAND.primary};">
+          <span style="color:${BRAND.accent};font-weight:700;">&bull;</span>&nbsp;&nbsp;${escapeHtml(item)}
+        </td>
+      </tr>`
+  ).join("");
+}
+
+export function buildAuditUserAutoReplyEmail(submission: AuditSubmission): EmailTemplate {
+  const firstName = submission.name.trim().split(/\s+/)[0] || submission.name.trim();
+
+  const bodyHtml = `
+    <span style="display:inline-block;padding:4px 12px;margin-bottom:16px;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:${BRAND.primary};background-color:${BRAND.accent}33;border-radius:999px;">
+      Audit requested
+    </span>
+    <h1 style="margin:0 0 16px;font-family:Georgia,'Times New Roman',serif;font-size:24px;line-height:1.35;color:${BRAND.primary};font-weight:600;">
+      Thank you, ${escapeHtml(firstName)}.
+    </h1>
+    <p style="margin:0 0 8px;font-size:15px;line-height:1.7;color:${BRAND.primary};">
+      We've received your request for a free Technical SEO Audit of
+      <strong>${escapeHtml(submission.website)}</strong>. Our SEO specialists will review your site and
+      share the report within <strong>3&ndash;5 business days</strong>.
+    </p>
+    ${sectionCard(`
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+        <tr>
+          <td style="padding:16px 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;color:${BRAND.textMuted};">One quick next step</td>
+        </tr>
+        <tr>
+          <td style="padding:0 0 16px;font-size:14px;line-height:1.7;color:${BRAND.primary};">
+            To begin, please grant our team <strong>read-only</strong> access to your
+            Google Search Console property. Reply to this email once done, and we'll get started right away.
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:0 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;color:${BRAND.textMuted};border-top:1px solid ${BRAND.border};padding-top:16px;">What you'll get</td>
+        </tr>
+        <tr>
+          <td style="padding:0 0 8px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">${deliverableList()}</table>
+          </td>
+        </tr>
+      </table>
+    `)}
+    <p style="margin:0 0 28px;font-size:15px;line-height:1.7;color:${BRAND.primary};">
+      This audit is completely free and comes with no obligation. If anything is urgent, reply directly to this
+      email or call us at
+      <a href="tel:${BRAND.phoneHref}" style="color:${BRAND.primary};font-weight:600;">${BRAND.phone}</a>.
+    </p>
+    ${ctaButton(BRAND.url, "Visit our website")}
+    <p style="margin:32px 0 0;font-size:14px;line-height:1.7;color:${BRAND.textMuted};">
+      Best regards,<br />
+      <span style="color:${BRAND.primary};font-weight:600;">The ${escapeHtml(BRAND.name)} SEO Team</span>
+    </p>
+  `;
+
+  const text = `Thank you, ${firstName}.
+
+We've received your request for a free Technical SEO Audit of ${submission.website}. Our SEO specialists will review your site and share the report within 3-5 business days.
+
+One quick next step: please grant our team read-only access to your Google Search Console property, then reply to this email so we can get started.
+
+What you'll get:
+${AUDIT_DELIVERABLES.map((item) => `- ${item}`).join("\n")}
+
+This audit is completely free and comes with no obligation. If anything is urgent, reply to this email or call us at ${BRAND.phone}.
+
+Best regards,
+The ${BRAND.name} SEO Team
+${BRAND.url}`;
+
+  return {
+    subject: `Your free Technical SEO Audit is on the way, ${firstName} — ${BRAND.name}`,
+    html: emailShell(
+      bodyHtml,
+      "Thanks for requesting your Technical SEO Audit — here's the one next step to get started."
+    ),
+    text,
+  };
+}
+
+export function buildAuditAdminEmail(submission: AuditSubmission): EmailTemplate {
+  const websiteHref = /^https?:\/\//i.test(submission.website)
+    ? submission.website
+    : `https://${submission.website}`;
+
+  const bodyHtml = `
+    <span style="display:inline-block;padding:4px 12px;margin-bottom:16px;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:${BRAND.primary};background-color:${BRAND.accent}33;border-radius:999px;">
+      Audit request
+    </span>
+    <h1 style="margin:0 0 8px;font-family:Georgia,'Times New Roman',serif;font-size:22px;line-height:1.35;color:${BRAND.primary};font-weight:600;">
+      New Technical SEO Audit request
+    </h1>
+    <p style="margin:0 0 20px;font-size:14px;line-height:1.6;color:${BRAND.textMuted};">
+      A new lead just requested a free Technical SEO Audit on ${escapeHtml(BRAND.url.replace("https://", ""))}.
+    </p>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 8px;">
+      ${detailRow("Name", escapeHtml(submission.name))}
+      ${detailRow("Email", `<a href="mailto:${escapeHtml(submission.email)}" style="color:${BRAND.primary};">${escapeHtml(submission.email)}</a>`)}
+      ${detailRow(
+        "Phone",
+        submission.phone
+          ? `<a href="tel:${escapeHtml(submission.phone.replace(/\s+/g, ""))}" style="color:${BRAND.primary};">${escapeHtml(submission.phone)}</a>`
+          : `<em style="color:${BRAND.textMuted};">Not provided</em>`
+      )}
+      ${detailRow("Website", `<a href="${escapeHtml(websiteHref)}" style="color:${BRAND.primary};">${escapeHtml(submission.website)}</a>`)}
+      ${detailRow("Message", submission.message ? escapeHtml(submission.message).replace(/\n/g, "<br />") : `<em style="color:${BRAND.textMuted};">No message provided</em>`)}
+    </table>
+    <p style="margin:24px 0;">
+      ${ctaButton(`mailto:${submission.email}`, `Reply to ${submission.name.split(/\s+/)[0] || "lead"}`)}
+    </p>
+  `;
+
+  const text = `New Technical SEO Audit request
+
+Name: ${submission.name}
+Email: ${submission.email}
+Phone: ${submission.phone || "Not provided"}
+Website: ${submission.website}
+Message: ${submission.message || "No message provided"}`;
+
+  return {
+    subject: `Audit request: ${submission.name} (${submission.website})`,
+    html: emailShell(bodyHtml, `New Technical SEO Audit request from ${submission.name}`),
     text,
   };
 }

@@ -5,5 +5,5 @@ interface DividerProps {
 }
 
 export const Divider: React.FC<DividerProps> = ({ className = "" }) => {
-  return <hr className={`border-t border-[#DDD3BC] my-12 ${className}`} />;
+  return <hr className={`border-t border-border my-12 ${className}`} />;
 };

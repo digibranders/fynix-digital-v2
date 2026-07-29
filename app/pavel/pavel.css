@@ -34,3 +34,62 @@
     animation: none;
   }
 }
+
+/* Smooth section seam. Replaces the hard, full-width divider between sections
+   with a hairline that feathers out to nothing at both horizontal ends, so
+   neighbouring sections meet softly. Section background colours are untouched;
+   the seam is a faint tint of the foreground ink laid over the boundary. */
+/* Variants:
+   .pv-seam      bottom seam, ink tint  (light sections / dividers)
+   .pv-seam-t    top seam, ink tint      (dividers that sat on a top border)
+   .pv-seam-bd   bottom seam, white tint (dividers on the dark navy fields)
+   .pv-seam-td   top seam, white tint    (top dividers on dark fields) */
+.pv-seam,
+.pv-seam-t,
+.pv-seam-bd,
+.pv-seam-td {
+  position: relative;
+}
+
+.pv-seam::after,
+.pv-seam-t::before,
+.pv-seam-bd::after,
+.pv-seam-td::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  height: 1px;
+  pointer-events: none;
+}
+
+.pv-seam::after,
+.pv-seam-bd::after {
+  bottom: -0.5px;
+}
+
+.pv-seam-t::before,
+.pv-seam-td::before {
+  top: -0.5px;
+}
+
+.pv-seam::after,
+.pv-seam-t::before {
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    color-mix(in srgb, var(--foreground) 14%, transparent) 26%,
+    color-mix(in srgb, var(--foreground) 14%, transparent) 74%,
+    transparent 100%
+  );
+}
+
+.pv-seam-bd::after,
+.pv-seam-td::before {
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(255, 255, 255, 0.16) 26%,
+    rgba(255, 255, 255, 0.16) 74%,
+    transparent 100%
+  );
+}

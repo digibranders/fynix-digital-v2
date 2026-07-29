@@ -30,7 +30,7 @@ export default function SpotlightInitiation() {
 
       <Reveal className="relative max-w-4xl mx-auto px-6 text-center">
         <h2 className="font-serif italic tracking-tight text-3xl md:text-5xl text-primary font-medium leading-tight">
-          Every cybersecurity company has opportunities it isn&apos;t fully capturing yet.
+          Every company has opportunities it isn&apos;t fully capturing yet.
         </h2>
         <div className="mt-10">
           <Link

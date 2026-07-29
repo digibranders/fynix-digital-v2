@@ -3,7 +3,38 @@ import Reveal from "@/components/Reveal";
 import PreFooterBackdrop from "@/components/PreFooterBackdrop";
 import HeroDarkBackdrop from "@/components/HeroDarkBackdrop";
 import SectionSeam from "@/components/SectionSeam";
+import DevCardGraphic from "@/components/DevCardGraphic";
+import { actAccents } from "@/components/ActsStack";
+import {
+  AccentBadge,
+  AccentDot,
+  ServiceAccentBand,
+  ServiceHeroFigure,
+  type BandPoint,
+} from "@/components/ServiceContentKit";
 import { siteConfig, type Act } from "@/lib/content";
+
+// Pillar colour signature — the same sage used by the Development act in the stack.
+const accent = actAccents.development;
+
+// Editorial pull-quote band that breaks up the text-heavy sections with colour.
+const bandEyebrow = "Engineering that keeps the promise";
+const bandQuote =
+  "A beautiful interface means nothing if it loads slowly, breaks under scale, or exposes your users.";
+const bandPoints: BandPoint[] = [
+  {
+    title: "Sub-second load times",
+    text: "Core Web Vitals treated as a feature, so speed compounds into rankings and conversions.",
+  },
+  {
+    title: "Secure by architecture",
+    text: "Hardened builds and modern defaults protect your brand and your customers' data.",
+  },
+  {
+    title: "Built to grow with you",
+    text: "Scalable foundations that absorb new pages, markets, and traffic without a rebuild.",
+  },
+];
 
 /**
  * Dedicated Website Development Services page content.
@@ -20,7 +51,6 @@ type DevService = {
   tagline: string;
   description: string;
   items: string[];
-  result: string;
 };
 
 const devServices: DevService[] = [
@@ -28,181 +58,120 @@ const devServices: DevService[] = [
     name: "Custom Website Development",
     tagline: "Tailored Solutions for Your Business",
     description:
-      "Every business is different. Your website should be too. We build custom websites that reflect your brand, support your business objectives, and deliver exceptional user experiences.",
+      "We build custom websites that reflect your brand, support your business objectives, and deliver exceptional user experiences.",
     items: [
       "Corporate Websites",
       "B2B Websites",
       "Business Portals",
       "Landing Pages",
-      "Product Websites",
-      "Marketing Websites",
-      "Service Websites",
       "Custom Functionality",
     ],
-    result:
-      "Every solution is designed around your business requirements, customer journey, and long-term goals.",
   },
   {
     name: "Next.js Development",
     tagline: "Fast, Secure and Future-Ready Websites",
     description:
-      "Modern businesses need websites that deliver exceptional speed, security, and performance. We build high-performance websites using Next.js, enabling faster page loads, improved search visibility, enhanced user experiences, and better scalability.",
+      "We build high-performance websites with Next.js for faster page loads, stronger security, better search visibility, and scalability.",
     items: [
       "Server-Side Rendering",
       "Static Site Generation",
       "Performance Optimization",
       "API Integrations",
-      "Headless CMS Integration",
       "SEO-Friendly Architecture",
-      "Responsive Development",
-      "Modern Front-End Development",
     ],
-    result:
-      "Next.js provides the flexibility and performance needed to support today's digital experiences and tomorrow's business growth.",
   },
   {
     name: "WordPress Development",
     tagline: "Flexible Content Management for Growing Businesses",
     description:
-      "WordPress remains one of the world's most popular content management systems because of its flexibility and ease of use. We develop secure, scalable WordPress websites that are easy to manage while maintaining excellent performance and search visibility.",
+      "We develop secure, scalable WordPress websites that are easy to manage while maintaining excellent performance and search visibility.",
     items: [
       "Custom Theme Development",
       "Custom Plugin Integration",
       "CMS Configuration",
-      "Blog Development",
-      "Landing Pages",
       "Security Hardening",
       "Performance Optimization",
-      "Ongoing Support",
     ],
-    result:
-      "We focus on creating WordPress websites that are easy to maintain without compromising speed or security.",
   },
   {
     name: "Website Migration",
     tagline: "Migrate Without Losing Performance or Visibility",
     description:
-      "Website migrations require careful planning to protect your search rankings, website functionality, and user experience. Whether you're moving from WordPress to Next.js, redesigning your website, or changing hosting providers, we manage every stage of the migration process.",
+      "We manage every stage of migration to protect your search rankings, functionality, and user experience throughout the move.",
     items: [
-      "Website Planning",
       "URL Mapping",
       "Redirect Management",
       "Content Migration",
       "SEO Preservation",
-      "Performance Testing",
       "Quality Assurance",
-      "Post-Migration Monitoring",
     ],
-    result:
-      "We ensure your transition is smooth while protecting the digital authority you've already built.",
   },
   {
     name: "Website Maintenance & Optimization",
     tagline: "Keep Your Website Secure, Fast and Reliable",
     description:
-      "Launching your website is only the beginning. Regular maintenance ensures your website remains secure, performs efficiently, and continues delivering an exceptional experience for your customers.",
+      "We keep your website secure, fast, and reliable with regular updates, monitoring, and continuous performance optimization.",
     items: [
       "Security Updates",
       "Performance Monitoring",
       "Backup Management",
       "Bug Fixes",
-      "Technical Improvements",
-      "Plugin & Dependency Management",
       "Uptime Monitoring",
-      "Continuous Optimization",
     ],
-    result:
-      "We proactively maintain your website so your team can focus on running the business.",
   },
 ];
 
 const devProcess: { step: string; text: string }[] = [
   {
     step: "Discover",
-    text: "We begin by understanding your business goals, users, technical requirements, and growth objectives.",
+    text: "We start by understanding your business goals, users, and technical requirements.",
   },
   {
     step: "Plan",
-    text: "We create the website architecture, define user journeys, and establish a scalable technical foundation.",
+    text: "We define the website architecture, user journeys, and a scalable technical foundation.",
   },
   {
     step: "Design",
-    text: "Our UI/UX team develops intuitive user experiences and modern visual interfaces that reflect your brand.",
+    text: "Our UI/UX team creates intuitive experiences and modern interfaces that reflect your brand.",
   },
   {
     step: "Develop",
-    text: "Our developers build secure, responsive, and high-performing websites using modern technologies and best practices.",
+    text: "Our developers build secure, responsive, high-performing websites using modern best practices.",
   },
   {
     step: "Launch & Optimize",
-    text: "After thorough testing and quality assurance, we launch your website and continue optimizing its performance based on real user behavior.",
+    text: "We launch after thorough testing, then keep optimizing based on real user behavior.",
   },
-];
-
-const outcomes: string[] = [
-  "Improve User Experience",
-  "Increase Search Visibility",
-  "Strengthen Brand Credibility",
-  "Generate Qualified Leads",
-  "Support Marketing Campaigns",
-  "Scale with Business Growth",
-];
-
-const industries: string[] = [
-  "Cybersecurity",
-  "SaaS",
-  "Finance",
-  "Healthcare",
-  "Manufacturing",
-  "Professional Services",
-  "Technology",
 ];
 
 const devFaqs: { q: string; a: string }[] = [
   {
     q: "Why should I choose Next.js over a traditional website?",
-    a: "Next.js delivers faster performance, stronger security, improved search engine optimization, and greater scalability than many traditional website platforms. It is an excellent choice for businesses looking to build future-ready digital experiences.",
+    a: "Next.js delivers faster performance, stronger security, better SEO, and greater scalability than many traditional website platforms.",
   },
   {
     q: "Can you redesign my existing website?",
-    a: "Yes. We redesign outdated websites to improve usability, performance, visual appeal, accessibility, and conversions while preserving your existing search visibility where appropriate.",
+    a: "Yes, we redesign outdated websites to improve usability, performance, accessibility, and conversions while preserving your existing search visibility.",
   },
   {
     q: "Do you provide ongoing website maintenance?",
-    a: "Yes. Our maintenance services include security updates, performance monitoring, backups, technical improvements, bug fixes, and continuous optimization to keep your website running smoothly.",
-  },
-  {
-    q: "Will my website be mobile responsive?",
-    a: "Absolutely. Every website we develop is fully responsive and optimized to deliver a consistent experience across desktop, tablet, and mobile devices.",
+    a: "Yes, our maintenance covers security updates, performance monitoring, backups, bug fixes, and continuous optimization.",
   },
   {
     q: "Do you optimize websites for SEO?",
-    a: "Yes. Every website is developed with SEO best practices in mind, including clean code, structured data, technical optimization, Core Web Vitals, mobile responsiveness, and search-friendly architecture.",
+    a: "Yes, every website is built with SEO best practices, including clean code, structured data, and Core Web Vitals optimization.",
   },
 ];
 
 // Prose kept as string constants so JSX stays free of unescaped-entity issues.
 const heroCopy1 =
   "Your website is your most valuable digital asset. We build fast, secure, and scalable websites that strengthen your brand and drive business growth.";
-// const heroCopy2 =
-//   "Whether you're launching a new website, modernizing an existing platform, or migrating to a modern technology stack, we build digital experiences that support your business today and scale with your growth tomorrow.";
 const whyCopy1 =
-  "Your website is often the first impression customers have of your business. A slow, outdated, or difficult-to-use website can reduce trust, limit visibility, and cost you valuable business opportunities.";
+  "Your website is often the first impression customers have of your business, and a slow or outdated one erodes trust and costs valuable opportunities.";
 const whyCopy2 =
-  "A modern website should do more than look good. It should load quickly, perform seamlessly across devices, support your marketing efforts, and guide visitors toward meaningful actions.";
-const whyCopy3 =
-  "Our development approach combines performance, usability, security, and scalability to create websites that deliver measurable business value.";
+  "A modern website should load quickly, perform seamlessly across devices, support your marketing efforts, and guide visitors toward meaningful actions.";
 const servicesIntro =
   "Every business has unique goals, audiences, and technical requirements. We develop websites that align with your objectives while providing the flexibility to support future growth.";
-const whyChooseP1 =
-  "We don't just build websites. We create digital platforms that help businesses attract customers, build trust, and support sustainable growth.";
-const whyChooseLead = "Every website we develop is designed to:";
-const whyChooseOutro =
-  "By combining strategy, design, development, and performance optimization, we deliver websites that become valuable business assets rather than static online brochures.";
-const industriesIntro =
-  "We build websites for organizations across a wide range of industries, including:";
-const industriesOutro =
-  "Every website is designed around your industry, your customers, and your business objectives.";
 const arrowPath = "M14 5l7 7m0 0l-7 7m7-7H3";
 
 type Props = { act: Act };
@@ -274,38 +243,43 @@ export default function DevelopmentServiceContent({ act }: Props) {
       >
         <HeroDarkBackdrop />
         <div className="relative max-w-7xl mx-auto px-6 md:px-12">
-          <div className="max-w-4xl">
-            <h1 className="font-serif text-4xl sm:text-5xl lg:text-[67.2px] text-white font-medium tracking-tight leading-[1.08] text-balance">
-              Websites Built for{" "}
-              <span className="font-serif italic text-[#e9af88] md:block">
-                Business Growth
-              </span>
-            </h1>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
+            <div className="lg:col-span-7">
+              <h1 className="font-serif text-4xl sm:text-5xl lg:text-[67.2px] text-white font-medium tracking-tight leading-[1.08] text-balance">
+                Websites Built for{" "}
+                <span className="font-serif italic text-[#e9af88] md:block">
+                  Business Growth
+                </span>
+              </h1>
 
-            <p className="text-base md:text-lg text-white/70 font-normal leading-relaxed mt-8 max-w-2xl">
-              {heroCopy1}
-            </p>
-            {/* <p className="text-base md:text-lg text-white/70 font-normal leading-relaxed mt-5 max-w-2xl">
-              {heroCopy2}
-            </p> */}
+              <p className="text-base md:text-lg text-white/70 font-normal leading-relaxed mt-8 max-w-2xl">
+                {heroCopy1}
+              </p>
 
-            <div className="mt-10 flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-              <Link
-                href="/contact"
-                className="cta-glide inline-flex items-center justify-center gap-3 px-8 py-4 bg-gradient-to-r from-[#e9af88] to-[#ffd2b3] text-[#0C1E2E] hover:brightness-105 font-bold rounded-full shadow-sm text-center"
-              >
-                Book a Website Consultation
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={arrowPath} />
-                </svg>
-              </Link>
+              <div className="mt-10 flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+                <Link
+                  href="/contact"
+                  className="cta-glide inline-flex items-center justify-center gap-3 px-8 py-4 bg-gradient-to-r from-[#e9af88] to-[#ffd2b3] text-[#0C1E2E] hover:brightness-105 font-bold rounded-full shadow-sm text-center"
+                >
+                  Book a Website Consultation
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={arrowPath} />
+                  </svg>
+                </Link>
+              </div>
+            </div>
+
+            <div className="hidden lg:block lg:col-span-5">
+              <ServiceHeroFigure accent={accent}>
+                <DevCardGraphic />
+              </ServiceHeroFigure>
             </div>
           </div>
         </div>
       </section>
 
       {/* WHY WEBSITE DEVELOPMENT MATTERS */}
-      <section className="py-24 md:py-32 bg-white">
+      <section className="py-16 md:py-20 bg-white">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
             <Reveal className="lg:col-span-4">
@@ -320,9 +294,6 @@ export default function DevelopmentServiceContent({ act }: Props) {
               <p className="text-base md:text-lg text-text-muted font-normal leading-relaxed mt-6">
                 {whyCopy2}
               </p>
-              <p className="text-base md:text-lg text-text-muted font-normal leading-relaxed mt-6">
-                {whyCopy3}
-              </p>
             </Reveal>
           </div>
         </div>
@@ -333,7 +304,7 @@ export default function DevelopmentServiceContent({ act }: Props) {
       {/* OUR WEBSITE DEVELOPMENT SERVICES */}
       <section
         id="development-services"
-        className="py-24 md:py-32 bg-background-soft scroll-mt-24"
+        className="py-16 md:py-20 bg-background-soft scroll-mt-24"
       >
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <Reveal className="mb-16 border-b border-border pb-8 max-w-3xl">
@@ -348,13 +319,18 @@ export default function DevelopmentServiceContent({ act }: Props) {
           <div className="space-y-6 md:space-y-8">
             {devServices.map((svc, idx) => (
               <Reveal key={svc.name} delay={idx * 60}>
-                <article className="rounded-lg border border-border bg-white p-8 md:p-12 hover:border-accent/40 transition-colors duration-300">
+                <article className="group relative overflow-hidden rounded-lg border border-border bg-white p-8 md:p-12 hover:border-accent/40 transition-colors duration-300">
+                  <span
+                    aria-hidden
+                    className="absolute left-0 top-0 h-full w-1 opacity-70 group-hover:opacity-100 transition-opacity duration-300"
+                    style={{ background: `linear-gradient(to bottom, ${accent.from}, ${accent.to})` }}
+                  />
                   <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
                     <div className="lg:col-span-5">
-                      <span className="text-xs font-mono text-accent font-semibold tabular-nums">
+                      <AccentBadge accent={accent} className="h-9 w-9 text-sm">
                         {String(idx + 1).padStart(2, "0")}
-                      </span>
-                      <h3 className="font-serif text-2xl md:text-3xl text-primary font-medium mt-3">
+                      </AccentBadge>
+                      <h3 className="font-serif text-2xl md:text-3xl text-primary font-medium mt-4">
                         {svc.name}
                       </h3>
                       <p className="font-serif italic text-lg text-primary/55 mt-2 leading-snug">
@@ -372,17 +348,11 @@ export default function DevelopmentServiceContent({ act }: Props) {
                             key={item}
                             className="flex items-center gap-2.5 text-sm text-primary/85 font-normal"
                           >
-                            <span
-                              aria-hidden
-                              className="h-1.5 w-1.5 rounded-full bg-accent flex-shrink-0"
-                            />
+                            <AccentDot accent={accent} />
                             {item}
                           </li>
                         ))}
                       </ul>
-                      <p className="text-text-muted text-sm font-normal leading-relaxed mt-8 pt-6 border-t border-border">
-                        {svc.result}
-                      </p>
                     </div>
                   </div>
                 </article>
@@ -392,10 +362,16 @@ export default function DevelopmentServiceContent({ act }: Props) {
         </div>
       </section>
 
-      <SectionSeam from="soft" to="white" />
+      {/* ACCENT PULL-QUOTE BAND */}
+      <ServiceAccentBand
+        accent={accent}
+        eyebrow={bandEyebrow}
+        quote={bandQuote}
+        points={bandPoints}
+      />
 
       {/* OUR DEVELOPMENT PROCESS */}
-      <section className="py-24 md:py-32 bg-white">
+      <section className="py-16 md:py-20 bg-white">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <Reveal className="mb-16 border-b border-border pb-8 max-w-3xl">
             <h2 className="font-serif text-4xl md:text-5xl text-primary font-medium max-w-2xl leading-tight">
@@ -407,10 +383,15 @@ export default function DevelopmentServiceContent({ act }: Props) {
             {devProcess.map((phase, idx) => (
               <Reveal key={phase.step} delay={idx * 80}>
                 <li className="h-full p-6 border border-border rounded-lg bg-background-soft/40 hover:border-accent/40 hover:-translate-y-1 transition-all duration-300 flex flex-col">
-                  <span className="text-xs font-mono text-accent font-semibold tabular-nums">
-                    Step {String(idx + 1).padStart(2, "0")}
-                  </span>
-                  <h3 className="font-serif text-xl text-primary font-medium mt-3">
+                  <div className="flex items-center gap-3">
+                    <AccentBadge accent={accent} className="h-8 w-8 text-xs">
+                      {String(idx + 1).padStart(2, "0")}
+                    </AccentBadge>
+                    <span className="text-[10px] font-mono uppercase tracking-widest text-text-muted font-semibold">
+                      Step
+                    </span>
+                  </div>
+                  <h3 className="font-serif text-xl text-primary font-medium mt-4">
                     {phase.step}
                   </h3>
                   <p className="text-sm text-text-muted font-normal mt-3 leading-relaxed">
@@ -425,78 +406,8 @@ export default function DevelopmentServiceContent({ act }: Props) {
 
       <SectionSeam from="white" to="soft" />
 
-      {/* WHY CHOOSE FYNIX */}
-      <section className="py-24 md:py-32 bg-background-soft">
-        <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-            <Reveal className="lg:col-span-4">
-              <h2 className="font-serif text-4xl md:text-5xl text-primary font-medium leading-tight">
-                Websites Designed for Long-Term Business Growth
-              </h2>
-            </Reveal>
-            <Reveal className="lg:col-span-8" delay={120}>
-              <p className="text-base md:text-lg text-text-muted font-normal leading-relaxed">
-                {whyChooseP1}
-              </p>
-              <p className="text-base md:text-lg text-text-muted font-normal leading-relaxed mt-6">
-                {whyChooseLead}
-              </p>
-              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8">
-                {outcomes.map((outcome) => (
-                  <li
-                    key={outcome}
-                    className="flex items-center gap-3 rounded-lg border border-border bg-white px-5 py-4 text-primary font-medium"
-                  >
-                    <span aria-hidden className="h-2 w-2 rounded-full bg-accent flex-shrink-0" />
-                    {outcome}
-                  </li>
-                ))}
-              </ul>
-              <p className="text-base md:text-lg text-text-muted font-normal leading-relaxed mt-8">
-                {whyChooseOutro}
-              </p>
-            </Reveal>
-          </div>
-        </div>
-      </section>
-
-      <SectionSeam from="soft" to="white" />
-
-      {/* INDUSTRIES WE SUPPORT */}
-      <section className="py-24 md:py-32 bg-white">
-        <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <Reveal className="mb-12 max-w-3xl">
-            <h2 className="font-serif text-4xl md:text-5xl text-primary font-medium max-w-2xl leading-tight">
-              Website Development for Modern Businesses
-            </h2>
-            <p className="text-base md:text-lg text-text-muted font-normal leading-relaxed mt-6">
-              {industriesIntro}
-            </p>
-          </Reveal>
-
-          <Reveal delay={80}>
-            <ul className="flex flex-wrap gap-3">
-              {industries.map((industry) => (
-                <li
-                  key={industry}
-                  className="inline-flex items-center gap-2.5 rounded-full border border-border bg-background-soft/50 px-5 py-2.5 text-primary font-medium"
-                >
-                  <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-accent flex-shrink-0" />
-                  {industry}
-                </li>
-              ))}
-            </ul>
-            <p className="text-base md:text-lg text-text-muted font-normal leading-relaxed mt-10 max-w-2xl">
-              {industriesOutro}
-            </p>
-          </Reveal>
-        </div>
-      </section>
-
-      <SectionSeam from="white" to="soft" />
-
       {/* FAQ */}
-      <section className="py-24 md:py-32 bg-background-soft">
+      <section className="pt-16 md:pt-20 pb-12 md:pb-16 bg-background-soft">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
             <Reveal className="lg:col-span-4">
@@ -541,7 +452,7 @@ export default function DevelopmentServiceContent({ act }: Props) {
       <SectionSeam from="soft" to="white" />
 
       {/* FINAL CTA */}
-      <section className="relative isolate overflow-hidden py-24 md:py-32 bg-transparent">
+      <section className="relative isolate overflow-hidden pt-12 md:pt-16 pb-24 md:pb-32 bg-transparent">
         <PreFooterBackdrop />
         <Reveal className="max-w-4xl mx-auto px-6 text-center">
           <h2 className="font-serif italic text-3xl md:text-5xl text-primary font-medium leading-tight">
@@ -550,7 +461,7 @@ export default function DevelopmentServiceContent({ act }: Props) {
           <div className="mt-10">
             <Link
               href="/contact"
-              className="inline-flex items-center justify-center gap-3 px-8 py-4 bg-primary text-white hover:bg-primary-hover cta-primary font-medium rounded-full shadow-sm transition-all duration-200"
+              className="inline-flex items-center justify-center gap-3 px-8 py-4 cta-glide cta-reveal-gradient bg-primary text-white hover:text-[#0C1E2E] font-medium rounded-full shadow-sm"
             >
               Book Your Free Website Consultation
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
