@@ -89,6 +89,7 @@ const founders: {
   initials: string;
   accent: Accent;
   photo?: string;
+  linkedin?: string;
   quote: string;
 }[] = [
   {
@@ -97,6 +98,7 @@ const founders: {
     initials: "S",
     accent: actColors[0], // gold
     photo: "/siddique.webp",
+    linkedin: "https://www.linkedin.com/in/siddiqueseo",
     quote:
       "Digital strategy isn't about following short-term trends — it's about building unfair competitive advantages that compound over years.",
   },
@@ -106,6 +108,7 @@ const founders: {
     initials: "SK",
     accent: actColors[2], // rose
     photo: "/savita-katiyar-2.webp",
+    linkedin: "https://www.linkedin.com/in/savitakatiyar",
     quote:
       "Every design and technical choice must serve a single goal: creating meaningful, measurable business clarity.",
   },
@@ -302,6 +305,24 @@ export default function AboutPage() {
                         background: `linear-gradient(to right, ${f.accent.from}, ${f.accent.to})`,
                       }}
                     />
+                    {f.linkedin ? (
+                      <a
+                        href={f.linkedin}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={`${f.name} on LinkedIn`}
+                        className="absolute bottom-3 right-3 z-10 inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#0A66C2] text-white shadow-[0_8px_20px_rgba(10,102,194,0.5)] ring-1 ring-white/20 opacity-0 translate-y-1 scale-90 transition-all duration-300 ease-out group-hover:opacity-100 group-hover:translate-y-0 group-hover:scale-100 group-focus-within:opacity-100 group-focus-within:translate-y-0 group-focus-within:scale-100 hover:bg-[#0958a8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                      >
+                        <svg
+                          viewBox="0 0 24 24"
+                          className="h-4 w-4"
+                          fill="currentColor"
+                          aria-hidden
+                        >
+                          <path d="M20.45 20.45h-3.56v-5.57c0-1.33-.03-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.63-1.85 3.36-1.85 3.59 0 4.26 2.36 4.26 5.44v6.3zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.72v20.56C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.72V1.72C24 .77 23.2 0 22.22 0z" />
+                        </svg>
+                      </a>
+                    ) : null}
                   </div>
                   <figcaption className="mt-6">
                     <h3 className="font-serif text-2xl text-primary font-medium leading-snug">

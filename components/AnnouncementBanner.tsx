@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import { X } from "lucide-react";
 
 /**
@@ -15,7 +16,9 @@ import { X } from "lucide-react";
  */
 export default function AnnouncementBanner() {
   const [dismissed, setDismissed] = useState(false);
-  if (dismissed) return null;
+  const pathname = usePathname();
+
+  if (dismissed || pathname === "/_not-found" || pathname === "/404") return null;
 
   return (
     <div className="relative z-[60] w-full border-b border-white/10 bg-primary text-white">
