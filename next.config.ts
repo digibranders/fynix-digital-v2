@@ -9,10 +9,37 @@ const nextConfig: NextConfig = {
     qualities: [75, 90],
   },
   async headers() {
+    const isDev = process.env.NODE_ENV === "development";
+
+    // Content-Security-Policy. 'unsafe-inline' is required for scripts because
+    // Next.js injects inline hydration scripts and the pages emit inline JSON-LD
+    // without a nonce; a nonce-based policy would need middleware and is a larger
+    // change. Even so this policy still blocks external/injected script sources,
+    // framing, object/embed and base-uri hijacking. Dev additionally needs
+    // 'unsafe-eval' (React Refresh) and ws: (HMR), which are omitted in prod.
+    const csp = [
+      "default-src 'self'",
+      "base-uri 'self'",
+      "object-src 'none'",
+      "frame-ancestors 'self'",
+      "form-action 'self'",
+      "img-src 'self' data: blob: https:",
+      "font-src 'self' data:",
+      "style-src 'self' 'unsafe-inline'",
+      `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
+      "frame-src 'self' https://www.youtube-nocookie.com",
+      `connect-src 'self'${isDev ? " ws:" : ""}`,
+      "worker-src 'self' blob:",
+    ].join("; ");
+
     return [
       {
         source: "/(.*)",
         headers: [
+          {
+            key: "Content-Security-Policy",
+            value: csp,
+          },
           {
             key: "X-Content-Type-Options",
             value: "nosniff",

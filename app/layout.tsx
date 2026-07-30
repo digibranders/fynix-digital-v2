@@ -25,7 +25,7 @@ const isProductionDomain = isProductionSite();
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
   title: {
-    default: `${siteConfig.name} | Cybersecurity Growth Partner & Digital Studio`,
+    default: `${siteConfig.name} | A digital marketing studio for Growing Brands`,
     template: `%s | ${siteConfig.name}`,
   },
   description: siteConfig.description,
@@ -54,7 +54,7 @@ export const metadata: Metadata = {
       },
   openGraph: {
     type: "website",
-    title: `${siteConfig.name} | Cybersecurity Growth Partner`,
+    title: `${siteConfig.name} | A digital marketing studio for Growing Brands`,
     description: siteConfig.description,
     url: siteConfig.url,
     siteName: siteConfig.name,
@@ -63,13 +63,13 @@ export const metadata: Metadata = {
         url: `${siteConfig.url}/og-image.jpg`,
         width: 1200,
         height: 630,
-        alt: "Fynix Digital - Cybersecurity Growth Partner",
+        alt: "Fynix Digital - A digital marketing studio for Growing Brands",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: `${siteConfig.name} | Cybersecurity Growth Partner`,
+    title: `${siteConfig.name} | A digital marketing studio for Growing Brands`,
     description: siteConfig.description,
     images: [`${siteConfig.url}/og-image.jpg`],
   },

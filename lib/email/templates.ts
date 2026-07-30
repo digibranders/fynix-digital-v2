@@ -170,7 +170,7 @@ function ctaButton(href: string, label: string): string {
   return `<table role="presentation" cellpadding="0" cellspacing="0">
     <tr>
       <td style="border-radius:999px;background-color:${BRAND.primary};">
-        <a href="${href}" style="display:inline-block;padding:13px 30px;font-size:14px;font-weight:600;color:#FFFFFF;text-decoration:none;border-radius:999px;">
+        <a href="${escapeHtml(href)}" style="display:inline-block;padding:13px 30px;font-size:14px;font-weight:600;color:#FFFFFF;text-decoration:none;border-radius:999px;">
           ${escapeHtml(label)}
         </a>
       </td>
@@ -260,7 +260,7 @@ export function buildAdminNotificationEmail(submission: ContactSubmission): Emai
       ${detailRow("Message", submission.message ? escapeHtml(submission.message).replace(/\n/g, "<br />") : `<em style="color:${BRAND.textMuted};">No message provided</em>`)}
     </table>
     <p style="margin:24px 0;">
-      ${ctaButton(`mailto:${submission.email}`, `Reply to ${submission.name.split(/\s+/)[0] || "lead"}`)}
+      ${ctaButton(`mailto:${encodeURIComponent(submission.email)}`, `Reply to ${submission.name.split(/\s+/)[0] || "lead"}`)}
     </p>
   `;
 
@@ -393,7 +393,7 @@ export function buildAuditAdminEmail(submission: AuditSubmission): EmailTemplate
       ${detailRow("Message", submission.message ? escapeHtml(submission.message).replace(/\n/g, "<br />") : `<em style="color:${BRAND.textMuted};">No message provided</em>`)}
     </table>
     <p style="margin:24px 0;">
-      ${ctaButton(`mailto:${submission.email}`, `Reply to ${submission.name.split(/\s+/)[0] || "lead"}`)}
+      ${ctaButton(`mailto:${encodeURIComponent(submission.email)}`, `Reply to ${submission.name.split(/\s+/)[0] || "lead"}`)}
     </p>
   `;
 
