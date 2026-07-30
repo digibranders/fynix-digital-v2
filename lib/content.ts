@@ -431,6 +431,28 @@ export const faqCategories: FaqCategory[] = [
       },
     ],
   },
+  {
+    id: "lead-generation",
+    label: "Lead Generation",
+    items: [
+      {
+        q: "How is B2B lead generation different for cybersecurity companies?",
+        a: "Cybersecurity buyers are senior, technical, and skeptical, with long, committee-driven sales cycles. Our programs are built around that reality, focusing on trust, precise targeting, and relevance rather than volume.",
+      },
+      {
+        q: "Do you replace or work alongside our sales team?",
+        a: "We work alongside your team. We source, engage, and qualify opportunities, then hand off sales-ready meetings so your reps can focus on discovery and closing.",
+      },
+      {
+        q: "How quickly will we start seeing qualified meetings?",
+        a: "First conversations typically begin within the first few weeks of launch, while predictable, repeatable pipeline builds over the first quarter as targeting and messaging are refined.",
+      },
+      {
+        q: "Which channels do you use for outreach?",
+        a: "We combine email, LinkedIn, and calling with demand generation, then concentrate effort on the channels where your specific buyers respond and convert.",
+      },
+    ],
+  },
 ];
 
 export const caseStudyCategories = [

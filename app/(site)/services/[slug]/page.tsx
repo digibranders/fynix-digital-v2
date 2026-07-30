@@ -11,6 +11,7 @@ import PillarDiagnosticWidget from "@/components/PillarDiagnosticWidget";
 import SeoServiceContent from "@/components/SeoServiceContent";
 import UiUxServiceContent from "@/components/UiUxServiceContent";
 import DevelopmentServiceContent from "@/components/DevelopmentServiceContent";
+import LeadGenServiceContent from "@/components/LeadGenServiceContent";
 
 type Params = { slug: Act["slug"] };
 
@@ -61,6 +62,7 @@ export default async function ServiceDetailPage(
   if (act.slug === "seo") return <SeoServiceContent act={act} />;
   if (act.slug === "ui-ux") return <UiUxServiceContent act={act} />;
   if (act.slug === "development") return <DevelopmentServiceContent act={act} />;
+  if (act.slug === "lead-generation") return <LeadGenServiceContent act={act} />;
 
   const others = acts.filter((a) => a.slug !== act.slug);
   const relatedStudies = act.proof.relatedCaseStudySlugs

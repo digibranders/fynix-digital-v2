@@ -92,7 +92,7 @@ const founders: {
   quote: string;
 }[] = [
   {
-    name: "Siddique",
+    name: "Siddique Ahmed",
     role: "Co-Founder",
     initials: "S",
     accent: actColors[0], // gold
