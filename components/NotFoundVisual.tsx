@@ -1,41 +1,82 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { Home, Compass, ArrowLeft } from "lucide-react";
+import { Home, Compass } from "lucide-react";
 import Logo from "@/components/Logo";
 
 export default function NotFoundVisual() {
   const [isLightOn, setIsLightOn] = useState(true);
   const [isPulling, setIsPulling] = useState(false);
-  const [isWiggling, setIsWiggling] = useState(true); // Trigger physics sway on initial mount
+  const [pullY, setPullY] = useState(0); // 0 to 26px extension
+  const [swayAngle, setSwayAngle] = useState(0); // Rotational & wave jiggle displacement
+  const animFrameRef = useRef<number | null>(null);
+
+  // Trigger physics jiggle on initial mount & pull release
+  const triggerPhysicsJiggle = () => {
+    const startTime = performance.now();
+    const duration = 1600; // ms
+
+    const animate = (currentTime: number) => {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+
+      // Damped harmonic oscillation formula: e^(-decay * t) * sin(frequency * t)
+      const decay = Math.exp(-progress * 4.2);
+      const wave = Math.sin(progress * Math.PI * 7.5);
+      const currentAngle = decay * wave * 22; // degrees / displacement px
+
+      setSwayAngle(currentAngle);
+
+      if (progress < 1) {
+        animFrameRef.current = requestAnimationFrame(animate);
+      } else {
+        setSwayAngle(0);
+      }
+    };
+
+    if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+    animFrameRef.current = requestAnimationFrame(animate);
+  };
 
   useEffect(() => {
-    // Initial mount physics entrance sway
+    // Initial mount physics entrance jiggle
     const timer = setTimeout(() => {
-      setIsWiggling(false);
-    }, 1450);
-    return () => clearTimeout(timer);
+      triggerPhysicsJiggle();
+    }, 150);
+    return () => {
+      clearTimeout(timer);
+      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+    };
   }, []);
 
   const handlePullStart = (e: React.MouseEvent | React.TouchEvent) => {
     e.stopPropagation();
+    if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
     setIsPulling(true);
-    setIsWiggling(false);
+    setPullY(26);
     setIsLightOn((prev) => !prev);
   };
 
   const handlePullEnd = () => {
     setIsPulling(false);
-    // Force a re-trigger of keyframe animation
-    setIsWiggling(false);
-    requestAnimationFrame(() => {
-      setIsWiggling(true);
-      setTimeout(() => {
-        setIsWiggling(false);
-      }, 1450);
-    });
+    setPullY(0);
+    triggerPhysicsJiggle();
   };
+
+  // Calculate SVG curve coordinates for realistic rope flex
+  const baseCordLength = 140;
+  const currentCordLength = baseCordLength + pullY;
+  const anchorX = 40;
+  const anchorY = 0;
+
+  // Handle position (sways in an arc)
+  const handleX = anchorX + (isPulling ? 3 : swayAngle * 1.4);
+  const handleY = currentCordLength;
+
+  // Midpoint S-curve flex control point (gives rope bending jiggle)
+  const controlX = anchorX + (isPulling ? 1.5 : -swayAngle * 0.8);
+  const controlY = currentCordLength * 0.5;
 
   return (
     <div
@@ -44,58 +85,6 @@ export default function NotFoundVisual() {
         backgroundColor: isLightOn ? "#DFDCD5" : "#0C0D10",
       }}
     >
-      {/* Authentic Rotational Pendulum Physics Keyframes (Zero Straight Line Interference) */}
-      <style jsx global>{`
-        @keyframes truePendulumArc {
-          0% {
-            transform: rotate(0deg);
-          }
-          18% {
-            transform: rotate(18deg);
-          }
-          36% {
-            transform: rotate(-13.5deg);
-          }
-          54% {
-            transform: rotate(9deg);
-          }
-          72% {
-            transform: rotate(-5deg);
-          }
-          86% {
-            transform: rotate(2.2deg);
-          }
-          96% {
-            transform: rotate(-0.8deg);
-          }
-          100% {
-            transform: rotate(0deg);
-          }
-        }
-
-        @keyframes idlePhysicsSway {
-          0%, 100% {
-            transform: rotate(0deg);
-          }
-          25% {
-            transform: rotate(1.8deg);
-          }
-          75% {
-            transform: rotate(-1.8deg);
-          }
-        }
-
-        .animate-true-pendulum {
-          animation: truePendulumArc 1.45s cubic-bezier(0.22, 1, 0.36, 1) forwards !important;
-          transform-origin: 50% 0px !important;
-        }
-
-        .animate-idle-physics {
-          animation: idlePhysicsSway 4.8s ease-in-out infinite !important;
-          transform-origin: 50% 0px !important;
-        }
-      `}</style>
-
       {/* 1. STUDIO WALL BACKGROUND WITH SOFT ATMOSPHERIC LIGHT FALLOFF */}
       <div
         className="absolute inset-0 transition-opacity duration-700 pointer-events-none"
@@ -170,7 +159,7 @@ export default function NotFoundVisual() {
         }}
       />
 
-      {/* TOP HEADER: Authentic Fynix Logo & Home Link */}
+      {/* TOP HEADER: Authentic Fynix Logo */}
       <header className="relative z-40 w-full max-w-7xl px-6 py-5 flex items-center justify-between pointer-events-auto">
         <Link href="/" className="inline-flex items-center group">
           <Logo
@@ -178,19 +167,9 @@ export default function NotFoundVisual() {
             style={{ color: isLightOn ? "#0C1E2E" : "#FFFFFF" }}
           />
         </Link>
-
-        <div className="flex items-center space-x-3">
-          <Link
-            href="/"
-            className="inline-flex items-center space-x-1.5 px-4 py-2 text-xs font-medium rounded-full bg-primary text-white hover:bg-primary-hover transition-all duration-200 shadow-sm"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Back to Home</span>
-          </Link>
-        </div>
       </header>
 
-      {/* 4. HANGING PENDANT LAMP & PARALLEL CEILING PULL STRING WITH PURE ROTATIONAL PENDULUM ARC */}
+      {/* 4. HANGING PENDANT LAMP & CEILING-PINNED REALISTIC BORDERLESS SVG PULL STRING */}
       <div className="absolute top-0 inset-x-0 flex flex-col items-center pointer-events-none z-30">
         {/* Main Ceiling Wire Cord */}
         <div
@@ -228,13 +207,13 @@ export default function NotFoundVisual() {
             className="drop-shadow-xl pointer-events-none"
           >
             <defs>
-              <linearGradient id="shadeMatteGradPendulumTrue" x1="0%" y1="0%" x2="100%" y2="0%">
+              <linearGradient id="shadeMatteGradSvg" x1="0%" y1="0%" x2="100%" y2="0%">
                 <stop offset="0%" stopColor="#454A53" />
                 <stop offset="25%" stopColor="#22252B" />
                 <stop offset="65%" stopColor="#121417" />
                 <stop offset="100%" stopColor="#353A42" />
               </linearGradient>
-              <linearGradient id="bulbInnerGlowPendulumTrue" x1="0%" y1="0%" x2="0%" y2="100%">
+              <linearGradient id="bulbInnerGlowSvg" x1="0%" y1="0%" x2="0%" y2="100%">
                 <stop offset="0%" stopColor="#FFFFFF" />
                 <stop offset="100%" stopColor="#FFF2D4" />
               </linearGradient>
@@ -242,7 +221,7 @@ export default function NotFoundVisual() {
             {/* Bell Shade Body */}
             <path
               d="M32 4 C32 10 12 24 4 48 C15 54 69 54 80 48 C72 24 52 10 52 4 Z"
-              fill="url(#shadeMatteGradPendulumTrue)"
+              fill="url(#shadeMatteGradSvg)"
             />
             {/* Specular Highlight Rim */}
             <path
@@ -257,7 +236,7 @@ export default function NotFoundVisual() {
               cy="48"
               rx="38"
               ry="6"
-              fill={isLightOn ? "url(#bulbInnerGlowPendulumTrue)" : "#1C1E22"}
+              fill={isLightOn ? "url(#bulbInnerGlowSvg)" : "#1C1E22"}
               stroke="#0F1013"
               strokeWidth="1.5"
             />
@@ -275,75 +254,69 @@ export default function NotFoundVisual() {
           />
         </div>
 
-        {/* 🌟 PARALLEL PULL STRING WITH PURE ROTATIONAL PENDULUM ARC (NO INLINE TRANSITION CONFLICT) */}
+        {/* 🌟 CEILING-PINNED BORDERLESS PHOTOREALISTIC SVG PULL STRING (NO STROKE OUTLINES!) */}
         <div
-          className={`absolute top-0 right-[calc(50%-56px)] sm:right-[calc(50%-64px)] md:right-[calc(50%-72px)] flex flex-col items-center pointer-events-auto group cursor-grab active:cursor-grabbing ${
-            isPulling ? "" : isWiggling ? "animate-true-pendulum" : "animate-idle-physics"
-          }`}
+          className="absolute top-0 right-[calc(50%-88px)] sm:right-[calc(50%-96px)] md:right-[calc(50%-104px)] pointer-events-auto group cursor-grab active:cursor-grabbing"
           onMouseDown={handlePullStart}
           onMouseUp={handlePullEnd}
           onMouseLeave={handlePullEnd}
           onTouchStart={handlePullStart}
           onTouchEnd={handlePullEnd}
           title="Pull string down to toggle light"
-          style={{
-            height: "calc(100% + 22px)",
-            transformOrigin: "50% 0px",
-            transform: isPulling
-              ? "translateY(24px) rotate(4deg) scaleY(1.08)"
-              : undefined,
-            transition: isPulling ? "transform 0.08s ease-out" : "none", // NO CSS TRANSITION ON RELEASE
-          }}
+          style={{ width: "80px", height: "200px" }}
         >
-          {/* Full Ceiling-to-Shade Parallel Bead Chain */}
-          <div
-            className="w-[2px] h-[105px] sm:h-[125px] md:h-[142px] transition-colors duration-500"
-            style={{
-              background: "repeating-linear-gradient(to bottom, #A6ACB8 0px, #A6ACB8 2.5px, #363A42 2.5px, #363A42 5px)",
-              boxShadow: "1px 0 3px rgba(0,0,0,0.35)",
-            }}
-          />
+          <svg width="80" height="200" viewBox="0 0 80 200" fill="none" className="overflow-visible">
+            <defs>
+              <linearGradient id="brassGlowGradBorderless" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#FAF0C5" />
+                <stop offset="35%" stopColor="#D4AF37" />
+                <stop offset="75%" stopColor="#AA820A" />
+                <stop offset="100%" stopColor="#6E5004" />
+              </linearGradient>
+              <linearGradient id="darkMetallicGradBorderless" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#7E8492" />
+                <stop offset="50%" stopColor="#4A505C" />
+                <stop offset="100%" stopColor="#22252B" />
+              </linearGradient>
+              <filter id="handleSoftShadow" x="-50%" y="-20%" width="200%" height="160%">
+                <feDropShadow dx="0" dy="2" stdDeviation="1.5" floodColor="#000000" floodOpacity="0.35" />
+              </filter>
+            </defs>
 
-          {/* Polished Brass Weighted Pull Bead Handle */}
-          <div className="relative -mt-0.5 flex flex-col items-center">
-            {/* Top Ring Connector */}
-            <div
-              className="w-2 h-1.5 rounded-full border border-yellow-600/60"
-              style={{
-                background: "linear-gradient(to bottom, #D4AF37, #AA820A)",
-              }}
+            {/* Borderless Flexible Bead String Cable */}
+            <path
+              d={`M ${anchorX} ${anchorY} Q ${controlX} ${controlY} ${handleX} ${handleY}`}
+              stroke={isLightOn ? "#868C98" : "#454B55"}
+              strokeWidth="1.8"
+              strokeDasharray="2.5 2.5"
+              strokeLinecap="round"
+              fill="none"
             />
-            {/* Teardrop Metallic Bead Handle */}
-            <div
-              className="w-3.5 h-6 rounded-b-full rounded-t-sm shadow-md transition-all duration-200 group-hover:scale-110 group-hover:brightness-125"
-              style={{
-                background: isLightOn
-                  ? "linear-gradient(to bottom, #F5E8B8, #C8A35A, #8F6F25)"
-                  : "linear-gradient(to bottom, #A6ABB6, #585D67, #2B2E35)",
-                boxShadow: isPulling
-                  ? "0 0 14px rgba(245, 232, 184, 0.9)"
-                  : "0 2px 6px rgba(0,0,0,0.45)",
-              }}
-            />
-          </div>
+
+            {/* Photorealistic Borderless Brass Teardrop Handle */}
+            <g transform={`translate(${handleX}, ${handleY})`}>
+              {/* Connector Ring (No Stroke) */}
+              <circle cx="0" cy="1" r="2.2" fill={isLightOn ? "#D4AF37" : "#5A606C"} stroke="none" />
+
+              {/* Seamless Teardrop Handle Body (No Stroke Border Outline!) */}
+              <path
+                d="M -3.5 3 C -4 3 -5.5 11 0 18.5 C 5.5 11 4 3 3.5 3 Z"
+                fill={isLightOn ? "url(#brassGlowGradBorderless)" : "url(#darkMetallicGradBorderless)"}
+                stroke="none"
+                filter="url(#handleSoftShadow)"
+                className="transition-transform duration-150 group-hover:scale-110"
+              />
+            </g>
+          </svg>
         </div>
       </div>
 
-      {/* 5. CENTER SECTION: TIGHTLY-SPACED SOLID MATTE "404" & DEBRIS */}
+      {/* 5. CENTER SECTION: SOLID MATTE "404" & 1:1 ORGANIC 3D FLOOR RUBBLE SCATTER */}
       <div className="relative z-20 flex flex-col items-center justify-center my-auto pt-14 pb-2 pointer-events-none">
-        {/* Soft Ambient Occlusion Contact Shadow */}
-        <div
-          className="absolute bottom-1.5 w-[65%] max-w-[480px] h-6 rounded-[100%] pointer-events-none"
-          style={{
-            background: "radial-gradient(ellipse at center, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.18) 60%, rgba(0,0,0,0) 80%)",
-            filter: "blur(5.5px)",
-          }}
-        />
-
         {/* Photorealistic Solid Matte "404" Display (Tightly Spaced) */}
         <div className="relative flex items-center justify-center">
           <h1
-            className="font-extrabold text-[120px] sm:text-[160px] md:text-[210px] lg:text-[250px] leading-none tracking-[0.02em] flex items-center justify-center font-sans select-none"
+            className="font-extrabold text-[96px] sm:text-[128px] md:text-[168px] lg:text-[200px] leading-none tracking-[0.02em] flex items-center justify-center font-sans select-none"
             style={{
               color: "#16181B",
               textShadow: isLightOn
@@ -356,70 +329,105 @@ export default function NotFoundVisual() {
           </h1>
         </div>
 
-        {/* HIGH-END MINIMALIST CONCRETE DEBRIS SCATTER */}
-        <div className="absolute -bottom-6 w-full flex justify-center pointer-events-none">
+        {/* 1:1 HIGH-FIDELITY ORGANIC CONCRETE RUBBLE FIELD WITH SPATIAL 2D DEPTH */}
+        <div className="absolute -bottom-10 w-full flex justify-center pointer-events-none z-20">
           <svg
-            width="600"
-            height="50"
-            viewBox="0 0 600 50"
+            width="760"
+            height="110"
+            viewBox="0 0 760 110"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
-            className="w-[320px] sm:w-[440px] md:w-[540px] lg:w-[620px] h-auto"
+            className="w-[360px] sm:w-[500px] md:w-[640px] lg:w-[760px] h-auto"
           >
             <defs>
-              <linearGradient id="concreteMatteDarkSpaced" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stopColor="#444A54" />
-                <stop offset="100%" stopColor="#25282E" />
+              <linearGradient id="rockHighlight" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#5E6573" />
+                <stop offset="50%" stopColor="#3B404A" />
+                <stop offset="100%" stopColor="#22252C" />
               </linearGradient>
-              <linearGradient id="concreteMatteMidSpaced" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stopColor="#5B626E" />
-                <stop offset="100%" stopColor="#313640" />
+              <linearGradient id="rockShadowFace" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#2D3139" />
+                <stop offset="100%" stopColor="#14161B" />
               </linearGradient>
-              <filter id="subtleOcclusionSpaced" x="-20%" y="-20%" width="140%" height="140%">
-                <feDropShadow dx="0" dy="1.5" stdDeviation="1.2" floodColor="#000000" floodOpacity="0.4" />
+              <linearGradient id="pebbleGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#4A505C" />
+                <stop offset="100%" stopColor="#282B33" />
+              </linearGradient>
+              <filter id="rockDropShadow" x="-30%" y="-30%" width="160%" height="160%">
+                <feDropShadow dx="0.5" dy="2" stdDeviation="1.8" floodColor="#000000" floodOpacity="0.45" />
               </filter>
             </defs>
 
-            {/* --- FINE FLOOR FISSURES BENEATH TIGHT 404 --- */}
-            <g stroke="rgba(40,44,50,0.45)" strokeWidth="0.8" strokeLinecap="round" opacity="0.8">
-              <path d="M230,24 Q240,26 248,23 T260,25" fill="none" />
-              <path d="M295,22 Q307,25 317,21 T330,24" fill="none" />
-              <path d="M365,25 Q377,23 385,26 T397,23" fill="none" />
+            {/* --- 1. FINE FLOOR FISSURES / HAIRLINE CRACKS --- */}
+            <g stroke="rgba(30,33,40,0.5)" strokeWidth="0.8" strokeLinecap="round" opacity="0.75">
+              <path d="M260,35 Q272,38 282,34 T298,37" fill="none" />
+              <path d="M340,32 Q354,36 368,30 T384,35" fill="none" />
+              <path d="M420,36 Q434,32 446,37 T462,33" fill="none" />
+              <path d="M500,34 Q512,38 522,33 T535,36" fill="none" />
             </g>
 
-            {/* --- CONCRETE DEBRIS (COMPACT FIT TO TIGHT 404 BASE) --- */}
-            <g filter="url(#subtleOcclusionSpaced)">
-              <polygon points="175,24 189,20 197,27 183,30 173,27" fill="url(#concreteMatteDarkSpaced)" />
-              <polygon points="230,26 246,21 257,28 240,32 227,29" fill="url(#concreteMatteMidSpaced)" />
-              <polygon points="295,22 313,17 327,24 309,29 293,26" fill="url(#concreteMatteMidSpaced)" />
-              <polygon points="368,25 384,20 396,26 380,31 366,28" fill="url(#concreteMatteMidSpaced)" />
-              <polygon points="425,26 442,21 452,27 434,32 422,29" fill="url(#concreteMatteDarkSpaced)" />
+            {/* --- 2. PRIMARY 3D MULTI-FACETED CONCRETE ROCK CHUNKS --- */}
+            <g filter="url(#rockDropShadow)">
+              <polygon points="204,58 224,64 246,55 232,44" fill="url(#rockShadowFace)" />
+              <polygon points="204,58 220,50 232,44 218,52" fill="url(#rockHighlight)" />
+            </g>
+            <g filter="url(#rockDropShadow)">
+              <polygon points="274,74 296,80 322,72 304,60" fill="url(#rockShadowFace)" />
+              <polygon points="274,74 290,64 304,60 288,70" fill="url(#rockHighlight)" />
+            </g>
+            <g filter="url(#rockDropShadow)">
+              <polygon points="352,60 378,66 402,58 384,46" fill="url(#rockShadowFace)" />
+              <polygon points="352,60 368,50 384,46 368,56" fill="url(#rockHighlight)" />
+            </g>
+            <g filter="url(#rockDropShadow)">
+              <polygon points="438,68 460,74 485,66 468,54" fill="url(#rockShadowFace)" />
+              <polygon points="438,68 454,58 468,54 452,64" fill="url(#rockHighlight)" />
+            </g>
+            <g filter="url(#rockDropShadow)">
+              <polygon points="524,60 542,65 565,58 550,48" fill="url(#rockShadowFace)" />
+              <polygon points="524,60 538,52 550,48 536,56" fill="url(#rockHighlight)" />
+            </g>
+            <g filter="url(#rockDropShadow)">
+              <polygon points="585,75 600,79 618,73 608,65" fill="url(#rockShadowFace)" />
+              <polygon points="585,75 596,68 608,65 596,72" fill="url(#rockHighlight)" />
             </g>
 
-            {/* --- PEBBLE-SIZED FRAGMENTS --- */}
-            <g filter="url(#subtleOcclusionSpaced)" opacity="0.88">
-              <polygon points="140,30 150,27 155,32 145,34" fill="url(#concreteMatteDarkSpaced)" />
-              <polygon points="202,31 211,28 217,33 207,35" fill="url(#concreteMatteMidSpaced)" />
-              <polygon points="268,28 277,25 282,30 272,32" fill="url(#concreteMatteMidSpaced)" />
-              <polygon points="340,29 350,26 355,31 344,33" fill="url(#concreteMatteMidSpaced)" />
-              <polygon points="402,30 412,27 417,32 406,34" fill="url(#concreteMatteDarkSpaced)" />
-              <polygon points="460,28 470,25 475,30 464,32" fill="url(#concreteMatteDarkSpaced)" />
+            {/* --- 3. SECONDARY ANGULAR PEBBLES --- */}
+            <g filter="url(#rockDropShadow)" opacity="0.9">
+              <polygon points="160,62 172,58 178,64 166,67" fill="url(#pebbleGrad)" />
+              <polygon points="230,78 242,74 248,80 236,83" fill="url(#pebbleGrad)" />
+              <polygon points="255,42 266,38 272,43 261,46" fill="url(#pebbleGrad)" />
+              <polygon points="315,50 326,46 332,51 321,54" fill="url(#pebbleGrad)" />
+              <polygon points="335,82 348,77 354,83 341,87" fill="url(#pebbleGrad)" />
+              <polygon points="410,48 422,44 428,49 416,52" fill="url(#pebbleGrad)" />
+              <polygon points="425,78 438,73 444,79 431,83" fill="url(#pebbleGrad)" />
+              <polygon points="495,44 507,40 513,45 501,48" fill="url(#pebbleGrad)" />
+              <polygon points="508,76 520,72 526,77 514,80" fill="url(#pebbleGrad)" />
+              <polygon points="570,48 582,44 588,49 576,52" fill="url(#pebbleGrad)" />
+              <polygon points="630,68 642,64 648,70 636,73" fill="url(#pebbleGrad)" />
             </g>
 
-            {/* --- GRADUAL OUTWARD FADE SPECKS --- */}
-            <g opacity="0.7">
-              <circle cx="115" cy="33" r="1.2" fill="#3D424B" />
-              <circle cx="130" cy="31" r="1.4" fill="#4B515C" />
-              <circle cx="158" cy="32" r="1.6" fill="#5A616F" />
-              <circle cx="215" cy="34" r="1.5" fill="#585E6B" />
-              <circle cx="254" cy="30" r="1.8" fill="#6E7583" />
-              <circle cx="282" cy="32" r="1.4" fill="#4E5460" />
-              <circle cx="332" cy="31" r="1.6" fill="#6A717F" />
-              <circle cx="360" cy="33" r="1.4" fill="#3D424C" />
-              <circle cx="396" cy="32" r="1.8" fill="#626875" />
-              <circle cx="445" cy="31" r="1.5" fill="#4E5460" />
-              <circle cx="480" cy="30" r="1.3" fill="#3D424B" />
-              <circle cx="505" cy="32" r="1.1" fill="#2E333B" />
+            {/* --- 4. ORGANIC DUST & FINE CONCRETE GRAVEL --- */}
+            <g opacity="0.75">
+              <circle cx="125" cy="65" r="1.2" fill="#3D424B" />
+              <circle cx="145" cy="58" r="1.4" fill="#4B515C" />
+              <circle cx="170" cy="72" r="1.6" fill="#5A616F" />
+              <circle cx="190" cy="46" r="1.5" fill="#4B515C" />
+              <circle cx="245" cy="62" r="1.8" fill="#5E6573" />
+              <circle cx="285" cy="45" r="1.5" fill="#4B515C" />
+              <circle cx="310" cy="66" r="2.0" fill="#6A717F" />
+              <circle cx="345" cy="42" r="1.4" fill="#3D424C" />
+              <circle cx="365" cy="76" r="1.8" fill="#5E6573" />
+              <circle cx="395" cy="44" r="1.6" fill="#4B515C" />
+              <circle cx="415" cy="70" r="2.1" fill="#6A717F" />
+              <circle cx="455" cy="46" r="1.5" fill="#4B515C" />
+              <circle cx="475" cy="78" r="1.7" fill="#5E6573" />
+              <circle cx="515" cy="52" r="1.9" fill="#6A717F" />
+              <circle cx="560" cy="72" r="1.6" fill="#5A616F" />
+              <circle cx="595" cy="52" r="1.4" fill="#4B515C" />
+              <circle cx="625" cy="62" r="1.5" fill="#4B515C" />
+              <circle cx="650" cy="56" r="1.2" fill="#3D424B" />
+              <circle cx="675" cy="68" r="1.1" fill="#2E333B" />
             </g>
           </svg>
         </div>

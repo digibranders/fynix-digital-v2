@@ -19,7 +19,7 @@ import TechnicalSeoAudit from "@/components/TechnicalSeoAudit";
 export const metadata: Metadata = {
   // `absolute` bypasses the root layout's "%s | Fynix" template so the
   // homepage <title> is exactly this string.
-  title: { absolute: "Fynix Digital | A digital marketing studio for Growing Brands" },
+  title: { absolute: "Fynix Digital | A digital marketing company for Growing Brands" },
 };
 
 export default function Home() {

@@ -93,16 +93,6 @@ const founders: {
   quote: string;
 }[] = [
   {
-    name: "Siddique Ahmed",
-    role: "Co-Founder",
-    initials: "S",
-    accent: actColors[0], // gold
-    photo: "/siddique.webp",
-    linkedin: "https://www.linkedin.com/in/siddiqueseo",
-    quote:
-      "Digital strategy isn't about following short-term trends — it's about building unfair competitive advantages that compound over years.",
-  },
-  {
     name: "Savita Katiyar",
     role: "Co-Founder",
     initials: "SK",
@@ -112,6 +102,17 @@ const founders: {
     quote:
       "Every design and technical choice must serve a single goal: creating meaningful, measurable business clarity.",
   },
+  {
+    name: "Siddique Ahmed",
+    role: "Co-Founder",
+    initials: "S",
+    accent: actColors[0], // gold
+    photo: "/siddique.webp",
+    linkedin: "https://www.linkedin.com/in/siddiqueseo",
+    quote:
+      "Digital strategy isn't about following short-term trends — it's about building unfair competitive advantages that compound over years.",
+  },
+  
 ];
 
 const values: { numeral: string; title: string; body: string }[] = [
