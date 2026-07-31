@@ -7,9 +7,9 @@ import HeroDarkBackdrop from "@/components/HeroDarkBackdrop";
 import { faqCategories, siteConfig } from "@/lib/content";
 
 export const metadata: Metadata = {
-  title: "Cybersecurity Growth & Web Development FAQs",
+  title: "B2B Growth & Web Development FAQs",
   description:
-    "Answers to the questions cybersecurity leaders most often ask Fynix about website performance, SEO, lead generation, and unified growth systems.",
+    "Answers to the questions B2B leaders most often ask Fynix about website performance, SEO, lead generation, and unified growth systems.",
   alternates: { canonical: "/faqs" },
 };
 

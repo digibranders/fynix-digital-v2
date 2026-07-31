@@ -9,9 +9,9 @@ import HeroDarkBackdrop from "@/components/HeroDarkBackdrop";
 import { faqs, siteConfig } from "@/lib/content";
 
 export const metadata: Metadata = {
-  title: "Contact Fynix Digital | Cybersecurity Growth Agency",
+  title: "Contact Fynix Digital | B2B Growth Agency",
   description:
-    "Brief your project with Fynix. We respond within 24 hours to cybersecurity growth enquiries.",
+    "Brief your project with Fynix. We respond within 24 hours to company growth enquiries.",
   alternates: { canonical: "/contact" },
 };
 
@@ -20,7 +20,7 @@ const contactJsonLd = {
   "@type": "ContactPage",
   name: "Contact Fynix Digital",
   description:
-    "Brief your project with Fynix. We respond within 24 hours to cybersecurity growth enquiries.",
+    "Brief your project with Fynix. We respond within 24 hours to company growth enquiries.",
   url: `${siteConfig.url}/contact`,
   mainEntity: {
     "@type": "ProfessionalService",

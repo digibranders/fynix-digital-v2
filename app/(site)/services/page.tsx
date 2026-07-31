@@ -8,9 +8,9 @@ import HeroDarkBackdrop from "@/components/HeroDarkBackdrop";
 import { acts, siteConfig } from "@/lib/content";
 
 export const metadata: Metadata = {
-  title: "Cybersecurity Web Design, SEO & Growth Services",
+  title: "Web Design, SEO & Growth Services",
   description:
-    "Fynix delivers UI/UX design, custom web development, technical SEO/AEO, and B2B lead generation for cybersecurity companies, delivered as one integrated growth system.",
+    "Fynix delivers UI/UX design, custom web development, technical SEO/AEO, and B2B lead generation for growing companies, delivered as one integrated growth system.",
   alternates: { canonical: "/services" },
 };
 

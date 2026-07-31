@@ -7,9 +7,9 @@ import PreFooterBackdrop from "@/components/PreFooterBackdrop";
 import { siteConfig } from "@/lib/content";
 
 export const metadata: Metadata = {
-  title: "Cybersecurity Case Studies & Proven Results",
+  title: "Case Studies & Proven Results",
   description:
-    "Selected projects across branding, UI/UX, SEO, social, and video: the growth systems Fynix has shipped for cybersecurity and technology product companies.",
+    "Selected projects across branding, UI/UX, SEO, social, and video: the growth systems Fynix has shipped for B2B and technology product companies.",
   alternates: { canonical: "/case-studies" },
 };
 
