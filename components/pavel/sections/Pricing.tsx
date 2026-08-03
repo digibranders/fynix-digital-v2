@@ -6,6 +6,7 @@ import { Container } from "../ui/Container";
 import { Button } from "../ui/Button";
 import { ArrowRight, Check, X } from "lucide-react";
 import { WORKSHOP } from "../workshopDetails";
+import { usePricing } from "../PricingProvider";
 
 const INCLUDED = [
   "Three hours live with Pavel, on Zoom",
@@ -21,6 +22,16 @@ const NOT_INCLUDED = [
 ];
 
 export const Pricing: React.FC = () => {
+  const { price } = usePricing();
+
+  const openCheckout = () => {
+    // Placeholder until a payment provider is chosen: once `checkoutUrl` is
+    // filled in pricing.ts, this opens the hosted checkout for the active region.
+    if (price.checkoutUrl) {
+      window.open(price.checkoutUrl, "_blank", "noopener,noreferrer");
+    }
+  };
+
   return (
     <section
       id="pricing"
@@ -45,7 +56,7 @@ export const Pricing: React.FC = () => {
           <Reveal className="lg:col-span-7">
             <div className="bg-white border border-border rounded-[16px] shadow-[0_1px_2px_rgba(15,14,12,0.04),0_24px_50px_-28px_rgba(15,14,12,0.24)] overflow-hidden">
               <div className="px-8 pt-9 pb-8 md:px-12 md:pt-10 md:pb-10">
-                <div className="flex items-start justify-between gap-6 pb-8 pv-seam">
+                <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between sm:gap-6 pb-8 pv-seam">
                   <div>
                     <p className="font-serif text-[1.75rem] sm:text-[2rem] font-semibold text-primary leading-[1.1]">
                       Workshop seat
@@ -55,12 +66,15 @@ export const Pricing: React.FC = () => {
                       {WORKSHOP.time} ({WORKSHOP.timezone}).
                     </p>
                   </div>
-                  <div className="text-right shrink-0">
-                    <div className="flex items-baseline gap-1.5 justify-end">
+                  <div className="shrink-0 sm:text-right">
+                    <div className="flex items-baseline gap-1.5 sm:justify-end">
                       <span className="font-serif text-[3rem] sm:text-[3.5rem] font-semibold text-primary leading-none tnum">
-                        $79
+                        {price.symbol}
+                        {price.amount}
                       </span>
-                      <span className="text-[13px] text-text-muted">USD</span>
+                      <span className="text-[13px] text-text-muted">
+                        {price.currencyCode}
+                      </span>
                     </div>
                     <p className="text-[12.5px] italic font-normal text-text-muted mt-2">
                       one-time
@@ -111,8 +125,13 @@ export const Pricing: React.FC = () => {
                 </div>
 
                 <div className="pt-9 mt-8 pv-seam-t">
-                  <Button size="lg" variant="primary" className="w-full">
-                    Reserve my seat, $79
+                  <Button
+                    size="lg"
+                    variant="primary"
+                    className="w-full"
+                    onClick={openCheckout}
+                  >
+                    Reserve my seat, {price.display}
                     <ArrowRight className="w-4 h-4" />
                   </Button>
                   <p className="text-center text-[13px] italic font-normal text-text-muted mt-4">

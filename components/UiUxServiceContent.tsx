@@ -243,9 +243,17 @@ export default function UiUxServiceContent({ act }: Props) {
             </div>
 
             <div className="hidden lg:block lg:col-span-5">
-              <ServiceHeroFigure accent={accent}>
-                <UiUxHeroAnimation />
-              </ServiceHeroFigure>
+              {/* Square envelope makes this hero as tall as the SEO hero; the
+                  landscape card is scaled up to fill that height so it never
+                  floats small. Hero section is overflow-hidden, so the slight
+                  horizontal glow spill never causes page scroll. */}
+              <div className="relative mx-auto flex aspect-square w-full max-w-[560px] items-center justify-center">
+                <div className="w-full origin-center scale-[1.18]">
+                  <ServiceHeroFigure accent={accent}>
+                    <UiUxHeroAnimation />
+                  </ServiceHeroFigure>
+                </div>
+              </div>
             </div>
           </div>
         </div>
