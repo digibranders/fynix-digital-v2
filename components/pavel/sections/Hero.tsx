@@ -95,16 +95,13 @@ export const Hero: React.FC = () => {
             <h1 className="text-[2.4rem] leading-[1.04] sm:text-[3.25rem] sm:leading-[1.02] lg:text-[4rem] lg:leading-[1.02] font-medium tracking-[-0.028em] text-primary">
               Stop guessing what Google wants.{" "}
               <span className="font-serif italic font-normal">
-                Learn the system
+                Learn how Google decides
               </span>{" "}
-              that <span className="whitespace-nowrap">engineers relevance.</span>
+              which <span className="whitespace-nowrap">websites deserve to rank.</span>
             </h1>
 
             <p className="text-[1.25rem] sm:text-[1.35rem] text-text-muted leading-[1.55] max-w-[560px] font-normal">
-              Search rewards{" "}
-              <span className="italic font-normal text-primary">entities</span>{" "}
-              and topical coverage, not pages. Semantic SEO lets small sites
-              outrank bigger link budgets.
+              Google rewards websites that thoroughly cover a topic, not just pages with the right keywords.
             </p>
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-1">
