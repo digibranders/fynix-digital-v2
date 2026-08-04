@@ -19,7 +19,7 @@ export const Hero: React.FC = () => {
   return (
     <section
       id="hero"
-      className="relative pt-32 pb-20 md:pt-40 md:pb-24 pv-seam bg-background-soft overflow-hidden"
+      className="relative pt-[44px] pb-20 md:pt-40 md:pb-24 pv-seam bg-background-soft overflow-hidden"
     >
       {/* Full-bleed hero photo. Covers the entire section, stays fully clear
           on the right (where Pavel and the slide are), and fades its left edge
@@ -35,7 +35,7 @@ export const Hero: React.FC = () => {
         }}
       >
         <Image
-          src="/pavel/new_hero.webp"
+          src="/pavel/pavel_hero_new_sharp.webp"
           alt="Pavel Klimakov presenting: What is Semantic SEO?"
           fill
           priority
@@ -97,7 +97,7 @@ export const Hero: React.FC = () => {
               <span className="font-serif italic font-normal">
                 Learn how Google decides
               </span>{" "}
-              which <span className="whitespace-nowrap">websites deserve to rank.</span>
+              which <span className="lg:whitespace-nowrap">websites deserve to rank.</span>
             </h1>
 
             <p className="text-[1.25rem] sm:text-[1.35rem] text-text-muted leading-[1.55] max-w-[560px] font-normal">
@@ -120,19 +120,34 @@ export const Hero: React.FC = () => {
               inline (the full-bleed layer is desktop-only). */}
           <div className="hero-rise-delayed order-1 lg:order-2 lg:col-span-5">
             {/* Mobile-only portrait of Pavel on stage. The desktop hero uses the
-                full-bleed layer above, so this is hidden from lg up. Rendered at
-                its natural ratio so the full standing figure shows without crop. */}
-            <div className="w-full lg:hidden">
+                full-bleed layer above, so this is hidden from lg up. Breaks out of
+                the padded container to span the full viewport width (edge-to-edge,
+                no rounded card), sitting flush under the fixed header. */}
+            <div className="relative left-1/2 -translate-x-1/2 w-screen lg:hidden">
               <Image
-                src="/pavel/pavel_hero_mob.webp"
+                src="/pavel/hero_mobile_sharp.webp"
                 alt="Pavel Klimakov presenting on stage"
-                width={750}
-                height={1581}
+                width={760}
+                height={806}
                 priority
                 quality={82}
                 sizes="100vw"
-                className="w-full h-auto rounded-2xl"
+                className="w-full h-auto"
               />
+              {/* Name label over the photo, matching the Instructor section:
+                  bottom scrim + white name for legibility. */}
+              <div
+                aria-hidden
+                className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-black/75 via-black/25 to-transparent"
+              />
+              <div className="absolute left-5 bottom-6 z-10 text-white">
+                <p className="text-[14px] italic font-normal text-white/75">
+                  Instructor
+                </p>
+                <p className="text-[1.6rem] leading-[1.05] font-semibold tracking-[-0.02em] mt-1">
+                  Pavel Klimakov
+                </p>
+              </div>
             </div>
           </div>
         </div>

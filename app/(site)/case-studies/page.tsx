@@ -59,7 +59,7 @@ export default function CaseStudiesPage() {
         </div>
       </section>
 
-      <section className="relative isolate overflow-hidden pt-16 md:pt-20 pb-20 md:pb-28 bg-transparent">
+      <section className="relative isolate overflow-hidden pt-16 md:pt-20 pb-16 md:pb-20 bg-transparent">
         <PreFooterBackdrop />
         <Reveal className="max-w-4xl mx-auto px-6 text-center">
           <h2 className="font-serif italic text-4xl md:text-5xl text-primary font-medium leading-tight">

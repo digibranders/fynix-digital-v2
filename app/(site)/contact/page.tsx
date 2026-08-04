@@ -138,7 +138,7 @@ export default function ContactPage() {
 
       <section
         aria-labelledby="contact-faq-heading"
-        className="relative isolate overflow-hidden pt-16 md:pt-20 pb-24 md:pb-32 bg-transparent"
+        className="relative isolate overflow-hidden pt-16 md:pt-20 pb-16 md:pb-20 bg-transparent"
       >
         <PreFooterBackdrop />
         <div className="max-w-4xl mx-auto px-6 md:px-12">

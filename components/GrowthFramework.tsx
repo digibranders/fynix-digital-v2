@@ -50,7 +50,7 @@ export default function GrowthFramework() {
     <section
       id="growth-framework"
       aria-labelledby="framework-heading"
-      className="pt-8 md:pt-12 pb-20 md:pb-28 bg-background-soft relative isolate overflow-hidden"
+      className="pt-8 md:pt-12 pb-16 md:pb-20 bg-background-soft relative isolate overflow-hidden"
     >
       <div className="max-w-7xl mx-auto px-6 md:px-12">
         {/* Section Header */}

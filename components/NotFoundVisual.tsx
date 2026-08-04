@@ -316,7 +316,7 @@ export default function NotFoundVisual() {
         {/* Photorealistic Solid Matte "404" Display (Tightly Spaced) */}
         <div className="relative flex items-center justify-center">
           <h1
-            className="font-extrabold text-[96px] sm:text-[128px] md:text-[168px] lg:text-[200px] leading-none tracking-[0.02em] flex items-center justify-center font-sans select-none"
+            className="font-extrabold text-[88px] sm:text-[116px] md:text-[144px] lg:text-[160px] leading-none tracking-[0.02em] flex items-center justify-center font-sans select-none"
             style={{
               color: "#16181B",
               textShadow: isLightOn
@@ -330,7 +330,10 @@ export default function NotFoundVisual() {
         </div>
 
         {/* 1:1 HIGH-FIDELITY ORGANIC CONCRETE RUBBLE FIELD WITH SPATIAL 2D DEPTH */}
-        <div className="absolute -bottom-10 w-full flex justify-center pointer-events-none z-20">
+        {/* Anchored to the wall-to-floor seam (bottom-[38%]) via `fixed`, so the rubble
+            always rests ON the divider line at every screen size — instead of riding up
+            the wall with the "404" on mobile. Centered on the seam with translate-y-1/2. */}
+        <div className="fixed bottom-[38%] inset-x-0 flex justify-center translate-y-1/2 pointer-events-none z-20">
           <svg
             width="760"
             height="110"

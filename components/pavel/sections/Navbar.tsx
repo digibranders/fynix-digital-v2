@@ -39,7 +39,7 @@ export const Navbar: React.FC = () => {
       }`}
     >
       <Container>
-        <div className="flex items-center justify-between h-[68px]">
+        <div className="flex items-center justify-between h-[44px] md:h-[68px]">
           <button
             onClick={() => scrollTo("hero")}
             className="text-[22px] font-semibold tracking-[-0.015em] text-primary leading-none"

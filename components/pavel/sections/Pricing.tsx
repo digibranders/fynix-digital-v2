@@ -63,6 +63,9 @@ export const Pricing: React.FC = () => {
                     </p>
                     <p className="text-[15px] italic font-normal text-text-muted mt-2">
                       Live on {WORKSHOP.platform}, {WORKSHOP.dateLabel},{" "}
+                      {/* Desktop: keep the full time on its own second line so
+                          "10:00 AM" doesn't get stranded on line one. */}
+                      <br className="hidden lg:block" aria-hidden />
                       {WORKSHOP.time} ({WORKSHOP.timezone}).
                     </p>
                   </div>

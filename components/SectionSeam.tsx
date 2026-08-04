@@ -24,7 +24,7 @@ export default function SectionSeam({
   return (
     <div
       aria-hidden
-      className={`w-full h-10 md:h-14 ${className}`}
+      className={`w-full h-10 md:h-14 -my-5 md:-my-7 ${className}`}
       style={{
         background: `linear-gradient(to bottom, ${TOKEN[from]} 0%, ${TOKEN[to]} 100%)`,
       }}

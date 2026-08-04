@@ -156,7 +156,7 @@ export default function TechnicalSeoAudit() {
     <section
       id="technical-seo-audit"
       aria-labelledby="technical-seo-audit-heading"
-      className="relative isolate overflow-hidden scroll-mt-28 bg-transparent pt-8 md:pt-12 pb-24 md:pb-32"
+      className="relative isolate overflow-hidden scroll-mt-28 bg-transparent pt-8 md:pt-12 pb-16 md:pb-20"
     >
       <TechnicalSeoBg />
       <div className="max-w-7xl mx-auto px-6 md:px-12 relative z-10">

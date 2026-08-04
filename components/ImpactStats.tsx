@@ -7,7 +7,7 @@ export default function ImpactStats() {
     <section
       aria-labelledby="impact-heading"
       data-nav-theme="dark"
-      className="py-24 md:py-32 bg-primary text-white"
+      className="py-16 md:py-20 bg-primary text-white"
     >
       <div className="max-w-7xl mx-auto px-6 md:px-12">
         <Reveal>
