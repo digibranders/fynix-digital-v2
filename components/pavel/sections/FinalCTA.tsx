@@ -5,6 +5,7 @@ import Reveal from "@/components/Reveal";
 import { Container } from "../ui/Container";
 import { ArrowRight } from "lucide-react";
 import { WORKSHOP } from "../workshopDetails";
+import { usePricing } from "../PricingProvider";
 
 const FACTS = [
   { label: "Date", value: WORKSHOP.dateLabel },
@@ -14,6 +15,8 @@ const FACTS = [
 ];
 
 export const FinalCTA: React.FC = () => {
+  const { price } = usePricing();
+
   const scrollTo = (id: string) => {
     const el = document.getElementById(id);
     if (el) el.scrollIntoView({ behavior: "smooth" });
@@ -66,11 +69,11 @@ export const FinalCTA: React.FC = () => {
               onClick={() => scrollTo("pricing")}
               className="inline-flex items-center gap-3 px-8 py-4 text-[15px] font-medium bg-accent text-primary rounded-full shadow-sm cta-primary hover:bg-accent-hover transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
             >
-              Reserve my seat, {WORKSHOP.price}
+              Reserve my seat, {price.display}
               <ArrowRight className="w-4 h-4" />
             </button>
             <p className="text-[13px] italic text-white/55">
-              {WORKSHOP.price} one-time &middot; live-only &middot; seats are capped.
+              {price.display} one-time &middot; live-only &middot; seats are capped.
             </p>
           </div>
         </Reveal>

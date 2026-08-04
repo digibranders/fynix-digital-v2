@@ -20,10 +20,10 @@ export function generateStaticParams(): Params[] {
 }
 
 const serviceTitles: Record<Act["slug"], string> = {
-  "ui-ux": "Cybersecurity UI/UX Design & Product Strategy",
-  development: "Custom Cybersecurity Web Development & Core Web Vitals",
-  seo: "Technical SEO & Answer Engine Optimisation (AEO) for Cybersecurity",
-  "lead-generation": "B2B Cybersecurity Lead Generation & Demand Gen",
+  "ui-ux": "UI/UX Design & Product Strategy",
+  development: "Custom Web Development & Core Web Vitals",
+  seo: "Technical SEO & Answer Engine Optimisation (AEO)",
+  "lead-generation": "B2B Lead Generation & Demand Gen",
 };
 
 export async function generateMetadata(

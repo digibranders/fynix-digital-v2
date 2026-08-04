@@ -8,6 +8,15 @@ import { actAccents } from "@/components/ActsStack";
 
 type Props = { acts: Act[] };
 
+/**
+ * Show only the descriptive part of an act subtitle in the preview panels —
+ * e.g. "Act 2: Performance Keeps the Promise" → "Performance Keeps the Promise".
+ * The raw subtitle is left untouched in the data (still used elsewhere, e.g.
+ * the service page's OpenGraph title).
+ */
+const actSubtitleDescription = (subtitle: string): string =>
+  subtitle.replace(/^Act\s+\d+:\s*/, "");
+
 const DEFAULT_ACTIVE: Act["slug"] = "ui-ux";
 const MOBILE_STICKY_TOP_BASE = 80;
 const MOBILE_STACK_PEEK = 48;
@@ -85,7 +94,7 @@ export default function ActPreviewPanels({ acts }: Props) {
               data-active={isActive}
               style={style}
               className="act-panel group relative overflow-hidden border-r border-border last:border-r-0"
-              aria-label={`${act.title} · Act ${act.num}`}
+              aria-label={`${act.title} . Act ${act.num}`}
             >
               <span aria-hidden className="act-panel__spine" />
               <span aria-hidden className="act-panel__wash" />
@@ -98,7 +107,7 @@ export default function ActPreviewPanels({ acts }: Props) {
 
               <div className="act-panel__collapsed">
                 <span className="font-mono text-[10px] uppercase tracking-widest text-text-muted whitespace-nowrap">
-                  Act {act.num}
+                  {act.num}
                 </span>
                 <h3 className="act-panel__vtitle font-serif text-3xl md:text-[2.25rem] text-primary font-medium">
                   {act.title}
@@ -111,7 +120,7 @@ export default function ActPreviewPanels({ acts }: Props) {
                   {act.title}
                 </h3>
                 <p className="text-base md:text-lg text-text-muted font-normal mt-5 leading-relaxed max-w-sm">
-                  {act.subtitle}
+                  {actSubtitleDescription(act.subtitle)}
                 </p>
                 <ul className="mt-7 grid grid-cols-1 gap-y-2.5">
                   {act.deliverables.slice(0, 4).map((d) => (
@@ -179,7 +188,7 @@ export default function ActPreviewPanels({ acts }: Props) {
               {/* Header row */}
               <div className="flex items-center justify-between gap-2 mb-3">
                 <span className="font-mono text-xs uppercase tracking-widest text-accent font-semibold">
-                  Act {act.num}
+                  {act.num}
                 </span>
                 <span aria-hidden className="h-px flex-1 bg-border/60 ml-3" />
               </div>
@@ -189,7 +198,7 @@ export default function ActPreviewPanels({ acts }: Props) {
                 {act.title}
               </h3>
               <p className="text-sm text-text-muted font-normal mt-2 leading-relaxed">
-                {act.subtitle}
+                {actSubtitleDescription(act.subtitle)}
               </p>
 
               {/* Deliverables list */}

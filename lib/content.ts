@@ -486,7 +486,7 @@ export type CaseStudy = {
 export const caseStudies: CaseStudy[] = [
   {
     slug: "eventus",
-    name: "Eventus Platform",
+    name: "Eventus Security",
     url: "https://eventussecurity.com/",
     domain: "eventussecurity.com",
     description: "AI-powered threat detection and security platform",

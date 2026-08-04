@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Container } from "../ui/Container";
 import { Button } from "../ui/Button";
 import { ArrowRight, Menu, X } from "lucide-react";
+import { usePricing } from "../PricingProvider";
 
 const NAV_ITEMS = [
   { id: "problem", label: "The Problem" },
@@ -15,6 +16,7 @@ const NAV_ITEMS = [
 export const Navbar: React.FC = () => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { price } = usePricing();
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -60,7 +62,7 @@ export const Navbar: React.FC = () => {
 
           <div className="hidden md:flex items-center">
             <Button size="md" variant="primary" onClick={() => scrollTo("pricing")}>
-              Reserve seat, $79
+              Reserve seat, {price.display}
               <ArrowRight className="w-3.5 h-3.5" />
             </Button>
           </div>
@@ -92,7 +94,7 @@ export const Navbar: React.FC = () => {
                 className="w-full"
                 onClick={() => scrollTo("pricing")}
               >
-                Reserve seat, $79
+                Reserve seat, {price.display}
               </Button>
             </div>
           </div>

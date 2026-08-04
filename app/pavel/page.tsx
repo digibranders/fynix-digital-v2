@@ -1,5 +1,11 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import "./pavel.css";
+import { PricingProvider } from "@/components/pavel/PricingProvider";
+import {
+  regionFromCountry,
+  regionFromParam,
+} from "@/components/pavel/pricing";
 import { Navbar } from "@/components/pavel/sections/Navbar";
 import { Hero } from "@/components/pavel/sections/Hero";
 import { Instructor } from "@/components/pavel/sections/Instructor";
@@ -27,22 +33,39 @@ export const metadata: Metadata = {
   },
 };
 
-export default function PavelWorkshopPage() {
+export default async function PavelWorkshopPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ region?: string }>;
+}) {
+  // Auto-detect the visitor's region from Vercel's edge geo header so the
+  // correct price is server-rendered on the single /pavel URL. `?region=in`
+  // (or `rest`) overrides detection for local dev and QA of both variants.
+  const [{ region: regionParam }, headerList] = await Promise.all([
+    searchParams,
+    headers(),
+  ]);
+  const initialRegion =
+    regionFromParam(regionParam) ??
+    regionFromCountry(headerList.get("x-vercel-ip-country"));
+
   return (
-    <div className="min-h-screen bg-background-soft text-primary tnum">
-      <Navbar />
-      <Hero />
-      <Problem />
-      <Instructor />
-      <Shift />
-      <Curriculum />
-      <Testimonials />
-      <Audience />
-      <Deliverables />
-      <Pricing />
-      <FAQ />
-      <FinalCTA />
-      <Footer />
-    </div>
+    <PricingProvider initialRegion={initialRegion}>
+      <div className="min-h-screen bg-background-soft text-primary tnum">
+        <Navbar />
+        <Hero />
+        <Problem />
+        <Instructor />
+        <Shift />
+        <Curriculum />
+        <Testimonials />
+        <Audience />
+        <Deliverables />
+        <Pricing />
+        <FAQ />
+        <FinalCTA />
+        <Footer />
+      </div>
+    </PricingProvider>
   );
 }
