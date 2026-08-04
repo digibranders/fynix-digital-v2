@@ -384,7 +384,7 @@ export default function AboutPage() {
       <SectionSeam from="soft" to="white" />
 
       {/* ─── CLOSING CTA ─────────────────────────────────────── */}
-      <section className="relative isolate overflow-hidden pt-12 md:pt-16 pb-24 md:pb-32 bg-transparent">
+      <section className="relative isolate overflow-hidden pt-12 md:pt-16 pb-16 md:pb-20 bg-transparent">
         <PreFooterBackdrop />
         <div className="relative max-w-4xl mx-auto px-6 md:px-12 text-center">
           <Reveal>

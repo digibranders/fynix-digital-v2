@@ -105,7 +105,7 @@ export default function TestimonialsRail() {
   return (
     <section
       aria-labelledby="testimonials-heading"
-      className="pt-24 md:pt-32 pb-16 md:pb-20 bg-background-soft"
+      className="pt-16 md:pt-20 pb-16 md:pb-20 bg-background-soft"
     >
       <div className="max-w-6xl mx-auto px-6 md:px-12">
         <Reveal>

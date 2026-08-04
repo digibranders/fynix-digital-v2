@@ -24,7 +24,7 @@ const CTA_REVEAL_STYLES = `
 // case-studies pages via `SpotlightBackdrop`.
 export default function SpotlightInitiation() {
   return (
-    <section className="relative isolate overflow-hidden pt-16 md:pt-20 pb-24 md:pb-32 bg-transparent">
+    <section className="relative isolate overflow-hidden pt-16 md:pt-20 pb-16 md:pb-20 bg-transparent">
       <style>{CTA_REVEAL_STYLES}</style>
       <SpotlightBackdrop />
 

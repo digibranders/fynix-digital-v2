@@ -62,8 +62,8 @@ export const metadata: Metadata = {
       {
         url: `${siteConfig.url}/og-image.jpg`,
         width: 1200,
-        height: 630,
-        alt: "Fynix Digital - A digital marketing studio for Growing Brands",
+        height: 800,
+        alt: "Fynix Digital - Digital marketing that helps brands grow",
       },
     ],
   },

@@ -182,7 +182,7 @@ export default async function ServiceDetailPage(
       </section>
 
       {/* NARRATIVE */}
-      <section className="py-24 md:py-32 bg-white">
+      <section className="py-16 md:py-20 bg-white">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
             <Reveal className="lg:col-span-4">
@@ -216,7 +216,7 @@ export default async function ServiceDetailPage(
       {/* PROOF STRIP */}
       <section
         id="proof"
-        className="py-24 md:py-32 bg-background-soft"
+        className="py-16 md:py-20 bg-background-soft"
       >
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
@@ -285,7 +285,7 @@ export default async function ServiceDetailPage(
       <SectionSeam from="soft" to="white" />
 
       {/* DELIVERABLES */}
-      <section className="py-24 md:py-32 bg-white">
+      <section className="py-16 md:py-20 bg-white">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <Reveal className="mb-16 border-b border-border pb-8">
             <span className="text-xs font-mono uppercase tracking-widest text-accent font-semibold">
@@ -319,7 +319,7 @@ export default async function ServiceDetailPage(
       <SectionSeam from="white" to="soft" />
 
       {/* HOW THIS ACT RUNS */}
-      <section className="py-24 md:py-32 bg-background-soft">
+      <section className="py-16 md:py-20 bg-background-soft">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <Reveal className="mb-16 border-b border-border pb-8">
             <span className="text-xs font-mono uppercase tracking-widest text-accent font-semibold">
@@ -362,7 +362,7 @@ export default async function ServiceDetailPage(
 
       {/* FAQ */}
       {actFaqs.length ? (
-        <section className="py-24 md:py-32 bg-white">
+        <section className="py-16 md:py-20 bg-white">
           <div className="max-w-7xl mx-auto px-6 md:px-12">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
               <Reveal className="lg:col-span-4">
@@ -399,7 +399,7 @@ export default async function ServiceDetailPage(
       ) : null}
 
       {/* OTHER ACTS */}
-      <section className="py-24 md:py-32 bg-white">
+      <section className="py-16 md:py-20 bg-white">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <Reveal className="mb-16 border-b border-border pb-8">
             <h2 className="font-serif text-2xl sm:text-3xl md:text-5xl text-primary font-medium max-w-2xl text-balance line-clamp-2">
@@ -436,7 +436,7 @@ export default async function ServiceDetailPage(
       </section>
 
       {/* CTA */}
-      <section className="relative isolate overflow-hidden py-24 md:py-32 bg-transparent">
+      <section className="relative isolate overflow-hidden py-16 md:py-20 bg-transparent">
         <PreFooterBackdrop />
         <Reveal className="max-w-4xl mx-auto px-6 text-center">
           <h2 className="font-serif italic text-3xl md:text-5xl text-primary font-medium leading-tight">

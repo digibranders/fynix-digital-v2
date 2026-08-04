@@ -359,7 +359,7 @@ export default async function CaseStudyDetailPage({
       )}
 
       {/* PRE-FOOTER CTA */}
-      <section className="relative isolate overflow-hidden py-24 md:py-32 bg-transparent">
+      <section className="relative isolate overflow-hidden py-16 md:py-20 bg-transparent">
         <PreFooterBackdrop />
         <Reveal className="max-w-4xl mx-auto px-6 text-center">
           <h2 className="font-serif italic text-3xl md:text-5xl text-primary font-medium leading-tight">

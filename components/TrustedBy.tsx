@@ -6,7 +6,7 @@ export default function TrustedBy() {
   return (
     <section
       aria-labelledby="trusted-by-heading"
-      className="pt-20 md:pt-28 pb-16 md:pb-20 bg-white"
+      className="pt-16 md:pt-20 pb-16 md:pb-20 bg-white"
     >
       <div className="max-w-7xl mx-auto px-6 md:px-12">
         <Reveal>

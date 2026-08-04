@@ -433,7 +433,7 @@ export default function UiUxServiceContent({ act }: Props) {
       <SectionSeam from="soft" to="white" />
 
       {/* FINAL CTA */}
-      <section className="relative isolate overflow-hidden pt-12 md:pt-16 pb-24 md:pb-32 bg-transparent">
+      <section className="relative isolate overflow-hidden pt-12 md:pt-16 pb-16 md:pb-20 bg-transparent">
         <PreFooterBackdrop />
         <Reveal className="max-w-4xl mx-auto px-6 text-center">
           <h2 className="font-serif italic text-3xl md:text-5xl text-primary font-medium leading-tight">

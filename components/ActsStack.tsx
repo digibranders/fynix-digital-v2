@@ -35,7 +35,7 @@ export default function ActsStack({ acts }: Props) {
               }}
             >
               <span className="font-mono text-xs uppercase tracking-widest text-text-muted tabular-nums">
-                Act {act.num}
+                {act.num}
               </span>
               <span aria-hidden className="h-3 w-px bg-border" />
               <span className="font-serif italic text-lg md:text-xl text-primary">
