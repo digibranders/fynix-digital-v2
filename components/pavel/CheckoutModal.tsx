@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { X, ArrowRight, Loader2, CheckCircle2 } from "lucide-react";
+import { X, ArrowRight, Loader2 } from "lucide-react";
 import { usePricing } from "@/components/pavel/PricingProvider";
 import { Button } from "@/components/pavel/ui/Button";
 
