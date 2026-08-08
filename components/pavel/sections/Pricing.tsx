@@ -1,35 +1,36 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Reveal from "@/components/Reveal";
 import { Container } from "../ui/Container";
 import { Button } from "../ui/Button";
 import { ArrowRight, Check, X } from "lucide-react";
 import { WORKSHOP } from "../workshopDetails";
 import { usePricing } from "../PricingProvider";
+import { CheckoutModal } from "../CheckoutModal";
 
 const INCLUDED = [
   "Three hours live with Pavel, on Zoom",
-  "Live Q&amp;A during the session",
-  "Workbook and topical map template",
+  "Live Q&A during the session",
   "Full slide deck and detailed notes",
   "A repeatable process you can apply the same week",
 ];
 
 const NOT_INCLUDED = [
   "Session recording (this is a live-only event)",
-  "Refunds if you cannot attend live",
+  "Refunds (no refunds for this live event)",
 ];
 
 export const Pricing: React.FC = () => {
   const { price } = usePricing();
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const openCheckout = () => {
-    // Placeholder until a payment provider is chosen: once `checkoutUrl` is
-    // filled in pricing.ts, this opens the hosted checkout for the active region.
-    if (price.checkoutUrl) {
-      window.open(price.checkoutUrl, "_blank", "noopener,noreferrer");
-    }
+    // if (price.checkoutUrl) {
+    //   window.open(price.checkoutUrl, "_blank", "noopener,noreferrer");
+    // } else {
+    //   setIsModalOpen(true);
+    // }
   };
 
   return (
@@ -137,12 +138,8 @@ export const Pricing: React.FC = () => {
                     Reserve my seat, {price.display}
                     <ArrowRight className="w-4 h-4" />
                   </Button>
-                  <p className="text-center text-[13px] italic font-normal text-text-muted mt-4">
-                    Only {WORKSHOP.seats} seats. We may extend depending on
-                    demand.
-                  </p>
-                  <p className="text-center text-[12px] font-normal text-text-muted mt-2">
-                    Live-only · no recording · no refunds for missed sessions.{" "}
+                  <p className="text-center text-[12px] font-normal text-text-muted mt-4">
+                    Live-only &middot; no recording &middot; no refunds.{" "}
                     <a
                       href="/terms"
                       className="underline decoration-[#565D64]/40 underline-offset-2 hover:text-text-muted hover:decoration-[#565D64]"
@@ -158,6 +155,7 @@ export const Pricing: React.FC = () => {
           </Reveal>
         </div>
       </Container>
+      <CheckoutModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </section>
   );
 };

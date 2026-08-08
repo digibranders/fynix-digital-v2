@@ -143,6 +143,26 @@ export default function RootLayout({
             __html: JSON.stringify(webSiteJsonLd),
           }}
         />
+        {/* Suppress unhandled promise rejections injected by browser extensions (e.g. MetaMask inpage.js) */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if (typeof window !== 'undefined') {
+                window.addEventListener('unhandledrejection', function(event) {
+                  var reason = event.reason;
+                  var reasonStr = reason ? String(reason.message || reason.stack || reason) : '';
+                  if (
+                    reasonStr.includes('MetaMask') ||
+                    reasonStr.includes('nkbihfbeogaeaoehlefnkodbefgpgknn') ||
+                    (reason && reason.stack && reason.stack.includes('chrome-extension://'))
+                  ) {
+                    event.preventDefault();
+                  }
+                });
+              }
+            `,
+          }}
+        />
       </head>
       <body className="min-h-full flex flex-col bg-background text-foreground selection:bg-accent selection:text-white">
         {children}

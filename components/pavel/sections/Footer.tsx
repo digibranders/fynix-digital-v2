@@ -80,7 +80,7 @@ export const Footer: React.FC = () => {
               href="mailto:hello@pavelklimakov.com"
               className="block text-[14px] text-white hover:underline underline-offset-4"
             >
-              hello@pavelklimakov.com
+              hello@fynix.digital
             </a>
           </div>
         </div>

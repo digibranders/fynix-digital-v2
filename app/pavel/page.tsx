@@ -19,12 +19,13 @@ import { Pricing } from "@/components/pavel/sections/Pricing";
 import { FAQ } from "@/components/pavel/sections/FAQ";
 import { FinalCTA } from "@/components/pavel/sections/FinalCTA";
 import { Footer } from "@/components/pavel/sections/Footer";
+import { MobileStickyBanner } from "@/components/pavel/sections/MobileStickyBanner";
 
 export const metadata: Metadata = {
   title:
     "Semantic SEO Workshop with Pavel Klimakov. Stop Guessing What Google Wants.",
   description:
-    "A 3-hour live workshop on the Semantic SEO framework. Learn how Google actually evaluates content, build topical authority, and rank without out-spending competitors on links. $79. 100 seats. Live on Zoom.",
+    "A 3-hour live workshop on the Semantic SEO framework. Learn how Google actually evaluates content, build topical authority, and rank without out-spending competitors on links. $99. Live on Zoom.",
   openGraph: {
     title: "Semantic SEO Workshop with Pavel Klimakov",
     description:
@@ -56,8 +57,8 @@ export default async function PavelWorkshopPage({
         <Hero />
         <Problem />
         <Instructor />
-        <Shift />
         <Curriculum />
+        <Shift />
         <Testimonials />
         <Audience />
         <Deliverables />
@@ -65,6 +66,7 @@ export default async function PavelWorkshopPage({
         <FAQ />
         <FinalCTA />
         <Footer />
+        <MobileStickyBanner />
       </div>
     </PricingProvider>
   );

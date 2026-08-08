@@ -5,9 +5,8 @@ import Image from "next/image";
 import Reveal from "@/components/Reveal";
 import { Container } from "../ui/Container";
 
-// Collage layout: 3 cols x 2 rows on desktop. Col 1 is a solo tall portrait
-// (row-span-2); cols 2 & 3 each hold two stacked images. Five photos total,
-// Koray (framework originator) first, then Pavel's on-stage conference shots.
+// Collage layout: 4 cols x 2 rows on desktop.
+// Col 1 (solo tall portrait) & Col 4 (solo tall portrait); cols 2 & 3 hold stacked images.
 const COLLAGE = [
   {
     src: "/pavel/pavel-seo-vibes-summit-2025.webp",
@@ -16,28 +15,34 @@ const COLLAGE = [
     span: "solo",
   },
   {
-    src: "/pavel/korey1.webp",
-    alt: "Koray Tuğberk Gübür, framework originator",
-    caption: "Koray Tuğberk Gübür",
-    span: "third",
+    src: "/pavel/pavel-koray-together.jpg",
+    alt: "Koray Tuğberk Gübür and Pavel Klimakov together",
+    caption: "Koray Tuğberk Gübür & Pavel Klimakov",
+    span: "standard",
   },
   {
-    src: "/pavel/Kulturalnie-o-SEO-warsaw-pavel.webp",
-    alt: "Pavel presenting at Kulturalnie o SEO, Warsaw",
-    caption: "Kulturalnie o SEO, Warsaw",
-    span: "third",
-  },
-  {
-    src: "/pavel/seo-vibes-zakopane.webp",
-    alt: "SEO Vibes conference, Zakopane",
-    caption: "SEO Vibes, Zakopane",
-    span: "third",
+    src: "/pavel/pavel_new.jpeg",
+    alt: "Pavel Klimakov presenting at SEO conference",
+    caption: "SEO Conference, Warsaw",
+    span: "standard",
   },
   {
     src: "/pavel/pavel-seo-mastery-summit-2025.webp",
     alt: "SEO Mastery Summit, 2025",
     caption: "SEO Mastery Summit, 2025",
-    span: "third",
+    span: "solo",
+  },
+  {
+    src: "/pavel/korey1.webp",
+    alt: "Koray Tuğberk Gübür, framework originator",
+    caption: "Koray Tuğberk Gübür",
+    span: "standard",
+  },
+  {
+    src: "/pavel/seo-vibes-zakopane.webp",
+    alt: "SEO Vibes conference, Zakopane",
+    caption: "SEO Vibes, Zakopane",
+    span: "standard",
   },
 ];
 
@@ -53,12 +58,12 @@ export const Instructor: React.FC = () => {
           <Reveal className="lg:col-span-5">
             <div className="relative rounded-[16px] overflow-hidden aspect-[4/5] shadow-[0_1px_2px_rgba(15,14,12,0.06),0_24px_50px_-24px_rgba(15,14,12,0.28)]">
               <Image
-                src="/pavel/pavel-klimakov.webp"
-                alt="Pavel Klimakov"
+                src="/pavel/Kulturalnie-o-SEO-warsaw-pavel.webp"
+                alt="Pavel Klimakov interview at Kulturalnie o SEO"
                 fill
                 sizes="(min-width: 1024px) 40vw, 100vw"
                 priority
-                className="object-cover object-top scale-[1.35]"
+                className="object-cover object-[center_25%]"
               />
               <div
                 aria-hidden
@@ -100,16 +105,16 @@ export const Instructor: React.FC = () => {
           </Reveal>
         </div>
 
-        {/* 3-column collage: 1 tall portrait + 2 stacked columns of 2 */}
+        {/* 4-column collage: Col 1 & Col 4 tall solo portraits + 2 middle stacked columns */}
         <Reveal
           delay={100}
-          className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 auto-rows-[180px] md:auto-rows-[210px] lg:auto-rows-[240px]"
+          className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 auto-rows-[180px] md:auto-rows-[210px] lg:auto-rows-[240px]"
         >
           {COLLAGE.map((item, i) => (
             <figure
               key={i}
               className={`relative rounded-2xl overflow-hidden bg-background-soft group ${
-                item.span === "solo" ? "md:row-span-2" : ""
+                item.span === "solo" ? "lg:row-span-2" : ""
               }`}
             >
               <Image
