@@ -15,13 +15,13 @@ const COLLAGE = [
     span: "solo",
   },
   {
-    src: "/pavel/pavel-koray-together.jpg",
+    src: "/pavel/pavel-koray-together.webp",
     alt: "Koray Tuğberk Gübür and Pavel Klimakov together",
     caption: "Koray Tuğberk Gübür & Pavel Klimakov",
     span: "standard",
   },
   {
-    src: "/pavel/pavel_new.jpeg",
+    src: "/pavel/pavel_new.webp",
     alt: "Pavel Klimakov presenting at SEO conference",
     caption: "SEO Conference, Warsaw",
     span: "standard",
