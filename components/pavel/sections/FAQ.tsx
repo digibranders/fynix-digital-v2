@@ -19,12 +19,8 @@ const FAQS = [
     a: "No. There are no recordings. We will share notes and the slide deck with attendees after the workshop.",
   },
   {
-    q: "How big is the group?",
-    a: "Seats are capped at 100 to keep the session focused and interactive. We may extend the cap depending on demand.",
-  },
-  {
     q: "What if I cannot attend live?",
-    a: "We do not record the session. If you miss the event we will not refund the amount. Please be one hundred percent sure before you make the payment.",
+    a: "We do not record the session and there are no refunds for this live workshop. Please be 100% sure before reserving your seat.",
   },
 ];
 

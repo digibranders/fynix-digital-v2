@@ -4,9 +4,9 @@ import { withSentryConfig } from "@sentry/nextjs";
 const nextConfig: NextConfig = {
   images: {
     formats: ["image/avif", "image/webp"],
-    // Hero art is served at quality 90; Next 16 requires every quality used to
+    // Hero art is served at quality 90 and 82; Next 16 requires every quality used to
     // be declared explicitly (75 stays available as the default).
-    qualities: [75, 90],
+    qualities: [75, 82, 90],
   },
   async headers() {
     const isDev = process.env.NODE_ENV === "development";

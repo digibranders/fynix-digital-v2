@@ -39,9 +39,9 @@ export const PRICING: Record<Region, PriceInfo> = {
   REST: {
     region: "REST",
     symbol: "$",
-    amount: "79",
+    amount: "99",
     currencyCode: "USD",
-    display: "$79",
+    display: "$99",
     checkoutUrl: "",
   },
 };

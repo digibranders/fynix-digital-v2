@@ -1,19 +1,27 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Home, Compass } from "lucide-react";
 import Logo from "@/components/Logo";
 
+const prefersReducedMotion = () =>
+  typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
 export default function NotFoundVisual() {
   const [isLightOn, setIsLightOn] = useState(true);
   const [isPulling, setIsPulling] = useState(false);
+  const [mascotIsVisible, setMascotIsVisible] = useState(false);
+  const [isLeaving, setIsLeaving] = useState(false);
+  const [pendingDestination, setPendingDestination] = useState<string | null>(null);
   const [pullY, setPullY] = useState(0); // 0 to 26px extension
   const [swayAngle, setSwayAngle] = useState(0); // Rotational & wave jiggle displacement
   const animFrameRef = useRef<number | null>(null);
+  const leaveTimerRef = useRef<number | null>(null);
 
   // Trigger physics jiggle on initial mount & pull release
-  const triggerPhysicsJiggle = () => {
+  const triggerPhysicsJiggle = useCallback(() => {
+    if (prefersReducedMotion()) return;
     const startTime = performance.now();
     const duration = 1600; // ms
 
@@ -37,7 +45,7 @@ export default function NotFoundVisual() {
 
     if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
     animFrameRef.current = requestAnimationFrame(animate);
-  };
+  }, []);
 
   useEffect(() => {
     // Initial mount physics entrance jiggle
@@ -46,22 +54,57 @@ export default function NotFoundVisual() {
     }, 150);
     return () => {
       clearTimeout(timer);
+      if (leaveTimerRef.current) clearTimeout(leaveTimerRef.current);
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
     };
-  }, []);
+  }, [triggerPhysicsJiggle]);
 
-  const handlePullStart = (e: React.MouseEvent | React.TouchEvent) => {
+  const completeExit = () => {
+    if (pendingDestination) {
+      window.location.assign(pendingDestination);
+      return;
+    }
+
+    const cameFromThisSite = document.referrer.startsWith(window.location.origin);
+    if (cameFromThisSite && window.history.length > 1) {
+      window.history.back();
+      return;
+    }
+
+    window.location.assign("/");
+  };
+
+  const handlePullStart = (e: React.PointerEvent<HTMLButtonElement>) => {
     e.stopPropagation();
     if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
     setIsPulling(true);
     setPullY(26);
-    setIsLightOn((prev) => !prev);
   };
 
   const handlePullEnd = () => {
     setIsPulling(false);
     setPullY(0);
     triggerPhysicsJiggle();
+  };
+
+  const handleLightToggle = () => {
+    if (isLeaving) return;
+
+    const turnsLightOff = isLightOn;
+    setIsLightOn((current) => !current);
+
+    if (!turnsLightOff || !mascotIsVisible) return;
+
+    setIsLeaving(true);
+    leaveTimerRef.current = window.setTimeout(completeExit, prefersReducedMotion() ? 0 : 850);
+  };
+
+  const handleExitAttempt = (event: React.MouseEvent<HTMLAnchorElement>, destination: string) => {
+    if (!isLightOn || isLeaving) return;
+
+    event.preventDefault();
+    setPendingDestination(destination);
+    setMascotIsVisible(true);
   };
 
   // Calculate SVG curve coordinates for realistic rope flex
@@ -161,7 +204,7 @@ export default function NotFoundVisual() {
 
       {/* TOP HEADER: Authentic Fynix Logo */}
       <header className="relative z-40 w-full max-w-7xl px-6 py-5 flex items-center justify-between pointer-events-auto">
-        <Link href="/" className="inline-flex items-center group">
+        <Link href="/" onClick={(event) => handleExitAttempt(event, "/")} className="inline-flex items-center group">
           <Logo
             className="h-8 md:h-9 w-auto transition-colors duration-500"
             style={{ color: isLightOn ? "#0C1E2E" : "#FFFFFF" }}
@@ -255,15 +298,17 @@ export default function NotFoundVisual() {
         </div>
 
         {/* 🌟 CEILING-PINNED BORDERLESS PHOTOREALISTIC SVG PULL STRING (NO STROKE OUTLINES!) */}
-        <div
+        <button
+          type="button"
           className="absolute top-0 right-[calc(50%-88px)] sm:right-[calc(50%-96px)] md:right-[calc(50%-104px)] pointer-events-auto group cursor-grab active:cursor-grabbing"
-          onMouseDown={handlePullStart}
-          onMouseUp={handlePullEnd}
-          onMouseLeave={handlePullEnd}
-          onTouchStart={handlePullStart}
-          onTouchEnd={handlePullEnd}
-          title="Pull string down to toggle light"
-          style={{ width: "80px", height: "200px" }}
+          onPointerDown={handlePullStart}
+          onPointerUp={handlePullEnd}
+          onPointerCancel={handlePullEnd}
+          onPointerLeave={handlePullEnd}
+          onClick={handleLightToggle}
+          aria-label={isLightOn ? "Pull the lamp cord to turn off the light" : "Pull the lamp cord to turn on the light"}
+          disabled={isLeaving}
+          style={{ width: "80px", height: "200px", background: "transparent", border: 0, padding: 0 }}
         >
           <svg width="80" height="200" viewBox="0 0 80 200" fill="none" className="overflow-visible">
             <defs>
@@ -308,8 +353,52 @@ export default function NotFoundVisual() {
               />
             </g>
           </svg>
+        </button>
+      </div>
+
+      <div
+        className="absolute right-0 top-[15%] sm:top-[18%] z-40 pointer-events-none"
+        style={{
+          opacity: mascotIsVisible && !isLeaving ? 1 : 0,
+          transform: mascotIsVisible && !isLeaving ? "translateX(0)" : "translateX(105%)",
+          transition: prefersReducedMotion() ? "none" : "opacity 220ms ease, transform 700ms cubic-bezier(0.22, 1, 0.36, 1)",
+        }}
+        aria-hidden="true"
+      >
+        <div className="relative h-[238px] w-[188px] sm:h-[278px] sm:w-[220px]">
+          <svg viewBox="0 0 220 278" className="absolute inset-0 h-full w-full" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <radialGradient id="mascotFur" cx="30%" cy="22%" r="80%">
+                <stop offset="0" stopColor="#FFE68D" />
+                <stop offset="0.55" stopColor="#F4BC29" />
+                <stop offset="1" stopColor="#C9820A" />
+              </radialGradient>
+              <filter id="mascotShadow" x="-30%" y="-20%" width="160%" height="150%">
+                <feDropShadow dx="-5" dy="8" stdDeviation="7" floodColor="#4A3210" floodOpacity="0.25" />
+              </filter>
+            </defs>
+            <g filter="url(#mascotShadow)">
+              <path d="M57 30C76 4 113 -4 142 11C173 27 186 67 180 126C176 170 152 219 113 239C83 254 51 243 32 219C6 185 -1 138 12 93C22 59 37 40 57 30Z" fill="url(#mascotFur)" />
+              <g stroke="#F7C83D" strokeWidth="7" strokeLinecap="round" opacity="0.9"><path d="M59 31l-12-18M72 25l-6-22M86 21V1M100 20l8-19M113 23l16-17M126 29l20-11" /></g>
+              <g fill="#F9D85C" opacity="0.7"><circle cx="43" cy="75" r="4" /><circle cx="57" cy="52" r="3" /><circle cx="36" cy="105" r="3" /><circle cx="69" cy="188" r="4" /><circle cx="48" cy="167" r="3" /><circle cx="103" cy="218" r="3" /></g>
+              <ellipse cx="90" cy="96" rx="22" ry="26" fill="#FFFDF5" /><ellipse cx="94" cy="100" rx="15" ry="19" fill="#15181C" /><ellipse cx="100" cy="92" rx="5" ry="7" fill="#FFFFFF" />
+              <ellipse cx="139" cy="81" rx="22" ry="26" fill="#FFFDF5" /><ellipse cx="143" cy="85" rx="15" ry="19" fill="#15181C" /><ellipse cx="149" cy="77" rx="5" ry="7" fill="#FFFFFF" />
+              <path d="M78 67q8-9 16-2M127 51q9-8 17 0" stroke="#2B2115" strokeWidth="5" strokeLinecap="round" fill="none" />
+              <path d="M103 132q15 18 31-1" stroke="#251B14" strokeWidth="4" strokeLinecap="round" fill="none" />
+              <path d="M143 157c17-14 31-9 38 1c7 10 5 27-7 34c-11 6-24-2-30-12" fill="#E9AA22" />
+              <path d="M157 178c8-2 17 3 20 11M151 185c8-2 16 4 18 11M145 190c7 0 13 5 14 11" stroke="#C47A0A" strokeWidth="3" strokeLinecap="round" />
+            </g>
+            <path d="M192 0h28v278h-28z" fill={isLightOn ? "#D5D0C7" : "#1A1D23"} /><path d="M192 0v278" stroke={isLightOn ? "#B8B1A6" : "#303641"} strokeWidth="2" />
+          </svg>
+        </div>
+        <div className="absolute right-[174px] sm:right-[205px] top-[90px] w-36 rounded-xl px-3 py-2 text-[11px] leading-snug shadow-lg" style={{ color: isLightOn ? "#0C1E2E" : "#E6EAF0", backgroundColor: isLightOn ? "rgba(255,255,255,0.82)" : "rgba(31,35,42,0.92)" }}>
+          One thing first — lights out.
         </div>
       </div>
+
+      <p className="sr-only" aria-live="polite">
+        {mascotIsVisible && isLightOn ? "A visitor is asking you to turn off the lamp before leaving." : ""}
+      </p>
 
       {/* 5. CENTER SECTION: SOLID MATTE "404" & 1:1 ORGANIC 3D FLOOR RUBBLE SCATTER */}
       <div className="relative z-20 flex flex-col items-center justify-center my-auto pt-14 pb-2 pointer-events-none">
@@ -457,6 +546,7 @@ export default function NotFoundVisual() {
         <div className="flex flex-row gap-3 justify-center items-center">
           <Link
             href="/"
+            onClick={(event) => handleExitAttempt(event, "/")}
             className="inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-primary text-white hover:text-white font-medium text-xs rounded-full shadow-md hover:shadow-lg hover:bg-primary-hover transition-all duration-200 group"
           >
             <Home className="w-3.5 h-3.5 transition-transform group-hover:-translate-x-0.5" />
@@ -464,6 +554,7 @@ export default function NotFoundVisual() {
           </Link>
           <Link
             href="/services"
+            onClick={(event) => handleExitAttempt(event, "/services")}
             className="inline-flex items-center justify-center gap-2 px-6 py-2.5 font-medium text-xs rounded-full border transition-all duration-200 group"
             style={{
               borderColor: isLightOn ? "#D5D2C9" : "#2E333D",

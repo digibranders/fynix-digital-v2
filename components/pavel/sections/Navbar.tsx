@@ -45,7 +45,7 @@ export const Navbar: React.FC = () => {
             className="text-[22px] font-semibold tracking-[-0.015em] text-primary leading-none"
             aria-label="Pavel Klimakov"
           >
-            Pavel Klimakov
+            Semantic SEO
           </button>
 
           <nav className="hidden md:flex items-center gap-9 text-[16px] font-normal text-text-muted">

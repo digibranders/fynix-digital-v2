@@ -9,17 +9,17 @@ const ITEMS = [
   {
     n: "01",
     title: "Three hours of live training with Pavel",
-    body: "The full live workshop on Zoom, plus a Q&amp;A where you can bring your own site or a client&rsquo;s.",
+    body: "The full live workshop on Zoom, plus a live Q&A where you can bring your own site or a client&rsquo;s.",
   },
   {
     n: "02",
-    title: "Workbook and topical map template",
-    body: "The exact template Pavel uses to map a topic before writing. Yours to keep for every project after.",
+    title: "Slide deck and detailed notes",
+    body: "The full slide deck and detailed notes, sent to every attendee after the session.",
   },
   {
     n: "03",
-    title: "Slide deck and detailed notes",
-    body: "The full slide deck and detailed notes, sent to every attendee after the session.",
+    title: "Repeatable execution framework",
+    body: "A proven, structured framework you can execute immediately to build topical authority and rank on purpose.",
   },
 ];
 

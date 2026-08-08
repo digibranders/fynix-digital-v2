@@ -11,7 +11,7 @@ const FACTS = [
   { label: "Date", value: WORKSHOP.dateLabel },
   { label: "Time", value: `${WORKSHOP.time} (${WORKSHOP.timezone})` },
   { label: "Format", value: `Live on ${WORKSHOP.platform}, 3 hours` },
-  { label: "Seats", value: `${WORKSHOP.seats} only` },
+  { label: "Access", value: "Live Interactive" },
 ];
 
 export const FinalCTA: React.FC = () => {
@@ -45,9 +45,7 @@ export const FinalCTA: React.FC = () => {
           </h2>
 
           <p className="mt-6 text-[1.15rem] text-white/70 leading-[1.6] max-w-[680px] mx-auto font-normal">
-            One live session, {WORKSHOP.seats} seats. You leave with the workbook,
-            the topical-map template, and the slide deck. Yours to revisit long
-            after the workshop.
+            One live 3-hour intensive session with Pavel Klimakov.
           </p>
 
           {/* Essentials: the concrete details at the decision point. */}
@@ -73,7 +71,7 @@ export const FinalCTA: React.FC = () => {
               <ArrowRight className="w-4 h-4" />
             </button>
             <p className="text-[13px] italic text-white/55">
-              {price.display} one-time &middot; live-only &middot; seats are capped.
+              {price.display} one-time &middot; live-only &middot; instant confirmation.
             </p>
           </div>
         </Reveal>
