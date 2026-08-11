@@ -1,5 +1,3 @@
-import { WORKSHOP } from "@/components/pavel/workshopDetails";
-
 export interface PavelRegistrationSubmission {
   name: string;
   email: string;
@@ -17,136 +15,109 @@ export interface PavelAuditSubmission {
 }
 
 /**
- * Builds the HTML & Plaintext confirmation email sent to attendees right after purchase/registration.
- * Includes Zoom link, Calendar invite details, Perk 1 (Topical Authority Template), and Perk 2 (Live Audit Form link).
+ * Builds the HTML & Plaintext "priority list" confirmation email sent to
+ * attendees right after they register.
+ *
+ * TEMPORARY: while paid checkout is paused and the event is being finalised,
+ * this is a warm holding note. It does NOT hand out the Zoom link, a passcode,
+ * a date, or claim a payment was taken. It only confirms the person is on the
+ * priority list and will be notified first when the event opens. Styling is
+ * matched to the /pavel editorial brand (cream ground, navy ink, serif accent).
  */
 export function buildPavelConfirmationEmail(submission: PavelRegistrationSubmission) {
   const ticketId = submission.ticketNumber || "TK-042";
   const firstName = submission.name.split(" ")[0] || "there";
-  const zoomUrl = "https://zoom.us/j/pavel-semantic-seo-workshop"; // Configurable Zoom URL
-  const auditFormUrl = `https://fynix.digital/pavel/thank-you?email=${encodeURIComponent(submission.email)}#audit-queue`;
-  const templateNotionUrl = "https://fynixdigital.notion.site/Pavel-Topical-Authority-Entity-Mapping-Template-Framework-1029384849";
 
-  const subject = `🎟️ Seat Confirmed: Semantic SEO Workshop with Pavel Klimakov [${ticketId}]`;
+  const subject = `You're on the priority list for Pavel's Semantic SEO Workshop`;
+  const preheader = `Your spot is saved. The moment the workshop opens, you'll be the first to know.`;
 
   const html = `
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
   <title>${subject}</title>
 </head>
-<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #0c0e12; color: #e2e8f0; -webkit-font-smoothing: antialiased;">
-  <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #0c0e12; padding: 40px 20px;">
+<body style="margin: 0; padding: 0; background-color: #FBFAF8; -webkit-font-smoothing: antialiased; -webkit-text-size-adjust: 100%;">
+  <span style="display: none !important; visibility: hidden; opacity: 0; color: transparent; height: 0; width: 0; overflow: hidden; mso-hide: all;">${preheader}</span>
+
+  <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #FBFAF8;">
     <tr>
-      <td align="center">
-        <table width="100%" max-width="600" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; background-color: #14171f; border-radius: 16px; border: 1px solid #262b36; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.5);">
-          
-          <!-- Header Banner -->
+      <td align="center" style="padding: 44px 16px;">
+
+        <table role="presentation" width="560" border="0" cellspacing="0" cellpadding="0" style="width: 560px; max-width: 560px; background-color: #FFFFFF; border: 1px solid #E8E7E3; border-radius: 16px; overflow: hidden; box-shadow: 0 1px 2px rgba(12,30,46,0.04), 0 18px 40px rgba(12,30,46,0.07);">
+
+          <!-- Masthead rule -->
           <tr>
-            <td style="padding: 32px 32px 24px; background: linear-gradient(135deg, #1c2230 0%, #14171f 100%); border-bottom: 1px solid #262b36;">
-              <table width="100%" border="0" cellspacing="0" cellpadding="0">
-                <tr>
-                  <td>
-                    <span style="font-size: 11px; text-transform: uppercase; tracking: 0.15em; font-weight: 700; color: #10b981; letter-spacing: 1px; display: block; margin-bottom: 8px;">
-                      SEAT RESERVED · TICKET ${ticketId}
-                    </span>
-                    <h1 style="margin: 0; font-size: 24px; font-weight: 600; color: #ffffff; line-height: 1.25;">
-                      Welcome to the Semantic SEO Workshop with Pavel Klimakov
-                    </h1>
-                  </td>
-                </tr>
+            <td style="height: 4px; line-height: 4px; font-size: 0; background-color: #0C1E2E;">&nbsp;</td>
+          </tr>
+
+          <!-- Header -->
+          <tr>
+            <td style="padding: 44px 48px 0 48px;">
+              <p style="margin: 0 0 26px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: #565D64;">
+                Pavel Klimakov &nbsp;&middot;&nbsp; Semantic SEO Workshop
+              </p>
+
+              <h1 style="margin: 0; font-family: Georgia, 'Times New Roman', serif; font-size: 34px; line-height: 1.18; font-weight: 500; letter-spacing: -0.01em; color: #0C1E2E;">
+                You&rsquo;re <span style="font-style: italic; color: #9A7B4F;">first in line,</span> ${firstName}.
+              </h1>
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style="padding: 24px 48px 4px 48px;">
+              <p style="margin: 0 0 20px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.7; color: #454F58;">
+                Thank you for registering. Your spot is saved, and you&rsquo;re now on our priority list for the live Semantic SEO workshop.
+              </p>
+              <p style="margin: 0 0 20px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.7; color: #454F58;">
+                We&rsquo;ll notify you the moment the event goes live. As one of our priority members, you&rsquo;ll be among the very first to hear, ahead of everyone else.
+              </p>
+              <p style="margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.7; color: #454F58;">
+                There&rsquo;s nothing you need to do right now. Simply keep an eye on your inbox, and we&rsquo;ll take care of the rest.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Divider -->
+          <tr>
+            <td style="padding: 32px 48px 0 48px;">
+              <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0">
+                <tr><td style="height: 1px; line-height: 1px; font-size: 0; background-color: #EFEEEA;">&nbsp;</td></tr>
               </table>
             </td>
           </tr>
 
-          <!-- Core Event Info Box -->
+          <!-- Sign-off -->
           <tr>
-            <td style="padding: 32px;">
-              <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #cbd5e1;">
-                Hi ${firstName}, your payment is confirmed and your seat is officially reserved! Get ready for a 3-hour live deep-dive into how Google evaluates entities and topical authority.
+            <td style="padding: 26px 48px 44px 48px;">
+              <p style="margin: 0 0 4px 0; font-family: Georgia, 'Times New Roman', serif; font-style: italic; font-size: 17px; line-height: 1.5; color: #0C1E2E;">
+                Glad to have you with us,
               </p>
-
-              <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #0f1117; border-radius: 12px; border: 1px solid #262c3a; padding: 20px; margin-bottom: 28px;">
-                <tr>
-                  <td style="padding-bottom: 12px; border-bottom: 1px solid #1e2433;">
-                    <span style="font-size: 12px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">DATE & TIME</span>
-                    <div style="font-size: 16px; color: #ffffff; font-weight: 600; margin-top: 4px;">
-                      ${WORKSHOP.dateLabel} at ${WORKSHOP.time} (${WORKSHOP.timezone})
-                    </div>
-                  </td>
-                </tr>
-                <tr>
-                  <td style="padding-top: 12px;">
-                    <span style="font-size: 12px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">ZOOM MEETING LINK</span>
-                    <div style="font-size: 15px; color: #10b981; font-weight: 600; margin-top: 4px; word-break: break-all;">
-                      <a href="${zoomUrl}" style="color: #10b981; text-decoration: underline;">${zoomUrl}</a>
-                    </div>
-                    <div style="font-size: 13px; color: #94a3b8; margin-top: 2px;">
-                      Passcode: <strong>SEMANTIC2026</strong>
-                    </div>
-                  </td>
-                </tr>
-              </table>
-
-              <!-- PERK 1 SECTION -->
-              <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #18202c; border-radius: 12px; border: 1px solid #2c384e; padding: 20px; margin-bottom: 24px;">
-                <tr>
-                  <td>
-                    <span style="font-size: 11px; font-weight: 700; color: #60a5fa; text-transform: uppercase; letter-spacing: 0.08em; display: block; margin-bottom: 6px;">
-                      🎁 INSTANT TEMPLATE ACCESS
-                    </span>
-                    <h3 style="margin: 0 0 8px; font-size: 17px; font-weight: 600; color: #ffffff;">
-                      Pavel's Topical Authority & Entity Mapping Blueprint
-                    </h3>
-                    <p style="margin: 0 0 16px; font-size: 14px; line-height: 1.5; color: #94a3b8;">
-                      Don't wait for the live session. Download the exact Notion framework Pavel uses to map entity relationships and topic coverage before writing a single word.
-                    </p>
-                    <a href="${templateNotionUrl}" target="_blank" style="display: inline-block; background-color: #2563eb; color: #ffffff; padding: 10px 20px; font-size: 14px; font-weight: 600; text-decoration: none; border-radius: 8px;">
-                      Access Notion Template &rarr;
-                    </a>
-                  </td>
-                </tr>
-              </table>
-
-              <!-- PERK 2 SECTION -->
-              <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #1c1a29; border-radius: 12px; border: 1px solid #36304d; padding: 20px; margin-bottom: 28px;">
-                <tr>
-                  <td>
-                    <span style="font-size: 11px; font-weight: 700; color: #a78bfa; text-transform: uppercase; letter-spacing: 0.08em; display: block; margin-bottom: 6px;">
-                      🔥 LIVE AUDIT SUBMISSION QUEUE
-                    </span>
-                    <h3 style="margin: 0 0 8px; font-size: 17px; font-weight: 600; color: #ffffff;">
-                      Submit Your Website for Pavel's Live On-Stage Audit
-                    </h3>
-                    <p style="margin: 0 0 16px; font-size: 14px; line-height: 1.5; color: #94a3b8;">
-                      Pavel will choose attendee websites to analyze live during the 3-hour session. Want Pavel to roast your topical architecture on Zoom? Submit your site now.
-                    </p>
-                    <a href="${auditFormUrl}" target="_blank" style="display: inline-block; background-color: #7c3aed; color: #ffffff; padding: 10px 20px; font-size: 14px; font-weight: 600; text-decoration: none; border-radius: 8px;">
-                      Submit Website for Live Audit &rarr;
-                    </a>
-                  </td>
-                </tr>
-              </table>
-
-              <p style="margin: 0; font-size: 14px; color: #94a3b8; line-height: 1.6;">
-                If you have any questions, reply directly to this email or contact us at <a href="mailto:hello@fynix.digital" style="color: #60a5fa; text-decoration: underline;">hello@fynix.digital</a>. See you live inside!
+              <p style="margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.04em; color: #0C1E2E;">
+                The Fynix Digital Team
               </p>
             </td>
           </tr>
 
           <!-- Footer -->
           <tr>
-            <td style="padding: 24px 32px; background-color: #0f1117; border-top: 1px solid #1e2433; text-align: center;">
-              <p style="margin: 0; font-size: 12px; color: #64748b;">
-                &copy; ${new Date().getFullYear()} Pavel Klimakov &amp; Fynix Digital. All rights reserved.<br>
-                Semantic SEO Workshop · 3 Hours Live on Zoom
+            <td style="padding: 22px 48px 26px 48px; background-color: #FBFAF8; border-top: 1px solid #E8E7E3;">
+              <p style="margin: 0 0 6px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 12px; line-height: 1.6; color: #565D64;">
+                Questions? Reply to this email or write to
+                <a href="mailto:hello@fynix.digital" style="color: #0C1E2E; text-decoration: underline;">hello@fynix.digital</a>.
+              </p>
+              <p style="margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 11px; line-height: 1.6; color: #9AA0A6;">
+                Registration ref ${ticketId} &nbsp;&middot;&nbsp; &copy; ${new Date().getFullYear()} Fynix Digital
               </p>
             </td>
           </tr>
 
         </table>
+
       </td>
     </tr>
   </table>
@@ -154,26 +125,24 @@ export function buildPavelConfirmationEmail(submission: PavelRegistrationSubmiss
 </html>
   `;
 
-  const text = `
-SEAT RESERVED: TICKET ${ticketId}
-Welcome to the Semantic SEO Workshop with Pavel Klimakov!
+  const text = `PRIORITY LIST
 
-Hi ${firstName}, your seat is officially confirmed.
+You're first in line, ${firstName}.
 
-EVENT DETAILS:
-- Date & Time: ${WORKSHOP.dateLabel} at ${WORKSHOP.time} (${WORKSHOP.timezone})
-- Zoom Link: ${zoomUrl}
-- Passcode: SEMANTIC2026
+Thank you for registering. Your spot is saved, and you're now on our priority
+list for the live Semantic SEO workshop.
 
-INSTANT TEMPLATE ACCESS
-Pavel's Topical Authority Notion Blueprint: ${templateNotionUrl}
+We'll notify you the moment the event goes live. As one of our priority members,
+you'll be among the very first to hear, ahead of everyone else.
 
-LIVE AUDIT SUBMISSION QUEUE
-Submit your site for Pavel to audit live during the workshop:
-${auditFormUrl}
+There's nothing you need to do right now. Simply keep an eye on your inbox, and
+we'll take care of the rest.
 
-If you have questions, reply to this email or write to hello@fynix.digital.
-  `.trim();
+Glad to have you with us,
+The Fynix Digital Team
+
+Questions? Reply to this email or write to hello@fynix.digital.
+Registration ref ${ticketId}`;
 
   return { subject, html, text };
 }

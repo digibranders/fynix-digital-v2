@@ -23,6 +23,11 @@ export type PriceInfo = {
   currencyCode: string;
   /** Symbol + amount, e.g. "₹7,499" or "$79". */
   display: string;
+  /**
+   * Amount in the currency's smallest unit (paise for INR, cents for USD),
+   * as required by Stripe's `unit_amount`. MUST match `display`.
+   */
+  unitAmount: number;
   /** Hosted checkout URL for this region. Empty until a provider is wired up. */
   checkoutUrl: string;
 };
@@ -34,6 +39,7 @@ export const PRICING: Record<Region, PriceInfo> = {
     amount: "7,499",
     currencyCode: "INR",
     display: "₹7,499",
+    unitAmount: 749900,
     checkoutUrl: "",
   },
   REST: {
@@ -42,6 +48,7 @@ export const PRICING: Record<Region, PriceInfo> = {
     amount: "99",
     currencyCode: "USD",
     display: "$99",
+    unitAmount: 9900,
     checkoutUrl: "",
   },
 };

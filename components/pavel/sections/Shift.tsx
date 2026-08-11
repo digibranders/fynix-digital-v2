@@ -64,7 +64,7 @@ export const Shift: React.FC = () => {
               {PROMISES.map((item, i) => (
                 <li key={i}>
                   <Reveal delay={i * 80} className="flex gap-6">
-                    <span className="font-serif text-[18px] italic font-medium text-primary pt-1 tnum shrink-0 min-w-[28px]">
+                    <span className="font-serif text-[18px] italic font-medium text-accent pt-1 tnum shrink-0 min-w-[28px]">
                       {String(i + 1).padStart(2, "0")}
                     </span>
                     <p
