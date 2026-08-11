@@ -15,4 +15,11 @@ export const WORKSHOP = {
   time: "10:00 AM IST",
   timezone: "GMT+5:30",
   seats: 100,
+  /**
+   * Machine-readable start/end in UTC (10:00 AM IST = 04:30 UTC, +3h = 07:30
+   * UTC). Drives the "Add to Google Calendar" link on the thank-you page — keep
+   * these in sync with `dateLabel`/`time` above.
+   */
+  startUtc: "2026-08-31T04:30:00Z",
+  endUtc: "2026-08-31T07:30:00Z",
 } as const;

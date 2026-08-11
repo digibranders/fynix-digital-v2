@@ -26,11 +26,11 @@ export const Pricing: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const openCheckout = () => {
-    // if (price.checkoutUrl) {
-    //   window.open(price.checkoutUrl, "_blank", "noopener,noreferrer");
-    // } else {
-    //   setIsModalOpen(true);
-    // }
+    if (price.checkoutUrl) {
+      window.open(price.checkoutUrl, "_blank", "noopener,noreferrer");
+    } else {
+      setIsModalOpen(true);
+    }
   };
 
   return (
