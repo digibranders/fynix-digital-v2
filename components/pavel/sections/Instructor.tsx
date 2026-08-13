@@ -9,7 +9,7 @@ import { Container } from "../ui/Container";
 // Col 1 (solo tall portrait) & Col 4 (solo tall portrait); cols 2 & 3 hold stacked images.
 const COLLAGE = [
   {
-    src: "/pavel/pavel-seo-vibes-summit-2025.webp",
+    src: "/pavel/pavel-klimakov.webp",
     alt: "Pavel Klimakov presenting at SEO Vibes Summit 2025",
     caption: "SEO Vibes Summit, 2025",
     span: "solo",
