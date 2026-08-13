@@ -31,6 +31,22 @@ export const metadata: Metadata = {
     description:
       "The system that engineers relevance. A 3-hour live intensive on entities, topical authority, and reading Google the way it reads the web.",
     type: "website",
+    url: "/pavel",
+    images: [
+      {
+        url: "/pavel/og-pavel.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Learn how Semantic SEO really works — a live workshop with Pavel Klimakov, Semantic SEO Expert.",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Semantic SEO Workshop with Pavel Klimakov",
+    description:
+      "The system that engineers relevance. A 3-hour live intensive on entities, topical authority, and reading Google the way it reads the web.",
+    images: ["/pavel/og-pavel.jpg"],
   },
 };
 
