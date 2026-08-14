@@ -362,8 +362,8 @@ export default function UiUxServiceContent({ act }: Props) {
 
           <ol className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
             {designProcess.map((phase, idx) => (
-              <Reveal key={phase.step} delay={idx * 80}>
-                <li className="h-full p-6 border border-border rounded-lg bg-background-soft/40 hover:border-accent/40 hover:-translate-y-1 transition-all duration-300 flex flex-col">
+              <li key={phase.step} className="h-full">
+                <Reveal delay={idx * 80} className="h-full p-6 border border-border rounded-lg bg-background-soft/40 hover:border-accent/40 hover:-translate-y-1 transition-all duration-300 flex flex-col">
                   <div className="flex items-center gap-3">
                     <AccentBadge accent={accent} className="h-8 w-8 text-xs">
                       {String(idx + 1).padStart(2, "0")}
@@ -378,8 +378,8 @@ export default function UiUxServiceContent({ act }: Props) {
                   <p className="text-sm text-text-muted font-normal mt-3 leading-relaxed">
                     {phase.text}
                   </p>
-                </li>
-              </Reveal>
+                </Reveal>
+              </li>
             ))}
           </ol>
         </div>
