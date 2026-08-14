@@ -4,10 +4,94 @@ import React, { useState, useEffect, useRef } from "react";
 import { X, ArrowRight, Loader2, CheckCircle2 } from "lucide-react";
 import { usePricing } from "@/components/pavel/PricingProvider";
 import { Button } from "@/components/pavel/ui/Button";
+import { WORKSHOP } from "@/components/pavel/workshopDetails";
 
 interface CheckoutModalProps {
   isOpen: boolean;
   onClose: () => void;
+}
+
+const RAZORPAY_CHECKOUT_SRC = "https://checkout.razorpay.com/v1/checkout.js";
+const BRAND_PRIMARY = "#0C1E2E";
+
+/** Response shape returned by /api/pavel/checkout when Razorpay is configured. */
+interface RazorpayCheckoutData {
+  razorpayConfigured?: boolean;
+  alreadyRegistered?: boolean;
+  keyId?: string;
+  orderId?: string;
+  amount?: number;
+  currency?: string;
+  name?: string;
+  email?: string;
+  ref?: string;
+  error?: string;
+}
+
+interface RazorpayHandlerResponse {
+  razorpay_payment_id: string;
+  razorpay_order_id: string;
+  razorpay_signature: string;
+}
+
+interface RazorpayInstance {
+  open: () => void;
+  on: (
+    event: "payment.failed",
+    handler: (response: { error?: { description?: string } }) => void
+  ) => void;
+}
+
+interface RazorpayOptions {
+  key: string;
+  order_id: string;
+  amount: number;
+  currency: string;
+  name: string;
+  description: string;
+  prefill: { name: string; email: string };
+  theme: { color: string };
+  handler: (response: RazorpayHandlerResponse) => void;
+  modal: { ondismiss: () => void };
+}
+
+declare global {
+  interface Window {
+    Razorpay?: new (options: RazorpayOptions) => RazorpayInstance;
+  }
+}
+
+/** Load the Razorpay Checkout script once, resolving when `window.Razorpay` is ready. */
+function loadRazorpayCheckout(): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (typeof window === "undefined") {
+      reject(new Error("Payment module unavailable."));
+      return;
+    }
+    if (window.Razorpay) {
+      resolve();
+      return;
+    }
+
+    const existing = document.getElementById(
+      "razorpay-checkout-js"
+    ) as HTMLScriptElement | null;
+    if (existing) {
+      existing.addEventListener("load", () => resolve());
+      existing.addEventListener("error", () =>
+        reject(new Error("Payment module failed to load."))
+      );
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.id = "razorpay-checkout-js";
+    script.src = RAZORPAY_CHECKOUT_SRC;
+    script.async = true;
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error("Payment module failed to load."));
+    document.body.appendChild(script);
+  });
 }
 
 export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
@@ -18,6 +102,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [alreadyRegistered, setAlreadyRegistered] = useState(false);
 
   // Honeypot: decoy fields (must stay empty) + a signed, time-boxed token the
   // server issues when the modal opens. See lib/security/honeypot.ts.
@@ -49,6 +134,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
   // Reset transient UI state on close so reopening always starts clean.
   const handleClose = () => {
     setSubmitted(false);
+    setAlreadyRegistered(false);
     setError("");
     setName("");
     setEmail("");
@@ -70,33 +156,84 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+
+    // Both fields are mandatory — validate before hitting the network.
+    const trimmedName = name.trim();
+    const trimmedEmail = email.trim();
+    if (!trimmedName) {
+      setError("Please enter your full name.");
+      return;
+    }
+    if (!trimmedEmail) {
+      setError("Please enter your email address.");
+      return;
+    }
+    // Basic shape check; the server performs authoritative validation.
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+
     setLoading(true);
 
-    const payload = {
-      name,
-      email,
-      region: price.region,
-      amountDisplay: price.display,
+    // Anti-bot fields are screened by BOTH routes; the signed token is stateless
+    // and reusable within its window, so the same values go to each call.
+    const antiBot = {
       formToken: await ensureToken(),
       company_website: companyWebsiteRef.current?.value ?? "",
       fax_number: faxNumberRef.current?.value ?? "",
     };
 
     try {
-      // TEMPORARY: paid checkout is paused while the event is being finalised.
-      // We still capture the registration (name/email → confirmation email) but
-      // skip Stripe and simply confirm in-modal with a holding message.
+      // 1. Record the registration as `pending` and get its ref.
       const registerRes = await fetch("/api/pavel/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          name: trimmedName,
+          email: trimmedEmail,
+          country: price.country,
+          amountDisplay: price.display,
+          ...antiBot,
+        }),
       });
 
       const registerData = await registerRes.json();
-      if (!registerRes.ok) {
+      if (!registerRes.ok || !registerData?.ref) {
         throw new Error(registerData.error || "Registration failed.");
       }
 
+      // 2. Create a Razorpay order for that registration.
+      const checkoutRes = await fetch("/api/pavel/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ref: registerData.ref, ...antiBot }),
+      });
+
+      const checkoutData: RazorpayCheckoutData = await checkoutRes.json();
+      if (!checkoutRes.ok) {
+        throw new Error(checkoutData.error || "Could not start checkout.");
+      }
+
+      // 3a. This email already holds a paid seat → don't charge again.
+      if (checkoutData.alreadyRegistered) {
+        setAlreadyRegistered(true);
+        setSubmitted(true);
+        return;
+      }
+
+      // 3b. Razorpay configured → open the Checkout overlay against the order.
+      if (
+        checkoutData.razorpayConfigured &&
+        checkoutData.orderId &&
+        checkoutData.keyId
+      ) {
+        await openRazorpayCheckout(checkoutData);
+        return; // overlay drives the rest: redirect on success, re-enable on dismiss
+      }
+
+      // 3c. No payment provider wired up yet → show the in-modal holding
+      // confirmation so the funnel stays testable without Razorpay.
       setSubmitted(true);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
@@ -104,6 +241,85 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
       setLoading(false);
     }
   };
+
+  /**
+   * Open the Razorpay Checkout overlay for a created order. Resolves when the
+   * user dismisses the overlay (so the form re-enables); rejects on a payment
+   * failure or a failed confirmation. On success it verifies the signed handler
+   * response server-side, then navigates to the thank-you page — so the promise
+   * intentionally stays pending while the browser redirects.
+   */
+  const openRazorpayCheckout = (data: RazorpayCheckoutData): Promise<void> =>
+    new Promise<void>((resolve, reject) => {
+      loadRazorpayCheckout()
+        .then(() => {
+          if (!window.Razorpay) {
+            reject(new Error("Payment module failed to load."));
+            return;
+          }
+
+          const rzp = new window.Razorpay({
+            key: data.keyId!,
+            order_id: data.orderId!,
+            amount: data.amount ?? price.unitAmount,
+            currency: data.currency ?? price.currencyCode,
+            name: "Fynix Digital",
+            description: "Semantic SEO Workshop with Pavel Klimakov",
+            prefill: {
+              name: data.name ?? name,
+              email: data.email ?? email,
+            },
+            theme: { color: BRAND_PRIMARY },
+            handler: (response: RazorpayHandlerResponse) => {
+              fetch("/api/pavel/verify", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(response),
+              })
+                .then((res) => res.json())
+                .then((verifyData) => {
+                  if (verifyData?.paid) {
+                    const params = new URLSearchParams({
+                      ref: verifyData.ref ?? data.ref ?? "",
+                    });
+                    if (response.razorpay_payment_id) {
+                      params.set("payment_id", response.razorpay_payment_id);
+                    }
+                    window.location.href = `/pavel/thank-you?${params.toString()}`;
+                  } else {
+                    reject(
+                      new Error(
+                        "We couldn't confirm your payment. If you were charged, contact support."
+                      )
+                    );
+                  }
+                })
+                .catch(() =>
+                  reject(
+                    new Error(
+                      "We couldn't confirm your payment. If you were charged, contact support."
+                    )
+                  )
+                );
+            },
+            modal: {
+              // User closed the overlay without paying — just re-enable the form.
+              ondismiss: () => resolve(),
+            },
+          });
+
+          rzp.on("payment.failed", (resp) => {
+            reject(
+              new Error(
+                resp?.error?.description || "Payment failed. Please try again."
+              )
+            );
+          });
+
+          rzp.open();
+        })
+        .catch(reject);
+    });
 
   return (
     <div
@@ -131,14 +347,26 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
             </div>
             <div className="space-y-2">
               <h2 className="font-serif text-2xl sm:text-3xl font-medium tracking-tight text-primary">
-                You&apos;re on the list
+                {alreadyRegistered ? "You're already registered" : "You're on the list"}
               </h2>
               <p className="text-sm text-text-muted leading-relaxed max-w-xs mx-auto">
-                This event will begin shortly. We&apos;ll be in touch at{" "}
-                <span className="text-primary font-medium break-all">
-                  {email || "your inbox"}
-                </span>{" "}
-                with your access details.
+                {alreadyRegistered ? (
+                  <>
+                    This email already has a confirmed seat. Check your inbox at{" "}
+                    <span className="text-primary font-medium break-all">
+                      {email || "your email"}
+                    </span>{" "}
+                    for your confirmation.
+                  </>
+                ) : (
+                  <>
+                    This event will begin shortly. We&apos;ll be in touch at{" "}
+                    <span className="text-primary font-medium break-all">
+                      {email || "your inbox"}
+                    </span>{" "}
+                    with your access details.
+                  </>
+                )}
               </p>
             </div>
             <Button variant="primary" size="lg" className="w-full" onClick={handleClose}>
@@ -164,6 +392,15 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
           >
             <X className="w-5 h-5" />
           </button>
+        </div>
+
+        <div className="flex items-baseline justify-between gap-4 border-t border-border pt-4">
+          <span className="font-serif text-lg sm:text-xl text-primary tracking-tight">
+            {WORKSHOP.dateLabel}
+          </span>
+          <span className="text-sm text-text-muted whitespace-nowrap">
+            {WORKSHOP.time}
+          </span>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -212,23 +449,35 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
           )}
 
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-primary">Your Full Name</label>
+            <label htmlFor="pv-name" className="text-xs font-medium text-primary">
+              Your Full Name <span className="text-red-500">*</span>
+            </label>
             <input
+              id="pv-name"
               type="text"
               placeholder="e.g. Sarah Connor"
               value={name}
               onChange={(e) => setName(e.target.value)}
+              required
+              aria-required="true"
+              autoComplete="name"
               className="w-full px-4 py-3 rounded-xl bg-background-soft border border-border text-primary placeholder-text-muted/60 text-sm focus:outline-none focus:border-primary focus:bg-white transition-all"
             />
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-primary">Your Email Address</label>
+            <label htmlFor="pv-email" className="text-xs font-medium text-primary">
+              Your Email Address <span className="text-red-500">*</span>
+            </label>
             <input
-              type="text"
+              id="pv-email"
+              type="email"
               placeholder="sarah@company.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              required
+              aria-required="true"
+              autoComplete="email"
               className="w-full px-4 py-3 rounded-xl bg-background-soft border border-border text-primary placeholder-text-muted/60 text-sm focus:outline-none focus:border-primary focus:bg-white transition-all"
             />
           </div>

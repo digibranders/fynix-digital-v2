@@ -51,17 +51,24 @@ function ScrollReset() {
 }
 
 export default function SmoothScroll({ children }: Props) {
-  const [reducedMotion, setReducedMotion] = useState(false);
+  const [disableSmooth, setDisableSmooth] = useState(false);
 
   useEffect(() => {
-    const query = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const update = () => setReducedMotion(query.matches);
+    // Skip Lenis when the user prefers reduced motion OR is on a touch device.
+    // Touch scrolling already bypasses Lenis (syncTouch is off), so on phones/
+    // tablets it adds nothing but a constant requestAnimationFrame loop that
+    // competes with hydration and delays the hero image paint on throttled CPUs.
+    const queries = [
+      window.matchMedia("(prefers-reduced-motion: reduce)"),
+      window.matchMedia("(pointer: coarse)"),
+    ];
+    const update = () => setDisableSmooth(queries.some((q) => q.matches));
     update();
-    query.addEventListener("change", update);
-    return () => query.removeEventListener("change", update);
+    queries.forEach((q) => q.addEventListener("change", update));
+    return () => queries.forEach((q) => q.removeEventListener("change", update));
   }, []);
 
-  if (reducedMotion) return <>{children}</>;
+  if (disableSmooth) return <>{children}</>;
 
   return (
     <ReactLenis

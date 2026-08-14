@@ -917,7 +917,11 @@ export const engagementModels: EngagementModel[] = [
 
 export const siteConfig = {
   name: "Fynix Digital",
-  url: "https://fynix.digital",
+  // Canonical host is the www apex — the production server redirects the bare
+  // fynix.digital → www.fynix.digital, so canonical/sitemap/OG/robots must use
+  // www to match, otherwise every canonical URL points at a 307 redirect (which
+  // costs real users an extra hop and sends search engines mixed signals).
+  url: "https://www.fynix.digital",
   email: "hello@fynix.digital",
   phone: "+91 789 789 6607",
   phoneHref: "+917897896607",

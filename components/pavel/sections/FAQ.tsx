@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import { motion, AnimatePresence } from "motion/react";
 import { Container } from "../ui/Container";
 import { Plus, Minus } from "lucide-react";
 
@@ -54,6 +53,7 @@ export const FAQ: React.FC = () => {
                     onClick={() => setOpen(isOpen ? null : i)}
                     className="w-full py-6 text-left flex items-start justify-between gap-6 group"
                     aria-expanded={isOpen}
+                    aria-controls={`faq-panel-${i}`}
                   >
                     <h3 className="font-serif text-[1.2rem] sm:text-[1.3rem] leading-[1.35] font-medium text-primary group-hover:text-accent transition-colors">
                       {faq.q}
@@ -67,22 +67,23 @@ export const FAQ: React.FC = () => {
                     </span>
                   </button>
 
-                  <AnimatePresence initial={false}>
-                    {isOpen && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.3, ease: "easeOut" }}
-                        className="overflow-hidden"
-                      >
-                        <p
-                          className="pb-7 pr-8 text-[15.5px] text-text-muted leading-[1.7] max-w-[620px]"
-                          dangerouslySetInnerHTML={{ __html: faq.a }}
-                        />
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                  {/* CSS-only height animation (grid-rows 0fr→1fr) — replaces the
+                      motion library so the ~139 KB animation chunk never loads on
+                      this page. Degrades to an instant open on pre-2022 browsers. */}
+                  <div
+                    id={`faq-panel-${i}`}
+                    role="region"
+                    className={`grid overflow-hidden transition-[grid-template-rows,opacity] duration-300 ease-out ${
+                      isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+                    }`}
+                  >
+                    <div className="min-h-0">
+                      <p
+                        className="pb-7 pr-8 text-[15.5px] text-text-muted leading-[1.7] max-w-[620px]"
+                        dangerouslySetInnerHTML={{ __html: faq.a }}
+                      />
+                    </div>
+                  </div>
                 </div>
               );
             })}
