@@ -11,7 +11,7 @@ export const WORKSHOP = {
   format: "Live 3-hour workshop",
   audience: "practising SEOs",
   platform: "Zoom",
-  dateLabel: "31 August 2026",
+  dateLabel: "5 September 2026",
   time: "10:00 AM IST",
   timezone: "GMT+5:30",
   seats: 100,
@@ -20,6 +20,20 @@ export const WORKSHOP = {
    * UTC). Drives the "Add to Google Calendar" link on the thank-you page — keep
    * these in sync with `dateLabel`/`time` above.
    */
-  startUtc: "2026-08-31T04:30:00Z",
-  endUtc: "2026-08-31T07:30:00Z",
+  startUtc: "2026-09-05T04:30:00Z",
+  endUtc: "2026-09-05T07:30:00Z",
+  /**
+   * UTC clock label shown ALONGSIDE the IST time in every email and on the
+   * thank-you page, so a worldwide audience can translate "10:00 AM IST" to
+   * their own zone. Keep in sync with `startUtc`.
+   */
+  timeUtcLabel: "04:30 UTC",
+  /**
+   * Live Zoom access. ⚠️ PLACEHOLDERS — swap for the real meeting link,
+   * passcode, and post-event notes URL before enabling emails. Surfaced in the
+   * confirmation + reminder emails and on the thank-you page (single source).
+   */
+  zoomUrl: "https://zoom.us/j/pavel-semantic-seo-workshop",
+  zoomPasscode: "SEMANTIC2026",
+  notesUrl: "https://fynix.digital/pavel/notes",
 } as const;
