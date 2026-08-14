@@ -11,87 +11,21 @@ interface CheckoutModalProps {
   onClose: () => void;
 }
 
-const RAZORPAY_CHECKOUT_SRC = "https://checkout.razorpay.com/v1/checkout.js";
-const BRAND_PRIMARY = "#0C1E2E";
-
-/** Response shape returned by /api/pavel/checkout when Razorpay is configured. */
-interface RazorpayCheckoutData {
-  razorpayConfigured?: boolean;
+/**
+ * Response shape returned by /api/pavel/register.
+ *
+ * No payment provider is wired up yet (Stripe was removed in 53aad32), so the
+ * route simply records the seat and emails the confirmation. `alreadyRegistered`
+ * is optional and stays unset until the route grows email de-duplication.
+ */
+interface RegisterResponse {
+  success?: boolean;
   alreadyRegistered?: boolean;
-  keyId?: string;
-  orderId?: string;
-  amount?: number;
-  currency?: string;
+  ticketNumber?: string;
   name?: string;
   email?: string;
-  ref?: string;
+  message?: string;
   error?: string;
-}
-
-interface RazorpayHandlerResponse {
-  razorpay_payment_id: string;
-  razorpay_order_id: string;
-  razorpay_signature: string;
-}
-
-interface RazorpayInstance {
-  open: () => void;
-  on: (
-    event: "payment.failed",
-    handler: (response: { error?: { description?: string } }) => void
-  ) => void;
-}
-
-interface RazorpayOptions {
-  key: string;
-  order_id: string;
-  amount: number;
-  currency: string;
-  name: string;
-  description: string;
-  prefill: { name: string; email: string };
-  theme: { color: string };
-  handler: (response: RazorpayHandlerResponse) => void;
-  modal: { ondismiss: () => void };
-}
-
-declare global {
-  interface Window {
-    Razorpay?: new (options: RazorpayOptions) => RazorpayInstance;
-  }
-}
-
-/** Load the Razorpay Checkout script once, resolving when `window.Razorpay` is ready. */
-function loadRazorpayCheckout(): Promise<void> {
-  return new Promise((resolve, reject) => {
-    if (typeof window === "undefined") {
-      reject(new Error("Payment module unavailable."));
-      return;
-    }
-    if (window.Razorpay) {
-      resolve();
-      return;
-    }
-
-    const existing = document.getElementById(
-      "razorpay-checkout-js"
-    ) as HTMLScriptElement | null;
-    if (existing) {
-      existing.addEventListener("load", () => resolve());
-      existing.addEventListener("error", () =>
-        reject(new Error("Payment module failed to load."))
-      );
-      return;
-    }
-
-    const script = document.createElement("script");
-    script.id = "razorpay-checkout-js";
-    script.src = RAZORPAY_CHECKOUT_SRC;
-    script.async = true;
-    script.onload = () => resolve();
-    script.onerror = () => reject(new Error("Payment module failed to load."));
-    document.body.appendChild(script);
-  });
 }
 
 export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
@@ -176,8 +110,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
 
     setLoading(true);
 
-    // Anti-bot fields are screened by BOTH routes; the signed token is stateless
-    // and reusable within its window, so the same values go to each call.
+    // Anti-bot fields screened by the register route: the signed, time-boxed
+    // token plus the two honeypot decoys. See lib/security/honeypot.ts.
     const antiBot = {
       formToken: await ensureToken(),
       company_website: companyWebsiteRef.current?.value ?? "",
@@ -185,55 +119,24 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
     };
 
     try {
-      // 1. Record the registration as `pending` and get its ref.
-      const registerRes = await fetch("/api/pavel/register", {
+      const res = await fetch("/api/pavel/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: trimmedName,
           email: trimmedEmail,
-          country: price.country,
+          region: price.region,
           amountDisplay: price.display,
           ...antiBot,
         }),
       });
 
-      const registerData = await registerRes.json();
-      if (!registerRes.ok || !registerData?.ref) {
-        throw new Error(registerData.error || "Registration failed.");
+      const data: RegisterResponse = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Registration failed.");
       }
 
-      // 2. Create a Razorpay order for that registration.
-      const checkoutRes = await fetch("/api/pavel/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ref: registerData.ref, ...antiBot }),
-      });
-
-      const checkoutData: RazorpayCheckoutData = await checkoutRes.json();
-      if (!checkoutRes.ok) {
-        throw new Error(checkoutData.error || "Could not start checkout.");
-      }
-
-      // 3a. This email already holds a paid seat → don't charge again.
-      if (checkoutData.alreadyRegistered) {
-        setAlreadyRegistered(true);
-        setSubmitted(true);
-        return;
-      }
-
-      // 3b. Razorpay configured → open the Checkout overlay against the order.
-      if (
-        checkoutData.razorpayConfigured &&
-        checkoutData.orderId &&
-        checkoutData.keyId
-      ) {
-        await openRazorpayCheckout(checkoutData);
-        return; // overlay drives the rest: redirect on success, re-enable on dismiss
-      }
-
-      // 3c. No payment provider wired up yet → show the in-modal holding
-      // confirmation so the funnel stays testable without Razorpay.
+      setAlreadyRegistered(Boolean(data.alreadyRegistered));
       setSubmitted(true);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
@@ -241,85 +144,6 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
       setLoading(false);
     }
   };
-
-  /**
-   * Open the Razorpay Checkout overlay for a created order. Resolves when the
-   * user dismisses the overlay (so the form re-enables); rejects on a payment
-   * failure or a failed confirmation. On success it verifies the signed handler
-   * response server-side, then navigates to the thank-you page — so the promise
-   * intentionally stays pending while the browser redirects.
-   */
-  const openRazorpayCheckout = (data: RazorpayCheckoutData): Promise<void> =>
-    new Promise<void>((resolve, reject) => {
-      loadRazorpayCheckout()
-        .then(() => {
-          if (!window.Razorpay) {
-            reject(new Error("Payment module failed to load."));
-            return;
-          }
-
-          const rzp = new window.Razorpay({
-            key: data.keyId!,
-            order_id: data.orderId!,
-            amount: data.amount ?? price.unitAmount,
-            currency: data.currency ?? price.currencyCode,
-            name: "Fynix Digital",
-            description: "Semantic SEO Workshop with Pavel Klimakov",
-            prefill: {
-              name: data.name ?? name,
-              email: data.email ?? email,
-            },
-            theme: { color: BRAND_PRIMARY },
-            handler: (response: RazorpayHandlerResponse) => {
-              fetch("/api/pavel/verify", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(response),
-              })
-                .then((res) => res.json())
-                .then((verifyData) => {
-                  if (verifyData?.paid) {
-                    const params = new URLSearchParams({
-                      ref: verifyData.ref ?? data.ref ?? "",
-                    });
-                    if (response.razorpay_payment_id) {
-                      params.set("payment_id", response.razorpay_payment_id);
-                    }
-                    window.location.href = `/pavel/thank-you?${params.toString()}`;
-                  } else {
-                    reject(
-                      new Error(
-                        "We couldn't confirm your payment. If you were charged, contact support."
-                      )
-                    );
-                  }
-                })
-                .catch(() =>
-                  reject(
-                    new Error(
-                      "We couldn't confirm your payment. If you were charged, contact support."
-                    )
-                  )
-                );
-            },
-            modal: {
-              // User closed the overlay without paying — just re-enable the form.
-              ondismiss: () => resolve(),
-            },
-          });
-
-          rzp.on("payment.failed", (resp) => {
-            reject(
-              new Error(
-                resp?.error?.description || "Payment failed. Please try again."
-              )
-            );
-          });
-
-          rzp.open();
-        })
-        .catch(reject);
-    });
 
   return (
     <div
