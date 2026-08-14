@@ -468,7 +468,7 @@ export default function OrganicPerformanceOverview() {
             </span>
           </div>
 
-          <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-2.5 md:gap-3" role="tablist" aria-label="Metrics">
+          <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-2.5 md:gap-3" role="group" aria-label="Metrics">
             {METRICS.map((metric) => (
               <MetricCard key={metric.key} metric={metric} active={metric.key === activeKey} onSelect={() => setActiveKey(metric.key)} />
             ))}

@@ -101,7 +101,7 @@ export default function ContactForm() {
             setFormData(INITIAL_STATE);
             setFormSubmitted(false);
           }}
-          className="mt-6 text-xs font-semibold uppercase tracking-widest text-accent border-b border-accent pb-1 hover:text-primary hover:border-primary transition-all duration-200"
+          className="mt-6 text-xs font-semibold uppercase tracking-widest text-accent-strong border-b border-accent-strong pb-1 hover:text-primary hover:border-primary transition-all duration-200"
         >
           Send another message
         </button>

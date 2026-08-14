@@ -344,7 +344,7 @@ export default async function CaseStudyDetailPage({
               </div>
               <Link
                 href="/case-studies"
-                className="text-xs font-semibold uppercase tracking-widest text-accent border-b border-accent pb-1 hover:text-primary hover:border-primary cta-underline transition-all duration-200"
+                className="text-xs font-semibold uppercase tracking-widest text-accent-strong border-b border-accent-strong pb-1 hover:text-primary hover:border-primary cta-underline transition-all duration-200"
               >
                 View All
               </Link>

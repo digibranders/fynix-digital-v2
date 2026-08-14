@@ -1,5 +1,3 @@
-"use client";
-
 export default function TrustCardGraphic() {
   return (
     <div className="relative w-full max-w-[500px] aspect-[500/380] select-none mx-auto">

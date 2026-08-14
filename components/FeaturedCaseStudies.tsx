@@ -1,5 +1,3 @@
-"use client";
-
 import Link from "next/link";
 import type { CaseStudy } from "@/lib/content";
 import DossierTile from "@/components/DossierTile";

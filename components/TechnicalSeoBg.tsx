@@ -1,5 +1,3 @@
-"use client";
-
 import React from "react";
 
 // Technical SEO Section Background

@@ -114,7 +114,7 @@ export default function Home() {
             </div>
             <Link
               href="/services"
-              className="text-xs font-semibold uppercase tracking-widest text-accent border-b border-accent pb-1 hover:text-primary hover:border-primary cta-underline transition-all duration-200"
+              className="text-xs font-semibold uppercase tracking-widest text-accent-strong border-b border-accent-strong pb-1 hover:text-primary hover:border-primary cta-underline transition-all duration-200"
             >
               Explore Services
             </Link>
@@ -143,7 +143,7 @@ export default function Home() {
             </div>
             <Link
               href="/case-studies"
-              className="text-xs font-semibold uppercase tracking-widest text-accent border-b border-accent pb-1 hover:text-primary hover:border-primary cta-underline transition-all duration-200 mt-4 md:mt-0"
+              className="text-xs font-semibold uppercase tracking-widest text-accent-strong border-b border-accent-strong pb-1 hover:text-primary hover:border-primary cta-underline transition-all duration-200 mt-4 md:mt-0"
             >
               View All Case Studies
             </Link>

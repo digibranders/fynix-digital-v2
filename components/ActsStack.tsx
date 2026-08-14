@@ -72,7 +72,7 @@ export default function ActsStack({ acts }: Props) {
 
                 <Link
                   href={`/services/${act.slug}`}
-                  className="mt-6 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-accent border-b border-accent pb-1 hover:text-primary hover:border-primary cta-underline transition-colors self-start"
+                  className="mt-6 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-accent-strong border-b border-accent-strong pb-1 hover:text-primary hover:border-primary cta-underline transition-colors self-start"
                 >
                   Explore {act.title}
                   <span aria-hidden>&rarr;</span>
