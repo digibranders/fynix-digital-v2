@@ -26,21 +26,18 @@ export default function ImpactStats() {
 
         <dl className="mt-16 grid grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-12 border-t border-white/10 pt-12">
           {stats.map((stat, idx) => (
-            <Reveal key={stat.label} delay={idx * 100}>
-              <div className="flex flex-col">
-                <dt className="sr-only">{stat.label}</dt>
-                <dd className="font-serif italic text-5xl sm:text-6xl md:text-7xl font-normal text-accent leading-none tracking-tight tabular-nums">
-                  <CountUp value={stat.value} duration={1800} />
+            <Reveal key={stat.label} delay={idx * 100} className="flex flex-col">
+              <dt className="order-2 text-sm md:text-base text-white/85 mt-4 font-normal leading-snug">
+                {stat.label}
+              </dt>
+              <dd className="order-1 font-serif italic text-5xl sm:text-6xl md:text-7xl font-normal text-accent leading-none tracking-tight tabular-nums">
+                <CountUp value={stat.value} duration={1800} />
+              </dd>
+              {stat.sub ? (
+                <dd className="order-3 text-xs uppercase tracking-widest text-white/50 font-mono mt-2">
+                  {stat.sub}
                 </dd>
-                <span className="text-sm md:text-base text-white/85 mt-4 font-normal leading-snug">
-                  {stat.label}
-                </span>
-                {stat.sub ? (
-                  <span className="text-xs uppercase tracking-widest text-white/50 font-mono mt-2">
-                    {stat.sub}
-                  </span>
-                ) : null}
-              </div>
+              ) : null}
             </Reveal>
           ))}
         </dl>

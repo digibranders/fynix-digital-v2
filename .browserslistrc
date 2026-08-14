@@ -1,0 +1,12 @@
+# Production targets browsers with native ES-module support (>0.2% usage, not dead).
+# This drops legacy transforms/polyfills for old engines (IE, op_mini, KaiOS, ancient
+# Chrome/Safari) that Next.js/SWC would otherwise inject — clearing Lighthouse's
+# "Legacy JavaScript" audit while still covering every modern browser.
+[production]
+supports es6-module and > 0.2% and not dead
+
+# Dev only needs the latest engines, which keeps rebuilds fast.
+[development]
+last 1 chrome version
+last 1 firefox version
+last 1 safari version

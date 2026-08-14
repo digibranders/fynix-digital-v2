@@ -1,5 +1,3 @@
-"use client";
-
 /**
  * HeroCards - the editorial composition that sits under the hero copy.
  *

@@ -133,9 +133,9 @@ export default function Footer() {
               aria-label={group.title}
               className="col-span-1 md:col-span-2"
             >
-              <h4 className="text-sm font-semibold text-white mb-5">
+              <h2 className="text-sm font-semibold text-white mb-5">
                 {group.title}
-              </h4>
+              </h2>
               <ul className="space-y-3 text-sm text-white/60">
                 {group.items.map((item) => (
                   <li key={item.href}>

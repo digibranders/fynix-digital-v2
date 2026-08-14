@@ -1,5 +1,3 @@
-"use client";
-
 import { ReactNode } from "react";
 import { frameworkSteps } from "@/lib/content";
 import Reveal from "./Reveal";

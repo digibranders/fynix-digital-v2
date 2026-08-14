@@ -79,7 +79,7 @@ export const Hero: React.FC = () => {
                 alt="Pavel Klimakov presenting on stage at SEO Vibes Summit"
                 fill
                 priority
-                quality={95}
+                quality={90}
                 sizes="(min-width: 1024px) 45vw, 100vw"
                 className="object-cover object-[center_22%] scale-105"
               />

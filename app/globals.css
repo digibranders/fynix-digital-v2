@@ -36,6 +36,8 @@ html.lenis body {
   --primary-hover: #172D40;
   --accent: #E9AF88;
   --accent-hover: #D89870;
+  /* Darker terracotta for accent text on light backgrounds — 5.33:1 on white, passes WCAG AA. */
+  --accent-strong: #9C5A3C;
   --border: #E8E7E3;
 }
 
@@ -48,6 +50,7 @@ html.lenis body {
   --color-primary-hover: var(--primary-hover);
   --color-accent: var(--accent);
   --color-accent-hover: var(--accent-hover);
+  --color-accent-strong: var(--accent-strong);
   --color-border: var(--border);
   --font-serif: var(--font-sans), system-ui, sans-serif;
   --font-sans: var(--font-sans), system-ui, sans-serif;

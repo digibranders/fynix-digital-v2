@@ -1,5 +1,3 @@
-"use client";
-
 const DATA = Array.from({ length: 96 }, (_, i) => {
   const base = 12 + (i / 95) * 41.5;
   // A small sine wave for organic bumps, keeping the trend steadily growing

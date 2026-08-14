@@ -136,7 +136,8 @@ export default function ProcessTimeline() {
   }, []);
 
   return (
-    <ol ref={olRef} className="relative">
+    <div className="relative">
+      {/* Decorative timeline spine — kept outside <ol> so the list contains only <li> children (a11y). */}
       <div
         aria-hidden
         className="absolute left-6 md:left-1/2 top-4 bottom-4 w-px bg-border md:-translate-x-1/2"
@@ -149,6 +150,8 @@ export default function ProcessTimeline() {
         }}
       />
 
+      <ol ref={olRef} className="relative">
+
       {processSteps.map((step, idx) => {
         const isLeft = idx % 2 === 0;
         const icon = stepIcons[step.num];
@@ -156,16 +159,16 @@ export default function ProcessTimeline() {
         const passed = activeIndex >= 0 && idx <= activeIndex;
 
         return (
-          <Reveal
+          <li
             key={step.num}
-            variant={isLeft ? "left" : "right"}
-            delay={40}
+            ref={(el) => {
+              itemRefs.current[idx] = el;
+            }}
             className="relative"
           >
-            <li
-              ref={(el) => {
-                itemRefs.current[idx] = el;
-              }}
+            <Reveal
+              variant={isLeft ? "left" : "right"}
+              delay={40}
               className="relative pl-16 md:pl-0 md:grid md:grid-cols-2 md:gap-16 md:items-center py-8 md:py-12"
             >
               <span
@@ -248,10 +251,11 @@ export default function ProcessTimeline() {
                   <div className="absolute inset-6">{icon}</div>
                 </div>
               </div>
-            </li>
-          </Reveal>
+            </Reveal>
+          </li>
         );
       })}
-    </ol>
+      </ol>
+    </div>
   );
 }

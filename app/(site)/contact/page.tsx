@@ -158,7 +158,7 @@ export default function ContactPage() {
           <Reveal delay={200} className="mt-10 text-center">
             <Link
               href="/faqs"
-              className="text-xs font-semibold uppercase tracking-widest text-accent border-b border-accent pb-1 hover:text-primary hover:border-primary cta-underline transition-all duration-200"
+              className="text-xs font-semibold uppercase tracking-widest text-accent-strong border-b border-accent-strong pb-1 hover:text-primary hover:border-primary cta-underline transition-all duration-200"
             >
               See the full FAQs page
             </Link>

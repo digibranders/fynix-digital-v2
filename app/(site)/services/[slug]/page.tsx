@@ -332,8 +332,8 @@ export default async function ServiceDetailPage(
 
           <ol className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {act.howItRuns.map((step, idx) => (
-              <Reveal key={step.title} delay={idx * 100}>
-                <li className="h-full p-6 border border-border rounded-lg bg-white flex flex-col">
+              <li key={step.title} className="h-full">
+                <Reveal delay={idx * 100} className="h-full p-6 border border-border rounded-lg bg-white flex flex-col">
                   <span className="text-xs font-mono text-accent font-semibold tabular-nums">
                     Phase {String(idx + 1).padStart(2, "0")}
                   </span>
@@ -351,8 +351,8 @@ export default async function ServiceDetailPage(
                       {step.deliverable}
                     </div>
                   </div>
-                </li>
-              </Reveal>
+                </Reveal>
+              </li>
             ))}
           </ol>
         </div>
