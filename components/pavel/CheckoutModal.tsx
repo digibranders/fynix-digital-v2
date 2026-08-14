@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { X, ArrowRight, Loader2, CheckCircle2 } from "lucide-react";
 import { usePricing } from "@/components/pavel/PricingProvider";
 import { Button } from "@/components/pavel/ui/Button";
+import { WORKSHOP } from "@/components/pavel/workshopDetails";
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -391,6 +392,15 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
           >
             <X className="w-5 h-5" />
           </button>
+        </div>
+
+        <div className="flex items-baseline justify-between gap-4 border-t border-border pt-4">
+          <span className="font-serif text-lg sm:text-xl text-primary tracking-tight">
+            {WORKSHOP.dateLabel}
+          </span>
+          <span className="text-sm text-text-muted whitespace-nowrap">
+            {WORKSHOP.time}
+          </span>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
