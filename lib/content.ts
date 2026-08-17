@@ -677,7 +677,7 @@ export type Stat = { value: string; label: string; sub?: string };
 
 export const stats: Stat[] = [
   { value: "1,000+", label: "Ideas Pitched" },
-  { value:"30,000+", label: "Hours Spent" },
+  { value: "30,000+", label: "Hours Spent" },
   { value: "30+", label: "Brands Transformed" },
   { value: "230%", label: "SEO Growth in 3 Months" },
 ];
@@ -930,7 +930,7 @@ export const siteConfig = {
     line1: "Office No. 2617, 26th Floor, Solus Building, Hiranandani Estate,",
     line2: "Ghodbunder Road, Thane West, Maharashtra 400607",
   },
-  gst: "27AAICD9268J1ZO",
+  gst: "27AAICD9268J1Z0",
   description:
     "We help companies transform their websites into growth engines through UI/UX, technical excellence, AI-ready SEO, and predictable lead generation.",
 };
@@ -947,8 +947,8 @@ export const siteConfig = {
 export function isProductionSite(): boolean {
   return Boolean(
     process.env.NEXT_PUBLIC_SITE_URL?.includes("fynix.digital") ||
-      process.env.VERCEL_PROJECT_PRODUCTION_URL?.includes("fynix.digital") ||
-      process.env.VERCEL_ENV === "production",
+    process.env.VERCEL_PROJECT_PRODUCTION_URL?.includes("fynix.digital") ||
+    process.env.VERCEL_ENV === "production",
   );
 }
 
