@@ -1,6 +1,7 @@
 export interface PavelRegistrationSubmission {
   name: string;
   email: string;
+  country?: string;
   region?: string;
   amountDisplay?: string;
   ticketNumber?: string;

@@ -43,7 +43,7 @@ export async function POST(request: Request) {
     });
   }
 
-  const { name, email, region, amountDisplay } = body as Record<string, string>;
+  const { name, email, country, region, amountDisplay } = body as Record<string, string>;
 
   // TEMPORARY: no validation. Accept whatever is submitted and fall back to
   // placeholder values so the flow always reaches the thank-you page.
@@ -54,6 +54,7 @@ export async function POST(request: Request) {
     email:
       (email && typeof email === "string" && email.trim().toLowerCase()) ||
       "guest@example.com",
+    country: (country && typeof country === "string" && country.trim()) || "",
     region: region || "REST",
     amountDisplay: amountDisplay || "$79",
     ticketNumber,
@@ -82,8 +83,8 @@ export async function POST(request: Request) {
         sender: SENDER,
         to: [ADMIN_RECIPIENT],
         subject: `🚨 [New Ticket] ${submission.name} registered for Pavel Workshop [${ticketNumber}]`,
-        htmlContent: `<p>New Registration:</p><p>Name: ${submission.name}</p><p>Email: ${submission.email}</p><p>Ticket: ${ticketNumber}</p>`,
-        textContent: `New Registration: ${submission.name} (${submission.email}) [${ticketNumber}]`,
+        htmlContent: `<p>New Registration:</p><p>Name: ${submission.name}</p><p>Email: ${submission.email}</p><p>Country: ${submission.country || "N/A"}</p><p>Ticket: ${ticketNumber}</p>`,
+        textContent: `New Registration: ${submission.name} (${submission.email}) — Country: ${submission.country || "N/A"} [${ticketNumber}]`,
       });
     } catch {
       // Ignore admin email error

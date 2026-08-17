@@ -26,9 +26,9 @@ const nextConfig: NextConfig = {
       "img-src 'self' data: blob: https:",
       "font-src 'self' data:",
       "style-src 'self' 'unsafe-inline'",
-      `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
-      "frame-src 'self' https://www.youtube-nocookie.com",
-      `connect-src 'self'${isDev ? " ws:" : ""}`,
+      `script-src 'self' 'unsafe-inline' https://www.googletagmanager.com${isDev ? " 'unsafe-eval'" : ""}`,
+      "frame-src 'self' https://www.youtube-nocookie.com https://www.googletagmanager.com",
+      `connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com${isDev ? " ws:" : ""}`,
       "worker-src 'self' blob:",
     ].join("; ");
 

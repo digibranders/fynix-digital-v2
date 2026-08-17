@@ -1,10 +1,11 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { X, ArrowRight, Loader2, CheckCircle2 } from "lucide-react";
+import { X, ArrowRight, Loader2, CheckCircle2, ChevronDown } from "lucide-react";
 import { usePricing } from "@/components/pavel/PricingProvider";
 import { Button } from "@/components/pavel/ui/Button";
 import { WORKSHOP } from "@/components/pavel/workshopDetails";
+import { COUNTRIES } from "@/components/pavel/countries";
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -33,6 +34,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [country, setCountry] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [submitted, setSubmitted] = useState(false);
@@ -72,6 +74,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
     setError("");
     setName("");
     setEmail("");
+    setCountry("");
     onClose();
   };
 
@@ -107,6 +110,10 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
       setError("Please enter a valid email address.");
       return;
     }
+    if (!country) {
+      setError("Please select your country.");
+      return;
+    }
 
     setLoading(true);
 
@@ -125,6 +132,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
         body: JSON.stringify({
           name: trimmedName,
           email: trimmedEmail,
+          country,
           region: price.region,
           amountDisplay: price.display,
           ...antiBot,
@@ -144,6 +152,37 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
       setLoading(false);
     }
   };
+
+  // Convert the fixed workshop instant (WORKSHOP.startUtc) into the selected
+  // country's local date + time. Until a country is picked, we show the default
+  // IST labels. An unsupported IANA zone falls back to those defaults too.
+  const selectedTz = country
+    ? COUNTRIES.find((c) => c.name === country)?.tz
+    : undefined;
+
+  let dateLabel: string = WORKSHOP.dateLabel;
+  let timeLabel: string = WORKSHOP.time;
+  if (selectedTz) {
+    try {
+      const instant = new Date(WORKSHOP.startUtc);
+      dateLabel = new Intl.DateTimeFormat("en-GB", {
+        timeZone: selectedTz,
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      }).format(instant);
+      timeLabel = new Intl.DateTimeFormat("en-US", {
+        timeZone: selectedTz,
+        hour: "numeric",
+        minute: "2-digit",
+        timeZoneName: "short",
+      }).format(instant);
+    } catch {
+      // Unsupported zone in this runtime — keep the default IST labels.
+      dateLabel = WORKSHOP.dateLabel;
+      timeLabel = WORKSHOP.time;
+    }
+  }
 
   return (
     <div
@@ -218,13 +257,18 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
           </button>
         </div>
 
-        <div className="flex items-baseline justify-between gap-4 border-t border-border pt-4">
-          <span className="font-serif text-lg sm:text-xl text-primary tracking-tight">
-            {WORKSHOP.dateLabel}
-          </span>
-          <span className="text-sm text-text-muted whitespace-nowrap">
-            {WORKSHOP.time}
-          </span>
+        <div className="border-t border-border pt-4">
+          <div className="flex items-baseline justify-between gap-4">
+            <span className="font-serif text-lg sm:text-xl text-primary tracking-tight">
+              {dateLabel}
+            </span>
+            <span className="text-sm text-text-muted whitespace-nowrap">
+              {timeLabel}
+            </span>
+          </div>
+          <p className="mt-1 text-[11px] text-text-muted/80">
+            {selectedTz ? "Shown in your local time" : "Select your country below to see your local start time"}
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -304,6 +348,38 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
               autoComplete="email"
               className="w-full px-4 py-3 rounded-xl bg-background-soft border border-border text-primary placeholder-text-muted/60 text-sm focus:outline-none focus:border-primary focus:bg-white transition-all"
             />
+          </div>
+
+          <div className="space-y-1.5">
+            <label htmlFor="pv-country" className="text-xs font-medium text-primary">
+              Your Country <span className="text-red-500">*</span>
+            </label>
+            <div className="relative">
+              <select
+                id="pv-country"
+                value={country}
+                onChange={(e) => setCountry(e.target.value)}
+                required
+                aria-required="true"
+                autoComplete="country-name"
+                className={`w-full appearance-none px-4 py-3 pr-10 rounded-xl bg-background-soft border border-border text-sm focus:outline-none focus:border-primary focus:bg-white transition-all ${
+                  country ? "text-primary" : "text-text-muted/60"
+                }`}
+              >
+                <option value="" disabled>
+                  Select your country
+                </option>
+                {COUNTRIES.map((c) => (
+                  <option key={c.code} value={c.name} className="text-primary">
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown
+                aria-hidden
+                className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted"
+              />
+            </div>
           </div>
 
           <div className="pt-2">
