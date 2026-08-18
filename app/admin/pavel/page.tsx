@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { desc } from "drizzle-orm";
 import { getDb } from "@/lib/db/client";
 import { registrations } from "@/lib/db/schema";
@@ -78,6 +79,18 @@ async function loadRegistrations(): Promise<{
 }
 
 export default async function PavelAdminPage() {
+  // The admin dashboard reads the database directly, so it only functions where
+  // the DB lives (the droplet). On a DB-less host (the Vercel marketing site)
+  // send operators to the API origin that actually serves it, rather than
+  // showing a login form that can never load data.
+  if (!getDb()) {
+    const apiBase = (process.env.NEXT_PUBLIC_API_BASE_URL ?? "").replace(
+      /\/+$/,
+      ""
+    );
+    if (apiBase) redirect(`${apiBase}/admin/pavel`);
+  }
+
   if (!(await isAdminAuthenticated())) {
     return (
       <PavelLoginForm
