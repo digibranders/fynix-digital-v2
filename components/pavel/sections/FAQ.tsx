@@ -15,11 +15,11 @@ const FAQS = [
   },
   {
     q: "Will I get a recording?",
-    a: "No. There are no recordings. We will share notes and the slide deck with attendees after the workshop.",
+    a: "Yes. Every attendee gets access to the full workshop recording for 7 days after the session, so you can revisit anything you want to review. We&rsquo;ll also share the notes and slide deck.",
   },
   {
     q: "What if I cannot attend live?",
-    a: "We do not record the session and there are no refunds for this live workshop. Please be 100% sure before reserving your seat.",
+    a: "You&rsquo;ll get access to the recording for 7 days afterwards, so you won&rsquo;t miss the material. That said, it&rsquo;s a live, interactive session and the Q&amp;A is where a lot of the value is, so we still recommend attending live. Please note there are no refunds.",
   },
 ];
 
@@ -29,7 +29,7 @@ export const FAQ: React.FC = () => {
   return (
     <section
       id="faq"
-      className="py-16 md:py-20 pv-seam bg-background-soft"
+      className="py-12 pv-seam bg-background-soft"
     >
       <Container>
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-14 lg:gap-16 items-start">

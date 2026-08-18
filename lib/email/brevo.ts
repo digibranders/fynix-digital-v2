@@ -1,5 +1,16 @@
 const BREVO_API_URL = "https://api.brevo.com/v3/smtp/email";
 
+/**
+ * GLOBAL email kill switch — the single lowest-level guard every outbound mail
+ * flows through, so nothing is sent regardless of which route triggered it
+ * (Pavel confirmations/reminders, the contact form, the SEO-audit forms, all of
+ * them). While this is `false`, sendTransactionalEmail logs what it WOULD have
+ * sent and returns without touching Brevo — no real person is mailed.
+ *
+ * Re-enabling delivery is a deliberate human decision: flip this to `true`.
+ */
+const EMAILS_ENABLED = true;
+
 export type EmailAddress = {
   email: string;
   name?: string;
@@ -24,6 +35,17 @@ export class BrevoSendError extends Error {
 export async function sendTransactionalEmail(
   params: SendTransactionalEmailParams
 ): Promise<void> {
+  // Kill switch: never reach Brevo while disabled. Log the intended send so the
+  // flow stays observable, then no-op — callers see a normal success (void).
+  if (!EMAILS_ENABLED) {
+    console.log(
+      `[EMAIL:DISABLED] would send subject="${params.subject}" to=${params.to
+        .map((r) => r.email)
+        .join(", ")} (EMAILS_ENABLED is off — nothing sent)`
+    );
+    return;
+  }
+
   const apiKey = process.env.BREVO_API_KEY;
   if (!apiKey) {
     throw new BrevoSendError("BREVO_API_KEY is not configured.", 500);

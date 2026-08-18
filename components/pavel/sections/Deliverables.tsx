@@ -25,7 +25,7 @@ export const Deliverables: React.FC = () => {
   return (
     <section
       id="deliverables"
-      className="relative isolate overflow-hidden py-16 md:py-20 bg-transparent"
+      className="relative isolate overflow-hidden py-12 bg-transparent"
     >
       <PreFooterBackdrop />
       <Container className="relative">

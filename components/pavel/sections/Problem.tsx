@@ -29,14 +29,13 @@ export const Problem: React.FC = () => {
   return (
     <section
       id="problem"
-      className="py-16 md:py-20 pv-seam bg-background-soft"
+      className="py-12 pv-seam bg-background-soft"
     >
       <Container>
         <div className="max-w-[820px] mb-16 md:mb-20">
           <h2 className="text-[2.15rem] sm:text-[2.65rem] lg:text-[3.15rem] leading-[1.08] font-medium tracking-[-0.026em] text-primary">
             You already know more about SEO than{" "}
-            <span className="font-serif italic font-medium">95% of the people</span>{" "}
-            calling themselves SEOs.
+            <span className="font-serif italic font-medium">most so-called SEOs.</span>
           </h2>
           <p className="mt-8 text-[1.3rem] sm:text-[1.45rem] text-text-muted leading-[1.6] max-w-[820px] md:whitespace-nowrap font-normal">
             You&apos;ve done the work, yet less experienced competitors keep
@@ -47,7 +46,7 @@ export const Problem: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-14 gap-y-12 md:gap-y-16">
           {PAINS.map((p, i) => (
             <Reveal key={p.n} delay={i * 80} className="flex gap-6">
-              <span className="font-serif text-[22px] italic font-normal text-text-muted leading-none pt-1 tnum shrink-0">
+              <span className="font-serif text-[22px] italic font-normal text-accent leading-none pt-1 tnum shrink-0">
                 {p.n}
               </span>
               <div className="space-y-3 border-l border-border pl-6 -ml-2">

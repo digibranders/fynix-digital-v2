@@ -1,0 +1,325 @@
+/*
+ * Certificate of Completion — Semantic SEO Masterclass (Fynix Digital).
+ *
+ * Everything inside `.cert` is sized in `em`, and the root `em` is driven by
+ * the container width (`cqi`). That means the whole certificate scales as one
+ * unit — from a phone preview up to a full A4 sheet — with zero layout drift.
+ * For print we swap the root em to a fixed `mm` value so it lands pixel-true on
+ * an A4 landscape page.
+ */
+
+.cert-stage {
+  container-type: inline-size;
+  width: 100%;
+}
+
+.cert {
+  /* Brand tokens, scoped so the artifact is self-contained and print-safe. */
+  --ink: #0c1e2e; /* deep navy — primary */
+  --ink-soft: #2a4258;
+  --cream: #fcfcfb;
+  --paper: #fbf9f5;
+  --copper: #b0714a; /* accent-strong, dialled for ink-on-cream contrast */
+  --copper-bright: #e9af88;
+  --gold-1: #e8c9a4;
+  --gold-2: #b0714a;
+  --gold-3: #8a4f30;
+  --hair: rgba(12, 30, 46, 0.16);
+
+  position: relative;
+  aspect-ratio: 1.414 / 1;
+  width: 100%;
+  overflow: hidden;
+  background: var(--cream);
+  color: var(--ink);
+  font-family: var(--font-sans), "Figtree", system-ui, sans-serif;
+  font-size: clamp(8px, 1.62cqi, 22px);
+  line-height: 1.2;
+  border-radius: 0.6em;
+  box-shadow: 0 2.2em 5em -1.6em rgba(12, 30, 46, 0.32);
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.cert__serif {
+  font-family: var(--font-cormorant), "Cormorant", Georgia, serif;
+}
+
+/* --- Right photo panel (cream, matching the body) ------------------------- */
+.cert__spine {
+  position: absolute;
+  /* Bottom inset to the frame; right inset 3.43em so the photo mirrors the
+     body's left padding. */
+  top: 0;
+  right: 3.43em;
+  bottom: 2em;
+  left: auto;
+  /* em (not px) so the panel scales with the sheet — fills the A4 width in
+     print instead of leaving a centre gap. 25.8em ≈ 415px at the screen root. */
+  width: 25.8em;
+  background: var(--cream);
+  color: var(--ink);
+  overflow: hidden;
+}
+/* Soft fade at the foot of the photo so Pavel dissolves into the cream. */
+.cert__spine::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 8%;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(
+    to top,
+    var(--cream) 0%,
+    rgba(252, 252, 251, 0.32) 55%,
+    rgba(252, 252, 251, 0) 100%
+  );
+}
+
+/* Pavel cutout as a background so zoom and position are independent: the image
+   is zoomed out just enough that his whole gesture (outstretched hand → body)
+   fits, while sitting toward the right of the panel. */
+.cert__spine-photo {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image: url("/pavel/pavel-transparent.webp");
+  background-repeat: no-repeat;
+  background-size: 255% auto;
+  background-position: 56% bottom;
+}
+
+.cert__spine-logo {
+  position: absolute;
+  z-index: 2;
+  /* Aligned on the "Certificate of Completion" eyebrow row. The panel is now
+     inset 3.43em on the right; a little extra pulls the logo further left. */
+  top: 4.6em;
+  right: 0.9em;
+  width: 20%;
+  height: auto;
+  /* Fynix logo is monochrome; the brand renders it in primary navy on light
+     surfaces (text-primary on the site), white on dark. */
+  color: var(--ink);
+}
+
+/* --- Ornamental frame: spans the full sheet, enclosing the photo panel ---- */
+.cert__frame {
+  position: absolute;
+  inset: 1.5em;
+  border: 1px solid var(--hair);
+  border-radius: 0.15em;
+  pointer-events: none;
+}
+.cert__frame::after {
+  content: "";
+  position: absolute;
+  inset: 0.42em;
+  border: 1px solid rgba(176, 113, 74, 0.32);
+  border-radius: 0.08em;
+}
+
+.cert__corner {
+  position: absolute;
+  width: 1.15em;
+  height: 1.15em;
+  color: var(--copper);
+  opacity: 0.85;
+}
+.cert__corner--tl { top: 1.15em; left: 1.15em; }
+.cert__corner--tr { top: 1.15em; right: 1.15em; transform: rotate(90deg); }
+.cert__corner--bl { bottom: 1.15em; left: 1.15em; transform: rotate(-90deg); }
+.cert__corner--br { bottom: 1.15em; right: 1.15em; transform: rotate(180deg); }
+
+/* --- Body content --------------------------------------------------------- */
+.cert__body {
+  position: absolute;
+  inset: 0;
+  right: auto;
+  /* em (not px) so it scales with the sheet — no centre gap in print.
+     39.5em ≈ 635px at the screen root. */
+  width: 39.5em;
+  display: flex;
+  flex-direction: column;
+  /* top · right · bottom · left — extra left padding nudges the content right. */
+  padding: 4.2em 3.4em 2.4em 5em;
+}
+
+
+.cert__eyebrow {
+  margin-top: 0.6em;
+  font-size: 0.82em;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--copper);
+}
+.cert__lead {
+  margin-top: 1.7em;
+  font-size: 0.92em;
+  color: var(--ink-soft);
+  font-style: italic;
+  font-family: var(--font-cormorant), "Cormorant", Georgia, serif;
+}
+
+.cert__name {
+  margin-top: 0.35em;
+  font-size: 3.5em;
+  line-height: 1.02;
+  font-weight: 600;
+  letter-spacing: -0.014em;
+  color: var(--ink);
+  font-family: var(--font-cormorant), "Cormorant", Georgia, serif;
+  /* Shrink the box to the text so the underline spans exactly the name. */
+  width: fit-content;
+  max-width: 100%;
+  align-self: flex-start;
+}
+.cert__name::after {
+  /* Brand-copper underline covering the whole name, fading out to the right. */
+  content: "";
+  display: block;
+  width: 100%;
+  height: 0.028em;
+  margin-top: 0.22em;
+  background: linear-gradient(
+    to right,
+    var(--copper) 0%,
+    var(--copper) 55%,
+    rgba(176, 113, 74, 0) 100%
+  );
+}
+
+.cert__desc {
+  margin-top: 1.5em;
+  font-size: 0.98em;
+  line-height: 1.55;
+  color: var(--ink-soft);
+  max-width: 26em;
+}
+.cert__program {
+  display: block;
+  margin-top: 0.35em;
+  font-size: 1.32em;
+  font-style: italic;
+  font-weight: 600;
+  color: var(--ink);
+  font-family: var(--font-cormorant), "Cormorant", Georgia, serif;
+  letter-spacing: -0.01em;
+}
+
+.cert__blurb {
+  margin-top: 1.35em;
+  font-size: 1em;
+  line-height: 1.6;
+  color: rgba(42, 66, 88, 0.82);
+  max-width: 23em;
+}
+
+/* --- Footer: signature + seal + credential -------------------------------- */
+.cert__footer {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1em;
+  padding-top: 1.2em;
+}
+
+.cert__sign {
+  flex: 1 1 0;
+  max-width: 10.5em;
+}
+
+.cert__sign-name {
+  font-size: 1.7em;
+  line-height: 1;
+  color: var(--ink);
+  font-style: italic;
+  font-family: var(--font-cormorant), "Cormorant", Georgia, serif;
+  transform: rotate(-3deg);
+  transform-origin: left bottom;
+}
+.cert__sign-rule {
+  width: 8.5em;
+  max-width: 100%;
+  height: 1px;
+  margin-top: 0.55em;
+  background: var(--hair);
+}
+.cert__sign-label {
+  margin-top: 0.55em;
+  font-size: 0.66em;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+}
+.cert__sign-sub {
+  font-size: 0.6em;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--copper);
+  margin-top: 0.25em;
+}
+
+.cert__cred {
+  flex: 1 1 0;
+  max-width: 10.5em;
+  text-align: right;
+  font-size: 0.62em;
+  line-height: 1.65;
+  color: rgba(42, 66, 88, 0.78);
+}
+.cert__cred dt {
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--copper);
+  font-weight: 600;
+  font-size: 0.86em;
+}
+.cert__cred dd {
+  font-weight: 600;
+  color: var(--ink);
+  font-feature-settings: "tnum" 1;
+  margin: 0 0 0.7em;
+}
+.cert__cred dd:last-child { margin-bottom: 0; }
+
+/* --- Engraved badge, centred in the footer between signature + date ------- */
+.cert__seal {
+  position: relative;
+  flex: 0 0 auto;
+  width: 8.2em;
+  height: 8.2em;
+  margin: 0 auto;
+}
+.cert__seal-art {
+  width: 100%;
+  height: 100%;
+  color: var(--copper);
+}
+
+/* --- Screen presentation shell (not printed) ----------------------------- */
+.cert-page {
+  min-height: 100vh;
+  background:
+    radial-gradient(120% 80% at 50% -10%, #12293b 0%, #0a1824 46%, #060f18 100%);
+  padding: clamp(1.25rem, 4vw, 3.5rem) 1.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.cert-shell {
+  width: min(100%, 62rem);
+}
+/* Unobtrusive floating actions — hidden when the certificate is printed. */
+.cert-actions {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 10;
+}

@@ -6,10 +6,11 @@ import { Button } from "../ui/Button";
 import { ArrowRight, Menu, X } from "lucide-react";
 import { usePricing } from "../PricingProvider";
 
+// Order mirrors the on-page section flow: Instructor → Problem → Curriculum → FAQ.
 const NAV_ITEMS = [
+  { id: "instructor", label: "Instructor" },
   { id: "problem", label: "The Problem" },
   { id: "curriculum", label: "Curriculum" },
-  { id: "instructor", label: "Instructor" },
   { id: "faq", label: "FAQ" },
 ];
 
