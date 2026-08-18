@@ -16,6 +16,18 @@ export type EmailAddress = {
   name?: string;
 };
 
+/**
+ * A file to send with the email. `contentBase64` is the raw file bytes in
+ * base64, which is the form Brevo's API takes. Brevo caps the total attachment
+ * payload at roughly 10MB; a workshop invoice is a few KB, so that is not a
+ * practical limit here.
+ */
+export type EmailAttachment = {
+  /** Filename shown to the recipient, e.g. "FYX-26-27-0001.pdf". */
+  name: string;
+  contentBase64: string;
+};
+
 export type SendTransactionalEmailParams = {
   to: EmailAddress[];
   sender: EmailAddress;
@@ -23,6 +35,7 @@ export type SendTransactionalEmailParams = {
   htmlContent: string;
   textContent: string;
   replyTo?: EmailAddress;
+  attachments?: EmailAttachment[];
 };
 
 export class BrevoSendError extends Error {
@@ -38,10 +51,13 @@ export async function sendTransactionalEmail(
   // Kill switch: never reach Brevo while disabled. Log the intended send so the
   // flow stays observable, then no-op — callers see a normal success (void).
   if (!EMAILS_ENABLED) {
+    const attached = params.attachments?.length
+      ? ` with ${params.attachments.map((a) => a.name).join(", ")}`
+      : "";
     console.log(
       `[EMAIL:DISABLED] would send subject="${params.subject}" to=${params.to
         .map((r) => r.email)
-        .join(", ")} (EMAILS_ENABLED is off — nothing sent)`
+        .join(", ")}${attached} (EMAILS_ENABLED is off — nothing sent)`
     );
     return;
   }
@@ -65,6 +81,16 @@ export async function sendTransactionalEmail(
       subject: params.subject,
       htmlContent: params.htmlContent,
       textContent: params.textContent,
+      // Brevo expects `attachment: [{ content, name }]`; omit the key entirely
+      // when there is nothing to attach.
+      ...(params.attachments?.length
+        ? {
+            attachment: params.attachments.map((file) => ({
+              content: file.contentBase64,
+              name: file.name,
+            })),
+          }
+        : {}),
     }),
   });
 

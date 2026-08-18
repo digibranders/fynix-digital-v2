@@ -4,6 +4,7 @@ import { emailLog } from "@/lib/db/schema";
 import {
   sendTransactionalEmail,
   type EmailAddress,
+  type EmailAttachment,
 } from "@/lib/email/brevo";
 
 /**
@@ -40,6 +41,8 @@ export interface DispatchPavelEmailParams {
   textContent: string;
   sender: EmailAddress;
   replyTo?: EmailAddress;
+  /** Files to send with the email, e.g. the tax invoice PDF. */
+  attachments?: EmailAttachment[];
 }
 
 export type DispatchResult =
@@ -95,6 +98,7 @@ export async function dispatchPavelEmail(
         subject,
         htmlContent: params.htmlContent,
         textContent: params.textContent,
+        attachments: params.attachments,
       });
       return { status: "sent" };
     } catch (error) {

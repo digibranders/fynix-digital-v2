@@ -1,0 +1,54 @@
+name: Uptime (api.fynix.digital)
+
+# External health check for the DigitalOcean droplet.
+#
+# Runs on GitHub's infrastructure rather than on the droplet, so it still fires
+# when the box itself is down, which an on-host checker could never report. The
+# repository is public, so scheduled Actions minutes are free.
+#
+# When the check fails the job fails, and GitHub emails the repository admins.
+# Watch > Custom > Actions on the repo turns that into a notification for anyone
+# else who needs it.
+#
+# Note: GitHub's scheduler is best-effort. A 10-minute schedule can drift to 15
+# or more under load, so treat this as "something is wrong" alerting, not as a
+# precise availability measurement.
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: uptime
+  cancel-in-progress: true
+
+jobs:
+  health:
+    name: Probe /api/health
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check API health
+        run: |
+          URL="https://api.fynix.digital/api/health"
+
+          # Retry before declaring an outage: a single failed probe is usually a
+          # transient network blip, and a monitor that cries wolf gets ignored.
+          for attempt in 1 2 3; do
+            body=$(curl -sS --max-time 20 -w '\n%{http_code}' "$URL" || echo $'\n000')
+            code=$(printf '%s' "$body" | tail -n1)
+            payload=$(printf '%s' "$body" | sed '$d')
+
+            echo "attempt $attempt: HTTP $code $payload"
+
+            if [ "$code" = "200" ] && printf '%s' "$payload" | grep -q '"db":"up"'; then
+              echo "healthy"
+              exit 0
+            fi
+
+            [ "$attempt" -lt 3 ] && sleep 20
+          done
+
+          echo "::error::api.fynix.digital is unhealthy after 3 attempts (last: HTTP $code $payload)"
+          exit 1
