@@ -9,8 +9,10 @@ import {
   createSession,
   activateSession,
   setRegistrationsClosed,
+  updateSessionTimes,
   normalizeWebinarId,
 } from "@/lib/pavel/webinarSession";
+import { parseSessionTimes } from "@/lib/pavel/sessionTimes";
 
 /**
  * Webinar sessions, as the console sees them.
@@ -28,44 +30,9 @@ export type AdminSessionRow = {
   /** Whether this session is refusing new registrations. */
   registrationsClosed: boolean;
   startsAt: string | null;
+  endsAt: string | null;
   createdAt: string;
 };
-
-/**
- * Read the start and end an operator typed.
- *
- * Both or neither: a start without an end cannot express a session range, and
- * half a schedule would silently mix a real date with a hardcoded time, which
- * reads as correct while being wrong.
- *
- * The inputs are datetime-local, so the browser hands back wall-clock time with
- * no zone. It is interpreted as IST, which is where the workshop runs and what
- * the operator is typing.
- */
-function parseSessionTimes(
-  startsAt?: string,
-  endsAt?: string
-): { startsAt: Date | null; endsAt: Date | null; error?: string } {
-  if (!startsAt && !endsAt) return { startsAt: null, endsAt: null };
-  if (!startsAt || !endsAt) {
-    return {
-      startsAt: null,
-      endsAt: null,
-      error: "Give both a start and an end time, or neither.",
-    };
-  }
-
-  // "+05:30" pins the wall-clock time the operator typed to IST.
-  const start = new Date(`${startsAt}:00+05:30`);
-  const end = new Date(`${endsAt}:00+05:30`);
-  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
-    return { startsAt: null, endsAt: null, error: "That date or time is not valid." };
-  }
-  if (end <= start) {
-    return { startsAt: null, endsAt: null, error: "The end time must be after the start." };
-  }
-  return { startsAt: start, endsAt: end };
-}
 
 export const SESSIONS_DATA_PATH = "/api/admin/data/sessions";
 
@@ -99,6 +66,7 @@ export async function loadSessions(): Promise<LoadSessionsResult> {
           active: s.active,
           registrationsClosed: s.registrationsClosed,
           startsAt: s.startsAt ? s.startsAt.toISOString() : null,
+          endsAt: s.endsAt ? s.endsAt.toISOString() : null,
           createdAt: s.createdAt.toISOString(),
         })),
         error: null,
@@ -141,7 +109,7 @@ export async function loadSessions(): Promise<LoadSessionsResult> {
 
 /** Perform a session action wherever the data lives. Returns an error message or null. */
 export async function mutateSession(
-  action: "create" | "activate" | "close" | "reopen",
+  action: "create" | "activate" | "close" | "reopen" | "update",
   input: {
     zoomWebinarId?: string;
     label?: string;
@@ -171,6 +139,15 @@ export async function mutateSession(
         return null;
       }
       if (!input.sessionId) return "sessionId is required.";
+      if (action === "update") {
+        const times = parseSessionTimes(input.startsAt, input.endsAt);
+        if (times.error) return times.error;
+        const session = await updateSessionTimes(db, input.sessionId, {
+          startsAt: times.startsAt,
+          endsAt: times.endsAt,
+        });
+        return session ? null : "Session not found.";
+      }
       if (action === "close" || action === "reopen") {
         await setRegistrationsClosed(db, input.sessionId, action === "close");
         return null;

@@ -6,8 +6,10 @@ import {
   createSession,
   activateSession,
   setRegistrationsClosed,
+  updateSessionTimes,
   normalizeWebinarId,
 } from "@/lib/pavel/webinarSession";
+import { parseSessionTimes } from "@/lib/pavel/sessionTimes";
 
 export const runtime = "nodejs";
 // Live operator data; never statically rendered or cached.
@@ -51,6 +53,7 @@ export async function GET(request: Request) {
         active: session.active,
         registrationsClosed: session.registrationsClosed,
         startsAt: session.startsAt ? session.startsAt.toISOString() : null,
+        endsAt: session.endsAt ? session.endsAt.toISOString() : null,
         createdAt: session.createdAt.toISOString(),
       })),
     });
@@ -77,12 +80,20 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid JSON." }, { status: 400 });
   }
 
-  const { action, zoomWebinarId, label, sessionId } = (body ?? {}) as {
-    action?: string;
-    zoomWebinarId?: string;
-    label?: string;
-    sessionId?: string;
-  };
+  // `startsAt`/`endsAt` are read here because the console sends them on every
+  // create and update. Omitting them from this list is exactly how every session
+  // came to be stored with no schedule: the operator filled the pickers, the
+  // console forwarded them, and this handler dropped them on the floor, so the
+  // whole site fell back to the hardcoded date in workshopDetails.
+  const { action, zoomWebinarId, label, sessionId, startsAt, endsAt } =
+    (body ?? {}) as {
+      action?: string;
+      zoomWebinarId?: string;
+      label?: string;
+      sessionId?: string;
+      startsAt?: string;
+      endsAt?: string;
+    };
 
   try {
     if (action === "create") {
@@ -100,9 +111,16 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "A label is required." }, { status: 400 });
       }
 
+      const times = parseSessionTimes(startsAt, endsAt);
+      if (times.error) {
+        return NextResponse.json({ error: times.error }, { status: 400 });
+      }
+
       const session = await createSession(db, {
         zoomWebinarId: normalised,
         label,
+        startsAt: times.startsAt,
+        endsAt: times.endsAt,
       });
       return NextResponse.json({ session: { id: session.id } }, { status: 201 });
     }
@@ -116,6 +134,30 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "Session not found." }, { status: 404 });
       }
       return NextResponse.json({ session: { id: session.id, active: session.active } });
+    }
+
+    if (action === "update") {
+      if (!sessionId) {
+        return NextResponse.json({ error: "sessionId is required." }, { status: 400 });
+      }
+      const times = parseSessionTimes(startsAt, endsAt);
+      if (times.error) {
+        return NextResponse.json({ error: times.error }, { status: 400 });
+      }
+      const session = await updateSessionTimes(db, sessionId, {
+        startsAt: times.startsAt,
+        endsAt: times.endsAt,
+      });
+      if (!session) {
+        return NextResponse.json({ error: "Session not found." }, { status: 404 });
+      }
+      return NextResponse.json({
+        session: {
+          id: session.id,
+          startsAt: session.startsAt ? session.startsAt.toISOString() : null,
+          endsAt: session.endsAt ? session.endsAt.toISOString() : null,
+        },
+      });
     }
 
     if (action === "close" || action === "reopen") {
