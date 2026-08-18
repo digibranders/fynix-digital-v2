@@ -37,7 +37,12 @@ export const Problem: React.FC = () => {
             You already know more about SEO than{" "}
             <span className="font-serif italic font-medium">most so-called SEOs.</span>
           </h2>
-          <p className="mt-8 text-[1.3rem] sm:text-[1.45rem] text-text-muted leading-[1.6] max-w-[820px] md:whitespace-nowrap font-normal">
+          {/* The single-line treatment only holds from `lg` up. At `md` the
+              sentence is wider than the container, and because `nowrap` cannot
+              break it the excess widened the whole document instead — giving
+              every section on the page a horizontal scroll at tablet widths.
+              `lg:` matches the other one-line headings in Proof and Curriculum. */}
+          <p className="mt-8 text-[1.3rem] sm:text-[1.45rem] text-text-muted leading-[1.6] max-w-[820px] lg:whitespace-nowrap font-normal">
             You&apos;ve done the work, yet less experienced competitors keep
             outranking you.
           </p>
