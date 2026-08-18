@@ -42,6 +42,32 @@ export async function setRegistrationsClosed(
   return session;
 }
 
+/**
+ * Set (or clear) when a session runs.
+ *
+ * Separate from `createSession` because a schedule is routinely decided, or
+ * corrected, after the webinar exists — a cohort is created from the Zoom id
+ * long before the slot is confirmed. Without this the times could only ever be
+ * chosen at creation, so a session that was stored without them could never be
+ * given any, and every page, email and reminder would keep quoting the built-in
+ * fallback date.
+ *
+ * Both values move together: `deriveSchedule` needs the pair, so a half-set
+ * schedule would silently fall back while looking configured.
+ */
+export async function updateSessionTimes(
+  db: Db,
+  sessionId: string,
+  times: { startsAt: Date | null; endsAt: Date | null }
+): Promise<WebinarSession | undefined> {
+  const [session] = await db
+    .update(webinarSessions)
+    .set({ startsAt: times.startsAt, endsAt: times.endsAt })
+    .where(eq(webinarSessions.id, sessionId))
+    .returning();
+  return session;
+}
+
 export async function listSessions(db: Db): Promise<WebinarSession[]> {
   return db
     .select()

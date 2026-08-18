@@ -39,9 +39,16 @@ function addHours(value: string, hours: number): string {
   );
 }
 
-export function SessionTimeFields() {
-  const [startsAt, setStartsAt] = useState("");
-  const [endsAt, setEndsAt] = useState("");
+export function SessionTimeFields({
+  initialStartsAt = "",
+  initialEndsAt = "",
+}: {
+  /** Wall-clock IST seed values, so an existing schedule opens filled in. */
+  initialStartsAt?: string;
+  initialEndsAt?: string;
+} = {}) {
+  const [startsAt, setStartsAt] = useState(initialStartsAt);
+  const [endsAt, setEndsAt] = useState(initialEndsAt);
 
   return (
     <>
