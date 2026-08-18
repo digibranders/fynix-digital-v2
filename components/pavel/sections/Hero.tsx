@@ -101,7 +101,7 @@ export const Hero: React.FC = () => {
                 fill
                 priority
                 sizes="100vw"
-                className="md:hidden object-cover object-center"
+                className="md:hidden object-cover object-top"
               />
               {/* Desktop / tablet: the original stage shot. */}
               <Image
@@ -136,10 +136,10 @@ export const Hero: React.FC = () => {
                   stacked layouts so it aligns with the hero headline; inset on
                   desktop where the photo sits in its own column. */}
               <div className="absolute left-0 lg:left-6 bottom-6 z-10 text-white">
-                {/* <p className="text-[13px] italic font-normal text-white/75">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#E8B087]">
                   Instructor
-                </p> */}
-                <p className="text-[1.75rem] leading-[1.05] font-semibold text-white tracking-[-0.02em] mt-0.5">
+                </p>
+                <p className="mt-1 text-[1.75rem] leading-[1.05] font-semibold text-white tracking-[-0.02em]">
                   Pavel Klimakov
                 </p>
                 <p className="mt-2 max-w-[300px] text-[15px] italic leading-[1.4] text-white/75">
