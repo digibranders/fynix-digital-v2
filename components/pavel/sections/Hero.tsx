@@ -95,7 +95,16 @@ export const Hero: React.FC = () => {
 
           {/* RIGHT: Image 1 with Seamless Transition into Pure Black (No Borders) */}
           <div className="hero-rise-delayed order-1 lg:order-2 lg:col-span-5">
-            <div className="relative mx-auto max-w-[460px] lg:max-w-none h-[calc(100dvh-16rem)] max-h-[560px] min-h-[320px] sm:h-[480px] sm:max-h-none sm:min-h-0 lg:h-[540px] w-full overflow-hidden">
+            {/* The phone-sized height is measured in `svh`, not `dvh`, and that
+                choice is load-bearing. `dvh` tracks the *current* viewport, which
+                mobile Chrome and Safari grow the moment their address bar and
+                bottom toolbar retract on the first scroll. That re-ran this
+                calc mid-scroll, the box grew until `max-h` caught it, and every
+                section below the hero jumped down with it. `svh` is resolved
+                against the viewport with the browser chrome fully shown, so it
+                is a constant for the life of the page: the hero renders exactly
+                as it did under `dvh` at load, then stops moving. */}
+            <div className="relative mx-auto max-w-[460px] lg:max-w-none h-[calc(100svh-16rem)] max-h-[560px] min-h-[320px] sm:h-[480px] sm:max-h-none sm:min-h-0 lg:h-[540px] w-full overflow-hidden">
               {/* Mobile: a cleaner crop (no "Refine the…" strip up top). */}
               <Image
                 src="/pavel/new_hero_mobile.webp"
