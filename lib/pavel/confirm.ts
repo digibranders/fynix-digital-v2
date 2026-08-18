@@ -5,6 +5,7 @@ import { dispatchPavelEmail } from "@/lib/email/dispatch";
 import type { EmailAttachment } from "@/lib/email/brevo";
 import { issueInvoiceForRegistration } from "@/lib/pavel/invoice";
 import { renderInvoicePdf, invoiceFileName } from "@/lib/pavel/invoicePdf";
+import { grantWebinarAccess } from "@/lib/pavel/webinarAccess";
 import {
   buildPavelPaidConfirmationEmail,
   buildPavelPaidRegistrationAdminEmail,
@@ -113,6 +114,24 @@ export async function confirmRegistrationPaid(
     console.error("[pavel/confirm] invoice issuance failed", invoiceResult.reason);
   }
 
+  // Grant webinar access: register the buyer with Zoom and get their own join
+  // link. Non-fatal for the same reason invoicing is, and deliberately a single
+  // attempt, because Zoom allows only three per person per webinar per day. The
+  // hourly timer backfills anything that fails here.
+  const accessResult = await grantWebinarAccess(db, registration.id);
+  if (accessResult.status === "error") {
+    console.error("[pavel/confirm] zoom registration failed", accessResult.reason);
+  } else if (accessResult.status === "skipped") {
+    console.warn("[pavel/confirm] zoom registration skipped:", accessResult.reason);
+  }
+
+  // Re-read the join link: grantWebinarAccess wrote it moments ago, and the
+  // confirmation must carry the buyer's OWN link rather than the shared one.
+  const joinUrl =
+    accessResult.status === "granted" || accessResult.status === "already_granted"
+      ? accessResult.joinUrl
+      : undefined;
+
   // Render the invoice for the confirmation email. Failing to render must not
   // cost the buyer their confirmation, so this degrades to sending without the
   // attachment; the invoice stays downloadable from its permalink either way.
@@ -139,6 +158,7 @@ export async function confirmRegistrationPaid(
     country: registration.country,
     amountDisplay: registration.amountDisplay ?? undefined,
     ref: registration.ref,
+    joinUrl,
   };
 
   const confirmation = buildPavelPaidConfirmationEmail(submission);

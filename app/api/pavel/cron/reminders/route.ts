@@ -7,6 +7,10 @@ import {
   dispatchPavelEmail,
   type PavelEmailType,
 } from "@/lib/email/dispatch";
+import { backfillMissingInvoices } from "@/lib/pavel/invoice";
+import { backfillWebinarAccess } from "@/lib/pavel/webinarAccess";
+import { syncAttendance } from "@/lib/pavel/attendanceSync";
+import { issueEarnedCertificates } from "@/lib/pavel/certificate";
 import {
   buildPavelReminderEmail,
   buildPavelPostEventEmail,
@@ -97,6 +101,7 @@ async function runReminderType(db: Db, type: ReminderType) {
     email: string;
     country: string;
     amountDisplay: string | null;
+    zoomJoinUrl: string | null;
   }[];
   try {
     paid = await db
@@ -107,6 +112,7 @@ async function runReminderType(db: Db, type: ReminderType) {
         email: registrations.email,
         country: registrations.country,
         amountDisplay: registrations.amountDisplay,
+        zoomJoinUrl: registrations.zoomJoinUrl,
       })
       .from(registrations)
       .where(eq(registrations.status, "paid"));
@@ -144,6 +150,7 @@ async function runReminderType(db: Db, type: ReminderType) {
       country: reg.country,
       amountDisplay: reg.amountDisplay ?? undefined,
       ref: reg.ref,
+      joinUrl: reg.zoomJoinUrl ?? undefined,
     };
     const email = buildEmail(type, submission);
 
@@ -185,6 +192,42 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Datastore unavailable." }, { status: 503 });
   }
 
+  // Self-heal first, before any early return: issue invoices for paid seats that
+  // are missing one (issuance is deliberately non-fatal, so a failure at payment
+  // time leaves a gap to recover here). Ordered by payment time so recovered
+  // invoices are numbered in the order the payments arrived.
+  const backfill = await backfillMissingInvoices(db).catch((error) => {
+    console.error("[pavel/cron] invoice backfill failed", error);
+    return { issued: 0, failed: 0, invoiceNos: [] as string[] };
+  });
+  if (backfill.issued > 0 || backfill.failed > 0) {
+    console.log(
+      `[pavel/cron] invoice backfill: issued ${backfill.issued}, failed ${backfill.failed}`
+    );
+  }
+
+  // Grant webinar access to any paid seat still missing a join link (Zoom may
+  // have been down, or no session was active when they paid).
+  const access = await backfillWebinarAccess(db).catch((error) => {
+    console.error("[pavel/cron] webinar access backfill failed", error);
+    return { granted: 0, failed: 0, skipped: 0 };
+  });
+
+  // Reconcile attendance from Zoom's participant report, then issue
+  // certificates to whoever has now cleared the threshold. Order matters:
+  // certificates are gated on attendance, so the sync must run first.
+  const attendance = await syncAttendance(db).catch((error) => {
+    console.error("[pavel/cron] attendance sync failed", error);
+    return { status: "error" as const, reason: "sync threw" };
+  });
+  const certificatesIssued =
+    attendance.status === "synced"
+      ? await issueEarnedCertificates(db).catch((error) => {
+          console.error("[pavel/cron] certificate issuance failed", error);
+          return { issued: 0, skipped: 0, failed: 0 };
+        })
+      : { issued: 0, skipped: 0, failed: 0 };
+
   const { searchParams } = new URL(request.url);
   const forced = searchParams.get("type");
 
@@ -202,7 +245,7 @@ export async function GET(request: Request) {
   }
 
   if (types.length === 0) {
-    return NextResponse.json({ ran: [], message: "No reminders due." });
+    return NextResponse.json({ ran: [], message: "No reminders due.", backfill, access, attendance, certificatesIssued });
   }
 
   const results = [];
@@ -210,5 +253,5 @@ export async function GET(request: Request) {
     results.push(await runReminderType(db, type));
   }
 
-  return NextResponse.json({ ran: types, results });
+  return NextResponse.json({ ran: types, results, backfill, access, attendance, certificatesIssued });
 }

@@ -72,6 +72,7 @@ export const Instructor: React.FC = () => {
             <TalkVideo
               src="/pavel/pavel-semantic-seo-talk.mp4"
               poster="/pavel/pavel-talk-poster.jpg"
+              captionsSrc="/pavel/pavel-semantic-seo-talk.en.vtt"
               label="Watch Pavel teach Semantic SEO, live on stage"
               duration="4:43"
             />

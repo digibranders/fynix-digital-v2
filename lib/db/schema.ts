@@ -31,7 +31,11 @@ export const registrations = pgTable(
     state: text("state"), // Indian state / UT (place of supply), captured for India only
     referralCode: text("referral_code"), // optional attribution code entered at checkout
     discountPercent: integer("discount_percent"), // referral discount applied at checkout (null = none)
-    country: text("country").notNull().default("REST"), // 'IN' | 'REST'
+    country: text("country").notNull().default("REST"), // pricing region: 'IN' | 'REST'
+    // The buyer's ACTUAL country, kept alongside the pricing region. An export
+    // invoice must name the country of destination, which 'REST' cannot express.
+    countryName: text("country_name"), // e.g. 'United States'
+    countryCode: text("country_code"), // ISO 3166-1 alpha-2, e.g. 'US'
     amountDisplay: text("amount_display"), // '₹7,499' / '$99'
     // Amount actually charged, in the currency's minor unit (paise / cents), and
     // its currency. Stored numerically so invoicing and reconciliation never
@@ -41,6 +45,24 @@ export const registrations = pgTable(
     razorpayOrderId: text("razorpay_order_id").unique(), // 'order_...' created at checkout
     razorpayPaymentId: text("razorpay_payment_id"), // 'pay_...' captured on success
     status: text("status").notNull().default("pending"), // 'pending' | 'paid'
+
+    // Zoom webinar this seat was sold into, and the buyer's place in it. The
+    // join URL is unique per registrant and is the only link they should ever
+    // receive; sharing the generic webinar link would break attendance
+    // correlation, which is keyed on the registrant id.
+    sessionId: uuid("session_id").references(() => webinarSessions.id, {
+      onDelete: "set null",
+    }),
+    zoomRegistrantId: text("zoom_registrant_id"),
+    zoomJoinUrl: text("zoom_join_url"),
+    zoomRegisteredAt: timestamp("zoom_registered_at", { withTimezone: true }),
+
+    // Live attendance, filled from Zoom after the session. `attendedMinutes`
+    // stays null until attendance has been synced, which is deliberately
+    // distinct from a synced value of 0 (registered, never joined).
+    attendedMinutes: integer("attended_minutes"),
+    firstJoinedAt: timestamp("first_joined_at", { withTimezone: true }),
+    attendanceSyncedAt: timestamp("attendance_synced_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -142,6 +164,8 @@ export const invoices = pgTable(
     buyerGstin: text("buyer_gstin"),
     buyerCompany: text("buyer_company"),
     buyerAddress: text("buyer_address"),
+    /** Buyer's country. On an export invoice this is the country of destination. */
+    buyerCountry: text("buyer_country"),
 
     // Seller snapshot.
     sellerLegalName: text("seller_legal_name").notNull(),
@@ -149,7 +173,13 @@ export const invoices = pgTable(
     sellerGstin: text("seller_gstin").notNull(),
     sellerAddress: text("seller_address").notNull(),
     sellerCin: text("seller_cin"),
+    sellerPan: text("seller_pan"),
     sacCode: text("sac_code").notNull(),
+
+    // Payment evidence printed on the invoice, so the document doubles as a
+    // receipt. Snapshotted like everything else rather than joined at render.
+    paymentReference: text("payment_reference"), // Razorpay 'pay_...' id
+    paidAt: timestamp("paid_at", { withTimezone: true }),
   },
   (table) => [index("invoices_issued_at_idx").on(table.issuedAt)]
 );
@@ -173,7 +203,68 @@ export const invoiceCounters = pgTable(
   (table) => [unique("invoice_counters_prefix_fy_unique").on(table.prefix, table.fy)]
 );
 
+/**
+ * Zoom webinar sessions.
+ *
+ * The webinar a buyer is registered into is data, not a constant: running a test
+ * session or a second cohort must never require a code change or a deploy. An
+ * operator adds a row from the admin console and marks it active, and new paid
+ * registrations join that one.
+ *
+ * Registrations keep the session they were sold into, because attendance is
+ * fetched per webinar. Without that link a later cohort's attendance would be
+ * mixed with this one's.
+ */
+export const webinarSessions = pgTable("webinar_sessions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  /** Zoom's numeric webinar id, stored as text so leading zeros survive. */
+  zoomWebinarId: text("zoom_webinar_id").notNull().unique(),
+  /** Operator-facing name, e.g. "Test session" or "Cohort 1". */
+  label: text("label").notNull(),
+  startsAt: timestamp("starts_at", { withTimezone: true }),
+  /**
+   * Exactly one session should be active at a time; the app takes the most
+   * recently activated one, so flipping a new session on supersedes the old.
+   */
+  active: boolean("active").notNull().default(false),
+  activatedAt: timestamp("activated_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/**
+ * Issued certificates.
+ *
+ * A certificate is a credential, so it must be impossible to mint one by typing
+ * a name into a URL. Every certificate is a row here, addressed by an
+ * unguessable `credential_id`, and the page renders only what this row says.
+ *
+ * The recipient's name and the completion date are SNAPSHOT, so a certificate
+ * someone shared in 2026 keeps rendering identically even if the registration
+ * or the workshop details change later.
+ *
+ * One row per registration (unique FK), which makes issuance idempotent in the
+ * same way invoices are.
+ */
+export const certificates = pgTable("certificates", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  registrationId: uuid("registration_id")
+    .notNull()
+    .unique()
+    .references(() => registrations.id, { onDelete: "restrict" }),
+  /** Public, shareable, unguessable, e.g. 'FYX-SS26-7A3F9C21'. */
+  credentialId: text("credential_id").notNull().unique(),
+  issuedAt: timestamp("issued_at", { withTimezone: true }).notNull().defaultNow(),
+
+  recipientName: text("recipient_name").notNull(),
+  /** Human-readable completion date printed on the certificate. */
+  issueDateLabel: text("issue_date_label").notNull(),
+  /** Minutes attended at the time of issue, kept as the evidence for issuing. */
+  attendedMinutes: integer("attended_minutes"),
+});
+
 export type Registration = typeof registrations.$inferSelect;
+export type Certificate = typeof certificates.$inferSelect;
+export type WebinarSession = typeof webinarSessions.$inferSelect;
 export type Invoice = typeof invoices.$inferSelect;
 export type NewInvoice = typeof invoices.$inferInsert;
 export type NewRegistration = typeof registrations.$inferInsert;

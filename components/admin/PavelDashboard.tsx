@@ -1,31 +1,15 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import Logo from "@/components/Logo";
+import AdminSignOutButton from "@/components/admin/AdminSignOutButton";
+import type { AdminRegistrationRow } from "@/lib/admin/registrations";
+
+export type { AdminRegistrationRow };
 
 /** Rows shown per page in the registrations table. */
 const PAGE_SIZE = 20;
-
-export type AdminRegistrationRow = {
-  ref: string;
-  name: string;
-  email: string;
-  phone: string | null;
-  country: string;
-  /** Indian state / UT (place of supply). Captured for India only. */
-  state: string | null;
-  /** Code the buyer typed at registration — not yet proof of a discount. */
-  referralCode: string | null;
-  /** Set at checkout only once the code validated as active. `null` = no discount. */
-  discountPercent: number | null;
-  amountDisplay: string | null;
-  status: string;
-  createdAt: string; // ISO
-  paidAt: string | null; // ISO
-  razorpayPaymentId: string | null;
-  /** Issued tax invoice number, e.g. "FYX/26-27/0001". Null until issued. */
-  invoiceNo: string | null;
-};
 
 type StatusFilter = "all" | "paid" | "pending";
 
@@ -75,7 +59,7 @@ function InvoiceCell({
   }
   return (
     <a
-      href={`/api/pavel/invoice/${encodeURIComponent(ref_)}`}
+      href={`/api/admin/invoice/${encodeURIComponent(ref_)}`}
       target="_blank"
       rel="noopener noreferrer"
       className="whitespace-nowrap font-mono text-xs text-emerald-400 underline-offset-2 transition hover:text-emerald-300 hover:underline"
@@ -246,7 +230,6 @@ export default function PavelDashboard({
   const [filter, setFilter] = useState<StatusFilter>("all");
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
-  const [loggingOut, setLoggingOut] = useState(false);
 
   // Changing the filter or search shrinks the result set, so reset to page 1 in
   // the handlers below — never land the user on a now-empty page.
@@ -294,15 +277,6 @@ export default function PavelDashboard({
     [filtered, pageStart]
   );
 
-  async function handleLogout() {
-    setLoggingOut(true);
-    try {
-      await fetch("/api/admin/pavel/logout", { method: "POST" });
-    } finally {
-      window.location.href = "/admin/pavel";
-    }
-  }
-
   // Export the current view (search + status filter applied) as a CSV the admin
   // can open in Excel/Sheets. Built entirely client-side from data already
   // loaded — no round-trip, and the download never leaves the browser.
@@ -335,17 +309,18 @@ export default function PavelDashboard({
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <Logo width={104} height={43} className="text-white" />
-            <h1 className="mt-3 text-2xl font-semibold text-white">
-              Pavel Course Registrations
+            <Link
+              href="/admin"
+              className="mt-3 inline-flex items-center gap-1.5 text-sm text-slate-400 underline-offset-2 transition hover:text-slate-200 hover:underline"
+            >
+              <span aria-hidden="true">←</span>
+              All events
+            </Link>
+            <h1 className="mt-1 text-2xl font-semibold text-white">
+              Semantic SEO Workshop Registrations
             </h1>
           </div>
-          <button
-            onClick={handleLogout}
-            disabled={loggingOut}
-            className="rounded-lg border border-white/10 bg-slate-900 px-3.5 py-2 text-sm font-medium text-slate-300 transition hover:bg-slate-800 disabled:opacity-60"
-          >
-            {loggingOut ? "Signing out…" : "Sign out"}
-          </button>
+          <AdminSignOutButton />
         </div>
 
         {/* Controls */}

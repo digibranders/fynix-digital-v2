@@ -70,6 +70,19 @@ jobs:
           PAVEL_ADMIN_PASSWORD=${{ secrets.PAVEL_ADMIN_PASSWORD }}
           PAVEL_ADMIN_SESSION_SECRET=${{ secrets.PAVEL_ADMIN_SESSION_SECRET }}
           PAVEL_CRON_SECRET=${{ secrets.PAVEL_CRON_SECRET }}
+          # Zoom Server-to-Server OAuth: registers paid buyers into the
+          # webinar and reads attendance. The webhook secret token verifies
+          # event notifications Zoom sends us.
+          ZOOM_ACCOUNT_ID=${{ secrets.ZOOM_ACCOUNT_ID }}
+          ZOOM_CLIENT_ID=${{ secrets.ZOOM_CLIENT_ID }}
+          ZOOM_CLIENT_SECRET=${{ secrets.ZOOM_CLIENT_SECRET }}
+          ZOOM_WEBHOOK_SECRET_TOKEN=${{ secrets.ZOOM_WEBHOOK_SECRET_TOKEN }}
+          # Admin console link. The droplet backs the console but must not serve
+          # it, so the UI is disabled here and only /api/admin/data/* is exposed,
+          # guarded by the shared secret the console sends. ADMIN_API_ORIGIN is
+          # deliberately absent: this host reads its own database directly.
+          ADMIN_PROXY_SECRET=${{ secrets.ADMIN_PROXY_SECRET }}
+          ADMIN_UI_DISABLED=${{ vars.ADMIN_UI_DISABLED }}
           NEXT_PUBLIC_SITE_URL=${{ vars.NEXT_PUBLIC_SITE_URL }}
           NEXT_PUBLIC_API_BASE_URL=
           ALLOWED_ORIGIN=${{ vars.ALLOWED_ORIGIN }}

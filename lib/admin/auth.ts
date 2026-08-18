@@ -2,12 +2,15 @@ import crypto from "crypto";
 import { cookies } from "next/headers";
 
 /**
- * Password-protected session for the Pavel admin dashboard (`/admin/pavel`).
+ * Password-protected session for the admin console at `/admin`.
  *
  * Deliberately dependency-free: a single admin credential lives in env vars and
  * a short-lived, HMAC-signed cookie carries the session. There is no user table
- * and no external auth provider — this guards one internal reporting page, not a
+ * and no external auth provider — this guards internal reporting pages, not a
  * multi-tenant product. All checks run server-side only.
+ *
+ * One session covers every event dashboard under `/admin`, so signing in once
+ * at `/admin` is enough.
  */
 
 /** Admin credential. Defaults match the values the operator was given; override
