@@ -30,6 +30,10 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npx tsc --noEmit
+      - name: Unit tests
+        # Guards the GST engine and invoice series: a wrong tax split or a
+        # duplicated invoice number is a compliance defect, not just a bug.
+        run: npm test
       - name: Build
         # Validate a production build compiles. The droplet is same-origin, and
         # Sentry source-map upload is skipped here (not needed to gate the build).

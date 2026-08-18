@@ -2,8 +2,8 @@
  * Location-aware pricing for the Semantic SEO workshop.
  *
  * The /pavel page auto-detects the visitor's country from the Vercel edge geo
- * header and renders the matching price server-side — Indian visitors see
- * ₹7,499, everyone else sees $79 — on the SAME URL (no redirect). A manual
+ * header and renders the matching price server-side (Indian visitors see
+ * ₹7,499, everyone else sees $99) on the SAME URL (no redirect). A manual
  * $/₹ toggle in the pricing card lets users override a wrong geo guess
  * (NRIs, VPNs, office IPs).
  *
@@ -30,9 +30,16 @@ export type PriceInfo = {
    */
   taxNote: string;
   /**
-   * Amount actually charged, in the currency's smallest unit (paise for INR,
-   * cents for USD), as required by Razorpay's order `amount`. For India this is
-   * the base plus 18% GST; elsewhere it equals the displayed price.
+   * Taxable value before GST, in the currency's smallest unit. This is the
+   * figure a tax invoice is built from: discount is applied here, then GST is
+   * computed on the result (see lib/pavel/tax.ts). Deriving the charge from this
+   * base is what keeps the invoice total and the amount charged identical.
+   */
+  base: number;
+  /**
+   * Amount actually charged at list price, in the currency's smallest unit
+   * (paise for INR, cents for USD), as required by Razorpay's order `amount`.
+   * For India this is `base` plus 18% GST; elsewhere it equals `base`.
    */
   unitAmount: number;
 };
@@ -45,6 +52,7 @@ export const PRICING: Record<Country, PriceInfo> = {
     currencyCode: "INR",
     display: "₹7,499 + GST",
     taxNote: "+ GST",
+    base: 749900, // ₹7,499 taxable value
     unitAmount: 884882, // ₹7,499 + 18% GST = ₹8,848.82
   },
   REST: {
@@ -54,6 +62,8 @@ export const PRICING: Record<Country, PriceInfo> = {
     currencyCode: "USD",
     display: "$99",
     taxNote: "",
+    // Export of service, zero-rated under the LUT, so no tax is added.
+    base: 9900,
     unitAmount: 9900,
   },
 };
