@@ -485,6 +485,19 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
       fax_number: faxNumberRef.current?.value ?? "",
     };
 
+    // No token means the browser never reached /api/pavel/form-token — an
+    // offline moment, a blocked request, a CORS or DNS problem. Posting anyway
+    // returns the server's generic "could not verify this form", which sends
+    // everyone hunting for a bot-screen bug that isn't there. Name the real
+    // failure instead; the server's message stays for what the server decides.
+    if (!antiBot.formToken) {
+      setError(
+        "We could not reach the verification service. Check your connection, reload the page and try again."
+      );
+      setLoading(false);
+      return;
+    }
+
     try {
       // 1. Record the seat as a pending registration and get its `ref`.
       const res = await fetch(apiUrl("/api/pavel/register"), {
@@ -733,6 +746,17 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
             Honeypot decoy fields — visually removed, off the tab order, and
             hidden from assistive tech, so a real user never fills them. Bots
             that populate every field trip the server-side trap. Do not remove.
+
+            `readOnly` is what keeps this from catching real buyers. Chrome
+            ignores `autocomplete="off"` for its saved-profile autofill and will
+            happily fill an off-screen input, and `fax_number` / company fields
+            are precisely the shapes it recognises. A filled decoy trips the
+            server screen, so a buyer whose browser autofilled the form was
+            rejected as a bot — which is how a genuine registration ended up on
+            the no-payment confirmation. Chrome skips readonly inputs entirely,
+            while a bot setting `.value` (or posting the field outright) is
+            unaffected, so the trap keeps working. The visible labels are gone
+            for the same reason: their text is what Chrome classifies on.
           */}
           <div
             aria-hidden="true"
@@ -745,7 +769,6 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
               overflow: "hidden",
             }}
           >
-            <label htmlFor="company_website">Company Website</label>
             <input
               ref={companyWebsiteRef}
               id="company_website"
@@ -753,9 +776,9 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
               type="text"
               tabIndex={-1}
               autoComplete="off"
+              readOnly
               defaultValue=""
             />
-            <label htmlFor="fax_number">Fax Number</label>
             <input
               ref={faxNumberRef}
               id="fax_number"
@@ -763,6 +786,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
               type="text"
               tabIndex={-1}
               autoComplete="off"
+              readOnly
               defaultValue=""
             />
           </div>
