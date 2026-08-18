@@ -27,7 +27,13 @@ import { WORKSHOP } from "../workshopDetails";
 const HERO_ALT = "Pavel Klimakov presenting on stage at SEO Vibes Summit";
 
 // Matches the `md` breakpoint the two crops were previously switched on.
-const HERO_DESKTOP_MEDIA = "(min-width: 768px)";
+// Stated in `rem`, not `px`, because that is what Tailwind v4 emits: the
+// `md:object-[center_22%]` / `md:scale-105` framing below is inside
+// `@media (min-width:48rem)`. The two are only equal at a 16px root font size,
+// so a visitor who has raised their browser's default font size would otherwise
+// get the desktop crop from this <source> while the framing classes that go
+// with it had not applied yet.
+const HERO_DESKTOP_MEDIA = "(min-width: 48rem)";
 const HERO_DESKTOP_SIZES = "(min-width: 1024px) 45vw, 100vw";
 
 const {
@@ -41,8 +47,14 @@ const {
   src: "/pavel/pavel-seo-vibes-summit-2025.webp",
 });
 
-// The phone crop also supplies the <img> fallback, so it keeps the full prop
-// set (src, style, fetchPriority, decoding) that `fill` and `priority` produce.
+// The phone crop also supplies the <img> fallback, so it keeps the prop set
+// that `fill` produces (src, srcSet, sizes, style, decoding).
+//
+// `priority` is passed for its non-lazy semantics, but note it does NOT survive
+// getImageProps the way it does on <Image>: no `fetchpriority` attribute is
+// returned and no preload link is emitted, because getImageProps is a pure
+// function with no way to reach the document head. The LCP hint is therefore
+// set explicitly on the element below.
 const { props: heroMobileProps } = getImageProps({
   alt: HERO_ALT,
   fill: true,
@@ -163,6 +175,11 @@ export const Hero: React.FC = () => {
                 <img
                   {...heroMobileProps}
                   alt={HERO_ALT}
+                  // This is the LCP element on every viewport. Set explicitly
+                  // because `priority` above cannot emit it through
+                  // getImageProps; without it the hero competes at the default
+                  // image priority.
+                  fetchPriority="high"
                   className="object-cover object-top md:object-[center_22%] md:scale-105"
                 />
               </picture>
