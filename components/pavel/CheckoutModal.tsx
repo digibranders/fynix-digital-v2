@@ -198,24 +198,41 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
   if (!isOpen) return null;
 
   // Reset transient UI state on close so reopening always starts clean.
+  /**
+   * Close the dialog, keeping whatever the buyer typed.
+   *
+   * The backdrop closes on click, so a stray click outside the dialog used to
+   * wipe the whole form: name, email, phone, and for a GST invoice a company
+   * name, a 15-character GSTIN and a billing address. Retyping all of that is
+   * exactly where someone abandons a purchase, so an abandoned form is now
+   * preserved and reopening resumes it.
+   *
+   * A COMPLETED purchase is different: those details belong to a seat that is
+   * already bought, so the form is cleared then and the next one starts fresh.
+   */
   const handleClose = () => {
+    if (submitted) {
+      setName("");
+      setEmail("");
+      setPhone("");
+      setCountry(detectedCountryName);
+      setIndianState("");
+      setGstRequested(false);
+      setCompanyName("");
+      setGstin("");
+      setCompanyAddress("");
+      setReferralOpen(false);
+      setReferralCode("");
+      setAppliedReferral(null);
+    }
+
+    // Transient UI state always resets, so reopening never lands on a stale
+    // success screen or a stale error.
     setSubmitted(false);
     setAlreadyRegistered(false);
     setError("");
-    setName("");
-    setEmail("");
-    setPhone("");
-    setCountry(detectedCountryName);
-    setIndianState("");
-    setGstRequested(false);
-    setCompanyName("");
-    setGstin("");
-    setCompanyAddress("");
-    setReferralOpen(false);
-    setReferralCode("");
     setReferralChecking(false);
     setReferralError("");
-    setAppliedReferral(null);
     onClose();
   };
 
