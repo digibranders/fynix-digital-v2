@@ -68,23 +68,46 @@ export default function SmoothScroll({ children }: Props) {
     return () => queries.forEach((q) => q.removeEventListener("change", update));
   }, []);
 
-  if (disableSmooth) return <>{children}</>;
-
+  /*
+   * `children` are rendered as a plain sibling that nothing ever wraps, and the
+   * Lenis setup sits *beside* them instead of around them.
+   *
+   * This used to be `if (disableSmooth) return <>{children}</>` above a
+   * `<ReactLenis>{children}</ReactLenis>`. The two branches produce identical
+   * DOM -- with `root`, ReactLenis renders a context provider and no elements
+   * of its own -- but they are different element *types* at the same position
+   * in the tree. So the instant the effect above flipped `disableSmooth`, React
+   * unmounted the entire page and mounted it again from scratch. Every <img>
+   * below was destroyed and re-created, and the browser refetched all of them:
+   * that is why the hero appeared to load twice, on phones and for
+   * reduced-motion users, the two audiences that flip the flag.
+   *
+   * Holding `children` at a fixed position makes the flip a no-op for the page:
+   * only the Lenis instance is created or torn down.
+   */
   return (
-    <ReactLenis
-      root
-      options={{
-        lerp: 0.1,
-        duration: 1.15,
-        smoothWheel: true,
-        syncTouch: false,
-        wheelMultiplier: 1,
-        touchMultiplier: 1.4,
-      }}
-    >
-      <ScrollReset />
+    <>
+      {disableSmooth ? null : (
+        <>
+          {/* Deliberately childless. With `root`, ReactLenis publishes the
+              instance to Lenis's own global store, so ScrollReset still reaches
+              it via useLenis() without having to be a descendant. */}
+          <ReactLenis
+            root
+            options={{
+              lerp: 0.1,
+              duration: 1.15,
+              smoothWheel: true,
+              syncTouch: false,
+              wheelMultiplier: 1,
+              touchMultiplier: 1.4,
+            }}
+          />
+          <ScrollReset />
+        </>
+      )}
       {children}
-    </ReactLenis>
+    </>
   );
 }
 
