@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { X, ArrowRight, Loader2, CheckCircle2, Tag, ChevronDown } from "lucide-react";
+import { X, ArrowRight, Loader2, CheckCircle2, Tag } from "lucide-react";
 import { usePricing } from "@/components/pavel/PricingProvider";
 import { applyDiscount, formatUnitAmount } from "@/components/pavel/pricing";
 import { Button } from "@/components/pavel/ui/Button";
 import { PhoneField } from "@/components/pavel/ui/PhoneField";
+import { SearchableSelect } from "@/components/pavel/ui/SearchableSelect";
 import { WORKSHOP } from "@/components/pavel/workshopDetails";
 import { COUNTRIES, countPhoneDigits, phoneLengthError } from "@/components/pavel/countries";
 import { isValidGstin, normalizeGstin } from "@/lib/pavel/gst";
@@ -746,31 +747,16 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
               <label htmlFor="pv-state" className="text-xs font-medium text-primary">
                 Your State <span className="text-red-500">*</span>
               </label>
-              <div className="relative">
-                <select
-                  id="pv-state"
-                  value={indianState}
-                  onChange={(e) => setIndianState(e.target.value)}
-                  required
-                  aria-required="true"
-                  className={`w-full appearance-none px-4 py-3 pr-10 rounded-xl bg-background-soft border border-border text-sm focus:outline-none focus:border-primary focus:bg-white transition-all ${
-                    indianState ? "text-primary" : "text-text-muted/60"
-                  }`}
-                >
-                  <option value="" disabled>
-                    Select your state
-                  </option>
-                  {INDIAN_STATES.map((s) => (
-                    <option key={s.code} value={s.name} className="text-primary">
-                      {s.name}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown
-                  aria-hidden
-                  className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted"
-                />
-              </div>
+              <SearchableSelect
+                id="pv-state"
+                value={indianState}
+                onChange={setIndianState}
+                options={INDIAN_STATES}
+                placeholder="Select your state"
+                searchPlaceholder="Search state"
+                ariaLabel="State"
+                required
+              />
             </div>
           )}
 
