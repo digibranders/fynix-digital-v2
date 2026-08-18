@@ -27,7 +27,9 @@ export default async function PavelThankYouPage() {
   return (
     <PricingProvider initialCountry="REST" schedule={schedule}>
       <div className="min-h-screen bg-background-soft text-primary tnum">
-        <Navbar />
+        {/* Minimal: this page has none of the landing sections the full navbar
+            scrolls to, and its buyer has already paid for the seat the CTA sells. */}
+        <Navbar minimal />
         <main className="py-16 sm:py-24">
           <Suspense fallback={null}>
             <ThankYouContent />

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import { Container } from "../ui/Container";
 import { Button } from "../ui/Button";
 import { ArrowRight, Menu, X } from "lucide-react";
@@ -14,7 +15,21 @@ const NAV_ITEMS = [
   { id: "faq", label: "FAQ" },
 ];
 
-export const Navbar: React.FC = () => {
+export interface NavbarProps {
+  /**
+   * Drop the section links and the reserve-seat CTA, leaving the wordmark as a
+   * link back to the landing page.
+   *
+   * Every control in the full navbar scrolls to a section of the landing page,
+   * so on any other route they are inert. The CTA is worse than inert: it reads
+   * the visitor's price from the pricing context, which off the landing page has
+   * no country to work from, and it invites someone who has just paid to buy the
+   * same seat again.
+   */
+  minimal?: boolean;
+}
+
+export const Navbar: React.FC<NavbarProps> = ({ minimal = false }) => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { price } = usePricing();
@@ -41,43 +56,56 @@ export const Navbar: React.FC = () => {
     >
       <Container>
         <div className="flex items-center justify-between h-[44px] md:h-[68px]">
-          <button
-            onClick={() => scrollTo("hero")}
-            className="text-[22px] font-semibold tracking-[-0.015em] text-primary leading-none"
-            aria-label="Pavel Klimakov"
-          >
-            Semantic SEO
-          </button>
+          {minimal ? (
+            <Link
+              href="/pavel"
+              className="text-[22px] font-semibold tracking-[-0.015em] text-primary leading-none transition-opacity hover:opacity-70"
+            >
+              Semantic SEO
+            </Link>
+          ) : (
+            <button
+              onClick={() => scrollTo("hero")}
+              className="text-[22px] font-semibold tracking-[-0.015em] text-primary leading-none"
+              aria-label="Pavel Klimakov"
+            >
+              Semantic SEO
+            </button>
+          )}
 
-          <nav className="hidden md:flex items-center gap-9 text-[16px] font-normal text-text-muted">
-            {NAV_ITEMS.map((item) => (
+          {minimal ? null : (
+            <>
+              <nav className="hidden md:flex items-center gap-9 text-[16px] font-normal text-text-muted">
+                {NAV_ITEMS.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => scrollTo(item.id)}
+                    className="hover:text-primary transition-colors py-1 italic font-normal"
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </nav>
+
+              <div className="hidden md:flex items-center">
+                <Button size="md" variant="primary" onClick={() => scrollTo("pricing")}>
+                  Reserve seat, {price.display}
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Button>
+              </div>
+
               <button
-                key={item.id}
-                onClick={() => scrollTo(item.id)}
-                className="hover:text-primary transition-colors py-1 italic font-normal"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="md:hidden p-2 -mr-2 text-primary"
+                aria-label="Toggle navigation menu"
               >
-                {item.label}
+                {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </button>
-            ))}
-          </nav>
-
-          <div className="hidden md:flex items-center">
-            <Button size="md" variant="primary" onClick={() => scrollTo("pricing")}>
-              Reserve seat, {price.display}
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Button>
-          </div>
-
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 -mr-2 text-primary"
-            aria-label="Toggle navigation menu"
-          >
-            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
+            </>
+          )}
         </div>
 
-        {mobileMenuOpen && (
+        {!minimal && mobileMenuOpen && (
           <div className="md:hidden pb-5 pt-2 border-t border-border space-y-1">
             {NAV_ITEMS.map((item) => (
               <button

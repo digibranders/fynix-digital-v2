@@ -1,14 +1,43 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { Container } from "../ui/Container";
 
+/** Landing-page sections the footer points at, in on-page order. */
+const WORKSHOP_LINKS = [
+  { id: "curriculum", label: "Curriculum" },
+  { id: "instructor", label: "Instructor" },
+  { id: "pricing", label: "Reserve a seat" },
+  { id: "faq", label: "FAQ" },
+];
+
+/**
+ * A footer link to a section of the landing page.
+ *
+ * The footer is shared with routes that have none of those sections, so the
+ * link is a real anchor to `/pavel#id` and only intercepts the click when the
+ * section is present on the current page. That keeps the smooth scroll on the
+ * landing page while making the same link navigate everywhere else, rather than
+ * silently doing nothing as a scroll-only button did.
+ */
+const SectionLink: React.FC<{ id: string; label: string }> = ({ id, label }) => (
+  <Link
+    href={`/pavel#${id}`}
+    onClick={(event) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      event.preventDefault();
+      el.scrollIntoView({ behavior: "smooth" });
+    }}
+    className="text-white/60 hover:text-white transition-colors"
+  >
+    {label}
+  </Link>
+);
+
 export const Footer: React.FC = () => {
-  const scrollTo = (id: string) => {
-    const el = document.getElementById(id);
-    if (el) el.scrollIntoView({ behavior: "smooth" });
-  };
 
   return (
     <footer className="bg-primary text-white/60 py-14">
@@ -37,38 +66,11 @@ export const Footer: React.FC = () => {
               Workshop
             </p>
             <ul className="space-y-2 text-[14px]">
-              <li>
-                <button
-                  onClick={() => scrollTo("curriculum")}
-                  className="text-white/60 hover:text-white transition-colors"
-                >
-                  Curriculum
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => scrollTo("instructor")}
-                  className="text-white/60 hover:text-white transition-colors"
-                >
-                  Instructor
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => scrollTo("pricing")}
-                  className="text-white/60 hover:text-white transition-colors"
-                >
-                  Reserve a seat
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => scrollTo("faq")}
-                  className="text-white/60 hover:text-white transition-colors"
-                >
-                  FAQ
-                </button>
-              </li>
+              {WORKSHOP_LINKS.map((link) => (
+                <li key={link.id}>
+                  <SectionLink id={link.id} label={link.label} />
+                </li>
+              ))}
             </ul>
           </div>
 
