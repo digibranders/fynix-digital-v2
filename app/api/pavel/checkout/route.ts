@@ -44,12 +44,24 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid body format." }, { status: 400 });
   }
 
-  // Bot screen. On failure, silently report "not configured" so bots learn
-  // nothing and no Razorpay order is ever created for them.
+  // Bot screen. Runs first so a flagged submission never reaches the database
+  // or Razorpay.
+  //
+  // Answers with a plain failure, not the "payments are not configured" signal
+  // it used to send: the client treats that signal as "registration complete",
+  // so every submission the screen rejected — including real people with an
+  // expired or freshly-issued token — was shown a confirmed seat it had not
+  // paid for. See the register route for the other half of this.
   const screen = screenSubmission(body as Record<string, unknown>);
   if (!screen.human) {
-    console.warn("[pavel/checkout] blocked bot submission:", screen.reason);
-    return NextResponse.json({ razorpayConfigured: false });
+    console.warn("[pavel/checkout] blocked submission:", screen.reason);
+    return NextResponse.json(
+      {
+        error:
+          "We could not verify this form. Please reload the page and try again.",
+      },
+      { status: 400 }
+    );
   }
 
   const { ref } = body as Record<string, string>;
@@ -60,8 +72,8 @@ export async function POST(request: Request) {
   const db = getDb();
   if (!db) {
     // Hard-fail rather than degrade: a null DB is a misconfiguration, not a
-    // "payments off" state. Returning `razorpayConfigured:false` here would send
-    // the buyer to the no-charge holding flow and silently swallow the problem.
+    // "payments off" state. Degrading here would send the buyer to a no-charge
+    // holding confirmation and silently swallow the problem.
     console.error("[pavel/checkout] Database is not configured.");
     return NextResponse.json(
       { error: "Checkout is temporarily unavailable." },
@@ -156,12 +168,19 @@ export async function POST(request: Request) {
     ? formatUnitAmount(price, chargeAmount)
     : price.display;
 
-  // Without keys we can't create an order — tell the client so it can fall back
-  // to the no-payment holding flow, keeping the funnel testable.
+  // Without keys no order can be created. Hard-fail, exactly as an unreachable
+  // database does above: this is a misconfiguration, not a "payments off" mode.
+  // Reporting it to the client used to send the buyer to a no-charge holding
+  // confirmation, which reads as a purchased seat and hides the outage from
+  // everyone until someone tries to attend.
   const razorpay = getRazorpay();
   const keyId = getRazorpayKeyId();
   if (!razorpay || !keyId) {
-    return NextResponse.json({ razorpayConfigured: false });
+    console.error("[pavel/checkout] Razorpay is not configured.");
+    return NextResponse.json(
+      { error: "Checkout is temporarily unavailable." },
+      { status: 503 }
+    );
   }
 
   try {
@@ -212,7 +231,6 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({
-      razorpayConfigured: true,
       keyId,
       orderId: order.id,
       amount: order.amount,

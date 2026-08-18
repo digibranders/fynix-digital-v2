@@ -47,19 +47,26 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid body format." }, { status: 400 });
   }
 
-  // Bot screen (honeypot + signed form token). On failure, return a decoy
-  // success (with a throwaway ref) so bots see no difference — nothing is
-  // ever written to the datastore for a flagged submission.
+  // Bot screen (honeypot + signed form token). Runs first so a flagged
+  // submission costs no database work.
+  //
+  // A rejection must never look like a success. This used to answer with a
+  // decoy `success: true` and a throwaway ref so bots learned nothing — but the
+  // checkout modal reads that as "seat reserved", and the screen also rejects
+  // real people (an expired token, a stale tab, autofill in a decoy field).
+  // Those buyers were shown a confirmation for a seat that was never recorded
+  // and never charged. A generic failure tells a bot just as little and tells a
+  // real person what to do.
   const screen = screenSubmission(body as Record<string, unknown>);
   if (!screen.human) {
-    console.warn("[pavel/register] blocked bot submission:", screen.reason);
-    return NextResponse.json({
-      success: true,
-      ref: "PVL-0000",
-      email: "guest@example.com",
-      name: "Guest",
-      message: "Seat reserved! Continue to payment.",
-    });
+    console.warn("[pavel/register] blocked submission:", screen.reason);
+    return NextResponse.json(
+      {
+        error:
+          "We could not verify this form. Please reload the page and try again.",
+      },
+      { status: 400 }
+    );
   }
 
   const db = getDb();

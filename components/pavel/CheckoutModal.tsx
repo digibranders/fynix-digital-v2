@@ -20,8 +20,9 @@ interface CheckoutModalProps {
 /**
  * Response shape returned by /api/pavel/register. The route records the seat as
  * a `pending` row and returns its public `ref`, which we hand to
- * /api/pavel/checkout to open the Razorpay overlay. `alreadyRegistered` stays
- * unset until the route grows email de-duplication.
+ * /api/pavel/checkout to open the Razorpay overlay. A failed submission always
+ * carries `error`; there is no success-shaped rejection. `alreadyRegistered`
+ * stays unset until the route grows email de-duplication.
  */
 interface RegisterResponse {
   success?: boolean;
@@ -35,12 +36,12 @@ interface RegisterResponse {
 
 /**
  * Response shape returned by /api/pavel/checkout. Either it hands back a
- * Razorpay order to open (`razorpayConfigured: true`), flags an existing paid
- * seat, or reports that payment isn't configured so we fall back to the
- * no-payment holding confirmation.
+ * Razorpay order to open, or it flags an existing paid seat. Anything else is
+ * an error carrying `error`: the route no longer has a "payments are not
+ * configured" reply, because the client read it as a completed registration and
+ * showed a confirmation for a seat nobody paid for.
  */
 interface CheckoutResponse {
-  razorpayConfigured?: boolean;
   alreadyRegistered?: boolean;
   keyId?: string;
   orderId?: string;
@@ -89,6 +90,28 @@ declare global {
 const RAZORPAY_SDK_URL = "https://checkout.razorpay.com/v1/checkout.js";
 
 /**
+ * How old the form token must be before it is worth posting.
+ *
+ * The server rejects anything younger than its own MIN_FILL_MS (1.5s in
+ * lib/security/honeypot.ts) as "submitted faster than a human can type". A token
+ * fetched at submit time — which is what happens when the fetch on open failed —
+ * is always younger than that, so the retry was guaranteed to be rejected. Wait
+ * out the remainder instead. Carries a margin for clock skew between the two.
+ *
+ * The constant is duplicated rather than imported: the honeypot module is
+ * server-only (node:crypto) and importing it here would pull it into the browser
+ * bundle.
+ */
+const MIN_TOKEN_AGE_MS = 2_000;
+
+/**
+ * When to replace a token rather than post it. Comfortably inside the server's
+ * two-hour MAX_TOKEN_AGE_MS, so a modal left open in a background tab refreshes
+ * instead of submitting a token that will be refused as expired.
+ */
+const TOKEN_REFRESH_AFTER_MS = 90 * 60 * 1_000;
+
+/**
  * Lazily inject the Razorpay Checkout SDK. Resolves with the global
  * constructor once it's ready and reuses an in-flight or previously-loaded
  * script tag so reopening the modal never loads it twice.
@@ -125,6 +148,49 @@ function loadRazorpaySdk(): Promise<RazorpayConstructor> {
   });
 }
 
+/**
+ * Hand back a form token that the server will actually accept.
+ *
+ * Fetches one when the request on open failed, replaces one old enough to be
+ * called expired, and — the case that mattered — waits before returning a token
+ * it has just fetched, because the server refuses anything younger than
+ * MIN_FILL_MS. Returning one immediately guaranteed a rejection, and a rejected
+ * submission used to render as a confirmed seat.
+ *
+ * Lives outside the component because it is impure (clock, network) and only
+ * ever runs from an event handler.
+ */
+async function ensureFormToken(
+  tokenRef: React.RefObject<string>,
+  issuedAtRef: React.RefObject<number>
+): Promise<string> {
+  const age = () => Date.now() - issuedAtRef.current;
+
+  if (!tokenRef.current || age() > TOKEN_REFRESH_AFTER_MS) {
+    try {
+      const res = await fetch(apiUrl("/api/pavel/form-token"), {
+        cache: "no-store",
+      });
+      const data = await res.json();
+      if (typeof data?.token === "string") {
+        tokenRef.current = data.token;
+        issuedAtRef.current = Date.now();
+      }
+    } catch {
+      /* leave as-is — the server rejects it and we surface a retry-able error */
+    }
+  }
+
+  // Only ever waits on the path that just fetched: a token from the modal
+  // opening is already older than this by the time anyone finishes typing.
+  const remaining = MIN_TOKEN_AGE_MS - age();
+  if (tokenRef.current && remaining > 0) {
+    await new Promise((resolve) => setTimeout(resolve, remaining));
+  }
+
+  return tokenRef.current;
+}
+
 export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
   const { price, detectedCountryName, schedule } = usePricing();
 
@@ -155,28 +221,36 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
   } | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  /**
+   * The one non-payment outcome that still ends the flow: this email already
+   * holds a paid seat. Every other failure now surfaces as an error, because a
+   * checkout that did not reach Razorpay has not sold anything.
+   */
   const [submitted, setSubmitted] = useState(false);
-  const [alreadyRegistered, setAlreadyRegistered] = useState(false);
 
   // Honeypot: decoy fields (must stay empty) + a signed, time-boxed token the
   // server issues when the modal opens. See lib/security/honeypot.ts.
   const companyWebsiteRef = useRef<HTMLInputElement>(null);
   const faxNumberRef = useRef<HTMLInputElement>(null);
   const formTokenRef = useRef<string>("");
+  /** Client clock at the moment the current token was received. */
+  const formTokenIssuedAtRef = useRef<number>(0);
 
   useEffect(() => {
     if (!isOpen) return;
     let active = true;
     formTokenRef.current = "";
+    formTokenIssuedAtRef.current = 0;
     fetch(apiUrl("/api/pavel/form-token"), { cache: "no-store" })
       .then((res) => res.json())
       .then((data) => {
         if (active && typeof data?.token === "string") {
           formTokenRef.current = data.token;
+          formTokenIssuedAtRef.current = Date.now();
         }
       })
       .catch(() => {
-        /* token stays empty; ensureToken() retries on submit */
+        /* token stays empty; ensureFormToken() fetches one on submit */
       });
     return () => {
       active = false;
@@ -228,7 +302,6 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
     // Transient UI state always resets, so reopening never lands on a stale
     // success screen or a stale error.
     setSubmitted(false);
-    setAlreadyRegistered(false);
     setError("");
     setReferralChecking(false);
     setReferralError("");
@@ -302,20 +375,6 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
   const confirmPrice = discountedBaseDisplay
     ? [discountedBaseDisplay, price.taxNote].filter(Boolean).join(" ")
     : price.display;
-
-  const ensureToken = async (): Promise<string> => {
-    if (formTokenRef.current) return formTokenRef.current;
-    try {
-      const res = await fetch(apiUrl("/api/pavel/form-token"), {
-        cache: "no-store",
-      });
-      const data = await res.json();
-      if (typeof data?.token === "string") formTokenRef.current = data.token;
-    } catch {
-      /* leave empty — server will reject and show a retry-able error */
-    }
-    return formTokenRef.current;
-  };
 
   /**
    * Confirm the payment server-side (fast path) then land on the thank-you
@@ -421,7 +480,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
     // reusable within its window, so the same payload clears both calls.
     // See lib/security/honeypot.ts.
     const antiBot = {
-      formToken: await ensureToken(),
+      formToken: await ensureFormToken(formTokenRef, formTokenIssuedAtRef),
       company_website: companyWebsiteRef.current?.value ?? "",
       fax_number: faxNumberRef.current?.value ?? "",
     };
@@ -456,7 +515,6 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
       }
 
       if (data.alreadyRegistered) {
-        setAlreadyRegistered(true);
         setSubmitted(true);
         setLoading(false);
         return;
@@ -464,11 +522,10 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
 
       const ref = data.ref;
       if (!ref) {
-        // No ref means payment can't be started — fall back to the holding
-        // confirmation rather than leaving the user stuck.
-        setSubmitted(true);
-        setLoading(false);
-        return;
+        // Without a ref no order can be created, so this is a failed checkout.
+        // It used to show the holding confirmation, which told the buyer they
+        // had a seat when nothing had been recorded or charged.
+        throw new Error("Could not start checkout. Please try again.");
       }
 
       // 2. Create the Razorpay order for this seat (price is read server-side
@@ -481,26 +538,24 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
       const checkout: CheckoutResponse = await checkoutRes.json();
 
       if (checkout.alreadyRegistered) {
-        setAlreadyRegistered(true);
         setSubmitted(true);
         setLoading(false);
         return;
       }
 
-      // A hard error (bad request / order creation failed) — surface it, unless
-      // the route is simply reporting payment isn't configured (handled below).
-      if (!checkoutRes.ok && checkout.razorpayConfigured !== false) {
+      // Any failure is surfaced as an error the buyer can act on. There is no
+      // path from here to the confirmation screen that does not go through
+      // Razorpay: a checkout that cannot start is a checkout that failed, and
+      // showing "You're on the list" for one hands out seats nobody paid for.
+      if (!checkoutRes.ok) {
         throw new Error(
           checkout.error || "Could not start checkout. Please try again."
         );
       }
 
-      // 3. Payment not configured (no Razorpay keys) — keep the funnel usable by
-      //    falling back to the no-payment holding confirmation.
-      if (!checkout.razorpayConfigured || !checkout.keyId || !checkout.orderId) {
-        setSubmitted(true);
-        setLoading(false);
-        return;
+      // 3. A 200 without an order is still a failure, not a free seat.
+      if (!checkout.keyId || !checkout.orderId) {
+        throw new Error("Could not start checkout. Please try again.");
       }
 
       // 4. Open the Razorpay Checkout overlay against the created order. Loading
@@ -624,26 +679,14 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
             </div>
             <div className="space-y-2">
               <h2 className="font-serif text-2xl sm:text-3xl font-medium tracking-tight text-primary">
-                {alreadyRegistered ? "You're already registered" : "You're on the list"}
+                You&apos;re already registered
               </h2>
               <p className="text-sm text-text-muted leading-relaxed max-w-xs mx-auto">
-                {alreadyRegistered ? (
-                  <>
-                    This email already has a confirmed seat. Check your inbox at{" "}
-                    <span className="text-primary font-medium break-all">
-                      {email || "your email"}
-                    </span>{" "}
-                    for your confirmation.
-                  </>
-                ) : (
-                  <>
-                    This event will begin shortly. We&apos;ll be in touch at{" "}
-                    <span className="text-primary font-medium break-all">
-                      {email || "your inbox"}
-                    </span>{" "}
-                    with your access details.
-                  </>
-                )}
+                This email already has a confirmed seat. Check your inbox at{" "}
+                <span className="text-primary font-medium break-all">
+                  {email || "your email"}
+                </span>{" "}
+                for your confirmation.
               </p>
             </div>
             <Button variant="primary" size="lg" className="w-full" onClick={handleClose}>
