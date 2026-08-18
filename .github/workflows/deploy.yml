@@ -108,9 +108,10 @@ jobs:
           # Swap the new build in.
           sudo /usr/bin/systemctl restart fynix-api
 
-          # Fail the deploy if the API doesn't come back healthy.
+          # Fail the deploy if the API doesn't come back healthy. /api/health
+          # returns 200 only when the process is up AND Postgres answers.
           sleep 4
-          code=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3000/api/pavel/form-token)
+          code=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3000/api/health)
           echo "post-deploy health: HTTP $code"
           test "$code" = "200"
           DEPLOY
