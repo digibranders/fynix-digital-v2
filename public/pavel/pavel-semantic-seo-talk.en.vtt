@@ -1,0 +1,317 @@
+WEBVTT
+
+1
+00:00:04.720 --> 00:00:10.160
+Hello, everyone. I'm here to talk about
+the semantic SEO in a simplified way.
+
+2
+00:00:10.160 --> 00:00:12.720
+The plan for the presentation
+is really simple.
+
+3
+00:00:12.720 --> 00:00:16.835
+We're gonna talk about
+what it is, why it works,
+
+4
+00:00:17.475 --> 00:00:23.315
+how you can implement it, and how
+we can use AI to actually process,
+
+5
+00:00:23.715 --> 00:00:27.795
+these things. So first,
+what is semantic SEO?
+
+6
+00:00:28.020 --> 00:00:32.900
+The best way to explain it is you can
+think of it as organizing all of the
+
+7
+00:00:32.900 --> 00:00:34.820
+information on your website.
+
+8
+00:00:35.700 --> 00:00:41.015
+A much simpler way to think
+about it is it is a more
+
+9
+00:00:41.015 --> 00:00:43.495
+detailed on-page optimization.
+
+10
+00:00:43.495 --> 00:00:48.135
+In on-page we have simple things
+like title, alt text, URLs, headings,
+
+11
+00:00:48.135 --> 00:00:52.935
+that's it. In semantics we
+have a ton of different things
+
+12
+00:00:54.080 --> 00:00:58.880
+and I'll try to not look like this
+guy, but in five minutes I might.
+
+13
+00:00:59.360 --> 00:01:03.040
+So what are these things
+that I'm talking about?
+
+14
+00:01:03.280 --> 00:01:07.280
+Imagine that this is a passage of text.
+
+15
+00:01:07.280 --> 00:01:11.605
+On the top we have a heading and
+that's just a regular paragraph.
+
+16
+00:01:11.765 --> 00:01:17.285
+In semantics, we care very
+deeply what is the first
+
+17
+00:01:17.285 --> 00:01:21.765
+sentence, what are the words there, what
+exactly what it contains and in which
+
+18
+00:01:21.765 --> 00:01:23.765
+order these words are appearing.
+
+19
+00:01:24.520 --> 00:01:28.680
+Also, if we have a really,
+let's say, long text,
+
+20
+00:01:28.840 --> 00:01:31.400
+where do we break it into
+different paragraphs?
+
+21
+00:01:31.400 --> 00:01:36.920
+Since we have different paragraphs, how do
+we end the first paragraph and start the
+
+22
+00:01:36.920 --> 00:01:41.565
+next one? And then also, let's say the
+information that goes inside the first
+
+23
+00:01:41.565 --> 00:01:44.445
+paragraph, someone was
+bringing up the triples.
+
+24
+00:01:44.765 --> 00:01:50.365
+This is really important to place in the
+correct order to address the heading that
+
+25
+00:01:50.365 --> 00:01:55.090
+it is above. So let's say right
+here we have the first paragraph,
+
+26
+00:01:55.410 --> 00:01:56.770
+then we have the second one.
+
+27
+00:01:56.770 --> 00:02:01.810
+The way we start with second one and
+how we address the heading is a really
+
+28
+00:02:01.810 --> 00:02:07.415
+important aspect for us. So you can
+already understand words that we use,
+
+29
+00:02:07.415 --> 00:02:10.535
+where they go, in which
+order is important.
+
+30
+00:02:11.735 --> 00:02:14.775
+Once we process a single
+passage like this,
+
+31
+00:02:15.015 --> 00:02:19.390
+then we wanna apply that
+to all of other passages.
+
+32
+00:02:19.390 --> 00:02:24.510
+You can see that we're building things
+block by block and ultimately sentence by
+
+33
+00:02:24.510 --> 00:02:30.445
+sentence. Of course, we use a
+hierarchy for all the headings as in,
+
+34
+00:02:30.445 --> 00:02:35.885
+let's say, H2 would be the main aspect,
+H3 would be sub aspects or let's say a sub
+
+35
+00:02:35.885 --> 00:02:39.725
+topic for that. This is applied
+throughout the entire article.
+
+36
+00:02:39.805 --> 00:02:45.350
+We always have a different
+type of, let's say, of course,
+
+37
+00:02:45.350 --> 00:02:48.790
+it's just an example. Sometimes
+we can go down to H5, H6,
+
+38
+00:02:48.790 --> 00:02:51.990
+sometimes we can have most H2 tags.
+
+39
+00:02:51.990 --> 00:02:53.350
+There's always variations.
+
+40
+00:02:54.710 --> 00:02:57.830
+Approximately, this is how
+the article will look like.
+
+41
+00:02:57.830 --> 00:03:00.565
+And then we always have two parts.
+
+42
+00:03:00.965 --> 00:03:06.565
+What this is what we call the macro
+context and the micro context or the main
+
+43
+00:03:06.565 --> 00:03:08.885
+part and the supplementary part.
+
+44
+00:03:09.605 --> 00:03:15.010
+The thing that is important to understand
+about this is the main part is directly
+
+45
+00:03:15.010 --> 00:03:19.650
+addressing the query. This is where we
+need to meet all of the needs of the user.
+
+46
+00:03:19.970 --> 00:03:22.370
+So if they need if they
+have informational needs,
+
+47
+00:03:22.370 --> 00:03:24.050
+we try to give them all the answers.
+
+48
+00:03:24.210 --> 00:03:28.435
+If they need some kind of navigational
+visual or a functional thing where they
+
+49
+00:03:28.435 --> 00:03:32.755
+need to book or order something, we
+give that in the main upper part.
+
+50
+00:03:33.075 --> 00:03:37.315
+The bottom part, the supplementary part
+is used for linking and just deepening,
+
+51
+00:03:37.555 --> 00:03:43.110
+the context. In this, type of layout,
+we have a single article that is now
+
+52
+00:03:43.110 --> 00:03:47.910
+completed. We apply the same principle
+to all of the articles on our website.
+
+53
+00:03:48.070 --> 00:03:49.990
+As we do that, there is a clear pattern.
+
+54
+00:03:49.990 --> 00:03:52.870
+We can see that there's a
+hierarchy between these articles.
+
+55
+00:03:53.485 --> 00:03:58.605
+Some are more important and have, let's
+say, a different reason why we use them.
+
+56
+00:03:59.085 --> 00:04:04.685
+Now to just simplify this visualization,
+we're gonna turn them into these simple
+
+57
+00:04:04.685 --> 00:04:09.670
+circles. And this is what we
+call root, seed, and node.
+
+58
+00:04:10.070 --> 00:04:12.790
+Do not, let's say, get confused by this.
+
+59
+00:04:12.790 --> 00:04:17.030
+Just think of them as three types of
+articles and they have different levels of
+
+60
+00:04:17.030 --> 00:04:22.150
+importance. Then we build out different
+connections based on these principles.
+
+61
+00:04:22.675 --> 00:04:26.115
+A more, let's say, connected
+representation would look something like
+
+62
+00:04:26.115 --> 00:04:30.195
+this or like this. As you can
+see over here, we have a central,
+
+63
+00:04:30.835 --> 00:04:33.529
+root article, then we have multiple seeds.
+
+64
+00:04:33.529 --> 00:04:36.169
+These are the orange circles
+and then the blue ones.
+
+65
+00:04:36.169 --> 00:04:39.369
+These are the nodes, the
+small, tiny articles.
+
+66
+00:04:41.209 --> 00:04:42.809
+This can represent
