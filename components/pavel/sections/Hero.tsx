@@ -28,7 +28,7 @@ export const Hero: React.FC = () => {
       />
 
       <Container className="relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-22 lg:gap-6 items-center lg:items-stretch">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-6 items-center lg:items-stretch">
           {/* LEFT: Text Column — on desktop it fills the image height so the
               eyebrow sits at the top (level with Pavel's head) and the CTAs drop
               to the bottom (level with the "Pavel Klimakov" label). */}
@@ -77,7 +77,17 @@ export const Hero: React.FC = () => {
 
           {/* RIGHT: Image 1 with Seamless Transition into Pure Black (No Borders) */}
           <div className="hero-rise-delayed order-1 lg:order-2 lg:col-span-5">
-            <div className="relative mx-auto max-w-[460px] lg:max-w-none h-[420px] sm:h-[480px] lg:h-[540px] w-full overflow-hidden">
+            <div className="relative mx-auto max-w-[460px] lg:max-w-none h-[calc(100dvh-16rem)] max-h-[560px] min-h-[320px] sm:h-[480px] sm:max-h-none sm:min-h-0 lg:h-[540px] w-full overflow-hidden">
+              {/* Mobile: a cleaner crop (no "Refine the…" strip up top). */}
+              <Image
+                src="/pavel/new_hero_mobile.webp"
+                alt="Pavel Klimakov presenting on stage at SEO Vibes Summit"
+                fill
+                priority
+                sizes="100vw"
+                className="md:hidden object-cover object-center"
+              />
+              {/* Desktop / tablet: the original stage shot. */}
               <Image
                 src="/pavel/pavel-seo-vibes-summit-2025.webp"
                 alt="Pavel Klimakov presenting on stage at SEO Vibes Summit"
@@ -85,10 +95,11 @@ export const Hero: React.FC = () => {
                 priority
                 quality={90}
                 sizes="(min-width: 1024px) 45vw, 100vw"
-                className="object-cover object-[center_22%] scale-105"
+                className="hidden md:block object-cover object-[center_22%] scale-105"
               />
 
-              {/* Bottom and left edge gradient blend into black background — top stays 100% clear */}
+              {/* Edges blend into the black background — bottom, left, and a
+                  small top fade so the busy screen strip up top goes to black. */}
               <div
                 aria-hidden
                 className="absolute inset-0 pointer-events-none"
