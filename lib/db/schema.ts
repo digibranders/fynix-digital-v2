@@ -45,6 +45,13 @@ export const registrations = pgTable(
     razorpayOrderId: text("razorpay_order_id").unique(), // 'order_...' created at checkout
     razorpayPaymentId: text("razorpay_payment_id"), // 'pay_...' captured on success
     status: text("status").notNull().default("pending"), // 'pending' | 'paid'
+
+    // Live attendance, filled from Zoom after the session. `attendedMinutes`
+    // stays null until attendance has been synced, which is deliberately
+    // distinct from a synced value of 0 (registered, never joined).
+    attendedMinutes: integer("attended_minutes"),
+    firstJoinedAt: timestamp("first_joined_at", { withTimezone: true }),
+    attendanceSyncedAt: timestamp("attendance_synced_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -185,7 +192,39 @@ export const invoiceCounters = pgTable(
   (table) => [unique("invoice_counters_prefix_fy_unique").on(table.prefix, table.fy)]
 );
 
+/**
+ * Issued certificates.
+ *
+ * A certificate is a credential, so it must be impossible to mint one by typing
+ * a name into a URL. Every certificate is a row here, addressed by an
+ * unguessable `credential_id`, and the page renders only what this row says.
+ *
+ * The recipient's name and the completion date are SNAPSHOT, so a certificate
+ * someone shared in 2026 keeps rendering identically even if the registration
+ * or the workshop details change later.
+ *
+ * One row per registration (unique FK), which makes issuance idempotent in the
+ * same way invoices are.
+ */
+export const certificates = pgTable("certificates", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  registrationId: uuid("registration_id")
+    .notNull()
+    .unique()
+    .references(() => registrations.id, { onDelete: "restrict" }),
+  /** Public, shareable, unguessable, e.g. 'FYX-SS26-7A3F9C21'. */
+  credentialId: text("credential_id").notNull().unique(),
+  issuedAt: timestamp("issued_at", { withTimezone: true }).notNull().defaultNow(),
+
+  recipientName: text("recipient_name").notNull(),
+  /** Human-readable completion date printed on the certificate. */
+  issueDateLabel: text("issue_date_label").notNull(),
+  /** Minutes attended at the time of issue, kept as the evidence for issuing. */
+  attendedMinutes: integer("attended_minutes"),
+});
+
 export type Registration = typeof registrations.$inferSelect;
+export type Certificate = typeof certificates.$inferSelect;
 export type Invoice = typeof invoices.$inferSelect;
 export type NewInvoice = typeof invoices.$inferInsert;
 export type NewRegistration = typeof registrations.$inferInsert;

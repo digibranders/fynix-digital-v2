@@ -92,6 +92,13 @@
       "when": 1787055182318,
       "tag": "0012_short_vindicator",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1787057381922,
+      "tag": "0013_tan_talos",
+      "breakpoints": true
     }
   ]
 }
