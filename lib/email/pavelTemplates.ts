@@ -240,9 +240,6 @@ export function buildPavelPaidConfirmationEmail(
                     <p style="margin: 0 0 6px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 15px; line-height: 1.5;">
                       <a href="${joinLinkFor(submission)}" style="color: #0C1E2E; text-decoration: underline; word-break: break-all;">${joinLinkFor(submission)}</a>
                     </p>
-                    <p style="margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 1.5; color: #454F58;">
-                      Passcode: <strong style="color: #0C1E2E;">${WORKSHOP.zoomPasscode}</strong>
-                    </p>
                   </td>
                 </tr>
               </table>
@@ -311,7 +308,6 @@ Starts ${countdown}
 
 JOIN ON ZOOM
 ${joinLinkFor(submission)}
-Passcode: ${WORKSHOP.zoomPasscode}
 
 ATTENDEES-ONLY WHATSAPP COMMUNITY
 Join our private WhatsApp community to get the latest updates about the
@@ -448,7 +444,6 @@ export function buildPavelReminderEmail(
           <p style="margin: 0 0 16px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.5; color: #0C1E2E;">${WORKSHOP.dateLabel} &middot; ${timeLabel}<br><span style="font-size: 13px; color: #9A7B4F; font-weight: 600;">Starts ${countdown}</span></p>
           <p style="margin: 0 0 4px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #565D64;">Join on Zoom</p>
           <p style="margin: 0 0 6px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 15px; line-height: 1.5;"><a href="${joinLinkFor(submission)}" style="color: #0C1E2E; text-decoration: underline; word-break: break-all;">${joinLinkFor(submission)}</a></p>
-          <p style="margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 1.5; color: #454F58;">Passcode: <strong style="color: #0C1E2E;">${WORKSHOP.zoomPasscode}</strong></p>
         </td>
       </tr>
     </table>`;
@@ -472,7 +467,6 @@ Starts ${countdown}
 
 JOIN ON ZOOM
 ${joinLinkFor(submission)}
-Passcode: ${WORKSHOP.zoomPasscode}
 
 Questions? Reply to this email or write to hello@fynix.digital.
 Reference ${ref}`;
