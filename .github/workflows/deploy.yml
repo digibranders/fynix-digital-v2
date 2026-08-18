@@ -1,30 +1,47 @@
-name: Deploy API to droplet
+name: CI + Deploy (droplet)
 
-# Deploys the Next.js API + admin to the DigitalOcean droplet behind
-# api.fynix.digital. The marketing site is deployed separately by Vercel.
-#
-# Flow: generate the server .env from GitHub secrets/variables on the runner,
-# copy it to the droplet, then over SSH pull the target ref, build, migrate, and
-# restart the systemd service. The old build keeps serving until the new build
-# succeeds, so a failed build never takes the API down.
+# The droplet only ever runs `main`. On a push to main the CI job (lint,
+# typecheck, build) must pass first; only then does the deploy job ship main to
+# the droplet at api.fynix.digital. Pull requests into main run CI as a gate but
+# never deploy. The marketing site is deployed separately by Vercel.
 
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
-    inputs:
-      ref:
-        description: "Branch or tag to deploy"
-        required: false
-        default: "main"
 
-# Never let two deploys run at once; queue them instead of cancelling.
 concurrency:
-  group: deploy-droplet
-  cancel-in-progress: false
+  # Serialize deploys; cancel only superseded PR checks, never a main deploy.
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  ci:
+    name: CI (lint, typecheck, build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npx tsc --noEmit
+      - name: Build
+        # Validate a production build compiles. The droplet is same-origin, and
+        # Sentry source-map upload is skipped here (not needed to gate the build).
+        env:
+          NEXT_PUBLIC_API_BASE_URL: ""
+          SENTRY_AUTH_TOKEN: ""
+        run: npm run build
+
   deploy:
+    name: Deploy main to droplet
+    needs: ci
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - name: Configure SSH
@@ -62,13 +79,10 @@ jobs:
             "${{ secrets.DROPLET_USER }}@${{ secrets.DROPLET_HOST }}:/opt/fynix/.env.incoming"
           rm -f api.env
 
-      - name: Pull, build, migrate, restart
-        env:
-          DEPLOY_REF: ${{ github.event.inputs.ref || 'main' }}
+      - name: Pull main, build, migrate, restart
         run: |
           ssh -i ~/.ssh/id_deploy \
-            "${{ secrets.DROPLET_USER }}@${{ secrets.DROPLET_HOST }}" \
-            "DEPLOY_REF='${DEPLOY_REF}' bash -s" <<'DEPLOY'
+            "${{ secrets.DROPLET_USER }}@${{ secrets.DROPLET_HOST }}" 'bash -s' <<'DEPLOY'
           set -euo pipefail
           cd /opt/fynix
 
@@ -76,10 +90,10 @@ jobs:
           mv -f .env.incoming .env
           chmod 600 .env
 
-          # Sync code to the requested ref.
-          git fetch --all --prune --quiet
-          git checkout "$DEPLOY_REF"
-          git reset --hard "origin/$DEPLOY_REF"
+          # The droplet only ever runs main.
+          git fetch origin main --prune --quiet
+          git checkout main
+          git reset --hard origin/main
 
           # Install + build. The running service keeps serving the old build
           # until this succeeds, so a broken build never causes an outage.
