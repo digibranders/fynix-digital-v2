@@ -4,8 +4,7 @@ import React from "react";
 import Image from "next/image";
 import { Container } from "../ui/Container";
 import { Button } from "../ui/Button";
-import { ArrowRight, CalendarDays } from "lucide-react";
-import { WORKSHOP } from "../workshopDetails";
+import { ArrowRight } from "lucide-react";
 import { usePricing } from "../PricingProvider";
 
 export const Hero: React.FC = () => {
@@ -29,28 +28,13 @@ export const Hero: React.FC = () => {
       />
 
       <Container className="relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-6 items-center lg:items-stretch">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-22 lg:gap-6 items-center lg:items-stretch">
           {/* LEFT: Text Column — on desktop it fills the image height so the
               eyebrow sits at the top (level with Pavel's head) and the CTAs drop
               to the bottom (level with the "Pavel Klimakov" label). */}
           <div className="hero-rise order-2 lg:order-1 lg:col-span-7 flex flex-col gap-8 lg:gap-0 lg:justify-between lg:pb-6">
             <div className="space-y-8 lg:mt-12
             ">
-            {/* Eyebrow — the three deciding facts in a clean row:
-                date · time range · platform. */}
-            <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-[13.5px] font-medium tracking-[-0.005em] text-white/85">
-              <span className="inline-flex items-center gap-1.5">
-                <CalendarDays
-                  className="h-[13px] w-[13px] shrink-0 text-[#E8B087]"
-                  strokeWidth={1.75}
-                  aria-hidden
-                />
-                {WORKSHOP.dateLabel}
-              </span>
-              <span>{WORKSHOP.timeRange}</span>
-              <span className="text-white/60">Live on {WORKSHOP.platform}</span>
-            </div>
-
             <h1 className="text-[2.4rem] leading-[1.04] sm:text-[3.25rem] sm:leading-[1.02] lg:text-[3.85rem] lg:leading-[1.02] font-medium tracking-[-0.028em] text-white">
               Semantic SEO
               <br />
@@ -121,8 +105,10 @@ export const Hero: React.FC = () => {
                 className="pointer-events-none absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-black via-black/55 to-transparent"
               />
 
-              {/* Instructor Name Label */}
-              <div className="absolute left-6 bottom-6 z-10 text-white">
+              {/* Instructor Name Label — flush to the photo's left edge on
+                  stacked layouts so it aligns with the hero headline; inset on
+                  desktop where the photo sits in its own column. */}
+              <div className="absolute left-0 lg:left-6 bottom-6 z-10 text-white">
                 {/* <p className="text-[13px] italic font-normal text-white/75">
                   Instructor
                 </p> */}
@@ -130,8 +116,9 @@ export const Hero: React.FC = () => {
                   Pavel Klimakov
                 </p>
                 <p className="mt-2 max-w-[300px] text-[15px] italic leading-[1.4] text-white/75">
-                  &ldquo;What you hear about Semantic SEO is just 15% of the
-                  story.&rdquo;
+                  &ldquo;What you hear about Semantic SEO
+                  <br />
+                  is just 15% of the story.&rdquo;
                 </p>
               </div>
 
