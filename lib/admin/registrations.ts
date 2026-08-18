@@ -13,7 +13,15 @@ export type AdminRegistrationRow = {
   name: string;
   email: string;
   phone: string | null;
+  /**
+   * Pricing region, only ever "IN" or "REST". It decides which price was
+   * charged; it does not identify where the buyer is. Use `countryName` for
+   * that — collapsing every non-Indian buyer to "International" in the UI hides
+   * the country the invoice was actually raised against.
+   */
   country: string;
+  /** The country the buyer selected, e.g. "Netherlands". Null on older rows. */
+  countryName: string | null;
   /** Indian state / UT (place of supply). Captured for India only. */
   state: string | null;
   /** Code the buyer typed at registration — not yet proof of a discount. */
@@ -64,6 +72,7 @@ export async function queryRegistrations(): Promise<AdminRegistrationRow[]> {
       email: registrations.email,
       phone: registrations.phone,
       country: registrations.country,
+      countryName: registrations.countryName,
       state: registrations.state,
       referralCode: registrations.referralCode,
       discountPercent: registrations.discountPercent,
@@ -91,6 +100,7 @@ export async function queryRegistrations(): Promise<AdminRegistrationRow[]> {
     email: r.email,
     phone: r.phone,
     country: r.country,
+    countryName: r.countryName,
     state: r.state,
     referralCode: r.referralCode,
     discountPercent: r.discountPercent,
@@ -104,6 +114,19 @@ export async function queryRegistrations(): Promise<AdminRegistrationRow[]> {
     hasJoinLink: Boolean(r.zoomJoinUrl),
     credentialId: r.credentialId,
   }));
+}
+
+/**
+ * Fill in fields an older droplet build may not send yet.
+ *
+ * The site and the API deploy separately, so during a rollout Vercel can be a
+ * build ahead of the droplet. Treating a missing optional field as fatal would
+ * blank the whole dashboard over one absent column, so it is normalised to null
+ * instead — the type promises `string | null`, and this is what makes that true
+ * at runtime.
+ */
+function normaliseRow(row: AdminRegistrationRow): AdminRegistrationRow {
+  return { ...row, countryName: row.countryName ?? null };
 }
 
 /** Narrow an untrusted JSON payload to the row shape the dashboard expects. */
@@ -166,7 +189,7 @@ export async function loadRegistrations(): Promise<LoadRegistrationsResult> {
       };
     }
 
-    return { rows, error: null };
+    return { rows: rows.map(normaliseRow), error: null };
   } catch (error) {
     if (error instanceof AdminGatewayError) {
       console.error("[admin] gateway is not configured", error);

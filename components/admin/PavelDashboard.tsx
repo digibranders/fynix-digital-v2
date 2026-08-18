@@ -5,6 +5,7 @@ import Link from "next/link";
 import Logo from "@/components/Logo";
 import AdminSignOutButton from "@/components/admin/AdminSignOutButton";
 import type { AdminRegistrationRow } from "@/lib/admin/registrations";
+import { COUNTRIES, flagEmoji } from "@/components/pavel/countries";
 
 export type { AdminRegistrationRow };
 
@@ -183,9 +184,22 @@ function CouponCell({
   );
 }
 
-function countryLabel(country: string): string {
-  if (country === "IN") return "🇮🇳 India";
-  return "🌍 International";
+/**
+ * Name the buyer's country, not the pricing bucket.
+ *
+ * `country` is only ever "IN" or "REST", so rendering it labelled every
+ * overseas buyer "International" and threw away the country the invoice was
+ * raised against. `countryName` carries the real answer; the bucket is the
+ * fallback for older rows that predate it.
+ */
+function countryLabel(country: string, countryName: string | null): string {
+  const name = countryName?.trim();
+  if (!name) return country === "IN" ? "🇮🇳 India" : "🌍 International";
+
+  const match = COUNTRIES.find(
+    (c) => c.name.toLowerCase() === name.toLowerCase()
+  );
+  return match ? `${flagEmoji(match.code)} ${match.name}` : `🌍 ${name}`;
 }
 
 /**
@@ -272,7 +286,8 @@ function buildCsv(rows: AdminRegistrationRow[]): string {
       row.name,
       row.email,
       row.phone,
-      row.country === "IN" ? "India" : "International",
+      // The buyer's country, falling back to the pricing bucket on older rows.
+      row.countryName?.trim() || (row.country === "IN" ? "India" : "International"),
       row.country === "IN" ? row.state : "",
       row.referralCode,
       row.referralCode ? (applied ? "yes" : "no") : "",
@@ -514,7 +529,7 @@ export default function PavelDashboard({
                       )}
                     </td>
                     <td className="px-3 py-3 text-slate-300">
-                      {countryLabel(row.country)}
+                      {countryLabel(row.country, row.countryName)}
                     </td>
                     <td className="px-3 py-3">
                       <StateCell country={row.country} state={row.state} />

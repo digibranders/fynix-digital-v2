@@ -597,12 +597,12 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
   return (
     <div
       data-lenis-prevent
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-primary/40 backdrop-blur-sm animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-4 sm:items-center sm:p-6 bg-primary/40 backdrop-blur-sm animate-in fade-in duration-200"
       onClick={handleClose}
     >
       <div
         data-lenis-prevent
-        className={`relative w-full max-w-md p-6 sm:p-8 rounded-2xl bg-white border border-border text-primary shadow-2xl space-y-6 pv-seam lg:transition-transform lg:duration-300 lg:ease-out ${
+        className={`relative my-auto w-full max-w-md p-6 sm:p-8 rounded-2xl bg-white border border-border text-primary shadow-2xl space-y-4 sm:space-y-6 pv-seam lg:transition-transform lg:duration-300 lg:ease-out ${
           gstRequested && !submitted ? "lg:-translate-x-40" : ""
         }`}
         onClick={(e) => e.stopPropagation()}
@@ -671,7 +671,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
           </button>
         </div>
 
-        <div className="border-t border-border pt-4">
+        <div className="border-t border-border pt-3 sm:pt-4">
           <div className="flex items-baseline justify-between gap-4">
             <span className="font-serif text-lg sm:text-xl text-primary tracking-tight">
               {dateLabel}
@@ -685,7 +685,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3">
           {/*
             Honeypot decoy fields — visually removed, off the tab order, and
             hidden from assistive tech, so a real user never fills them. Bots
@@ -836,7 +836,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
                 }`}
               >
                 {gstRequested && (
-                  <div className="space-y-4 rounded-xl border border-border bg-background-soft/60 p-4 lg:bg-white lg:p-6 lg:shadow-2xl lg:rounded-2xl">
+                  <div className="space-y-3 sm:space-y-4 rounded-xl border border-border bg-background-soft/60 p-4 lg:bg-white lg:p-6 lg:shadow-2xl lg:rounded-2xl">
                     <div className="flex items-center justify-between">
                       <p className="font-serif italic text-base text-primary">
                         GST details

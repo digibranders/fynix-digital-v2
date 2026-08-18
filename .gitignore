@@ -43,3 +43,5 @@ next-env.d.ts
 
 #md file
 GEMINI.md
+# local DB dumps / exports (contain personal data)
+.local-backups/
