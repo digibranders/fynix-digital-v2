@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { headers } from "next/headers";
 import "./pavel.css";
 import { PricingProvider } from "@/components/pavel/PricingProvider";
+import { COUNTRIES } from "@/components/pavel/countries";
 import {
   countryFromGeo,
   countryFromParam,
@@ -57,12 +58,22 @@ export default async function PavelWorkshopPage({
     searchParams,
     headers(),
   ]);
+  const geoCode = headerList.get("x-vercel-ip-country");
   const initialCountry =
-    countryFromParam(countryParam) ??
-    countryFromGeo(headerList.get("x-vercel-ip-country"));
+    countryFromParam(countryParam) ?? countryFromGeo(geoCode);
+
+  // Keep the SPECIFIC country too, not just the pricing region, so the checkout
+  // can pre-select it. countryFromGeo collapses everything to IN or REST, which
+  // cannot name a country. Absent locally and on the droplet, where the edge geo
+  // header does not exist.
+  const detectedCountryName =
+    COUNTRIES.find((c) => c.code === geoCode?.toUpperCase())?.name ?? "";
 
   return (
-    <PricingProvider initialCountry={initialCountry}>
+    <PricingProvider
+      initialCountry={initialCountry}
+      detectedCountryName={detectedCountryName}
+    >
       <div className="min-h-screen bg-background-soft text-primary tnum">
         <Navbar />
         <Hero />

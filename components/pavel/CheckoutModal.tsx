@@ -127,12 +127,15 @@ function loadRazorpaySdk(): Promise<RazorpayConstructor> {
 }
 
 export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
-  const { price } = usePricing();
+  const { price, detectedCountryName } = usePricing();
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [country, setCountry] = useState("");
+  // Seeded from the visitor's detected country so the dial code, phone format
+  // and (for India) the state field are right on open. A DEFAULT, never a lock:
+  // VPNs, travellers and NRIs get it wrong, so the field stays editable.
+  const [country, setCountry] = useState(detectedCountryName);
   // Indian state (place of supply) — shown and required only for India.
   const [indianState, setIndianState] = useState("");
   // GST invoice details — shown only to Indian buyers, opt-in, and optional.
@@ -202,7 +205,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
     setName("");
     setEmail("");
     setPhone("");
-    setCountry("");
+    setCountry(detectedCountryName);
     setIndianState("");
     setGstRequested(false);
     setCompanyName("");

@@ -7,6 +7,16 @@ type PricingContextValue = {
   country: Country;
   price: PriceInfo;
   setCountry: (country: Country) => void;
+  /**
+   * The visitor's actual country NAME, e.g. "United Kingdom", detected from the
+   * edge geo header. Used to pre-select the checkout's country field.
+   *
+   * Distinct from `country`, which is only the pricing region (IN or REST) and
+   * cannot name a specific country. Empty when detection is unavailable, which
+   * is the case locally and on the droplet, so nothing is pre-selected there
+   * rather than everyone defaulting to one country.
+   */
+  detectedCountryName: string;
 };
 
 const PricingContext = createContext<PricingContextValue | null>(null);
@@ -18,16 +28,18 @@ const PricingContext = createContext<PricingContextValue | null>(null);
  */
 export function PricingProvider({
   initialCountry,
+  detectedCountryName = "",
   children,
 }: {
   initialCountry: Country;
+  detectedCountryName?: string;
   children: React.ReactNode;
 }) {
   const [country, setCountry] = useState<Country>(initialCountry);
 
   const value = useMemo<PricingContextValue>(
-    () => ({ country, price: PRICING[country], setCountry }),
-    [country],
+    () => ({ country, price: PRICING[country], setCountry, detectedCountryName }),
+    [country, detectedCountryName],
   );
 
   return (
