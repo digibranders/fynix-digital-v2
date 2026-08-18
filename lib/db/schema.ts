@@ -46,6 +46,17 @@ export const registrations = pgTable(
     razorpayPaymentId: text("razorpay_payment_id"), // 'pay_...' captured on success
     status: text("status").notNull().default("pending"), // 'pending' | 'paid'
 
+    // Zoom webinar this seat was sold into, and the buyer's place in it. The
+    // join URL is unique per registrant and is the only link they should ever
+    // receive; sharing the generic webinar link would break attendance
+    // correlation, which is keyed on the registrant id.
+    sessionId: uuid("session_id").references(() => webinarSessions.id, {
+      onDelete: "set null",
+    }),
+    zoomRegistrantId: text("zoom_registrant_id"),
+    zoomJoinUrl: text("zoom_join_url"),
+    zoomRegisteredAt: timestamp("zoom_registered_at", { withTimezone: true }),
+
     // Live attendance, filled from Zoom after the session. `attendedMinutes`
     // stays null until attendance has been synced, which is deliberately
     // distinct from a synced value of 0 (registered, never joined).
@@ -193,6 +204,34 @@ export const invoiceCounters = pgTable(
 );
 
 /**
+ * Zoom webinar sessions.
+ *
+ * The webinar a buyer is registered into is data, not a constant: running a test
+ * session or a second cohort must never require a code change or a deploy. An
+ * operator adds a row from the admin console and marks it active, and new paid
+ * registrations join that one.
+ *
+ * Registrations keep the session they were sold into, because attendance is
+ * fetched per webinar. Without that link a later cohort's attendance would be
+ * mixed with this one's.
+ */
+export const webinarSessions = pgTable("webinar_sessions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  /** Zoom's numeric webinar id, stored as text so leading zeros survive. */
+  zoomWebinarId: text("zoom_webinar_id").notNull().unique(),
+  /** Operator-facing name, e.g. "Test session" or "Cohort 1". */
+  label: text("label").notNull(),
+  startsAt: timestamp("starts_at", { withTimezone: true }),
+  /**
+   * Exactly one session should be active at a time; the app takes the most
+   * recently activated one, so flipping a new session on supersedes the old.
+   */
+  active: boolean("active").notNull().default(false),
+  activatedAt: timestamp("activated_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/**
  * Issued certificates.
  *
  * A certificate is a credential, so it must be impossible to mint one by typing
@@ -225,6 +264,7 @@ export const certificates = pgTable("certificates", {
 
 export type Registration = typeof registrations.$inferSelect;
 export type Certificate = typeof certificates.$inferSelect;
+export type WebinarSession = typeof webinarSessions.$inferSelect;
 export type Invoice = typeof invoices.$inferSelect;
 export type NewInvoice = typeof invoices.$inferInsert;
 export type NewRegistration = typeof registrations.$inferInsert;

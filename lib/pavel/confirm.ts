@@ -5,6 +5,7 @@ import { dispatchPavelEmail } from "@/lib/email/dispatch";
 import type { EmailAttachment } from "@/lib/email/brevo";
 import { issueInvoiceForRegistration } from "@/lib/pavel/invoice";
 import { renderInvoicePdf, invoiceFileName } from "@/lib/pavel/invoicePdf";
+import { grantWebinarAccess } from "@/lib/pavel/webinarAccess";
 import {
   buildPavelPaidConfirmationEmail,
   buildPavelPaidRegistrationAdminEmail,
@@ -111,6 +112,17 @@ export async function confirmRegistrationPaid(
   const invoiceResult = await issueInvoiceForRegistration(db, registration.id);
   if (invoiceResult.status === "error") {
     console.error("[pavel/confirm] invoice issuance failed", invoiceResult.reason);
+  }
+
+  // Grant webinar access: register the buyer with Zoom and get their own join
+  // link. Non-fatal for the same reason invoicing is, and deliberately a single
+  // attempt, because Zoom allows only three per person per webinar per day. The
+  // hourly timer backfills anything that fails here.
+  const accessResult = await grantWebinarAccess(db, registration.id);
+  if (accessResult.status === "error") {
+    console.error("[pavel/confirm] zoom registration failed", accessResult.reason);
+  } else if (accessResult.status === "skipped") {
+    console.warn("[pavel/confirm] zoom registration skipped:", accessResult.reason);
   }
 
   // Render the invoice for the confirmation email. Failing to render must not
