@@ -5,11 +5,5 @@
       "*": false,
       "main": true
     }
-  },
-  "crons": [
-    {
-      "path": "/api/pavel/cron/reminders",
-      "schedule": "0 * * * *"
-    }
-  ]
+  }
 }
