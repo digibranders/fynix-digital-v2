@@ -11,6 +11,16 @@ const nextConfig: NextConfig = {
   async headers() {
     const isDev = process.env.NODE_ENV === "development";
 
+    // When the Pavel API runs on a separate origin (the DigitalOcean droplet at
+    // api.fynix.digital), the browser must be allowed to fetch it. Derived from
+    // the same env var the client uses (see lib/pavel/apiBase.ts) so the CSP and
+    // the fetch target can never drift apart. Empty on the droplet and locally
+    // (same-origin), where no extra connect-src entry is needed.
+    const apiOrigin = (process.env.NEXT_PUBLIC_API_BASE_URL ?? "").replace(
+      /\/+$/,
+      ""
+    );
+
     // Content-Security-Policy. 'unsafe-inline' is required for scripts because
     // Next.js injects inline hydration scripts and the pages emit inline JSON-LD
     // without a nonce; a nonce-based policy would need middleware and is a larger
@@ -35,7 +45,7 @@ const nextConfig: NextConfig = {
       // cdn.razorpay.com, so script-src must allow that host too.
       `script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://checkout.razorpay.com https://cdn.razorpay.com${isDev ? " 'unsafe-eval'" : ""}`,
       "frame-src 'self' https://www.youtube-nocookie.com https://www.googletagmanager.com https://api.razorpay.com https://checkout.razorpay.com",
-      `connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.razorpay.com${isDev ? " ws:" : ""}`,
+      `connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.razorpay.com${apiOrigin ? ` ${apiOrigin}` : ""}${isDev ? " ws:" : ""}`,
       "worker-src 'self' blob:",
     ].join("; ");
 
