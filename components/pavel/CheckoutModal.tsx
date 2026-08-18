@@ -10,6 +10,7 @@ import { WORKSHOP } from "@/components/pavel/workshopDetails";
 import { COUNTRIES, countPhoneDigits, phoneLengthError } from "@/components/pavel/countries";
 import { isValidGstin, normalizeGstin } from "@/lib/pavel/gst";
 import { INDIAN_STATES } from "@/lib/pavel/indianStates";
+import { apiUrl } from "@/lib/pavel/apiBase";
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -164,7 +165,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
     if (!isOpen) return;
     let active = true;
     formTokenRef.current = "";
-    fetch("/api/pavel/form-token", { cache: "no-store" })
+    fetch(apiUrl("/api/pavel/form-token"), { cache: "no-store" })
       .then((res) => res.json())
       .then((data) => {
         if (active && typeof data?.token === "string") {
@@ -226,7 +227,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
     setReferralChecking(true);
     setReferralError("");
     try {
-      const res = await fetch("/api/pavel/referral", {
+      const res = await fetch(apiUrl("/api/pavel/referral"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ code }),
@@ -281,7 +282,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
    */
   const completePayment = async (response: RazorpaySuccess, ref: string) => {
     try {
-      await fetch("/api/pavel/verify", {
+      await fetch(apiUrl("/api/pavel/verify"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -384,7 +385,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
 
     try {
       // 1. Record the seat as a pending registration and get its `ref`.
-      const res = await fetch("/api/pavel/register", {
+      const res = await fetch(apiUrl("/api/pavel/register"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -429,7 +430,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
 
       // 2. Create the Razorpay order for this seat (price is read server-side
       //    from the stored registration, never trusted from the client).
-      const checkoutRes = await fetch("/api/pavel/checkout", {
+      const checkoutRes = await fetch(apiUrl("/api/pavel/checkout"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ref, ...antiBot }),

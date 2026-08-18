@@ -6,6 +6,7 @@ import { WORKSHOP } from "@/components/pavel/workshopDetails";
 import { Container } from "@/components/pavel/ui/Container";
 import { Button } from "@/components/pavel/ui/Button";
 import { Video, Copy, Check, Loader2, ShieldAlert } from "lucide-react";
+import { apiUrl } from "@/lib/pavel/apiBase";
 
 /** Official multi-colour Google Calendar mark for the "Add to Calendar" CTA. */
 const GoogleCalendarIcon: React.FC<{ className?: string }> = ({ className }) => (
@@ -78,7 +79,7 @@ export const ThankYouContent: React.FC = () => {
     if (paymentId) query.set("payment_id", paymentId);
 
     let active = true;
-    fetch(`/api/pavel/thank-you-verify?${query.toString()}`, { cache: "no-store" })
+    fetch(apiUrl(`/api/pavel/thank-you-verify?${query.toString()}`), { cache: "no-store" })
       .then((res) => res.json())
       .then((data) => {
         if (!active) return;
