@@ -4,8 +4,9 @@ import React from "react";
 import Image from "next/image";
 import { Container } from "../ui/Container";
 import { Button } from "../ui/Button";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, CalendarDays } from "lucide-react";
 import { usePricing } from "../PricingProvider";
+import { WORKSHOP } from "../workshopDetails";
 
 export const Hero: React.FC = () => {
   const { price } = usePricing();
@@ -35,6 +36,21 @@ export const Hero: React.FC = () => {
           <div className="hero-rise order-2 lg:order-1 lg:col-span-7 flex flex-col gap-8 lg:gap-0 lg:justify-between lg:pb-6">
             <div className="space-y-8 lg:mt-12
             ">
+            {/* Eyebrow — date · time range · platform. Desktop only; on mobile
+                the sticky banner already carries the date + time. */}
+            <div className="hidden lg:flex flex-wrap items-center gap-x-5 gap-y-1 text-[13.5px] font-medium tracking-[-0.005em] text-white/85">
+              <span className="inline-flex items-center gap-1.5">
+                <CalendarDays
+                  className="h-[13px] w-[13px] shrink-0 text-[#E8B087]"
+                  strokeWidth={1.75}
+                  aria-hidden
+                />
+                {WORKSHOP.dateLabel}
+              </span>
+              <span>{WORKSHOP.timeRange}</span>
+              <span className="text-white/60">Live on {WORKSHOP.platform}</span>
+            </div>
+
             <h1 className="text-[2.4rem] leading-[1.04] sm:text-[3.25rem] sm:leading-[1.02] lg:text-[3.85rem] lg:leading-[1.02] font-medium tracking-[-0.028em] text-white">
               Semantic SEO
               <br />
