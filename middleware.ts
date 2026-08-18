@@ -14,9 +14,10 @@ import { NextResponse, type NextRequest } from "next/server";
  * unset (local dev, or the droplet's own same-origin requests) no CORS headers
  * are added and same-origin calls work unchanged.
  *
- * Admin routes (`/api/admin/pavel/*`) are deliberately excluded: the admin
- * dashboard is operated same-origin on the droplet and must not be reachable
- * cross-origin.
+ * Admin routes are deliberately excluded: the console is operated same-origin
+ * on the marketing site and must not be reachable cross-origin. The droplet's
+ * internal admin API (`/api/admin/data/*`) is called server-to-server, which no
+ * browser and therefore no CORS grant is involved in.
  */
 
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGIN ?? "")

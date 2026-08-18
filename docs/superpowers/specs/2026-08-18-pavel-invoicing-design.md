@@ -44,7 +44,7 @@ droplet. If it is public, cacheable and marketing-facing, it stays on Vercel.**
 | --- | --- | --- |
 | Marketing site, `/pavel` landing, SEO/OG assets | Vercel | CDN and ISR; the edge geo header drives ₹/$ pricing |
 | All `/api/pavel/*` | Droplet | needs the database and payment secrets |
-| Admin dashboard (`/admin/pavel`) | Droplet | reads Postgres directly |
+| Admin console (`/admin`, `/admin/pavel`) | Vercel | reads the droplet's `/api/admin/data/*` |
 | Postgres (single database) | Droplet | one source of truth, bound to localhost |
 | Reminder cron | Droplet (systemd timer) | already implemented |
 | Transactional email (Brevo) | Droplet | triggered by database state changes |

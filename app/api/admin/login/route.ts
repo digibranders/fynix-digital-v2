@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { isAdminUiDisabled } from "@/lib/admin/host";
 import { screenSubmission } from "@/lib/security/honeypot";
 import {
   ADMIN_SESSION_COOKIE,
@@ -10,7 +11,7 @@ import {
 export const runtime = "nodejs";
 
 /**
- * Authenticate the Pavel admin and set a signed session cookie.
+ * Authenticate the operator and set a signed session cookie.
  *
  * Layered defense: the same honeypot/form-token screen used on the public
  * checkout runs first (so scripted credential-stuffing without a page token is
@@ -19,6 +20,11 @@ export const runtime = "nodejs";
  * "wrong email" from "wrong password".
  */
 export async function POST(request: Request) {
+  // Backend-only host: no console here, so no session to mint.
+  if (isAdminUiDisabled()) {
+    return NextResponse.json({ error: "Not found." }, { status: 404 });
+  }
+
   let body: unknown;
   try {
     body = await request.json();
@@ -32,7 +38,7 @@ export async function POST(request: Request) {
 
   const screen = screenSubmission(body as Record<string, unknown>);
   if (!screen.human) {
-    console.warn("[admin/pavel/login] blocked submission:", screen.reason);
+    console.warn("[admin/login] blocked submission:", screen.reason);
     return NextResponse.json(
       { error: "Incorrect email or password." },
       { status: 401 }

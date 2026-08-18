@@ -4,14 +4,14 @@ import { useState, type FormEvent } from "react";
 import Logo from "@/components/Logo";
 
 /**
- * Admin login card for `/admin/pavel`.
+ * Login card for the admin console at `/admin`.
  *
  * The two `honeypotFields` inputs are decoys: positioned off-screen and hidden
  * from assistive tech, a human never fills them, but naive bots that populate
  * every field trip the server-side screen. `formToken` is a server-issued,
  * HMAC-signed token that gates scripted POSTs and enforces a minimum fill time.
  */
-export default function PavelLoginForm({
+export default function AdminLoginForm({
   formToken,
   honeypotFields,
   tokenFieldName,
@@ -33,7 +33,7 @@ export default function PavelLoginForm({
     setError(null);
 
     try {
-      const response = await fetch("/api/admin/pavel/login", {
+      const response = await fetch("/api/admin/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -46,7 +46,7 @@ export default function PavelLoginForm({
 
       if (response.ok) {
         // Full navigation so the server component re-runs and reads the new cookie.
-        window.location.href = "/admin/pavel";
+        window.location.href = "/admin";
         return;
       }
 
@@ -67,10 +67,10 @@ export default function PavelLoginForm({
         <div className="mb-8 text-center">
           <Logo width={104} height={43} className="mx-auto text-white" />
           <h1 className="mt-4 text-2xl font-semibold text-white">
-            Pavel Admin
+            Fynix Admin
           </h1>
           <p className="mt-1 text-sm text-slate-400">
-            Sign in to view course registrations.
+            Sign in to manage events and registrations.
           </p>
         </div>
 
