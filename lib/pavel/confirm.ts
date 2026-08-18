@@ -125,6 +125,13 @@ export async function confirmRegistrationPaid(
     console.warn("[pavel/confirm] zoom registration skipped:", accessResult.reason);
   }
 
+  // Re-read the join link: grantWebinarAccess wrote it moments ago, and the
+  // confirmation must carry the buyer's OWN link rather than the shared one.
+  const joinUrl =
+    accessResult.status === "granted" || accessResult.status === "already_granted"
+      ? accessResult.joinUrl
+      : undefined;
+
   // Render the invoice for the confirmation email. Failing to render must not
   // cost the buyer their confirmation, so this degrades to sending without the
   // attachment; the invoice stays downloadable from its permalink either way.
@@ -151,6 +158,7 @@ export async function confirmRegistrationPaid(
     country: registration.country,
     amountDisplay: registration.amountDisplay ?? undefined,
     ref: registration.ref,
+    joinUrl,
   };
 
   const confirmation = buildPavelPaidConfirmationEmail(submission);
