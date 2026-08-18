@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { desc } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { getDb } from "@/lib/db/client";
-import { registrations } from "@/lib/db/schema";
+import { invoices, registrations } from "@/lib/db/schema";
 import { isAdminAuthenticated } from "@/lib/admin/auth";
 import {
   issueFormToken,
@@ -48,8 +48,13 @@ async function loadRegistrations(): Promise<{
         createdAt: registrations.createdAt,
         paidAt: registrations.paidAt,
         razorpayPaymentId: registrations.razorpayPaymentId,
+        invoiceNo: invoices.invoiceNo,
       })
       .from(registrations)
+      // Left join: pending seats have no invoice, and a paid seat whose issuance
+      // failed should still appear in the table (with a blank invoice cell)
+      // rather than vanish from the operator's view.
+      .leftJoin(invoices, eq(invoices.registrationId, registrations.id))
       .orderBy(desc(registrations.createdAt));
 
     const rows: AdminRegistrationRow[] = records.map((r) => ({
@@ -66,6 +71,7 @@ async function loadRegistrations(): Promise<{
       createdAt: r.createdAt.toISOString(),
       paidAt: r.paidAt ? r.paidAt.toISOString() : null,
       razorpayPaymentId: r.razorpayPaymentId,
+      invoiceNo: r.invoiceNo,
     }));
 
     return { rows, error: null };
