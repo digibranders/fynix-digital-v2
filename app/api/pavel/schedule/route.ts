@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 import { getDb } from "@/lib/db/client";
 import { getActiveSession } from "@/lib/pavel/webinarSession";
 import { deriveSchedule, FALLBACK_SCHEDULE } from "@/lib/pavel/workshopSchedule";
+import {
+  deriveRegistrationWindow,
+  FALLBACK_WINDOW,
+} from "@/lib/pavel/registrationWindow";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -19,13 +23,27 @@ export const dynamic = "force-dynamic";
  */
 export async function GET() {
   const db = getDb();
-  if (!db) return NextResponse.json(FALLBACK_SCHEDULE);
+  if (!db) {
+    return NextResponse.json({
+      ...FALLBACK_SCHEDULE,
+      registration: FALLBACK_WINDOW,
+    });
+  }
 
   try {
     const session = await getActiveSession(db);
-    return NextResponse.json(deriveSchedule(session?.startsAt, session?.endsAt));
+    return NextResponse.json({
+      ...deriveSchedule(session?.startsAt, session?.endsAt),
+      // Whether seats are on sale, so the landing page can render a closed
+      // state instead of a price. Advisory only: the checkout route re-derives
+      // this from the database before charging anyone.
+      registration: deriveRegistrationWindow(session),
+    });
   } catch (error) {
     console.error("[pavel/schedule] lookup failed", error);
-    return NextResponse.json(FALLBACK_SCHEDULE);
+    return NextResponse.json({
+      ...FALLBACK_SCHEDULE,
+      registration: FALLBACK_WINDOW,
+    });
   }
 }

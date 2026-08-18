@@ -240,6 +240,15 @@ export const webinarSessions = pgTable("webinar_sessions", {
    * recently activated one, so flipping a new session on supersedes the old.
    */
   active: boolean("active").notNull().default(false),
+  /**
+   * Stops this session taking new registrations while leaving it active.
+   *
+   * Separate from `active` because they answer different questions: `active`
+   * decides which webinar a buyer is registered into, this decides whether
+   * anyone may buy at all. Deactivating instead would leave buyers able to pay
+   * with nowhere to be sent, which is the failure this exists to prevent.
+   */
+  registrationsClosed: boolean("registrations_closed").notNull().default(false),
   activatedAt: timestamp("activated_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });

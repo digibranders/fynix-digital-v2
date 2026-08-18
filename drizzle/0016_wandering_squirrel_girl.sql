@@ -1,0 +1,1 @@
+ALTER TABLE "webinar_sessions" ADD COLUMN "registrations_closed" boolean DEFAULT false NOT NULL;

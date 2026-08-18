@@ -11,6 +11,11 @@ import {
 } from "@/components/pavel/pricing";
 import { lookupReferral } from "@/lib/pavel/referral";
 import { computeTax } from "@/lib/pavel/tax";
+import { getActiveSession } from "@/lib/pavel/webinarSession";
+import {
+  closedMessage,
+  deriveRegistrationWindow,
+} from "@/lib/pavel/registrationWindow";
 
 export const runtime = "nodejs";
 
@@ -61,6 +66,23 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { error: "Checkout is temporarily unavailable." },
       { status: 503 }
+    );
+  }
+
+  // The authoritative close gate. The landing page renders its own closed state
+  // from the same source, but that is a cached read on another host and can be
+  // stale or bypassed entirely by posting here directly, so the decision that
+  // stops money moving has to be made against the database, now.
+  const registrationWindow = deriveRegistrationWindow(await getActiveSession(db));
+  if (!registrationWindow.open) {
+    console.warn(
+      "[pavel/checkout] refused: registrations closed",
+      registrationWindow.reason,
+      ref
+    );
+    return NextResponse.json(
+      { error: closedMessage(), registrationsClosed: true },
+      { status: 409 }
     );
   }
 

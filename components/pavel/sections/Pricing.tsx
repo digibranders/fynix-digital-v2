@@ -7,6 +7,7 @@ import { Button } from "../ui/Button";
 import { ArrowRight, Check, X } from "lucide-react";
 import { WORKSHOP } from "../workshopDetails";
 import { usePricing } from "../PricingProvider";
+import { closedMessage } from "@/lib/pavel/registrationWindow";
 import { CheckoutModal } from "../CheckoutModal";
 
 const INCLUDED = [
@@ -23,7 +24,7 @@ const NOT_INCLUDED = [
 ];
 
 export const Pricing: React.FC = () => {
-  const { price, schedule } = usePricing();
+  const { price, schedule, registration } = usePricing();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Registration + Razorpay Checkout both run inside the modal.
@@ -128,25 +129,49 @@ export const Pricing: React.FC = () => {
                 </div>
 
                 <div className="pt-9 mt-8 pv-seam-t">
-                  <Button
-                    size="lg"
-                    variant="primary"
-                    className="w-full"
-                    onClick={openCheckout}
-                  >
-                    Reserve my seat, {price.display}
-                    <ArrowRight className="w-4 h-4" />
-                  </Button>
-                  <p className="text-center text-[12px] font-normal text-text-muted mt-4">
-                    Live + 7-day recording &middot; certificate included &middot; no refunds.{" "}
-                    <a
-                      href="/terms"
-                      className="underline decoration-[#565D64]/40 underline-offset-2 hover:text-text-muted hover:decoration-[#565D64]"
-                    >
-                      Workshop terms
-                    </a>
-                    .
-                  </p>
+                  {registration.open ? (
+                    <>
+                      <Button
+                        size="lg"
+                        variant="primary"
+                        className="w-full"
+                        onClick={openCheckout}
+                      >
+                        Reserve my seat, {price.display}
+                        <ArrowRight className="w-4 h-4" />
+                      </Button>
+                      <p className="text-center text-[12px] font-normal text-text-muted mt-4">
+                        Live + 7-day recording &middot; certificate included &middot; no
+                        refunds.{" "}
+                        <a
+                          href="/terms"
+                          className="underline decoration-[#565D64]/40 underline-offset-2 hover:text-text-muted hover:decoration-[#565D64]"
+                        >
+                          Workshop terms
+                        </a>
+                        .
+                      </p>
+                    </>
+                  ) : (
+                    /* No disabled button: a greyed-out "Reserve my seat" invites
+                       clicking and explains nothing. State the situation and
+                       give the one action still worth taking. */
+                    <div className="rounded-2xl border border-border bg-background-soft/70 px-5 py-6 text-center">
+                      <p className="font-serif text-lg text-primary">
+                        {closedMessage()}
+                      </p>
+                      <p className="mt-2 text-[13px] font-normal text-text-muted">
+                        Email{" "}
+                        <a
+                          href="mailto:hello@fynix.digital"
+                          className="underline decoration-[#565D64]/40 underline-offset-2 hover:text-primary"
+                        >
+                          hello@fynix.digital
+                        </a>{" "}
+                        to hear about the next cohort.
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
 

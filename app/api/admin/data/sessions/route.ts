@@ -5,6 +5,7 @@ import {
   listSessions,
   createSession,
   activateSession,
+  setRegistrationsClosed,
   normalizeWebinarId,
 } from "@/lib/pavel/webinarSession";
 
@@ -48,6 +49,7 @@ export async function GET(request: Request) {
         zoomWebinarId: session.zoomWebinarId,
         label: session.label,
         active: session.active,
+        registrationsClosed: session.registrationsClosed,
         startsAt: session.startsAt ? session.startsAt.toISOString() : null,
         createdAt: session.createdAt.toISOString(),
       })),
@@ -114,6 +116,19 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "Session not found." }, { status: 404 });
       }
       return NextResponse.json({ session: { id: session.id, active: session.active } });
+    }
+
+    if (action === "close" || action === "reopen") {
+      if (!sessionId) {
+        return NextResponse.json({ error: "sessionId is required." }, { status: 400 });
+      }
+      const session = await setRegistrationsClosed(db, sessionId, action === "close");
+      if (!session) {
+        return NextResponse.json({ error: "Session not found." }, { status: 404 });
+      }
+      return NextResponse.json({
+        session: { id: session.id, registrationsClosed: session.registrationsClosed },
+      });
     }
 
     return NextResponse.json({ error: "Unknown action." }, { status: 400 });
