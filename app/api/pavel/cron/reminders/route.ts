@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { WORKSHOP } from "@/components/pavel/workshopDetails";
 import { getDb, type Db } from "@/lib/db/client";
 import { registrations, emailLog } from "@/lib/db/schema";
@@ -13,15 +13,23 @@ import { syncAttendance } from "@/lib/pavel/attendanceSync";
 import { issueEarnedCertificates } from "@/lib/pavel/certificate";
 import {
   buildPavelReminderEmail,
-  buildPavelPostEventEmail,
+  buildPavelCertificateEmail,
+  buildPavelMissedYouEmail,
   type PavelRegistrationSubmission,
 } from "@/lib/email/pavelTemplates";
+import { certificates } from "@/lib/db/schema";
+import { hasEarnedCertificate } from "@/lib/pavel/certificate";
 
 export const runtime = "nodejs";
 
 // hello@fynix.digital is the Brevo-verified sender; steve@ is not, so it would
 // bounce. The friendly name still reads as the workshop.
 const SENDER = { email: "hello@fynix.digital", name: "Pavel Klimakov Workshop" };
+
+/** Absolute origin for links in emails; the console and site live on Vercel. */
+const SITE_ORIGIN = (
+  process.env.NEXT_PUBLIC_SITE_URL || "https://www.fynix.digital"
+).replace(/\/+$/, "");
 
 const MS_PER_HOUR = 3_600_000;
 const MS_PER_DAY = 86_400_000;
@@ -88,7 +96,9 @@ function buildEmail(type: ReminderType, submission: PavelRegistrationSubmission)
     case "reminder_1h":
       return buildPavelReminderEmail(submission, "hour");
     case "post_event":
-      return buildPavelPostEventEmail(submission);
+      // Handled per recipient in runReminderType: what someone receives after
+      // the event depends on whether they actually attended.
+      return null;
   }
 }
 
@@ -102,6 +112,9 @@ async function runReminderType(db: Db, type: ReminderType) {
     country: string;
     amountDisplay: string | null;
     zoomJoinUrl: string | null;
+    attendedMinutes: number | null;
+    status: string;
+    credentialId: string | null;
   }[];
   try {
     paid = await db
@@ -113,8 +126,12 @@ async function runReminderType(db: Db, type: ReminderType) {
         country: registrations.country,
         amountDisplay: registrations.amountDisplay,
         zoomJoinUrl: registrations.zoomJoinUrl,
+        attendedMinutes: registrations.attendedMinutes,
+        status: registrations.status,
+        credentialId: certificates.credentialId,
       })
       .from(registrations)
+      .leftJoin(certificates, eq(certificates.registrationId, registrations.id))
       .where(eq(registrations.status, "paid"));
   } catch (regError) {
     const reason = regError instanceof Error ? regError.message : "query failed";
@@ -124,10 +141,17 @@ async function runReminderType(db: Db, type: ReminderType) {
   // Who already has this reminder logged — skip them without a send attempt.
   let alreadySent: Set<string>;
   try {
+    // post_event fans out into two different logged types, so checking for
+    // "post_event" would never match and every run would re-attempt. The
+    // dispatcher's unique constraint is still the real guarantee; this is only
+    // a cheap pre-filter.
+    const typesForRun: string[] =
+      type === "post_event" ? ["certificate", "missed_you"] : [type];
+
     const logged = await db
       .select({ registrationId: emailLog.registrationId })
       .from(emailLog)
-      .where(eq(emailLog.type, type));
+      .where(inArray(emailLog.type, typesForRun));
     alreadySent = new Set(logged.map((row) => row.registrationId));
   } catch (logError) {
     const reason = logError instanceof Error ? logError.message : "query failed";
@@ -152,11 +176,52 @@ async function runReminderType(db: Db, type: ReminderType) {
       ref: reg.ref,
       joinUrl: reg.zoomJoinUrl ?? undefined,
     };
-    const email = buildEmail(type, submission);
+    // After the event, what someone receives depends on whether they actually
+    // turned up: a certificate for attendees, the recording for everyone else.
+    // Each is logged under its own type, so a buyer can never receive both, and
+    // a seat whose attendance has not synced yet is left for a later run rather
+    // than being told it missed a workshop it may well have attended.
+    let email: ReturnType<typeof buildPavelReminderEmail> | null;
+    let emailType: PavelEmailType = type as PavelEmailType;
+
+    if (type === "post_event") {
+      if (reg.attendedMinutes === null) {
+        skipped += 1;
+        continue;
+      }
+
+      const earned = hasEarnedCertificate({
+        status: reg.status,
+        attendedMinutes: reg.attendedMinutes,
+      });
+
+      if (earned && reg.credentialId) {
+        emailType = "certificate";
+        email = buildPavelCertificateEmail({
+          ...submission,
+          certificateUrl: `${SITE_ORIGIN}/pavel/certificate/${reg.credentialId}`,
+        });
+      } else if (earned) {
+        // Attended, but the certificate has not been issued yet. Sending now
+        // would promise a link that does not exist, so wait for the next run.
+        skipped += 1;
+        continue;
+      } else {
+        emailType = "missed_you";
+        email = buildPavelMissedYouEmail(submission);
+      }
+    } else {
+      email = buildEmail(type, submission);
+    }
+
+    if (!email) {
+      skipped += 1;
+      continue;
+    }
 
     const result = await dispatchPavelEmail({
       registrationId: reg.id,
-      type: type as PavelEmailType,
+      type: emailType,
       to: [{ email: reg.email, name: reg.name }],
       subject: email.subject,
       htmlContent: email.html,

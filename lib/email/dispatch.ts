@@ -29,7 +29,12 @@ export type PavelEmailType =
   | "reminder_3d"
   | "reminder_1d"
   | "reminder_1h"
-  | "post_event";
+  | "post_event"
+  // Post-event split by attendance: a certificate for those who attended, a
+  // recording for those who paid but did not. Separate types so each is
+  // deduped independently and a buyer can never receive both.
+  | "certificate"
+  | "missed_you";
 
 export interface DispatchPavelEmailParams {
   /** Registration this email belongs to — used as the idempotency key. */

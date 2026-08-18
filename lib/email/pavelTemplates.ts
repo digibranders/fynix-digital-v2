@@ -552,3 +552,112 @@ Challenge: ${submission.biggestChallenge || "N/A"}
 
   return { subject, html, text };
 }
+
+/**
+ * Certificate email, sent only to attendees who cleared the attendance
+ * threshold. Carries the credential link, which resolves against an issued
+ * `certificates` row rather than rendering whatever the URL says.
+ */
+export function buildPavelCertificateEmail(
+  submission: PavelRegistrationSubmission & { certificateUrl: string }
+) {
+  const firstName = submission.name.split(" ")[0] || "there";
+  const ref = submission.ref || "PVL-0000";
+
+  const subject = `Your Semantic SEO certificate is ready`;
+  const preheader = `Your certificate of completion, plus Pavel's workshop notes.`;
+  const heading = `You earned it, <span style="font-style: italic; color: #9A7B4F;">${firstName}.</span>`;
+
+  const bodyHtml = `
+    <p style="margin: 0 0 18px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.65; color: #454F58;">
+      You attended Pavel's live Semantic SEO workshop from start to finish, so your certificate of completion is ready.
+    </p>
+    <table role="presentation" border="0" cellspacing="0" cellpadding="0" style="margin: 0 0 22px 0;">
+      <tr>
+        <td style="background-color: #0C1E2E; border-radius: 999px;">
+          <a href="${submission.certificateUrl}" style="display: inline-block; padding: 13px 26px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 15px; font-weight: 600; color: #FFFFFF; text-decoration: none;">View your certificate</a>
+        </td>
+      </tr>
+    </table>
+    <p style="margin: 0 0 18px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 15px; line-height: 1.6; color: #454F58;">
+      The link is permanent, so you can share it on LinkedIn or send it to an employer to verify.
+    </p>
+    <p style="margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 15px; line-height: 1.6; color: #454F58;">
+      Pavel's notes and resources are here: <a href="${WORKSHOP.notesUrl}" style="color: #0C1E2E;">${WORKSHOP.notesUrl}</a>
+    </p>`;
+
+  const html = renderPavelEmailShell({
+    subject,
+    preheader,
+    eyebrow: "Certificate of completion",
+    heading,
+    bodyHtml,
+    ref,
+  });
+
+  const text = `You earned it, ${firstName}.
+
+You attended Pavel's live Semantic SEO workshop from start to finish, so your
+certificate of completion is ready.
+
+View your certificate: ${submission.certificateUrl}
+
+The link is permanent, so you can share it on LinkedIn or send it to an employer
+to verify.
+
+Pavel's notes: ${WORKSHOP.notesUrl}
+Reference ${ref}`;
+
+  return { subject, html, text };
+}
+
+/**
+ * Sent to buyers who paid but did not attend for long enough to earn a
+ * certificate. Deliberately does NOT promise one: the certificate says
+ * "completion", so issuing it to someone who did not attend would make every
+ * other attendee's credential worthless.
+ */
+export function buildPavelMissedYouEmail(submission: PavelRegistrationSubmission) {
+  const firstName = submission.name.split(" ")[0] || "there";
+  const ref = submission.ref || "PVL-0000";
+
+  const subject = `We missed you. Here is the workshop recording`;
+  const preheader = `Your recording and Pavel's notes from the Semantic SEO workshop.`;
+  const heading = `We missed you, <span style="font-style: italic; color: #9A7B4F;">${firstName}.</span>`;
+
+  const bodyHtml = `
+    <p style="margin: 0 0 18px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.65; color: #454F58;">
+      You booked a seat at Pavel's live Semantic SEO workshop but we did not see you there. Your seat still counts: the full recording is yours for ${WORKSHOP.recordingWindowDays} days.
+    </p>
+    <p style="margin: 0 0 18px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 15px; line-height: 1.6; color: #454F58;">
+      Pavel's notes and resources: <a href="${WORKSHOP.notesUrl}" style="color: #0C1E2E;">${WORKSHOP.notesUrl}</a>
+    </p>
+    <p style="margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 15px; line-height: 1.6; color: #454F58;">
+      The certificate of completion is only issued to people who attended live, so there is not one attached here. If you believe you did attend, reply to this email and we will check the record.
+    </p>`;
+
+  const html = renderPavelEmailShell({
+    subject,
+    preheader,
+    eyebrow: "Workshop recording",
+    heading,
+    bodyHtml,
+    ref,
+  });
+
+  const text = `We missed you, ${firstName}.
+
+You booked a seat at Pavel's live Semantic SEO workshop but we did not see you
+there. Your seat still counts: the full recording is yours for
+${WORKSHOP.recordingWindowDays} days.
+
+Pavel's notes: ${WORKSHOP.notesUrl}
+
+The certificate of completion is only issued to people who attended live, so
+there is not one attached here. If you believe you did attend, reply to this
+email and we will check the record.
+
+Reference ${ref}`;
+
+  return { subject, html, text };
+}
