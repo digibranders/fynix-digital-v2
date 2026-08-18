@@ -1,12 +1,55 @@
 "use client";
 
 import React from "react";
-import Image from "next/image";
+import { getImageProps } from "next/image";
 import { Container } from "../ui/Container";
 import { Button } from "../ui/Button";
 import { ArrowRight, CalendarDays } from "lucide-react";
 import { usePricing } from "../PricingProvider";
 import { WORKSHOP } from "../workshopDetails";
+
+/**
+ * Art direction for the hero portrait.
+ *
+ * The phone crop and the desktop stage shot are genuinely different images, and
+ * they used to be two <Image>s toggled with `md:hidden` / `hidden md:block`.
+ * CSS visibility does not stop a download: both stayed in the DOM and, because
+ * both were `priority`, Next emitted a `<link rel="preload" as="image">` for
+ * each with no `media` attribute. The preload scanner fetched both before any
+ * CSS applied, so every visitor paid for the image they could not see on top of
+ * the one they could -- 37KB of dead weight on a phone, and the phone crop
+ * requested at w=1920 on desktop.
+ *
+ * `getImageProps` gives us the optimizer's srcSet without rendering an element,
+ * so the choice can move into `<picture><source media>`, where the preload
+ * scanner resolves the media query itself and fetches exactly one image.
+ */
+const HERO_ALT = "Pavel Klimakov presenting on stage at SEO Vibes Summit";
+
+// Matches the `md` breakpoint the two crops were previously switched on.
+const HERO_DESKTOP_MEDIA = "(min-width: 768px)";
+const HERO_DESKTOP_SIZES = "(min-width: 1024px) 45vw, 100vw";
+
+const {
+  props: { srcSet: heroDesktopSrcSet },
+} = getImageProps({
+  alt: HERO_ALT,
+  fill: true,
+  priority: true,
+  quality: 90,
+  sizes: HERO_DESKTOP_SIZES,
+  src: "/pavel/pavel-seo-vibes-summit-2025.webp",
+});
+
+// The phone crop also supplies the <img> fallback, so it keeps the full prop
+// set (src, style, fetchPriority, decoding) that `fill` and `priority` produce.
+const { props: heroMobileProps } = getImageProps({
+  alt: HERO_ALT,
+  fill: true,
+  priority: true,
+  sizes: "100vw",
+  src: "/pavel/new_hero_mobile.webp",
+});
 
 export const Hero: React.FC = () => {
   const { price, schedule, registration } = usePricing();
@@ -105,25 +148,24 @@ export const Hero: React.FC = () => {
                 is a constant for the life of the page: the hero renders exactly
                 as it did under `dvh` at load, then stops moving. */}
             <div className="relative mx-auto max-w-[460px] lg:max-w-none h-[calc(100svh-16rem)] max-h-[560px] min-h-[320px] sm:h-[480px] sm:max-h-none sm:min-h-0 lg:h-[540px] w-full overflow-hidden">
-              {/* Mobile: a cleaner crop (no "Refine the…" strip up top). */}
-              <Image
-                src="/pavel/new_hero_mobile.webp"
-                alt="Pavel Klimakov presenting on stage at SEO Vibes Summit"
-                fill
-                priority
-                sizes="100vw"
-                className="md:hidden object-cover object-top"
-              />
-              {/* Desktop / tablet: the original stage shot. */}
-              <Image
-                src="/pavel/pavel-seo-vibes-summit-2025.webp"
-                alt="Pavel Klimakov presenting on stage at SEO Vibes Summit"
-                fill
-                priority
-                quality={90}
-                sizes="(min-width: 1024px) 45vw, 100vw"
-                className="hidden md:block object-cover object-[center_22%] scale-105"
-              />
+              {/* One element, one download. The <source> carries the desktop
+                  stage shot; the <img> falls back to the phone crop (a cleaner
+                  framing with no "Refine the…" strip up top). The per-crop
+                  framing that used to live on two separate elements is now
+                  breakpoint-scoped on the single <img>, switching at the same
+                  `md` boundary as the <source> above it. */}
+              <picture>
+                <source
+                  media={HERO_DESKTOP_MEDIA}
+                  srcSet={heroDesktopSrcSet}
+                  sizes={HERO_DESKTOP_SIZES}
+                />
+                <img
+                  {...heroMobileProps}
+                  alt={HERO_ALT}
+                  className="object-cover object-top md:object-[center_22%] md:scale-105"
+                />
+              </picture>
 
               {/* Edges blend into the black background — bottom, left, and a
                   small top fade so the busy screen strip up top goes to black. */}
