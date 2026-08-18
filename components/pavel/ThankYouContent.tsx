@@ -55,10 +55,14 @@ type VerifyState = "loading" | "paid" | "unverified";
 export const ThankYouContent: React.FC = () => {
   const searchParams = useSearchParams();
 
-  // Zoom access is centralised in workshopDetails so the page and every email
-  // stay in sync.
-  const zoomUrl = WORKSHOP.zoomUrl;
-  const zoomPasscode = WORKSHOP.zoomPasscode;
+  /**
+   * The buyer's OWN Zoom link, returned by the verify call once their seat is
+   * confirmed. Each registrant gets a distinct tokenised URL, and attendance is
+   * matched on the registrant id inside it, so showing the shared webinar link
+   * here would both give away a seat and break attendance tracking.
+   *
+   * Empty until the seat verifies, or if Zoom registration has not landed yet.
+   */
 
   const ref = searchParams.get("ref");
   const paymentId = searchParams.get("payment_id");
@@ -69,6 +73,7 @@ export const ThankYouContent: React.FC = () => {
   const [attendeeName, setAttendeeName] = useState("");
   const [attendeeRef, setAttendeeRef] = useState("");
   const [copiedZoom, setCopiedZoom] = useState(false);
+  const [zoomUrl, setZoomUrl] = useState("");
 
   // Verify server-side that this link belongs to a PAID seat before revealing
   // any access details. Query params are never trusted on their own.
@@ -87,6 +92,7 @@ export const ThankYouContent: React.FC = () => {
           setStatus("paid");
           setAttendeeName(typeof data.name === "string" ? data.name : "");
           setAttendeeRef(typeof data.ref === "string" ? data.ref : ref);
+          setZoomUrl(typeof data.joinUrl === "string" ? data.joinUrl : "");
         } else {
           setStatus("unverified");
         }
@@ -115,7 +121,7 @@ export const ThankYouContent: React.FC = () => {
       action: "TEMPLATE",
       text: "Semantic SEO Workshop with Pavel Klimakov",
       dates,
-      details: `Zoom Link: ${zoomUrl}\nPasscode: ${zoomPasscode}\n\nReference: ${attendeeRef}`,
+      details: `Your personal Zoom link (do not share): ${zoomUrl}\n\nReference: ${attendeeRef}`,
       location: zoomUrl,
       ctz: "Asia/Kolkata",
     });
@@ -246,14 +252,14 @@ export const ThankYouContent: React.FC = () => {
 
             <div className="p-4 rounded-xl bg-background-soft border border-border space-y-2">
               <span className="text-[11px] text-text-muted uppercase tracking-wider font-semibold">
-                Passcode
+                Your access
               </span>
               <div className="flex items-center justify-between">
-                <span className="text-sm font-mono text-primary font-semibold tracking-wider">
-                  {zoomPasscode}
+                <span className="text-sm text-primary">
+                  Personal link, do not share
                 </span>
                 <span className="text-[11px] text-primary bg-white px-2 py-0.5 rounded border border-border font-medium">
-                  Required on Join
+                  No passcode needed
                 </span>
               </div>
             </div>
