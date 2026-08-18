@@ -48,6 +48,22 @@ export default async function PavelAdminPage() {
       endsAt: String(formData.get("endsAt") ?? ""),
     });
     revalidatePath("/admin/pavel");
+    // A session's times drive the date on the landing page and in the checkout
+    // modal, both rendered from a cached read.
+    revalidatePath("/pavel");
+  }
+
+  /** Set or correct when an existing session runs. */
+  async function updateSessionAction(formData: FormData) {
+    "use server";
+    if (!(await isAdminAuthenticated())) redirect("/admin");
+    await mutateSession("update", {
+      sessionId: String(formData.get("sessionId") ?? ""),
+      startsAt: String(formData.get("startsAt") ?? ""),
+      endsAt: String(formData.get("endsAt") ?? ""),
+    });
+    revalidatePath("/admin/pavel");
+    revalidatePath("/pavel");
   }
 
   async function activateSessionAction(formData: FormData) {
@@ -93,6 +109,7 @@ export default async function PavelAdminPage() {
         createAction={createSessionAction}
         activateAction={activateSessionAction}
         setClosedAction={setClosedAction}
+        updateAction={updateSessionAction}
       />
     </PavelDashboard>
   );

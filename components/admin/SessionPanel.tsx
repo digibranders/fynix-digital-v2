@@ -1,11 +1,20 @@
 import type { AdminSessionRow } from "@/lib/admin/sessions";
 import { SessionTimeFields } from "@/components/admin/SessionTimeFields";
+import { toIstWallClock } from "@/lib/pavel/sessionTimes";
 
 /** Session times are shown in IST, which is where the workshop runs. */
 const SESSION_TIME = new Intl.DateTimeFormat("en-GB", {
   day: "2-digit",
   month: "short",
   year: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: true,
+  timeZone: "Asia/Kolkata",
+});
+
+/** The end of a range: the date is already on the start, so show only the time. */
+const SESSION_END_TIME = new Intl.DateTimeFormat("en-GB", {
   hour: "2-digit",
   minute: "2-digit",
   hour12: true,
@@ -28,12 +37,14 @@ export function SessionPanel({
   createAction,
   activateAction,
   setClosedAction,
+  updateAction,
 }: {
   sessions: AdminSessionRow[];
   error: string | null;
   createAction: (formData: FormData) => Promise<void>;
   activateAction: (formData: FormData) => Promise<void>;
   setClosedAction: (formData: FormData) => Promise<void>;
+  updateAction: (formData: FormData) => Promise<void>;
 }) {
   const active = sessions.find((s) => s.active);
   // What a visitor to the landing page can do right now. Closed with no active
@@ -112,7 +123,11 @@ export function SessionPanel({
                   {session.zoomWebinarId}
                   {session.startsAt ? (
                     <span className="ml-2 font-sans text-slate-400">
-                      {SESSION_TIME.format(new Date(session.startsAt))} IST
+                      {SESSION_TIME.format(new Date(session.startsAt))}
+                      {session.endsAt
+                        ? ` - ${SESSION_END_TIME.format(new Date(session.endsAt))}`
+                        : ""}{" "}
+                      IST
                     </span>
                   ) : (
                     <span className="ml-2 font-sans text-amber-500/80">
@@ -158,6 +173,29 @@ export function SessionPanel({
                   </form>
                 )}
               </div>
+
+              {/*
+                Times are editable after creation, not only at it. A schedule is
+                routinely confirmed after the webinar exists, and a session
+                stored without one silently falls back to the built-in date on
+                the landing page, in the emails and in the reminder windows.
+              */}
+              <form
+                action={updateAction}
+                className="flex w-full flex-wrap items-end gap-2 border-t border-white/5 pt-2"
+              >
+                <input type="hidden" name="sessionId" value={session.id} />
+                <SessionTimeFields
+                  initialStartsAt={toIstWallClock(session.startsAt)}
+                  initialEndsAt={toIstWallClock(session.endsAt)}
+                />
+                <button
+                  type="submit"
+                  className="rounded-lg border border-white/15 px-3 py-2 text-xs text-slate-300 transition hover:border-emerald-400/40 hover:text-emerald-300"
+                >
+                  {session.startsAt ? "Update times" : "Set times"}
+                </button>
+              </form>
             </li>
           ))}
         </ul>
