@@ -47,6 +47,70 @@ function DateCell({ iso }: { iso: string | null }) {
  * Invoice number linking to its PDF. The admin session authorises the download,
  * so no payment id is needed here. Unpaid seats have no invoice yet.
  */
+/**
+ * Attendance for a paid seat.
+ *
+ * null means Zoom has not been synced yet, which reads very differently from a
+ * synced 0 ("registered, never joined"). Conflating them would have an operator
+ * chasing no-shows who simply have not been measured.
+ */
+function AttendanceCell({
+  status,
+  attendedMinutes,
+  hasJoinLink,
+}: {
+  status: string;
+  attendedMinutes: number | null;
+  hasJoinLink: boolean;
+}) {
+  if (status !== "paid") return <span className="text-slate-600">&mdash;</span>;
+
+  if (attendedMinutes === null) {
+    return (
+      <span
+        className="whitespace-nowrap text-xs text-slate-500"
+        title={
+          hasJoinLink
+            ? "Registered with Zoom; attendance not synced yet"
+            : "No Zoom join link issued yet"
+        }
+      >
+        {hasJoinLink ? "not synced" : "no link"}
+      </span>
+    );
+  }
+
+  if (attendedMinutes === 0) {
+    return (
+      <span className="whitespace-nowrap text-xs font-medium text-amber-400" title="Registered but never joined">
+        no-show
+      </span>
+    );
+  }
+
+  return (
+    <span className="whitespace-nowrap tabular-nums text-slate-300">
+      {attendedMinutes} min
+    </span>
+  );
+}
+
+/** Issued credential, linking to the public certificate. */
+function CertificateCell({ credentialId }: { credentialId: string | null }) {
+  if (!credentialId) return <span className="text-slate-600">&mdash;</span>;
+  return (
+    <a
+      href={`/pavel/certificate/${encodeURIComponent(credentialId)}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="whitespace-nowrap font-mono text-xs text-sky-400 underline-offset-2 transition hover:text-sky-300 hover:underline"
+      title="Open the issued certificate"
+    >
+      {credentialId}
+    </a>
+  );
+}
+
 function InvoiceCell({
   ref_,
   invoiceNo,
@@ -187,6 +251,8 @@ const CSV_HEADERS = [
   "Status",
   "Registered (IST)",
   "Paid (IST)",
+  "Attended (min)",
+  "Certificate",
   "Invoice No",
 ];
 
@@ -214,6 +280,8 @@ function buildCsv(rows: AdminRegistrationRow[]): string {
       row.status === "paid" ? "Paid" : "Pending",
       formatIstForCsv(row.createdAt),
       formatIstForCsv(row.paidAt),
+      row.status === "paid" && row.attendedMinutes !== null ? row.attendedMinutes : "",
+      row.credentialId,
       row.invoiceNo,
     ];
     lines.push(cells.map(csvCell).join(","));
@@ -224,8 +292,11 @@ function buildCsv(rows: AdminRegistrationRow[]): string {
 
 export default function PavelDashboard({
   rows,
+  children,
 }: {
   rows: AdminRegistrationRow[];
+  /** Slot above the table, used for the webinar session panel. */
+  children?: React.ReactNode;
 }) {
   const [filter, setFilter] = useState<StatusFilter>("all");
   const [query, setQuery] = useState("");
@@ -323,6 +394,9 @@ export default function PavelDashboard({
           <AdminSignOutButton />
         </div>
 
+        {/* Webinar session controls, rendered by the server page. */}
+        <div className="mt-8">{children}</div>
+
         {/* Controls */}
         <div className="mt-8 flex flex-wrap items-center justify-between gap-3">
           <div className="flex gap-1 rounded-lg border border-white/10 bg-slate-900/70 p-1">
@@ -396,6 +470,8 @@ export default function PavelDashboard({
                 <th className="px-3 py-3 font-medium">Status</th>
                 <th className="px-3 py-3 font-medium">Registered (IST)</th>
                 <th className="px-3 py-3 font-medium">Paid (IST)</th>
+                <th className="px-3 py-3 font-medium">Attended</th>
+                <th className="px-3 py-3 font-medium">Certificate</th>
                 <th className="px-3 py-3 font-medium">Invoice</th>
               </tr>
             </thead>
@@ -403,7 +479,7 @@ export default function PavelDashboard({
               {filtered.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={12}
+                    colSpan={14}
                     className="px-4 py-12 text-center text-sm text-slate-500"
                   >
                     No registrations match this view.
@@ -457,6 +533,16 @@ export default function PavelDashboard({
                     </td>
                     <td className="px-3 py-3">
                       <DateCell iso={row.paidAt} />
+                    </td>
+                    <td className="px-3 py-3">
+                      <AttendanceCell
+                        status={row.status}
+                        attendedMinutes={row.attendedMinutes}
+                        hasJoinLink={row.hasJoinLink}
+                      />
+                    </td>
+                    <td className="px-3 py-3">
+                      <CertificateCell credentialId={row.credentialId} />
                     </td>
                     <td className="px-3 py-3">
                       <InvoiceCell ref_={row.ref} invoiceNo={row.invoiceNo} />

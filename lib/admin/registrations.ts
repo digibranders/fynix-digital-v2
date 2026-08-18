@@ -1,6 +1,6 @@
 import { desc, eq } from "drizzle-orm";
 import { getDb } from "@/lib/db/client";
-import { invoices, registrations } from "@/lib/db/schema";
+import { certificates, invoices, registrations } from "@/lib/db/schema";
 import {
   AdminGatewayError,
   adminGatewayFetch,
@@ -27,6 +27,16 @@ export type AdminRegistrationRow = {
   razorpayPaymentId: string | null;
   /** Issued tax invoice number, e.g. "FYX/26-27/0001". Null until issued. */
   invoiceNo: string | null;
+  /**
+   * Minutes attended. `null` means attendance has not been synced from Zoom
+   * yet, which is deliberately different from 0 (registered, never joined):
+   * one is "we do not know", the other is a final answer.
+   */
+  attendedMinutes: number | null;
+  /** Whether the buyer has their own Zoom join link yet. */
+  hasJoinLink: boolean;
+  /** Issued credential id, e.g. "FYX-SS26-7A3F9C21". Null until earned. */
+  credentialId: string | null;
 };
 
 export type LoadRegistrationsResult = {
@@ -63,12 +73,16 @@ export async function queryRegistrations(): Promise<AdminRegistrationRow[]> {
       paidAt: registrations.paidAt,
       razorpayPaymentId: registrations.razorpayPaymentId,
       invoiceNo: invoices.invoiceNo,
+      attendedMinutes: registrations.attendedMinutes,
+      zoomJoinUrl: registrations.zoomJoinUrl,
+      credentialId: certificates.credentialId,
     })
     .from(registrations)
     // Left join: pending seats have no invoice, and a paid seat whose issuance
     // failed should still appear in the table (with a blank invoice cell)
     // rather than vanish from the operator's view.
     .leftJoin(invoices, eq(invoices.registrationId, registrations.id))
+    .leftJoin(certificates, eq(certificates.registrationId, registrations.id))
     .orderBy(desc(registrations.createdAt));
 
   return records.map((r) => ({
@@ -86,6 +100,9 @@ export async function queryRegistrations(): Promise<AdminRegistrationRow[]> {
     paidAt: r.paidAt ? r.paidAt.toISOString() : null,
     razorpayPaymentId: r.razorpayPaymentId,
     invoiceNo: r.invoiceNo,
+    attendedMinutes: r.attendedMinutes,
+    hasJoinLink: Boolean(r.zoomJoinUrl),
+    credentialId: r.credentialId,
   }));
 }
 
