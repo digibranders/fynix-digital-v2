@@ -7,7 +7,6 @@ import { applyDiscount, formatUnitAmount } from "@/components/pavel/pricing";
 import { Button } from "@/components/pavel/ui/Button";
 import { PhoneField } from "@/components/pavel/ui/PhoneField";
 import { SearchableSelect } from "@/components/pavel/ui/SearchableSelect";
-import { WORKSHOP } from "@/components/pavel/workshopDetails";
 import { COUNTRIES, countPhoneDigits, phoneLengthError } from "@/components/pavel/countries";
 import { isValidGstin, normalizeGstin } from "@/lib/pavel/gst";
 import { INDIAN_STATES } from "@/lib/pavel/indianStates";
@@ -127,12 +126,15 @@ function loadRazorpaySdk(): Promise<RazorpayConstructor> {
 }
 
 export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
-  const { price } = usePricing();
+  const { price, detectedCountryName, schedule } = usePricing();
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [country, setCountry] = useState("");
+  // Seeded from the visitor's detected country so the dial code, phone format
+  // and (for India) the state field are right on open. A DEFAULT, never a lock:
+  // VPNs, travellers and NRIs get it wrong, so the field stays editable.
+  const [country, setCountry] = useState(detectedCountryName);
   // Indian state (place of supply) — shown and required only for India.
   const [indianState, setIndianState] = useState("");
   // GST invoice details — shown only to Indian buyers, opt-in, and optional.
@@ -195,24 +197,41 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
   if (!isOpen) return null;
 
   // Reset transient UI state on close so reopening always starts clean.
+  /**
+   * Close the dialog, keeping whatever the buyer typed.
+   *
+   * The backdrop closes on click, so a stray click outside the dialog used to
+   * wipe the whole form: name, email, phone, and for a GST invoice a company
+   * name, a 15-character GSTIN and a billing address. Retyping all of that is
+   * exactly where someone abandons a purchase, so an abandoned form is now
+   * preserved and reopening resumes it.
+   *
+   * A COMPLETED purchase is different: those details belong to a seat that is
+   * already bought, so the form is cleared then and the next one starts fresh.
+   */
   const handleClose = () => {
+    if (submitted) {
+      setName("");
+      setEmail("");
+      setPhone("");
+      setCountry(detectedCountryName);
+      setIndianState("");
+      setGstRequested(false);
+      setCompanyName("");
+      setGstin("");
+      setCompanyAddress("");
+      setReferralOpen(false);
+      setReferralCode("");
+      setAppliedReferral(null);
+    }
+
+    // Transient UI state always resets, so reopening never lands on a stale
+    // success screen or a stale error.
     setSubmitted(false);
     setAlreadyRegistered(false);
     setError("");
-    setName("");
-    setEmail("");
-    setPhone("");
-    setCountry("");
-    setIndianState("");
-    setGstRequested(false);
-    setCompanyName("");
-    setGstin("");
-    setCompanyAddress("");
-    setReferralOpen(false);
-    setReferralCode("");
     setReferralChecking(false);
     setReferralError("");
-    setAppliedReferral(null);
     onClose();
   };
 
@@ -499,7 +518,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
     }
   };
 
-  // Convert the fixed workshop instant (WORKSHOP.startUtc) into the selected
+  // Convert the fixed workshop instant (schedule.startUtc) into the selected
   // country's local date + time. Until a country is picked, we show the default
   // IST labels. An unsupported IANA zone falls back to those defaults too.
   const selectedCountry = country
@@ -512,13 +531,13 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
   const isIndian = selectedCountry?.code === "IN";
 
   // Default (no country) shows the IST range with the zone in brackets.
-  const defaultTimeLabel = WORKSHOP.timeRange.replace(/\sIST$/, " (IST)");
-  let dateLabel: string = WORKSHOP.dateLabel;
+  const defaultTimeLabel = schedule.timeRange.replace(/\sIST$/, " (IST)");
+  let dateLabel: string = schedule.dateLabel;
   let timeLabel: string = defaultTimeLabel;
   if (selectedTz) {
     try {
-      const startInstant = new Date(WORKSHOP.startUtc);
-      const endInstant = new Date(WORKSHOP.endUtc);
+      const startInstant = new Date(schedule.startUtc);
+      const endInstant = new Date(schedule.endUtc);
       dateLabel = new Intl.DateTimeFormat("en-GB", {
         timeZone: selectedTz,
         day: "numeric",
@@ -549,7 +568,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
         : `${startLabel} - ${endLabel}`;
     } catch {
       // Unsupported zone in this runtime — keep the default IST labels.
-      dateLabel = WORKSHOP.dateLabel;
+      dateLabel = schedule.dateLabel;
       timeLabel = defaultTimeLabel;
     }
   }

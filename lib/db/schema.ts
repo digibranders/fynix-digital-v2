@@ -175,6 +175,12 @@ export const invoices = pgTable(
     sellerCin: text("seller_cin"),
     sellerPan: text("seller_pan"),
     sacCode: text("sac_code").notNull(),
+    /**
+     * The session date printed on the line item, snapshotted like everything
+     * else here. Deriving it live would make a past invoice show a LATER
+     * cohort's date, which is exactly what snapshotting exists to prevent.
+     */
+    serviceDateLabel: text("service_date_label"),
 
     // Payment evidence printed on the invoice, so the document doubles as a
     // receipt. Snapshotted like everything else rather than joined at render.
@@ -221,7 +227,14 @@ export const webinarSessions = pgTable("webinar_sessions", {
   zoomWebinarId: text("zoom_webinar_id").notNull().unique(),
   /** Operator-facing name, e.g. "Test session" or "Cohort 1". */
   label: text("label").notNull(),
+  /**
+   * When this session runs. Everything the buyer sees (page copy, emails, the
+   * calendar entry) and the reminder schedule derive from these, so a new cohort
+   * is a data change rather than a code change. Null falls back to the constant
+   * in workshopDetails.
+   */
   startsAt: timestamp("starts_at", { withTimezone: true }),
+  endsAt: timestamp("ends_at", { withTimezone: true }),
   /**
    * Exactly one session should be active at a time; the app takes the most
    * recently activated one, so flipping a new session on supersedes the old.

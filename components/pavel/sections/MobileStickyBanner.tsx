@@ -2,9 +2,10 @@
 
 import React from "react";
 import { ArrowRight } from "lucide-react";
-import { WORKSHOP } from "../workshopDetails";
+import { usePricing } from "@/components/pavel/PricingProvider";
 
 export const MobileStickyBanner: React.FC = () => {
+  const { schedule } = usePricing();
   const scrollToPricing = () => {
     const el = document.getElementById("pricing");
     if (el) {
@@ -21,9 +22,9 @@ export const MobileStickyBanner: React.FC = () => {
         {/* Left: Simple one-liner info */}
         <div className="flex items-center gap-1.5 truncate">
           <span className="truncate text-white">
-            {WORKSHOP.dateLabel}{" "}
+            {schedule.dateLabel}{" "}
             <span className="text-white/55">&middot;</span>{" "}
-            <span className="font-semibold">{WORKSHOP.timeRange}</span>
+            <span className="font-semibold">{schedule.timeRange}</span>
           </span>
         </div>
 

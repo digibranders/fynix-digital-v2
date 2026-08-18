@@ -17,10 +17,12 @@ import { WORKSHOP } from "@/components/pavel/workshopDetails";
  */
 
 /** Line-item wording: the service, with its format and date on a second line. */
-function describeService(): { title: string; detail: string } {
+function describeService(invoice: Invoice): { title: string; detail: string } {
   return {
     title: "Semantic SEO Masterclass with Pavel Klimakov",
-    detail: `${WORKSHOP.format}, ${WORKSHOP.dateLabel}`,
+    // Snapshotted on the invoice, so re-rendering an old one never shows a
+    // later cohort's date.
+    detail: `${WORKSHOP.format}, ${invoice.serviceDateLabel ?? WORKSHOP.dateLabel}`,
   };
 }
 
@@ -60,7 +62,7 @@ export async function renderInvoicePdf(invoice: Invoice): Promise<Buffer> {
       phone: seller.phone,
       website: seller.website,
     },
-    description: describeService(),
+    description: describeService(invoice),
     logoSrc: getLogoDataUri(),
   }) as React.ReactElement<DocumentProps>;
 

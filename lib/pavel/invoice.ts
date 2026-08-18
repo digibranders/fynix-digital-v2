@@ -5,6 +5,7 @@ import { PRICING, type Country } from "@/components/pavel/pricing";
 import { computeTax } from "@/lib/pavel/tax";
 import { allocateInvoiceNumber } from "@/lib/pavel/invoiceNumber";
 import { getSellerProfile } from "@/lib/pavel/sellerProfile";
+import { loadSchedule } from "@/lib/pavel/loadSchedule";
 
 /**
  * Issue the tax invoice for a paid registration.
@@ -91,6 +92,7 @@ export async function issueInvoiceForRegistration(
     }
 
     const seller = getSellerProfile();
+    const schedule = await loadSchedule();
     const country: Country = registration.country === "IN" ? "IN" : "REST";
     const price = PRICING[country];
 
@@ -174,6 +176,7 @@ export async function issueInvoiceForRegistration(
           sellerCin: seller.cin,
           sellerPan: seller.pan,
           sacCode: seller.sacCode,
+          serviceDateLabel: schedule.dateLabel,
 
             paymentReference: registration.razorpayPaymentId,
             paidAt: registration.paidAt,

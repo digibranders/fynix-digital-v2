@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { eq, inArray } from "drizzle-orm";
-import { WORKSHOP } from "@/components/pavel/workshopDetails";
+import { loadSchedule } from "@/lib/pavel/loadSchedule";
+import type { WorkshopSchedule } from "@/lib/pavel/workshopSchedule";
 import { getDb, type Db } from "@/lib/db/client";
 import { registrations, emailLog } from "@/lib/db/schema";
 import {
@@ -67,9 +68,9 @@ function isAuthorized(request: Request): boolean {
  * each type sends exactly once — on the first cron run after its mark is crossed
  * (which also means a missed run is caught up on the next one, never skipped).
  */
-function dueReminderTypes(now: Date): ReminderType[] {
-  const start = new Date(WORKSHOP.startUtc).getTime();
-  const end = new Date(WORKSHOP.endUtc).getTime();
+function dueReminderTypes(now: Date, schedule: WorkshopSchedule): ReminderType[] {
+  const start = new Date(schedule.startUtc).getTime();
+  const end = new Date(schedule.endUtc).getTime();
   const t = now.getTime();
   const due: ReminderType[] = [];
 
@@ -102,7 +103,11 @@ function buildEmail(type: ReminderType, submission: PavelRegistrationSubmission)
   }
 }
 
-async function runReminderType(db: Db, type: ReminderType) {
+async function runReminderType(
+  db: Db,
+  type: ReminderType,
+  schedule: WorkshopSchedule
+) {
   // All paid seats.
   let paid: {
     id: string;
@@ -175,6 +180,7 @@ async function runReminderType(db: Db, type: ReminderType) {
       amountDisplay: reg.amountDisplay ?? undefined,
       ref: reg.ref,
       joinUrl: reg.zoomJoinUrl ?? undefined,
+      schedule,
     };
     // After the event, what someone receives depends on whether they actually
     // turned up: a certificate for attendees, the recording for everyone else.
@@ -257,6 +263,10 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Datastore unavailable." }, { status: 503 });
   }
 
+  // Reminders are timed against the ACTIVE SESSION, so opening a new cohort
+  // never means editing a date in code and redeploying.
+  const schedule = await loadSchedule();
+
   // Self-heal first, before any early return: issue invoices for paid seats that
   // are missing one (issuance is deliberately non-fatal, so a failure at payment
   // time leaves a gap to recover here). Ordered by payment time so recovered
@@ -306,7 +316,7 @@ export async function GET(request: Request) {
     }
     types = [forced];
   } else {
-    types = dueReminderTypes(new Date());
+    types = dueReminderTypes(new Date(), schedule);
   }
 
   if (types.length === 0) {
@@ -315,7 +325,7 @@ export async function GET(request: Request) {
 
   const results = [];
   for (const type of types) {
-    results.push(await runReminderType(db, type));
+    results.push(await runReminderType(db, type, schedule));
   }
 
   return NextResponse.json({ ran: types, results, backfill, access, attendance, certificatesIssued });

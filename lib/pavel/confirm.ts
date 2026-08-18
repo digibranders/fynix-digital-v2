@@ -6,6 +6,7 @@ import type { EmailAttachment } from "@/lib/email/brevo";
 import { issueInvoiceForRegistration } from "@/lib/pavel/invoice";
 import { renderInvoicePdf, invoiceFileName } from "@/lib/pavel/invoicePdf";
 import { grantWebinarAccess } from "@/lib/pavel/webinarAccess";
+import { loadSchedule } from "@/lib/pavel/loadSchedule";
 import {
   buildPavelPaidConfirmationEmail,
   buildPavelPaidRegistrationAdminEmail,
@@ -159,6 +160,8 @@ export async function confirmRegistrationPaid(
     amountDisplay: registration.amountDisplay ?? undefined,
     ref: registration.ref,
     joinUrl,
+    // Emails carry THIS session's date and time, not a hardcoded one.
+    schedule: await loadSchedule(),
   };
 
   const confirmation = buildPavelPaidConfirmationEmail(submission);

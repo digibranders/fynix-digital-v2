@@ -5,6 +5,7 @@ import { PricingProvider } from "@/components/pavel/PricingProvider";
 import { Navbar } from "@/components/pavel/sections/Navbar";
 import { Footer } from "@/components/pavel/sections/Footer";
 import { ThankYouContent } from "@/components/pavel/ThankYouContent";
+import { loadSchedule } from "@/lib/pavel/loadSchedule";
 
 export const metadata: Metadata = {
   title: "You're registered — Semantic SEO Workshop with Pavel Klimakov",
@@ -18,11 +19,17 @@ export const metadata: Metadata = {
  * server-side before revealing the Zoom access. Wrapped in Suspense because
  * ThankYouContent reads search params on the client.
  */
-export default function PavelThankYouPage() {
+export default async function PavelThankYouPage() {
+  // The session's real date and time, so the confirmation matches the webinar
+  // the buyer was just registered into rather than a constant.
+  const schedule = await loadSchedule();
+
   return (
-    <PricingProvider initialCountry="REST">
+    <PricingProvider initialCountry="REST" schedule={schedule}>
       <div className="min-h-screen bg-background-soft text-primary tnum">
-        <Navbar />
+        {/* Minimal: this page has none of the landing sections the full navbar
+            scrolls to, and its buyer has already paid for the seat the CTA sells. */}
+        <Navbar minimal />
         <main className="py-16 sm:py-24">
           <Suspense fallback={null}>
             <ThankYouContent />
