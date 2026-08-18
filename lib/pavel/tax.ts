@@ -52,6 +52,12 @@ export interface TaxInput {
   country: Country;
   /** Indian state or UT of the buyer. Required when country is "IN". */
   state?: string | null;
+  /**
+   * The buyer's actual country, e.g. "United States". An export invoice must
+   * name the country of destination, so this becomes the place of supply for
+   * exports. Ignored for Indian buyers, where the state governs.
+   */
+  destinationCountry?: string | null;
   /** List price before discount, in minor units. */
   base: number;
   /** Whole-percent referral discount, if any. */
@@ -85,7 +91,7 @@ function lookupState(name: string) {
  * defect, so this must surface loudly instead of degrading silently.
  */
 export function computeTax(input: TaxInput): TaxBreakdown {
-  const { country, state, base, lutActive = true } = input;
+  const { country, state, destinationCountry, base, lutActive = true } = input;
 
   if (!Number.isInteger(base) || base < 0) {
     throw new Error(
@@ -111,7 +117,9 @@ export function computeTax(input: TaxInput): TaxBreakdown {
       totalTax: igst,
       total: taxable + igst,
       ratePercent,
-      placeOfSupply: EXPORT_PLACE_OF_SUPPLY,
+      // An export invoice must name the country of destination. Fall back to the
+      // generic label only when the specific country is genuinely unknown.
+      placeOfSupply: destinationCountry?.trim() || EXPORT_PLACE_OF_SUPPLY,
       placeOfSupplyCode: EXPORT_PLACE_OF_SUPPLY_CODE,
       zeroRatedUnderLut: lutActive,
     };

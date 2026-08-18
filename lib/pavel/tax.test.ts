@@ -218,11 +218,36 @@ describe("place of supply", () => {
     expect(t.placeOfSupplyCode).toBe("29");
   });
 
-  it("reports the export place of supply for foreign buyers", () => {
+  it("names the country of destination on an export", () => {
+    // An export invoice must carry the destination country, so the specific
+    // country wins over the generic label when it is known.
+    const t = computeTax({
+      country: "REST",
+      destinationCountry: "United States",
+      base: USD_BASE,
+    });
+
+    expect(t.placeOfSupply).toBe("United States");
+    expect(t.placeOfSupplyCode).toBe("96"); // 'Other Country' under GST
+  });
+
+  it("falls back to a generic label when the country is unknown", () => {
     const t = computeTax({ country: "REST", base: USD_BASE });
 
     expect(t.placeOfSupply).toBe("Outside India");
-    expect(t.placeOfSupplyCode).toBe("96"); // 'Other Country' under GST
+    expect(t.placeOfSupplyCode).toBe("96");
+  });
+
+  it("ignores a destination country for an Indian buyer", () => {
+    const t = computeTax({
+      country: "IN",
+      state: "Karnataka",
+      destinationCountry: "United States",
+      base: IN_BASE,
+    });
+
+    expect(t.placeOfSupply).toBe("Karnataka");
+    expect(t.placeOfSupplyCode).toBe("29");
   });
 });
 

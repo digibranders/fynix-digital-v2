@@ -31,7 +31,11 @@ export const registrations = pgTable(
     state: text("state"), // Indian state / UT (place of supply), captured for India only
     referralCode: text("referral_code"), // optional attribution code entered at checkout
     discountPercent: integer("discount_percent"), // referral discount applied at checkout (null = none)
-    country: text("country").notNull().default("REST"), // 'IN' | 'REST'
+    country: text("country").notNull().default("REST"), // pricing region: 'IN' | 'REST'
+    // The buyer's ACTUAL country, kept alongside the pricing region. An export
+    // invoice must name the country of destination, which 'REST' cannot express.
+    countryName: text("country_name"), // e.g. 'United States'
+    countryCode: text("country_code"), // ISO 3166-1 alpha-2, e.g. 'US'
     amountDisplay: text("amount_display"), // '₹7,499' / '$99'
     // Amount actually charged, in the currency's minor unit (paise / cents), and
     // its currency. Stored numerically so invoicing and reconciliation never
@@ -142,6 +146,8 @@ export const invoices = pgTable(
     buyerGstin: text("buyer_gstin"),
     buyerCompany: text("buyer_company"),
     buyerAddress: text("buyer_address"),
+    /** Buyer's country. On an export invoice this is the country of destination. */
+    buyerCountry: text("buyer_country"),
 
     // Seller snapshot.
     sellerLegalName: text("seller_legal_name").notNull(),
@@ -149,7 +155,13 @@ export const invoices = pgTable(
     sellerGstin: text("seller_gstin").notNull(),
     sellerAddress: text("seller_address").notNull(),
     sellerCin: text("seller_cin"),
+    sellerPan: text("seller_pan"),
     sacCode: text("sac_code").notNull(),
+
+    // Payment evidence printed on the invoice, so the document doubles as a
+    // receipt. Snapshotted like everything else rather than joined at render.
+    paymentReference: text("payment_reference"), // Razorpay 'pay_...' id
+    paidAt: timestamp("paid_at", { withTimezone: true }),
   },
   (table) => [index("invoices_issued_at_idx").on(table.issuedAt)]
 );
