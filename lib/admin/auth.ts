@@ -13,17 +13,35 @@ import { cookies } from "next/headers";
  * at `/admin` is enough.
  */
 
-/** Admin credential. Defaults match the values the operator was given; override
- *  in every deployed environment via env vars. */
-const ADMIN_EMAIL = (process.env.PAVEL_ADMIN_EMAIL || "admin@fynix.digital")
+/**
+ * Admin credential.
+ *
+ * The `PAVEL_`-prefixed names are the originals, from when this guarded one
+ * workshop's reporting page. It now guards the whole Fynix console, so the
+ * unprefixed names are canonical and the old ones are read as a fallback. That
+ * lets an environment adopt the new names on its own schedule instead of every
+ * host having to change in the same instant. Drop the fallbacks once no
+ * deployment sets the old names.
+ *
+ * Defaults match the values the operator was given; override in every deployed
+ * environment.
+ */
+const ADMIN_EMAIL = (
+  process.env.ADMIN_EMAIL ||
+  process.env.PAVEL_ADMIN_EMAIL ||
+  "admin@fynix.digital"
+)
   .trim()
   .toLowerCase();
-const ADMIN_PASSWORD = process.env.PAVEL_ADMIN_PASSWORD || "1234567q";
+const ADMIN_PASSWORD =
+  process.env.ADMIN_PASSWORD || process.env.PAVEL_ADMIN_PASSWORD || "1234567q";
 
 /** Secret that signs the session cookie. Falls back to the form secret, then an
  *  insecure dev default — set a dedicated value in production. */
 const SESSION_SECRET =
+  process.env.ADMIN_SESSION_SECRET ||
   process.env.PAVEL_ADMIN_SESSION_SECRET ||
+  process.env.FORM_SECRET ||
   process.env.PAVEL_FORM_SECRET ||
   "dev-insecure-pavel-admin-secret-change-me";
 
