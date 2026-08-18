@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { isAdminAuthenticated } from "@/lib/admin/auth";
 import { loadRegistrations } from "@/lib/admin/registrations";
+import { loadSessions, mutateSession } from "@/lib/admin/sessions";
 import PavelDashboard from "@/components/admin/PavelDashboard";
+import { SessionPanel } from "@/components/admin/SessionPanel";
 
 export const runtime = "nodejs";
 // Reads cookies + live data on every request; never statically cached.
@@ -25,7 +28,34 @@ export default async function PavelAdminPage() {
     redirect("/admin");
   }
 
-  const { rows, error } = await loadRegistrations();
+  const [{ rows, error }, sessionsResult] = await Promise.all([
+    loadRegistrations(),
+    loadSessions(),
+  ]);
+
+  /**
+   * Session mutations re-check the operator's session. A form action is a POST
+   * endpoint in its own right, so authorising only the page render would leave
+   * these callable by anyone who knows the action id.
+   */
+  async function createSessionAction(formData: FormData) {
+    "use server";
+    if (!(await isAdminAuthenticated())) redirect("/admin");
+    await mutateSession("create", {
+      zoomWebinarId: String(formData.get("zoomWebinarId") ?? ""),
+      label: String(formData.get("label") ?? ""),
+    });
+    revalidatePath("/admin/pavel");
+  }
+
+  async function activateSessionAction(formData: FormData) {
+    "use server";
+    if (!(await isAdminAuthenticated())) redirect("/admin");
+    await mutateSession("activate", {
+      sessionId: String(formData.get("sessionId") ?? ""),
+    });
+    revalidatePath("/admin/pavel");
+  }
 
   if (error) {
     return (
@@ -40,5 +70,14 @@ export default async function PavelAdminPage() {
     );
   }
 
-  return <PavelDashboard rows={rows} />;
+  return (
+    <PavelDashboard rows={rows}>
+      <SessionPanel
+        sessions={sessionsResult.sessions}
+        error={sessionsResult.error}
+        createAction={createSessionAction}
+        activateAction={activateSessionAction}
+      />
+    </PavelDashboard>
+  );
 }
