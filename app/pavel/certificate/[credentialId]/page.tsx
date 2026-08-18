@@ -3,8 +3,7 @@ import { notFound } from "next/navigation";
 import "../../pavel.css";
 import "../certificate.css";
 import "../certificate-print.css";
-import { getDb } from "@/lib/db/client";
-import { getCertificateByCredentialId } from "@/lib/pavel/certificate";
+import { loadCertificate } from "@/lib/pavel/certificateView";
 import { Certificate } from "@/components/pavel/Certificate";
 import { CertificateActions } from "@/components/pavel/CertificateActions";
 
@@ -37,10 +36,12 @@ export default async function IssuedCertificatePage({
 }) {
   const { credentialId } = await params;
 
-  const db = getDb();
-  if (!db) notFound();
+  // Read from Postgres where it is reachable, otherwise from the droplet's
+  // public certificate endpoint. This page is served by the marketing site,
+  // which has no database, and that is exactly the host the certificate email
+  // links to.
+  const certificate = await loadCertificate(credentialId);
 
-  const certificate = await getCertificateByCredentialId(db, credentialId);
   // An id that was never issued is indistinguishable from one that does not
   // exist, so probing tells an attacker nothing.
   if (!certificate) notFound();
