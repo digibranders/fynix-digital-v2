@@ -59,6 +59,19 @@ export default async function PavelAdminPage() {
     revalidatePath("/admin/pavel");
   }
 
+  async function setClosedAction(formData: FormData) {
+    "use server";
+    if (!(await isAdminAuthenticated())) redirect("/admin");
+    await mutateSession(
+      formData.get("closed") === "true" ? "close" : "reopen",
+      { sessionId: String(formData.get("sessionId") ?? "") }
+    );
+    revalidatePath("/admin/pavel");
+    // The landing page renders the open/closed state from a cached read, so a
+    // close that only updated the console would leave a price on screen.
+    revalidatePath("/pavel");
+  }
+
   if (error) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-950 px-4">
@@ -79,6 +92,7 @@ export default async function PavelAdminPage() {
         error={sessionsResult.error}
         createAction={createSessionAction}
         activateAction={activateSessionAction}
+        setClosedAction={setClosedAction}
       />
     </PavelDashboard>
   );

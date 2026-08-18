@@ -22,6 +22,26 @@ export async function getActiveSession(
   return session;
 }
 
+/**
+ * Open or close a session to new registrations.
+ *
+ * Scoped to one session rather than global so closing a finished cohort cannot
+ * accidentally suppress the next one: activating a fresh session opens sales
+ * again on its own, because the flag travels with the session it describes.
+ */
+export async function setRegistrationsClosed(
+  db: Db,
+  sessionId: string,
+  closed: boolean
+): Promise<WebinarSession | undefined> {
+  const [session] = await db
+    .update(webinarSessions)
+    .set({ registrationsClosed: closed })
+    .where(eq(webinarSessions.id, sessionId))
+    .returning();
+  return session;
+}
+
 export async function listSessions(db: Db): Promise<WebinarSession[]> {
   return db
     .select()

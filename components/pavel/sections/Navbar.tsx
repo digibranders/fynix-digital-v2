@@ -32,7 +32,7 @@ export interface NavbarProps {
 export const Navbar: React.FC<NavbarProps> = ({ minimal = false }) => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { price } = usePricing();
+  const { price, registration } = usePricing();
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -89,7 +89,9 @@ export const Navbar: React.FC<NavbarProps> = ({ minimal = false }) => {
 
               <div className="hidden md:flex items-center">
                 <Button size="md" variant="primary" onClick={() => scrollTo("pricing")}>
-                  Reserve seat, {price.display}
+                  {registration.open
+                    ? `Reserve seat, ${price.display}`
+                    : "Registrations closed"}
                   <ArrowRight className="w-3.5 h-3.5" />
                 </Button>
               </div>
@@ -123,7 +125,9 @@ export const Navbar: React.FC<NavbarProps> = ({ minimal = false }) => {
                 className="w-full"
                 onClick={() => scrollTo("pricing")}
               >
-                Reserve seat, {price.display}
+                {registration.open
+                  ? `Reserve seat, ${price.display}`
+                  : "Registrations closed"}
               </Button>
             </div>
           </div>

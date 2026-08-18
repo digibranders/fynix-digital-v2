@@ -9,7 +9,7 @@ import { usePricing } from "../PricingProvider";
 import { WORKSHOP } from "../workshopDetails";
 
 export const Hero: React.FC = () => {
-  const { price, schedule } = usePricing();
+  const { price, schedule, registration } = usePricing();
 
   const scrollTo = (id: string) => {
     const el = document.getElementById(id);
@@ -77,7 +77,9 @@ export const Hero: React.FC = () => {
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
               <Button size="lg" variant="primary" onClick={() => scrollTo("pricing")}>
-                Reserve my seat, {price.display}
+                {registration.open
+                  ? `Reserve my seat, ${price.display}`
+                  : "Registrations closed"}
                 <ArrowRight className="w-4 h-4" />
               </Button>
               <Button

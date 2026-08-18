@@ -8,6 +8,7 @@ import {
   listSessions,
   createSession,
   activateSession,
+  setRegistrationsClosed,
   normalizeWebinarId,
 } from "@/lib/pavel/webinarSession";
 
@@ -24,6 +25,8 @@ export type AdminSessionRow = {
   zoomWebinarId: string;
   label: string;
   active: boolean;
+  /** Whether this session is refusing new registrations. */
+  registrationsClosed: boolean;
   startsAt: string | null;
   createdAt: string;
 };
@@ -94,6 +97,7 @@ export async function loadSessions(): Promise<LoadSessionsResult> {
           zoomWebinarId: s.zoomWebinarId,
           label: s.label,
           active: s.active,
+          registrationsClosed: s.registrationsClosed,
           startsAt: s.startsAt ? s.startsAt.toISOString() : null,
           createdAt: s.createdAt.toISOString(),
         })),
@@ -137,7 +141,7 @@ export async function loadSessions(): Promise<LoadSessionsResult> {
 
 /** Perform a session action wherever the data lives. Returns an error message or null. */
 export async function mutateSession(
-  action: "create" | "activate",
+  action: "create" | "activate" | "close" | "reopen",
   input: {
     zoomWebinarId?: string;
     label?: string;
@@ -167,6 +171,10 @@ export async function mutateSession(
         return null;
       }
       if (!input.sessionId) return "sessionId is required.";
+      if (action === "close" || action === "reopen") {
+        await setRegistrationsClosed(db, input.sessionId, action === "close");
+        return null;
+      }
       await activateSession(db, input.sessionId);
       return null;
     } catch (error) {

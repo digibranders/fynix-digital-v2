@@ -1,4 +1,5 @@
 import type { AdminSessionRow } from "@/lib/admin/sessions";
+import { SessionTimeFields } from "@/components/admin/SessionTimeFields";
 
 /** Session times are shown in IST, which is where the workshop runs. */
 const SESSION_TIME = new Intl.DateTimeFormat("en-GB", {
@@ -26,30 +27,58 @@ export function SessionPanel({
   error,
   createAction,
   activateAction,
+  setClosedAction,
 }: {
   sessions: AdminSessionRow[];
   error: string | null;
   createAction: (formData: FormData) => Promise<void>;
   activateAction: (formData: FormData) => Promise<void>;
+  setClosedAction: (formData: FormData) => Promise<void>;
 }) {
   const active = sessions.find((s) => s.active);
+  // What a visitor to the landing page can do right now. Closed with no active
+  // session is not an error state, but it is the one an operator forgets, so it
+  // is stated as plainly as a deliberate close.
+  const selling = Boolean(active && !active.registrationsClosed);
 
   return (
     <section className="mb-8 rounded-xl border border-white/10 bg-slate-900/40 p-5">
       <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="text-sm font-semibold text-white">Webinar session</h2>
-        {active ? (
+        {active && !active.registrationsClosed ? (
           <p className="text-xs text-slate-400">
             New registrations join{" "}
             <span className="font-medium text-emerald-400">{active.label}</span>{" "}
             <span className="font-mono text-slate-500">{active.zoomWebinarId}</span>
           </p>
+        ) : active ? (
+          <p className="text-xs text-amber-400">
+            Closed: the landing page shows no price and checkout refuses.
+          </p>
         ) : (
           <p className="text-xs text-amber-400">
-            No active session: paid buyers will not receive a Zoom link until one
-            is activated.
+            No active session, so nothing can be sold. Activate one to open
+            registrations.
           </p>
         )}
+      </div>
+
+      {/* The single fact an operator needs at a glance: are we selling? */}
+      <div
+        className={`mb-4 flex items-center gap-2 rounded-lg border px-3 py-2 text-xs ${
+          selling
+            ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
+            : "border-amber-500/30 bg-amber-500/10 text-amber-300"
+        }`}
+      >
+        <span
+          className={`h-2 w-2 shrink-0 rounded-full ${
+            selling ? "bg-emerald-400" : "bg-amber-400"
+          }`}
+        />
+        <span className="font-medium">
+          {selling ? "Registrations are open" : "Registrations are closed"}
+        </span>
       </div>
 
       {error ? (
@@ -73,6 +102,11 @@ export function SessionPanel({
                       active
                     </span>
                   ) : null}
+                  {session.registrationsClosed ? (
+                    <span className="ml-2 rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-amber-400">
+                      closed
+                    </span>
+                  ) : null}
                 </p>
                 <p className="font-mono text-xs text-slate-500">
                   {session.zoomWebinarId}
@@ -87,17 +121,43 @@ export function SessionPanel({
                   )}
                 </p>
               </div>
-              {session.active ? null : (
-                <form action={activateAction}>
-                  <input type="hidden" name="sessionId" value={session.id} />
-                  <button
-                    type="submit"
-                    className="rounded-full border border-white/15 px-3 py-1 text-xs text-slate-300 transition hover:border-emerald-400/40 hover:text-emerald-300"
-                  >
-                    Make active
-                  </button>
-                </form>
-              )}
+              <div className="flex shrink-0 items-center gap-2">
+                {/* Closing is offered only on the active session: closing an
+                    inactive one changes nothing a buyer can see, so the control
+                    would imply an effect it does not have. */}
+                {session.active ? (
+                  <form action={setClosedAction}>
+                    <input type="hidden" name="sessionId" value={session.id} />
+                    <input
+                      type="hidden"
+                      name="closed"
+                      value={session.registrationsClosed ? "false" : "true"}
+                    />
+                    <button
+                      type="submit"
+                      className={`rounded-full border px-3 py-1 text-xs transition ${
+                        session.registrationsClosed
+                          ? "border-emerald-400/40 text-emerald-300 hover:bg-emerald-500/10"
+                          : "border-amber-400/40 text-amber-300 hover:bg-amber-500/10"
+                      }`}
+                    >
+                      {session.registrationsClosed
+                        ? "Reopen registrations"
+                        : "Close registrations"}
+                    </button>
+                  </form>
+                ) : (
+                  <form action={activateAction}>
+                    <input type="hidden" name="sessionId" value={session.id} />
+                    <button
+                      type="submit"
+                      className="rounded-full border border-white/15 px-3 py-1 text-xs text-slate-300 transition hover:border-emerald-400/40 hover:text-emerald-300"
+                    >
+                      Make active
+                    </button>
+                  </form>
+                )}
+              </div>
             </li>
           ))}
         </ul>
@@ -122,22 +182,7 @@ export function SessionPanel({
             className="mt-1 w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm text-white placeholder-slate-600 focus:border-emerald-400/50 focus:outline-none"
           />
         </label>
-        <label className="min-w-[190px] text-xs text-slate-400">
-          Starts (IST)
-          <input
-            type="datetime-local"
-            name="startsAt"
-            className="mt-1 w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm text-white focus:border-emerald-400/50 focus:outline-none"
-          />
-        </label>
-        <label className="min-w-[190px] text-xs text-slate-400">
-          Ends (IST)
-          <input
-            type="datetime-local"
-            name="endsAt"
-            className="mt-1 w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm text-white focus:border-emerald-400/50 focus:outline-none"
-          />
-        </label>
+        <SessionTimeFields />
         <button
           type="submit"
           className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-medium text-slate-950 transition hover:bg-emerald-400"

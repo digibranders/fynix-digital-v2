@@ -6,6 +6,10 @@ import {
   FALLBACK_SCHEDULE,
   type WorkshopSchedule,
 } from "@/lib/pavel/workshopSchedule";
+import {
+  FALLBACK_WINDOW,
+  type RegistrationWindow,
+} from "@/lib/pavel/registrationWindow";
 
 type PricingContextValue = {
   country: Country;
@@ -23,6 +27,12 @@ type PricingContextValue = {
   detectedCountryName: string;
   /** The active session's schedule, resolved server-side. */
   schedule: WorkshopSchedule;
+  /**
+   * Whether seats are on sale. Advisory: it decides what the page shows, while
+   * the checkout route re-derives it from the database before charging. A stale
+   * "open" here therefore costs a clear error at checkout, never a wrong charge.
+   */
+  registration: RegistrationWindow;
 };
 
 const PricingContext = createContext<PricingContextValue | null>(null);
@@ -36,11 +46,13 @@ export function PricingProvider({
   initialCountry,
   detectedCountryName = "",
   schedule = FALLBACK_SCHEDULE,
+  registration = FALLBACK_WINDOW,
   children,
 }: {
   initialCountry: Country;
   detectedCountryName?: string;
   schedule?: WorkshopSchedule;
+  registration?: RegistrationWindow;
   children: React.ReactNode;
 }) {
   const [country, setCountry] = useState<Country>(initialCountry);
@@ -52,8 +64,9 @@ export function PricingProvider({
       setCountry,
       detectedCountryName,
       schedule,
+      registration,
     }),
-    [country, detectedCountryName, schedule],
+    [country, detectedCountryName, schedule, registration],
   );
 
   return (

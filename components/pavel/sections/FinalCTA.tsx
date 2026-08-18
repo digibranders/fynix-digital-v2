@@ -9,7 +9,7 @@ import { usePricing } from "../PricingProvider";
 
 
 export const FinalCTA: React.FC = () => {
-  const { price, schedule } = usePricing();
+  const { price, schedule, registration } = usePricing();
 
 // Split the range so the end time drops cleanly to a second line in the
 // narrow essentials column.
@@ -81,11 +81,15 @@ export const FinalCTA: React.FC = () => {
               onClick={() => scrollTo("pricing")}
               className="inline-flex items-center gap-3 px-8 py-4 text-[15px] font-medium bg-accent text-primary rounded-full shadow-sm cta-primary hover:bg-accent-hover transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
             >
-              Reserve my seat, {price.display}
+              {registration.open
+                ? `Reserve my seat, ${price.display}`
+                : "Registrations closed"}
               <ArrowRight className="w-4 h-4" />
             </button>
             <p className="text-[13px] italic text-white/55">
-              {price.display}{" "}one-time &middot; 7-day recording included &middot; instant confirmation.
+              {registration.open
+                ? `${price.display} one-time · 7-day recording included · instant confirmation.`
+                : "Email hello@fynix.digital to hear about the next cohort."}
             </p>
           </div>
         </Reveal>

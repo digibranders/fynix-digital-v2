@@ -11,6 +11,11 @@ import {
 } from "@/components/pavel/countries";
 import { isValidGstin, normalizeGstin } from "@/lib/pavel/gst";
 import { isValidIndianState } from "@/lib/pavel/indianStates";
+import { getActiveSession } from "@/lib/pavel/webinarSession";
+import {
+  closedMessage,
+  deriveRegistrationWindow,
+} from "@/lib/pavel/registrationWindow";
 
 export const runtime = "nodejs";
 
@@ -63,6 +68,17 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { error: "Registration is temporarily unavailable." },
       { status: 503 }
+    );
+  }
+
+  // Refuse before recording anything. Checkout is the gate that protects the
+  // money, but a closed event should not be quietly collecting names and email
+  // addresses it has no intention of selling to.
+  const registrationWindow = deriveRegistrationWindow(await getActiveSession(db));
+  if (!registrationWindow.open) {
+    return NextResponse.json(
+      { error: closedMessage(), registrationsClosed: true },
+      { status: 409 }
     );
   }
 
