@@ -32,7 +32,10 @@ export const Pricing: React.FC = () => {
   return (
     <section
       id="pricing"
-      className="py-12 pv-seam bg-background-soft"
+      /* scroll-mt clears the fixed navbar (+ mobile banner) so the heading
+         isn't hidden under them when "Register" scrolls here — tuned so the
+         section's own top padding tucks under the bars, leaving no extra gap. */
+      className="scroll-mt-8 md:scroll-mt-10 py-12 pv-seam bg-background-soft"
     >
       <Container>
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-14 lg:gap-16">
