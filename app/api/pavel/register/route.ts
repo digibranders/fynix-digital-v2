@@ -92,6 +92,9 @@ export async function POST(request: Request) {
     (referralCode && typeof referralCode === "string" && referralCode.trim().slice(0, 60)) ||
     null;
   const resolvedCountry = countryFromParam(country) ?? "REST";
+  // Keep the buyer's ACTUAL country alongside the pricing region: an export
+  // invoice must name the country of destination, which 'REST' cannot express.
+  const buyerCountry = COUNTRIES.find((c) => c.name === country);
 
   // Phone is mandatory and must match the selected country's expected length.
   // The client sends the full number ("+91 98765 43210"), so strip the dial
@@ -175,6 +178,8 @@ export async function POST(request: Request) {
       state: attendeeState,
       referralCode: attendeeReferral,
       country: resolvedCountry,
+      countryName: buyerCountry?.name ?? null,
+      countryCode: buyerCountry?.code ?? null,
       amountDisplay: amountDisplay || null,
       status: "pending",
     });

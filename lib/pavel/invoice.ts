@@ -60,6 +60,7 @@ export async function issueInvoiceForRegistration(
     const tax = computeTax({
       country,
       state: registration.state,
+      destinationCountry: registration.countryName,
       base: price.base,
       discountPercent: registration.discountPercent,
       lutActive: seller.lutActive,
@@ -118,13 +119,18 @@ export async function issueInvoiceForRegistration(
           buyerGstin: registration.gstin,
           buyerCompany: registration.companyName,
           buyerAddress: registration.companyAddress,
+          buyerCountry: registration.countryName,
 
           sellerLegalName: seller.legalName,
           sellerTradeName: seller.tradeName,
           sellerGstin: seller.gstin,
           sellerAddress: seller.address,
           sellerCin: seller.cin,
+          sellerPan: seller.pan,
           sacCode: seller.sacCode,
+
+          paymentReference: registration.razorpayPaymentId,
+          paidAt: registration.paidAt,
         })
         .returning();
 

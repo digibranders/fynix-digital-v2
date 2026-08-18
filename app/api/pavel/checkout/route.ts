@@ -72,6 +72,7 @@ export async function POST(request: Request) {
       name: registrations.name,
       email: registrations.email,
       country: registrations.country,
+      countryName: registrations.countryName,
       state: registrations.state,
       companyName: registrations.companyName,
       gstin: registrations.gstin,
@@ -124,6 +125,7 @@ export async function POST(request: Request) {
   const tax = computeTax({
     country: resolvedCountry,
     state: registration.state,
+    destinationCountry: registration.countryName,
     base: price.base,
     discountPercent: referral?.discountPercent ?? 0,
   });

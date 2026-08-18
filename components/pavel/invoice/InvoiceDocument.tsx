@@ -4,6 +4,7 @@ import {
   Page,
   Text,
   View,
+  Image,
   StyleSheet,
 } from "@react-pdf/renderer";
 import type { Invoice } from "@/lib/db/schema";
@@ -35,7 +36,9 @@ const styles = StyleSheet.create({
     fontSize: 9,
     fontFamily: "Helvetica",
     color: NAVY,
-    lineHeight: 1.5,
+    // Tight by default: this document is stacked short lines (addresses,
+    // identifiers, totals), not flowing paragraphs, so 1.5 reads as gappy.
+    lineHeight: 1.35,
   },
 
   headerRow: {
@@ -46,19 +49,33 @@ const styles = StyleSheet.create({
     borderBottomColor: NAVY,
     paddingBottom: 14,
   },
-  sellerName: { fontSize: 15, fontFamily: "Helvetica-Bold" },
-  sellerLegal: { fontSize: 8, color: MUTED, marginTop: 2 },
+  logo: { width: 104, marginBottom: 8 },
+  sellerLegal: {
+    fontSize: 8.5,
+    color: NAVY,
+    fontFamily: "Helvetica-Bold",
+    lineHeight: 1.4,
+    marginBottom: 1,
+  },
   sellerLine: { fontSize: 8, color: MUTED },
   docTitle: {
     fontSize: 16,
     fontFamily: "Helvetica-Bold",
     letterSpacing: 1.6,
     textAlign: "right",
+    marginBottom: 6,
   },
-  docMeta: { fontSize: 8, color: MUTED, textAlign: "right", marginTop: 4 },
+  // Tight block: the page sets lineHeight 1.5 for body copy, which is far too
+  // airy for stacked 8pt metadata lines.
+  docMeta: {
+    fontSize: 8,
+    color: MUTED,
+    textAlign: "right",
+    lineHeight: 1.4,
+  },
 
-  section: { marginTop: 18 },
-  panels: { flexDirection: "row", gap: 14 },
+  section: { marginTop: 14 },
+  panels: { flexDirection: "row", gap: 12 },
   panel: {
     flex: 1,
     borderWidth: 1,
@@ -66,6 +83,37 @@ const styles = StyleSheet.create({
     borderRadius: 3,
     padding: 10,
   },
+
+  /* Horizontal strip carrying the document/tax attributes. These describe the
+     invoice, not a party, so they sit apart from the From/Bill To cards. */
+  metaStrip: {
+    flexDirection: "row",
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: RULE,
+    borderRadius: 3,
+    backgroundColor: SOFT,
+  },
+  metaCell: {
+    flex: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    borderRightWidth: 1,
+    borderRightColor: RULE,
+  },
+  metaCellLast: {
+    flex: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+  },
+  metaKey: {
+    fontSize: 6.5,
+    fontFamily: "Helvetica-Bold",
+    letterSpacing: 0.8,
+    color: MUTED,
+    marginBottom: 2,
+  },
+  metaValue: { fontSize: 8.5, lineHeight: 1.3 },
   panelLabel: {
     fontSize: 7,
     fontFamily: "Helvetica-Bold",
@@ -75,6 +123,8 @@ const styles = StyleSheet.create({
   },
   strong: { fontFamily: "Helvetica-Bold" },
   muted: { color: MUTED },
+  /** Address and identifier lines inside a party card. */
+  partyLine: {},
 
   tableHead: {
     flexDirection: "row",
@@ -120,6 +170,30 @@ const styles = StyleSheet.create({
     padding: 9,
     borderRadius: 3,
   },
+  paidPanel: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+    marginTop: 14,
+    borderWidth: 1,
+    borderColor: RULE,
+    borderRadius: 3,
+    padding: 10,
+  },
+  paidStamp: {
+    borderWidth: 1.5,
+    borderColor: "#1B7F5A",
+    borderRadius: 3,
+    paddingVertical: 4,
+    paddingHorizontal: 12,
+  },
+  paidStampText: {
+    fontSize: 12,
+    fontFamily: "Helvetica-Bold",
+    letterSpacing: 2,
+    color: "#1B7F5A",
+  },
+
   declaration: {
     marginTop: 14,
     borderWidth: 1,
@@ -168,14 +242,20 @@ interface InvoiceDocumentProps {
   invoice: Invoice;
   /** Contact details for the footer, from the live seller profile. */
   contact: { supportEmail: string; phone: string; website: string };
-  /** Service description printed on the single line item. */
-  description: string;
+  /** Line item wording: the service on one line, its details beneath. */
+  description: { title: string; detail: string };
+  /**
+   * Absolute path or data URI for the logo. Falls back to the trade name as
+   * text when absent, so a missing asset never breaks invoice generation.
+   */
+  logoSrc?: string;
 }
 
 export const InvoiceDocument: React.FC<InvoiceDocumentProps> = ({
   invoice,
   contact,
   description,
+  logoSrc,
 }) => {
   const currency = invoice.currency;
   const isIntraState = invoice.supplyType === "intra";
@@ -189,79 +269,116 @@ export const InvoiceDocument: React.FC<InvoiceDocumentProps> = ({
       subject={`Tax invoice for ${invoice.buyerName}`}
     >
       <Page size="A4" style={styles.page}>
-        {/* Seller identity and document title */}
+        {/* Brand and document title. Kept to a single compact band so the two
+            parties below get the visual weight. */}
         <View style={styles.headerRow}>
-          <View style={{ maxWidth: 280 }}>
-            <Text style={styles.sellerName}>
+          {logoSrc ? (
+            // react-pdf's Image is a PDF drawing primitive, not an HTML <img>:
+            // it takes no alt prop, and the PDF carries its own document title
+            // for assistive technology.
+            // eslint-disable-next-line jsx-a11y/alt-text
+            <Image src={logoSrc} style={styles.logo} />
+          ) : (
+            <Text style={{ fontSize: 15, fontFamily: "Helvetica-Bold" }}>
               {invoice.sellerTradeName ?? invoice.sellerLegalName}
             </Text>
-            <Text style={styles.sellerLegal}>{invoice.sellerLegalName}</Text>
-            {invoice.sellerAddress.split("\n").map((line, i) => (
-              <Text key={i} style={styles.sellerLine}>
-                {line}
-              </Text>
-            ))}
-            <Text style={[styles.sellerLine, { marginTop: 3 }]}>
-              GSTIN: {invoice.sellerGstin}
-            </Text>
-            {invoice.sellerCin ? (
-              <Text style={styles.sellerLine}>CIN: {invoice.sellerCin}</Text>
-            ) : null}
-          </View>
+          )}
 
           <View>
             <Text style={styles.docTitle}>TAX INVOICE</Text>
             <Text style={styles.docMeta}>
               Invoice No: <Text style={styles.strong}>{invoice.invoiceNo}</Text>
             </Text>
-            <Text style={styles.docMeta}>
-              Date: {formatDate(invoice.issuedAt)}
-            </Text>
-            <Text style={styles.docMeta}>
-              Reverse charge: No
-            </Text>
           </View>
         </View>
 
-        {/* Buyer and supply details */}
+        {/* The two parties, given equal visual weight because they are the two
+            sides of the same transaction. */}
         <View style={styles.section}>
           <View style={styles.panels}>
+            <View style={styles.panel}>
+              <Text style={styles.panelLabel}>FROM</Text>
+              <Text style={styles.strong}>{invoice.sellerLegalName}</Text>
+              {invoice.sellerTradeName ? (
+                <Text style={styles.muted}>
+                  trading as {invoice.sellerTradeName}
+                </Text>
+              ) : null}
+              {invoice.sellerAddress.split("\n").map((line, i) => (
+                <Text key={i} style={styles.partyLine}>
+                  {line}
+                </Text>
+              ))}
+              <Text style={{ marginTop: 3 }}>GSTIN: {invoice.sellerGstin}</Text>
+              <Text style={styles.partyLine}>
+                {invoice.sellerPan ? `PAN: ${invoice.sellerPan}` : ""}
+                {invoice.sellerPan && invoice.sellerCin ? "   " : ""}
+                {invoice.sellerCin ? `CIN: ${invoice.sellerCin}` : ""}
+              </Text>
+            </View>
+
             <View style={styles.panel}>
               <Text style={styles.panelLabel}>BILL TO</Text>
               <Text style={styles.strong}>{invoice.buyerName}</Text>
               {invoice.buyerCompany ? (
-                <Text>{invoice.buyerCompany}</Text>
+                <Text style={styles.partyLine}>{invoice.buyerCompany}</Text>
               ) : null}
               {invoice.buyerAddress
-                ? invoice.buyerAddress
-                    .split("\n")
-                    .map((line, i) => <Text key={i}>{line}</Text>)
+                ? invoice.buyerAddress.split("\n").map((line, i) => (
+                    <Text key={i} style={styles.partyLine}>
+                      {line}
+                    </Text>
+                  ))
                 : null}
-              <Text style={styles.muted}>{invoice.buyerEmail}</Text>
+              {invoice.buyerCountry ? (
+                <Text style={styles.partyLine}>{invoice.buyerCountry}</Text>
+              ) : null}
+              <Text style={[styles.muted, styles.partyLine]}>
+                {invoice.buyerEmail}
+              </Text>
               {invoice.buyerGstin ? (
                 <Text style={{ marginTop: 3 }}>GSTIN: {invoice.buyerGstin}</Text>
               ) : null}
             </View>
+          </View>
+        </View>
 
-            <View style={styles.panel}>
-              <Text style={styles.panelLabel}>SUPPLY DETAILS</Text>
-              <Text>
-                <Text style={styles.muted}>Place of supply: </Text>
-                {invoice.placeOfSupply} ({invoice.placeOfSupplyCode})
-              </Text>
-              <Text>
-                <Text style={styles.muted}>Supply type: </Text>
-                {isExport
-                  ? "Export of service"
-                  : isIntraState
-                    ? "Intra-state"
-                    : "Inter-state"}
-              </Text>
-              <Text>
-                <Text style={styles.muted}>Currency: </Text>
-                {currency}
-              </Text>
-            </View>
+        {/* Document and tax attributes. These describe the invoice rather than a
+            party, so they read as one horizontal band instead of masquerading as
+            a third party card. */}
+        <View style={styles.metaStrip}>
+          <View style={styles.metaCell}>
+            <Text style={styles.metaKey}>INVOICE DATE</Text>
+            <Text style={styles.metaValue}>{formatDate(invoice.issuedAt)}</Text>
+          </View>
+          <View style={styles.metaCell}>
+            {/* On an export the place of supply IS the destination country, so
+                label it as such rather than leaving a country name under a
+                domestic-sounding heading. */}
+            <Text style={styles.metaKey}>
+              {isExport ? "DESTINATION" : "PLACE OF SUPPLY"}
+            </Text>
+            <Text style={styles.metaValue}>
+              {invoice.placeOfSupply} ({invoice.placeOfSupplyCode})
+            </Text>
+          </View>
+          <View style={styles.metaCell}>
+            <Text style={styles.metaKey}>SUPPLY TYPE</Text>
+            <Text style={styles.metaValue}>
+              {isExport
+                ? "Export of service"
+                : isIntraState
+                  ? "Intra-state"
+                  : "Inter-state"}
+            </Text>
+          </View>
+          <View style={styles.metaCell}>
+            <Text style={styles.metaKey}>CURRENCY</Text>
+            <Text style={styles.metaValue}>{currency}</Text>
+          </View>
+          <View style={styles.metaCellLast}>
+            <Text style={styles.metaKey}>REVERSE CHARGE</Text>
+            <Text style={styles.metaValue}>No</Text>
           </View>
         </View>
 
@@ -272,7 +389,12 @@ export const InvoiceDocument: React.FC<InvoiceDocumentProps> = ({
           <Text style={[styles.thText, styles.colAmt]}>TAXABLE VALUE</Text>
         </View>
         <View style={styles.tableRow}>
-          <Text style={styles.colDesc}>{description}</Text>
+          <View style={styles.colDesc}>
+            <Text>{description.title}</Text>
+            <Text style={[styles.muted, { fontSize: 8, marginTop: 2 }]}>
+              {description.detail}
+            </Text>
+          </View>
           <Text style={styles.colSac}>{invoice.sacCode}</Text>
           <Text style={styles.colAmt}>
             {money(invoice.taxableValue, currency)}
@@ -343,6 +465,39 @@ export const InvoiceDocument: React.FC<InvoiceDocumentProps> = ({
               {amountInWords(invoice.total, currency === "INR" ? "INR" : "USD")}
             </Text>
           </Text>
+        </View>
+
+        {/* Payment evidence: the invoice doubles as the buyer's receipt. */}
+        <View style={styles.paidPanel}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.panelLabel}>PAYMENT</Text>
+            <Text>
+              <Text style={styles.muted}>Status: </Text>
+              <Text style={styles.strong}>Paid in full</Text>
+            </Text>
+            {invoice.paidAt ? (
+              <Text>
+                <Text style={styles.muted}>Received: </Text>
+                {formatDate(invoice.paidAt)}
+              </Text>
+            ) : null}
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.panelLabel}>REFERENCE</Text>
+            <Text>
+              <Text style={styles.muted}>Method: </Text>
+              Razorpay
+            </Text>
+            {invoice.paymentReference ? (
+              <Text>
+                <Text style={styles.muted}>Payment ID: </Text>
+                {invoice.paymentReference}
+              </Text>
+            ) : null}
+          </View>
+          <View style={styles.paidStamp}>
+            <Text style={styles.paidStampText}>PAID</Text>
+          </View>
         </View>
 
         {/* Export declaration, printed only when zero-rated under a LUT */}
