@@ -54,8 +54,14 @@ export async function POST(request: Request) {
 
   const db = getDb();
   if (!db) {
+    // Hard-fail rather than degrade: a null DB is a misconfiguration, not a
+    // "payments off" state. Returning `razorpayConfigured:false` here would send
+    // the buyer to the no-charge holding flow and silently swallow the problem.
     console.error("[pavel/checkout] Database is not configured.");
-    return NextResponse.json({ razorpayConfigured: false });
+    return NextResponse.json(
+      { error: "Checkout is temporarily unavailable." },
+      { status: 503 }
+    );
   }
 
   // Load the registration this checkout belongs to. Must exist and be unpaid.
