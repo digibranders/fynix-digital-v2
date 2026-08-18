@@ -266,7 +266,9 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
   const ensureToken = async (): Promise<string> => {
     if (formTokenRef.current) return formTokenRef.current;
     try {
-      const res = await fetch("/api/pavel/form-token", { cache: "no-store" });
+      const res = await fetch(apiUrl("/api/pavel/form-token"), {
+        cache: "no-store",
+      });
       const data = await res.json();
       if (typeof data?.token === "string") formTokenRef.current = data.token;
     } catch {

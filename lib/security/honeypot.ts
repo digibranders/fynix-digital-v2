@@ -16,8 +16,18 @@ import crypto from "crypto";
  * Enforced server-side only — client checks are trivially bypassed by bots.
  */
 
+/**
+ * Signs form tokens for the workshop checkout and the admin login alike, so the
+ * name is deliberately unprefixed. `PAVEL_FORM_SECRET` is the original name,
+ * still read as a fallback so environments can migrate independently.
+ *
+ * A token must be issued and verified by the SAME host, since each host signs
+ * with its own copy of this value.
+ */
 const SECRET =
-  process.env.PAVEL_FORM_SECRET || "dev-insecure-pavel-form-secret-change-me";
+  process.env.FORM_SECRET ||
+  process.env.PAVEL_FORM_SECRET ||
+  "dev-insecure-pavel-form-secret-change-me";
 
 /**
  * Minimum time between the form loading and submitting. Faster ⇒ bot. Kept low
