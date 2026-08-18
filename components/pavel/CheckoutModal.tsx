@@ -273,14 +273,35 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
     }
   };
 
-  // The price shown on the confirm button — discounted when a code is applied.
-  const discountedDisplay = appliedReferral
+  // A referral discounts the taxable base, and GST is charged on what is left.
+  // Both figures are needed because they answer different questions, and showing
+  // one where the other belongs is what makes the price look wrong:
+  //
+  //   base    what the button quotes, matching the undiscounted "₹7,499 + GST"
+  //   payable what Razorpay actually collects, GST included
+  //
+  // `applyDiscount(base)` is the same rounding computeTax() uses for the taxable
+  // value, so the quoted figure equals the invoice's taxable line exactly.
+  const discountedBaseDisplay = appliedReferral
+    ? formatUnitAmount(
+        price,
+        applyDiscount(price.base, appliedReferral.discountPercent)
+      )
+    : null;
+  const discountedPayableDisplay = appliedReferral
     ? formatUnitAmount(
         price,
         applyDiscount(price.unitAmount, appliedReferral.discountPercent)
       )
     : null;
-  const confirmPrice = discountedDisplay ?? price.display;
+
+  // Quote the discounted base with the same tax suffix as the list price, so the
+  // button reads "₹6,749.10 + GST" rather than switching to a GST-inclusive
+  // total the moment a code is applied. Outside India taxNote is empty and the
+  // two amounts are identical, so this collapses to a plain discounted price.
+  const confirmPrice = discountedBaseDisplay
+    ? [discountedBaseDisplay, price.taxNote].filter(Boolean).join(" ")
+    : price.display;
 
   const ensureToken = async (): Promise<string> => {
     if (formTokenRef.current) return formTokenRef.current;
@@ -999,7 +1020,10 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
                     <span>
                       <span className="font-semibold">{appliedReferral.code}</span>{" "}
                       applied &middot; {appliedReferral.discountPercent}% off. You pay{" "}
-                      <span className="font-semibold">{discountedDisplay}</span>.
+                      <span className="font-semibold">
+                        {discountedPayableDisplay}
+                      </span>
+                      {price.taxNote ? " incl. GST" : ""}.
                     </span>
                   </p>
                 )}
