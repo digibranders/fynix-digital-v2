@@ -2,6 +2,7 @@ import React from "react";
 import Image from "next/image";
 import Reveal from "@/components/Reveal";
 import { Container } from "../ui/Container";
+import { TalkVideo } from "../ui/TalkVideo";
 
 // Collage layout: 4 cols x 2 rows on desktop.
 // Col 1 (solo tall portrait) & Col 4 (solo tall portrait); cols 2 & 3 hold stacked images.
@@ -48,78 +49,34 @@ export const Instructor: React.FC = () => {
   return (
     <section
       id="instructor"
-      className="py-16 md:py-20 pv-seam bg-background-soft"
+      className="py-12 pv-seam bg-background-soft"
     >
       <Container>
-        {/* Header block: instructor card left, text right */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-14 lg:gap-16 items-start mb-16 md:mb-20">
-          <Reveal className="lg:col-span-5">
-            <div className="relative rounded-[16px] overflow-hidden aspect-[4/5] shadow-[0_1px_2px_rgba(15,14,12,0.06),0_24px_50px_-24px_rgba(15,14,12,0.28)]">
-              <Image
-                src="/pavel/Kulturalnie-o-SEO-warsaw-pavel.webp"
-                alt="Pavel Klimakov interview at Kulturalnie o SEO"
-                fill
-                sizes="(min-width: 1024px) 40vw, 100vw"
-                priority
-                className="object-cover object-[center_25%]"
-              />
-              <div
-                aria-hidden
-                className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/10 to-black/80"
-              />
-              <div className="relative z-10 h-full flex flex-col justify-between p-8 md:p-10 text-white">
-                <div>
-                  <p className="text-[16px] italic font-normal text-white/75">
-                    Instructor
-                  </p>
-                  <p className="text-[1.65rem] sm:text-[1.9rem] leading-[1.05] font-semibold text-white mt-2 tracking-[-0.02em]">
-                    Pavel
-                    <br />
-                    Klimakov
-                  </p>
-                </div>
-
-                <div className="pt-8 pv-seam-td flex items-end justify-between gap-4">
-                  <div>
-                    <p className="text-[13.5px] italic font-normal text-white/75">
-                      Experience
-                    </p>
-                    <p className="text-[15px] text-white font-medium mt-1.5">
-                      8 years, information retrieval &amp; NLP
-                    </p>
-                  </div>
-                  <a
-                    href="https://www.linkedin.com/in/pavel-klimakov/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label="Pavel Klimakov on LinkedIn (opens in a new tab)"
-                    className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#0A66C2] text-white shadow-[0_2px_8px_rgba(10,102,194,0.4)] transition-colors hover:bg-[#004182]"
-                  >
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                      className="h-[18px] w-[18px]"
-                      aria-hidden
-                    >
-                      <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 1 1 0-4.124 2.062 2.062 0 0 1 0 4.124zM7.119 20.452H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
-                    </svg>
-                  </a>
-                </div>
-              </div>
-            </div>
-          </Reveal>
-
-          <Reveal delay={100} className="lg:col-span-7 space-y-7">
-            <h2 className="text-[2.05rem] sm:text-[2.55rem] lg:text-[2.9rem] leading-[1.1] font-medium tracking-[-0.026em] text-primary">
-              Eight years in information retrieval, NLP, and modern search.
-            </h2>
-
-            <p className="text-[1.175rem] text-text-muted leading-[1.65] font-normal">
-              He pairs Koray&rsquo;s Semantic SEO framework with programming,
-              so you can finally repeat what ranked on purpose.
+        {/* See him teach: centred feature — a short heading leads into the
+            click-to-play recording of Pavel's conference talk. */}
+        <Reveal delay={100} className="mb-16 md:mb-20">
+          <div className="mx-auto mb-10 max-w-[680px] text-center md:mb-12">
+            <h3 className="text-[1.9rem] font-medium leading-[1.1] tracking-[-0.024em] text-primary sm:text-[2.3rem]">
+              Live on stage,{" "}
+              <span className="font-serif italic font-medium">
+                teaching this.
+              </span>
+            </h3>
+            <p className="mx-auto mt-4 max-w-[560px] text-[1.1rem] font-normal leading-[1.6] text-text-muted">
+              A full conference talk on the exact framework you&rsquo;ll learn.
+              Entities, topical maps, and reading Google the way it reads the
+              web.
             </p>
-          </Reveal>
-        </div>
+          </div>
+          <div className="mx-auto max-w-[900px]">
+            <TalkVideo
+              src="/pavel/pavel-semantic-seo-talk.mp4"
+              poster="/pavel/pavel-talk-poster.jpg"
+              label="Watch Pavel teach Semantic SEO, live on stage"
+              duration="4:43"
+            />
+          </div>
+        </Reveal>
 
         {/* 4-column collage: Col 1 & Col 4 tall solo portraits + 2 middle stacked columns */}
         <Reveal

@@ -93,7 +93,7 @@ export const Curriculum: React.FC = () => {
   return (
     <section
       id="curriculum"
-      className="relative py-16 md:py-20 bg-primary text-white overflow-hidden"
+      className="relative py-12 bg-primary text-white overflow-hidden"
     >
       {/* Brand dot-grid background texture in outer section spaces */}
       <div
@@ -109,7 +109,7 @@ export const Curriculum: React.FC = () => {
         {/* Central Content Box with Low Contrast Subtle Backdrop & Hairline Border */}
         <div className="max-w-4xl mx-auto rounded-3xl bg-primary/95 border border-white/[0.04] p-6 sm:p-10">
           {/* Section Header */}
-          <div className="max-w-3xl mx-auto text-center space-y-4 mb-10 md:mb-12">
+          <div className="max-w-4xl mx-auto text-center space-y-4 mb-10 md:mb-12">
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-medium tracking-tight text-white leading-[1.1]">
               What you will learn,{" "}
               <br className="sm:hidden" />
@@ -118,8 +118,10 @@ export const Curriculum: React.FC = () => {
               </span>
             </h2>
 
-            <p className="text-base sm:text-lg text-white/75 leading-relaxed max-w-2xl mx-auto">
-              Six focused live modules. A battle-tested engineering framework you can execute on Monday morning to win search authority.
+            {/* Copy is trimmed to sit on one line on desktop (nowrap); it wraps
+                normally on smaller screens where there isn't room. */}
+            <p className="text-base sm:text-lg lg:whitespace-nowrap text-white/75 leading-relaxed mx-auto">
+              Six live modules. An engineering framework to execute Monday morning and win search authority.
             </p>
           </div>
 

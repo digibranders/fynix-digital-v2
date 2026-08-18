@@ -34,7 +34,7 @@ export const Testimonials: React.FC = () => {
   return (
     <section
       id="testimonials"
-      className="py-16 md:py-20 pv-seam bg-background-soft"
+      className="py-12 pv-seam bg-background-soft"
     >
       <Container>
         <div className="max-w-[820px] mb-16 md:mb-20">

@@ -13,11 +13,12 @@ const INCLUDED = [
   "Three hours live with Pavel, on Zoom",
   "Live Q&A during the session",
   "Full slide deck and detailed notes",
+  "7-day access to the full workshop recording",
+  "Certificate of completion",
   "A repeatable process you can apply the same week",
 ];
 
 const NOT_INCLUDED = [
-  "Session recording (this is a live-only event)",
   "Refunds (no refunds for this live event)",
 ];
 
@@ -25,18 +26,13 @@ export const Pricing: React.FC = () => {
   const { price } = usePricing();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const openCheckout = () => {
-    if (price.checkoutUrl) {
-      window.open(price.checkoutUrl, "_blank", "noopener,noreferrer");
-    } else {
-      setIsModalOpen(true);
-    }
-  };
+  // Registration + Razorpay Checkout both run inside the modal.
+  const openCheckout = () => setIsModalOpen(true);
 
   return (
     <section
       id="pricing"
-      className="py-16 md:py-20 pv-seam bg-background-soft"
+      className="py-12 pv-seam bg-background-soft"
     >
       <Container>
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-14 lg:gap-16">
@@ -64,10 +60,10 @@ export const Pricing: React.FC = () => {
                     </p>
                     <p className="text-[15px] italic font-normal text-text-muted mt-2">
                       Live on {WORKSHOP.platform}, {WORKSHOP.dateLabel},{" "}
-                      {/* Desktop: keep the full time on its own second line so
-                          "10:00 AM" doesn't get stranded on line one. */}
+                      {/* Desktop: keep the full time range on its own second
+                          line so it doesn't get stranded on line one. */}
                       <br className="hidden lg:block" aria-hidden />
-                      {WORKSHOP.time} ({WORKSHOP.timezone}).
+                      {WORKSHOP.timeRange}.
                     </p>
                   </div>
                   <div className="shrink-0 sm:text-right">
@@ -81,7 +77,7 @@ export const Pricing: React.FC = () => {
                       </span>
                     </div>
                     <p className="text-[12.5px] italic font-normal text-text-muted mt-2">
-                      one-time
+                      {price.taxNote ? `${price.taxNote} · one-time` : "one-time"}
                     </p>
                   </div>
                 </div>
@@ -95,7 +91,7 @@ export const Pricing: React.FC = () => {
                       {INCLUDED.map((it, i) => (
                         <li
                           key={i}
-                          className="flex items-start gap-3 text-[14.5px] text-primary leading-[1.55]"
+                          className="flex items-start gap-3 text-[14.5px] font-medium text-primary leading-[1.55]"
                         >
                           <Check
                             className="w-4 h-4 text-accent mt-1 shrink-0"
@@ -139,7 +135,7 @@ export const Pricing: React.FC = () => {
                     <ArrowRight className="w-4 h-4" />
                   </Button>
                   <p className="text-center text-[12px] font-normal text-text-muted mt-4">
-                    Live-only &middot; no recording &middot; no refunds.{" "}
+                    Live + 7-day recording &middot; certificate included &middot; no refunds.{" "}
                     <a
                       href="/terms"
                       className="underline decoration-[#565D64]/40 underline-offset-2 hover:text-text-muted hover:decoration-[#565D64]"

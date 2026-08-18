@@ -29,14 +29,13 @@ export default function AnnouncementBanner() {
             className="group inline-flex flex-wrap items-center justify-center gap-x-3 gap-y-0.5 text-[12px] sm:text-[14px] leading-tight"
           >
             <span className="font-semibold text-white">
-              Live Semantic SEO Workshop with Pavel Klimakov
+            SEMANTIC SEO: FROM CONFUSION TO CLARITY
             </span>
             <span aria-hidden className="hidden sm:inline text-white/25">
               |
             </span>
             <span className="hidden sm:inline text-white/65 transition-colors group-hover:text-white/85">
-              Learn the system that lets smaller sites outrank bigger link
-              budgets.
+            3 Hours Masterclass to Decode the Concepts, Connect the Dots & Get Certified
             </span>
             <span className="font-semibold text-accent underline decoration-accent/50 underline-offset-[5px] transition-colors group-hover:text-accent-hover group-hover:decoration-accent-hover">
               Reserve a seat

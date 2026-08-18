@@ -26,9 +26,16 @@ const nextConfig: NextConfig = {
       "img-src 'self' data: blob: https:",
       "font-src 'self' data:",
       "style-src 'self' 'unsafe-inline'",
-      `script-src 'self' 'unsafe-inline' https://www.googletagmanager.com${isDev ? " 'unsafe-eval'" : ""}`,
-      "frame-src 'self' https://www.youtube-nocookie.com https://www.googletagmanager.com",
-      `connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com${isDev ? " ws:" : ""}`,
+      // Google Tag Manager loads gtm.js, renders its <noscript> tracking iframe,
+      // and GA/GTM beacons post back to the Google analytics hosts — so it needs
+      // script-src, frame-src and connect-src.
+      // Razorpay Checkout loads checkout.js and opens its payment UI in an
+      // iframe, and talks to *.razorpay.com — all three directives must allow it.
+      // The overlay also pulls its risk/fraud-detection bundle from
+      // cdn.razorpay.com, so script-src must allow that host too.
+      `script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://checkout.razorpay.com https://cdn.razorpay.com${isDev ? " 'unsafe-eval'" : ""}`,
+      "frame-src 'self' https://www.youtube-nocookie.com https://www.googletagmanager.com https://api.razorpay.com https://checkout.razorpay.com",
+      `connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.razorpay.com${isDev ? " ws:" : ""}`,
       "worker-src 'self' blob:",
     ].join("; ");
 

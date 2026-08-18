@@ -165,6 +165,7 @@ export default function CustomSelect({
         ref={listboxRef}
         id={listboxId}
         role="listbox"
+        data-lenis-prevent
         aria-labelledby={triggerId}
         className={`custom-select__menu absolute left-0 right-0 z-50 mt-2 py-1.5 bg-white border border-border rounded-2xl shadow-[0_12px_40px_-8px_rgba(12,30,46,0.15)] overflow-y-auto max-h-44 transition-all origin-top custom-select-scroll ${
           open

@@ -1,33 +1,33 @@
 "use client";
 
 import React, { createContext, useContext, useMemo, useState } from "react";
-import { PRICING, type PriceInfo, type Region } from "./pricing";
+import { PRICING, type PriceInfo, type Country } from "./pricing";
 
 type PricingContextValue = {
-  region: Region;
+  country: Country;
   price: PriceInfo;
-  setRegion: (region: Region) => void;
+  setCountry: (country: Country) => void;
 };
 
 const PricingContext = createContext<PricingContextValue | null>(null);
 
 /**
- * Holds the active pricing region for the workshop page. Seeded with the
- * server-detected region so the correct price is in the initial HTML (no
+ * Holds the active pricing country for the workshop page. Seeded with the
+ * server-detected country so the correct price is in the initial HTML (no
  * currency flash on hydration); the `$/₹` toggle updates it client-side.
  */
 export function PricingProvider({
-  initialRegion,
+  initialCountry,
   children,
 }: {
-  initialRegion: Region;
+  initialCountry: Country;
   children: React.ReactNode;
 }) {
-  const [region, setRegion] = useState<Region>(initialRegion);
+  const [country, setCountry] = useState<Country>(initialCountry);
 
   const value = useMemo<PricingContextValue>(
-    () => ({ region, price: PRICING[region], setRegion }),
-    [region],
+    () => ({ country, price: PRICING[country], setCountry }),
+    [country],
   );
 
   return (

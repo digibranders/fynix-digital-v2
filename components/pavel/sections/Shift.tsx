@@ -21,7 +21,7 @@ export const Shift: React.FC = () => {
   return (
     <section
       id="shift"
-      className="relative py-16 md:py-20 bg-background-soft overflow-hidden"
+      className="relative py-12 bg-background-soft overflow-hidden"
     >
       {/* Subtle dot-grid texture matching the light background system */}
       <div
@@ -35,13 +35,12 @@ export const Shift: React.FC = () => {
 
       <Container className="relative">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-14 lg:gap-20 items-start">
-          <div className="lg:col-span-6 lg:sticky lg:top-32">
+          <div className="lg:col-span-6">
             <h2 className="text-[2.15rem] sm:text-[2.65rem] lg:text-[3.05rem] leading-[1.08] font-medium tracking-[-0.026em] text-primary">
-              Make your site{" "}
+              Stop the guesswork, understand{" "}
               <span className="font-serif italic font-medium">
-                cheaper to retrieve
-              </span>{" "}
-              and more trustworthy.
+                Google&rsquo;s real ranking logic.
+              </span>
             </h2>
 
             <p className="mt-8 text-[1.2rem] text-text-muted leading-[1.65] max-w-[520px] font-normal">
@@ -53,7 +52,7 @@ export const Shift: React.FC = () => {
             </p>
           </div>
 
-          <div className="lg:col-span-6 space-y-8 lg:pt-2">
+          <div className="lg:col-span-6 space-y-8">
             <p className="text-[16px] italic font-normal text-text-muted pb-3">
               What you will be able to do
             </p>

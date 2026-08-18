@@ -7,10 +7,22 @@ import { ArrowRight } from "lucide-react";
 import { WORKSHOP } from "../workshopDetails";
 import { usePricing } from "../PricingProvider";
 
+// Split the range so the end time drops cleanly to a second line in the
+// narrow essentials column.
+const [timeStart, timeEnd] = WORKSHOP.timeRange.split(" - ");
+
 const FACTS = [
   { label: "Date", value: WORKSHOP.dateLabel },
-  { label: "Time", value: `${WORKSHOP.time} (${WORKSHOP.timezone})` },
-  { label: "Format", value: `Live on ${WORKSHOP.platform}, 3 hours` },
+  {
+    label: "Time",
+    value: (
+      <>
+        {timeStart} -<br />
+        {timeEnd}
+      </>
+    ),
+  },
+  { label: "Format", value: `Live on ${WORKSHOP.platform}` },
   { label: "Access", value: "Live Interactive" },
 ];
 
@@ -71,7 +83,7 @@ export const FinalCTA: React.FC = () => {
               <ArrowRight className="w-4 h-4" />
             </button>
             <p className="text-[13px] italic text-white/55">
-              {price.display} one-time &middot; live-only &middot; instant confirmation.
+              {price.display}{" "}one-time &middot; 7-day recording included &middot; instant confirmation.
             </p>
           </div>
         </Reveal>

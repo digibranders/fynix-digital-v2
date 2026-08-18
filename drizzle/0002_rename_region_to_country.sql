@@ -1,0 +1,1 @@
+ALTER TABLE "registrations" RENAME COLUMN "region" TO "country";

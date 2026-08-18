@@ -77,7 +77,7 @@ export const Footer: React.FC = () => {
               Contact
             </p>
             <a
-              href="mailto:hello@pavelklimakov.com"
+              href="mailto:hello@fynix.digital"
               className="block text-[14px] text-white hover:underline underline-offset-4"
             >
               hello@fynix.digital

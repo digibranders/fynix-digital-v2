@@ -1,0 +1,37 @@
+/*
+ * Print rules for the standalone certificate route ONLY.
+ * Split out of certificate.css so the screen styles can be reused on the
+ * marketing page WITHOUT this global @page A4 override hijacking that page's
+ * own printing. Imported only by app/pavel/certificate/page.tsx.
+ */
+/* --- Print: one clean A4 landscape sheet, nothing else ------------------- */
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 0;
+  }
+  html, body {
+    background: #fff !important;
+  }
+  .cert-page {
+    min-height: 0;
+    background: none;
+    padding: 0;
+  }
+  .cert-shell { width: 100%; }
+  .cert-actions {
+    display: none !important;
+  }
+  .cert-stage {
+    container-type: normal;
+  }
+  .cert {
+    /* Fixed root em keyed to the A4 landscape width (297mm). */
+    font-size: 4.6mm;
+    width: 297mm;
+    height: 210mm;
+    aspect-ratio: auto;
+    border-radius: 0;
+    box-shadow: none;
+  }
+}

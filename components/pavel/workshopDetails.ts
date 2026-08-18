@@ -13,6 +13,11 @@ export const WORKSHOP = {
   platform: "Zoom",
   dateLabel: "5 September 2026",
   time: "5:00 PM IST",
+  /**
+   * Full start–end range for the 3-hour session, IST. Surfaced on the thank-you
+   * page schedule line. Keep in sync with `time`, `startUtc`, and `endUtc`.
+   */
+  timeRange: "5:00 PM - 8:00 PM IST",
   timezone: "GMT+5:30",
   seats: 100,
   /**
@@ -36,4 +41,16 @@ export const WORKSHOP = {
   zoomUrl: "https://zoom.us/j/pavel-semantic-seo-workshop",
   zoomPasscode: "SEMANTIC2026",
   notesUrl: "https://fynix.digital/pavel/notes",
+  /**
+   * Post-event replay. Confirmed attendees get access to the full workshop
+   * recording for `recordingWindowDays` days after the session, delivered by
+   * email. Surfaced in the pricing/deliverables copy and on the thank-you page.
+   */
+  recordingWindowDays: 7,
+  /**
+   * Private attendees-only WhatsApp community. Surfaced on the verified-paid
+   * thank-you page so only confirmed seats can join. ⚠️ PLACEHOLDER — swap for
+   * the real group invite link before going live.
+   */
+  whatsappGroupUrl: "https://chat.whatsapp.com/EScrV53wlYrJuBOufygDtV?s=cl&p=a&ilr=1",
 } as const;
