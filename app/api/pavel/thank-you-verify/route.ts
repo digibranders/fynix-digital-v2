@@ -36,6 +36,7 @@ export async function GET(request: Request) {
         ref: string;
         status: string;
         razorpayOrderId: string | null;
+        zoomJoinUrl: string | null;
       }
     | undefined;
   try {
@@ -45,6 +46,7 @@ export async function GET(request: Request) {
         ref: registrations.ref,
         status: registrations.status,
         razorpayOrderId: registrations.razorpayOrderId,
+        zoomJoinUrl: registrations.zoomJoinUrl,
       })
       .from(registrations)
       .where(eq(registrations.ref, ref))
@@ -58,7 +60,15 @@ export async function GET(request: Request) {
   }
 
   if (registration.status === "paid") {
-    return NextResponse.json({ paid: true, name: registration.name, ref: registration.ref });
+    return NextResponse.json({
+      paid: true,
+      name: registration.name,
+      ref: registration.ref,
+      // The buyer's OWN tokenised link. Absent only if Zoom registration has
+      // not landed yet, in which case the page says so rather than showing a
+      // shared link that would not admit them.
+      joinUrl: registration.zoomJoinUrl,
+    });
   }
 
   // Still pending — the webhook/verify may not have landed yet. Ask Razorpay
@@ -75,6 +85,7 @@ export async function GET(request: Request) {
           paid: true,
           name: registration.name,
           ref: registration.ref,
+          joinUrl: registration.zoomJoinUrl,
         });
       }
     } catch (err) {
