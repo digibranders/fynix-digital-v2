@@ -23,6 +23,8 @@ export type AdminRegistrationRow = {
   createdAt: string; // ISO
   paidAt: string | null; // ISO
   razorpayPaymentId: string | null;
+  /** Issued tax invoice number, e.g. "FYX/26-27/0001". Null until issued. */
+  invoiceNo: string | null;
 };
 
 type StatusFilter = "all" | "paid" | "pending";
@@ -54,6 +56,33 @@ function DateCell({ iso }: { iso: string | null }) {
         {TIME_FORMAT.format(date)}
       </span>
     </div>
+  );
+}
+
+/**
+ * Invoice number linking to its PDF. The admin session authorises the download,
+ * so no payment id is needed here. Unpaid seats have no invoice yet.
+ */
+function InvoiceCell({
+  ref_,
+  invoiceNo,
+}: {
+  ref_: string;
+  invoiceNo: string | null;
+}) {
+  if (!invoiceNo) {
+    return <span className="text-slate-600">—</span>;
+  }
+  return (
+    <a
+      href={`/api/pavel/invoice/${encodeURIComponent(ref_)}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="whitespace-nowrap font-mono text-xs text-emerald-400 underline-offset-2 transition hover:text-emerald-300 hover:underline"
+      title="Open the tax invoice PDF"
+    >
+      {invoiceNo}
+    </a>
   );
 }
 
@@ -174,6 +203,7 @@ const CSV_HEADERS = [
   "Status",
   "Registered (IST)",
   "Paid (IST)",
+  "Invoice No",
 ];
 
 /**
@@ -200,6 +230,7 @@ function buildCsv(rows: AdminRegistrationRow[]): string {
       row.status === "paid" ? "Paid" : "Pending",
       formatIstForCsv(row.createdAt),
       formatIstForCsv(row.paidAt),
+      row.invoiceNo,
     ];
     lines.push(cells.map(csvCell).join(","));
   });
@@ -390,13 +421,14 @@ export default function PavelDashboard({
                 <th className="px-3 py-3 font-medium">Status</th>
                 <th className="px-3 py-3 font-medium">Registered (IST)</th>
                 <th className="px-3 py-3 font-medium">Paid (IST)</th>
+                <th className="px-3 py-3 font-medium">Invoice</th>
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={11}
+                    colSpan={12}
                     className="px-4 py-12 text-center text-sm text-slate-500"
                   >
                     No registrations match this view.
@@ -450,6 +482,9 @@ export default function PavelDashboard({
                     </td>
                     <td className="px-3 py-3">
                       <DateCell iso={row.paidAt} />
+                    </td>
+                    <td className="px-3 py-3">
+                      <InvoiceCell ref_={row.ref} invoiceNo={row.invoiceNo} />
                     </td>
                   </tr>
                 ))

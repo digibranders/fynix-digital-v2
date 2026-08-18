@@ -6,11 +6,11 @@ import { registrations } from "@/lib/db/schema";
 import { screenSubmission } from "@/lib/security/honeypot";
 import {
   PRICING,
-  applyDiscount,
   formatUnitAmount,
   type Country,
 } from "@/components/pavel/pricing";
 import { lookupReferral } from "@/lib/pavel/referral";
+import { computeTax } from "@/lib/pavel/tax";
 
 export const runtime = "nodejs";
 
@@ -54,8 +54,14 @@ export async function POST(request: Request) {
 
   const db = getDb();
   if (!db) {
+    // Hard-fail rather than degrade: a null DB is a misconfiguration, not a
+    // "payments off" state. Returning `razorpayConfigured:false` here would send
+    // the buyer to the no-charge holding flow and silently swallow the problem.
     console.error("[pavel/checkout] Database is not configured.");
-    return NextResponse.json({ razorpayConfigured: false });
+    return NextResponse.json(
+      { error: "Checkout is temporarily unavailable." },
+      { status: 503 }
+    );
   }
 
   // Load the registration this checkout belongs to. Must exist and be unpaid.
@@ -66,6 +72,7 @@ export async function POST(request: Request) {
       name: registrations.name,
       email: registrations.email,
       country: registrations.country,
+      state: registrations.state,
       companyName: registrations.companyName,
       gstin: registrations.gstin,
       referralCode: registrations.referralCode,
@@ -110,9 +117,17 @@ export async function POST(request: Request) {
   // here — never trust a discount from the client. Falls back to full price for
   // an empty, unknown, or inactive code.
   const referral = await lookupReferral(db, registration.referralCode);
-  const chargeAmount = referral
-    ? applyDiscount(price.unitAmount, referral.discountPercent)
-    : price.unitAmount;
+
+  // Derive the charge from the taxable base: discount, then GST, then total.
+  // The invoice is built from this same breakdown, so the amount charged and the
+  // amount invoiced are identical by construction (see lib/pavel/tax.ts).
+  const tax = computeTax({
+    country: resolvedCountry,
+    state: registration.state,
+    base: price.base,
+    discountPercent: referral?.discountPercent ?? 0,
+  });
+  const chargeAmount = tax.total;
   const chargeDisplay = referral
     ? formatUnitAmount(price, chargeAmount)
     : price.display;
@@ -163,6 +178,8 @@ export async function POST(request: Request) {
           razorpayOrderId: order.id,
           discountPercent: referral?.discountPercent ?? null,
           amountDisplay: chargeDisplay,
+          amountCharged: chargeAmount,
+          currency: price.currencyCode,
         })
         .where(eq(registrations.id, registration.id));
     } catch (updateError) {

@@ -2,6 +2,9 @@ import { eq } from "drizzle-orm";
 import type { Db } from "@/lib/db/client";
 import { registrations } from "@/lib/db/schema";
 import { dispatchPavelEmail } from "@/lib/email/dispatch";
+import type { EmailAttachment } from "@/lib/email/brevo";
+import { issueInvoiceForRegistration } from "@/lib/pavel/invoice";
+import { renderInvoicePdf, invoiceFileName } from "@/lib/pavel/invoicePdf";
 import {
   buildPavelPaidConfirmationEmail,
   buildPavelPaidRegistrationAdminEmail,
@@ -101,6 +104,33 @@ export async function confirmRegistrationPaid(
     }
   }
 
+  // Issue the tax invoice before the emails so the confirmation can carry it.
+  // Idempotent (unique registration_id) and deliberately non-fatal: a buyer who
+  // has paid must still be confirmed even if invoicing fails, and an invoice can
+  // be re-issued afterwards where a missed confirmation cannot be undone.
+  const invoiceResult = await issueInvoiceForRegistration(db, registration.id);
+  if (invoiceResult.status === "error") {
+    console.error("[pavel/confirm] invoice issuance failed", invoiceResult.reason);
+  }
+
+  // Render the invoice for the confirmation email. Failing to render must not
+  // cost the buyer their confirmation, so this degrades to sending without the
+  // attachment; the invoice stays downloadable from its permalink either way.
+  let invoiceAttachments: EmailAttachment[] | undefined;
+  if (invoiceResult.status !== "error") {
+    try {
+      const pdf = await renderInvoicePdf(invoiceResult.invoice);
+      invoiceAttachments = [
+        {
+          name: invoiceFileName(invoiceResult.invoice),
+          contentBase64: pdf.toString("base64"),
+        },
+      ];
+    } catch (pdfError) {
+      console.error("[pavel/confirm] invoice PDF render failed", pdfError);
+    }
+  }
+
   // Fire confirmation + admin emails. Deduped per (registration, type) in
   // email_log, so a webhook retry or an overlapping verify never double-sends.
   const submission: PavelRegistrationSubmission = {
@@ -121,6 +151,7 @@ export async function confirmRegistrationPaid(
     textContent: confirmation.text,
     sender: SENDER,
     replyTo: SENDER,
+    attachments: invoiceAttachments,
   });
   if (confirmationResult.status === "error") {
     console.error("[pavel/confirm] confirmation email failed", confirmationResult.reason);

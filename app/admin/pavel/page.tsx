@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
-import { desc } from "drizzle-orm";
+import { redirect } from "next/navigation";
+import { desc, eq } from "drizzle-orm";
 import { getDb } from "@/lib/db/client";
-import { registrations } from "@/lib/db/schema";
+import { invoices, registrations } from "@/lib/db/schema";
 import { isAdminAuthenticated } from "@/lib/admin/auth";
 import {
   issueFormToken,
@@ -47,8 +48,13 @@ async function loadRegistrations(): Promise<{
         createdAt: registrations.createdAt,
         paidAt: registrations.paidAt,
         razorpayPaymentId: registrations.razorpayPaymentId,
+        invoiceNo: invoices.invoiceNo,
       })
       .from(registrations)
+      // Left join: pending seats have no invoice, and a paid seat whose issuance
+      // failed should still appear in the table (with a blank invoice cell)
+      // rather than vanish from the operator's view.
+      .leftJoin(invoices, eq(invoices.registrationId, registrations.id))
       .orderBy(desc(registrations.createdAt));
 
     const rows: AdminRegistrationRow[] = records.map((r) => ({
@@ -65,6 +71,7 @@ async function loadRegistrations(): Promise<{
       createdAt: r.createdAt.toISOString(),
       paidAt: r.paidAt ? r.paidAt.toISOString() : null,
       razorpayPaymentId: r.razorpayPaymentId,
+      invoiceNo: r.invoiceNo,
     }));
 
     return { rows, error: null };
@@ -78,6 +85,18 @@ async function loadRegistrations(): Promise<{
 }
 
 export default async function PavelAdminPage() {
+  // The admin dashboard reads the database directly, so it only functions where
+  // the DB lives (the droplet). On a DB-less host (the Vercel marketing site)
+  // send operators to the API origin that actually serves it, rather than
+  // showing a login form that can never load data.
+  if (!getDb()) {
+    const apiBase = (process.env.NEXT_PUBLIC_API_BASE_URL ?? "").replace(
+      /\/+$/,
+      ""
+    );
+    if (apiBase) redirect(`${apiBase}/admin/pavel`);
+  }
+
   if (!(await isAdminAuthenticated())) {
     return (
       <PavelLoginForm
