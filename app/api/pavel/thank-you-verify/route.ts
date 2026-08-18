@@ -37,6 +37,7 @@ export async function GET(request: Request) {
         status: string;
         razorpayOrderId: string | null;
         zoomJoinUrl: string | null;
+        countryCode: string | null;
       }
     | undefined;
   try {
@@ -47,6 +48,7 @@ export async function GET(request: Request) {
         status: registrations.status,
         razorpayOrderId: registrations.razorpayOrderId,
         zoomJoinUrl: registrations.zoomJoinUrl,
+        countryCode: registrations.countryCode,
       })
       .from(registrations)
       .where(eq(registrations.ref, ref))
@@ -68,6 +70,9 @@ export async function GET(request: Request) {
       // not landed yet, in which case the page says so rather than showing a
       // shared link that would not admit them.
       joinUrl: registration.zoomJoinUrl,
+      // Lets the page show the session in the buyer's own time rather than a
+      // UTC offset they have to convert themselves.
+      countryCode: registration.countryCode,
     });
   }
 
@@ -86,6 +91,7 @@ export async function GET(request: Request) {
           name: registration.name,
           ref: registration.ref,
           joinUrl: registration.zoomJoinUrl,
+          countryCode: registration.countryCode,
         });
       }
     } catch (err) {

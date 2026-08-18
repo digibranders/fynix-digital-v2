@@ -89,3 +89,56 @@ export function deriveSchedule(
     timeUtcLabel: `${utcTime(startsAt)} UTC`,
   };
 }
+
+/**
+ * The session expressed in a viewer's own timezone.
+ *
+ * A buyer in Chicago should not have to convert "5:00 PM IST (11:30 UTC)" in
+ * their head, and getting it wrong means missing a workshop they paid for. The
+ * offset is what people mis-read, so show the wall-clock time instead.
+ *
+ * Returns null when the zone matches the workshop's own, where a second line
+ * would just repeat the first.
+ */
+export function localTimeLabel(
+  schedule: WorkshopSchedule,
+  timeZone: string | null | undefined
+): { range: string; dateLabel: string; zoneLabel: string } | null {
+  if (!timeZone || timeZone === IST) return null;
+
+  const start = new Date(schedule.startUtc);
+  const end = new Date(schedule.endUtc);
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return null;
+
+  try {
+    const time = (value: Date) =>
+      new Intl.DateTimeFormat("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+        timeZone,
+      }).format(value);
+
+    // The short zone name, e.g. "CDT". Far more recognisable than an offset.
+    const zoneLabel =
+      new Intl.DateTimeFormat("en-US", { timeZone, timeZoneName: "short" })
+        .formatToParts(start)
+        .find((part) => part.type === "timeZoneName")?.value ?? "";
+
+    return {
+      range: `${time(start)} - ${time(end)}`,
+      // Their date can differ from the workshop's: 5:00 PM IST is still the
+      // previous day in much of the Americas.
+      dateLabel: new Intl.DateTimeFormat("en-GB", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+        timeZone,
+      }).format(start),
+      zoneLabel,
+    };
+  } catch {
+    // An unknown zone should never take the confirmation page down.
+    return null;
+  }
+}

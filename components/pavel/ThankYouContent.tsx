@@ -8,6 +8,8 @@ import { Button } from "@/components/pavel/ui/Button";
 import { Video, Copy, Check, Loader2, ShieldAlert } from "lucide-react";
 import { apiUrl } from "@/lib/pavel/apiBase";
 import { usePricing } from "@/components/pavel/PricingProvider";
+import { COUNTRIES } from "@/components/pavel/countries";
+import { localTimeLabel } from "@/lib/pavel/workshopSchedule";
 
 /** Official multi-colour Google Calendar mark for the "Add to Calendar" CTA. */
 const GoogleCalendarIcon: React.FC<{ className?: string }> = ({ className }) => (
@@ -76,6 +78,8 @@ export const ThankYouContent: React.FC = () => {
   const [attendeeRef, setAttendeeRef] = useState("");
   const [copiedZoom, setCopiedZoom] = useState(false);
   const [zoomUrl, setZoomUrl] = useState("");
+  // The buyer's country, so the session can be shown in their own time.
+  const [countryCode, setCountryCode] = useState("");
 
   // Verify server-side that this link belongs to a PAID seat before revealing
   // any access details. Query params are never trusted on their own.
@@ -95,6 +99,7 @@ export const ThankYouContent: React.FC = () => {
           setAttendeeName(typeof data.name === "string" ? data.name : "");
           setAttendeeRef(typeof data.ref === "string" ? data.ref : ref);
           setZoomUrl(typeof data.joinUrl === "string" ? data.joinUrl : "");
+          setCountryCode(typeof data.countryCode === "string" ? data.countryCode : "");
         } else {
           setStatus("unverified");
         }
@@ -125,10 +130,16 @@ export const ThankYouContent: React.FC = () => {
       dates,
       details: `Your personal Zoom link (do not share): ${zoomUrl}\n\nReference: ${attendeeRef}`,
       location: zoomUrl,
-      ctz: "Asia/Kolkata",
+      // Google renders the entry in this zone, so use the buyer's own.
+      ctz: buyerTimeZone || "Asia/Kolkata",
     });
     return `https://calendar.google.com/calendar/render?${params.toString()}`;
   };
+
+  // The buyer's timezone comes from the country they chose at checkout.
+  const buyerTimeZone =
+    COUNTRIES.find((c) => c.code === countryCode)?.tz ?? "";
+  const localTime = localTimeLabel(schedule, buyerTimeZone);
 
   const firstName = attendeeName ? attendeeName.split(" ")[0] : "there";
 
@@ -209,7 +220,15 @@ export const ThankYouContent: React.FC = () => {
                 {schedule.dateLabel}
                 <br />
                 <span className="text-xl sm:text-2xl">
-                  {schedule.timeRange} ({schedule.timeUtcLabel})
+                  {schedule.timeRange}
+                  {localTime ? (
+                    <span className="mt-1 block text-base font-normal text-text-muted">
+                      {localTime.range} {localTime.zoneLabel} your time
+                      {localTime.dateLabel !== schedule.dateLabel
+                        ? ` on ${localTime.dateLabel}`
+                        : ""}
+                    </span>
+                  ) : null}
                 </span>
               </h2>
               <p className="text-sm text-text-muted mt-1.5 flex items-center gap-2">
