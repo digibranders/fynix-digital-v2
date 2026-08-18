@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import "./pavel.css";
 import { PricingProvider } from "@/components/pavel/PricingProvider";
 import { COUNTRIES } from "@/components/pavel/countries";
+import { loadSchedule } from "@/lib/pavel/loadSchedule";
 import {
   countryFromGeo,
   countryFromParam,
@@ -54,9 +55,11 @@ export default async function PavelWorkshopPage({
   // Auto-detect the visitor's country from Vercel's edge geo header so the
   // correct price is server-rendered on the single /pavel URL. `?country=in`
   // (or `rest`) overrides detection for local dev and QA of both variants.
-  const [{ country: countryParam }, headerList] = await Promise.all([
+  const [{ country: countryParam }, headerList, schedule] = await Promise.all([
     searchParams,
     headers(),
+    // The active session's date and time, so a new cohort needs no deploy.
+    loadSchedule(),
   ]);
   const geoCode = headerList.get("x-vercel-ip-country");
   const initialCountry =
@@ -73,6 +76,7 @@ export default async function PavelWorkshopPage({
     <PricingProvider
       initialCountry={initialCountry}
       detectedCountryName={detectedCountryName}
+      schedule={schedule}
     >
       <div className="min-h-screen bg-background-soft text-primary tnum">
         <Navbar />

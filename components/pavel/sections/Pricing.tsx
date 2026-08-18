@@ -23,7 +23,7 @@ const NOT_INCLUDED = [
 ];
 
 export const Pricing: React.FC = () => {
-  const { price } = usePricing();
+  const { price, schedule } = usePricing();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Registration + Razorpay Checkout both run inside the modal.
@@ -62,11 +62,11 @@ export const Pricing: React.FC = () => {
                       Workshop seat
                     </p>
                     <p className="text-[15px] italic font-normal text-text-muted mt-2">
-                      Live on {WORKSHOP.platform}, {WORKSHOP.dateLabel},{" "}
+                      Live on {WORKSHOP.platform}, {schedule.dateLabel},{" "}
                       {/* Desktop: keep the full time range on its own second
                           line so it doesn't get stranded on line one. */}
                       <br className="hidden lg:block" aria-hidden />
-                      {WORKSHOP.timeRange}.
+                      {schedule.timeRange}.
                     </p>
                   </div>
                   <div className="shrink-0 sm:text-right">

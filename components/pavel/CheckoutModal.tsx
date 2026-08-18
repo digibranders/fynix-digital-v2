@@ -7,7 +7,6 @@ import { applyDiscount, formatUnitAmount } from "@/components/pavel/pricing";
 import { Button } from "@/components/pavel/ui/Button";
 import { PhoneField } from "@/components/pavel/ui/PhoneField";
 import { SearchableSelect } from "@/components/pavel/ui/SearchableSelect";
-import { WORKSHOP } from "@/components/pavel/workshopDetails";
 import { COUNTRIES, countPhoneDigits, phoneLengthError } from "@/components/pavel/countries";
 import { isValidGstin, normalizeGstin } from "@/lib/pavel/gst";
 import { INDIAN_STATES } from "@/lib/pavel/indianStates";
@@ -127,7 +126,7 @@ function loadRazorpaySdk(): Promise<RazorpayConstructor> {
 }
 
 export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
-  const { price, detectedCountryName } = usePricing();
+  const { price, detectedCountryName, schedule } = usePricing();
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -519,7 +518,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
     }
   };
 
-  // Convert the fixed workshop instant (WORKSHOP.startUtc) into the selected
+  // Convert the fixed workshop instant (schedule.startUtc) into the selected
   // country's local date + time. Until a country is picked, we show the default
   // IST labels. An unsupported IANA zone falls back to those defaults too.
   const selectedCountry = country
@@ -532,13 +531,13 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
   const isIndian = selectedCountry?.code === "IN";
 
   // Default (no country) shows the IST range with the zone in brackets.
-  const defaultTimeLabel = WORKSHOP.timeRange.replace(/\sIST$/, " (IST)");
-  let dateLabel: string = WORKSHOP.dateLabel;
+  const defaultTimeLabel = schedule.timeRange.replace(/\sIST$/, " (IST)");
+  let dateLabel: string = schedule.dateLabel;
   let timeLabel: string = defaultTimeLabel;
   if (selectedTz) {
     try {
-      const startInstant = new Date(WORKSHOP.startUtc);
-      const endInstant = new Date(WORKSHOP.endUtc);
+      const startInstant = new Date(schedule.startUtc);
+      const endInstant = new Date(schedule.endUtc);
       dateLabel = new Intl.DateTimeFormat("en-GB", {
         timeZone: selectedTz,
         day: "numeric",
@@ -569,7 +568,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
         : `${startLabel} - ${endLabel}`;
     } catch {
       // Unsupported zone in this runtime — keep the default IST labels.
-      dateLabel = WORKSHOP.dateLabel;
+      dateLabel = schedule.dateLabel;
       timeLabel = defaultTimeLabel;
     }
   }

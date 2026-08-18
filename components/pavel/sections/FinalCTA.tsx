@@ -7,13 +7,17 @@ import { ArrowRight } from "lucide-react";
 import { WORKSHOP } from "../workshopDetails";
 import { usePricing } from "../PricingProvider";
 
+
+export const FinalCTA: React.FC = () => {
+  const { price, schedule } = usePricing();
+
 // Split the range so the end time drops cleanly to a second line in the
 // narrow essentials column.
-const [timeStart, timeEnd] = WORKSHOP.timeRange.split(" - ");
+  const [timeStart, timeEnd] = schedule.timeRange.split(" - ");
 
-const FACTS = [
-  { label: "Date", value: WORKSHOP.dateLabel },
-  {
+  const FACTS = [
+    { label: "Date", value: schedule.dateLabel },
+    {
     label: "Time",
     value: (
       <>
@@ -22,12 +26,10 @@ const FACTS = [
       </>
     ),
   },
-  { label: "Format", value: `Live on ${WORKSHOP.platform}` },
-  { label: "Access", value: "Live Interactive" },
-];
+    { label: "Format", value: `Live on ${WORKSHOP.platform}` },
+    { label: "Access", value: "Live Interactive" },
+  ];
 
-export const FinalCTA: React.FC = () => {
-  const { price } = usePricing();
 
   const scrollTo = (id: string) => {
     const el = document.getElementById(id);

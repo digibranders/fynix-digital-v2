@@ -2,7 +2,7 @@ import { randomBytes } from "node:crypto";
 import { and, asc, eq, isNull } from "drizzle-orm";
 import type { Db } from "@/lib/db/client";
 import { certificates, registrations, type Certificate } from "@/lib/db/schema";
-import { WORKSHOP } from "@/components/pavel/workshopDetails";
+import { loadSchedule } from "@/lib/pavel/loadSchedule";
 
 /**
  * Certificate issuance.
@@ -104,7 +104,9 @@ export async function issueCertificateForRegistration(
         registrationId: registration.id,
         credentialId: generateCredentialId(),
         recipientName: registration.name,
-        issueDateLabel: WORKSHOP.dateLabel,
+        // The date of the session actually attended, snapshotted so a shared
+        // certificate keeps reading correctly after the next cohort runs.
+        issueDateLabel: (await loadSchedule()).dateLabel,
         attendedMinutes: registration.attendedMinutes,
       })
       .returning();

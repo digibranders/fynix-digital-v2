@@ -7,6 +7,7 @@ import { Container } from "@/components/pavel/ui/Container";
 import { Button } from "@/components/pavel/ui/Button";
 import { Video, Copy, Check, Loader2, ShieldAlert } from "lucide-react";
 import { apiUrl } from "@/lib/pavel/apiBase";
+import { usePricing } from "@/components/pavel/PricingProvider";
 
 /** Official multi-colour Google Calendar mark for the "Add to Calendar" CTA. */
 const GoogleCalendarIcon: React.FC<{ className?: string }> = ({ className }) => (
@@ -54,6 +55,7 @@ type VerifyState = "loading" | "paid" | "unverified";
 
 export const ThankYouContent: React.FC = () => {
   const searchParams = useSearchParams();
+  const { schedule } = usePricing();
 
   /**
    * The buyer's OWN Zoom link, returned by the verify call once their seat is
@@ -115,7 +117,7 @@ export const ThankYouContent: React.FC = () => {
   const createGoogleCalendarLink = () => {
     // Google Calendar wants compact UTC timestamps: YYYYMMDDTHHMMSSZ.
     const toCalDate = (iso: string) => iso.replace(/[-:]/g, "").replace(/\.\d{3}/, "");
-    const dates = `${toCalDate(WORKSHOP.startUtc)}/${toCalDate(WORKSHOP.endUtc)}`;
+    const dates = `${toCalDate(schedule.startUtc)}/${toCalDate(schedule.endUtc)}`;
 
     const params = new URLSearchParams({
       action: "TEMPLATE",
@@ -204,10 +206,10 @@ export const ThankYouContent: React.FC = () => {
                 EVENT SCHEDULE &amp; VENUE
               </span>
               <h2 className="font-serif text-2xl sm:text-3xl font-medium text-primary mt-1">
-                {WORKSHOP.dateLabel}
+                {schedule.dateLabel}
                 <br />
                 <span className="text-xl sm:text-2xl">
-                  {WORKSHOP.timeRange} ({WORKSHOP.timeUtcLabel})
+                  {schedule.timeRange} ({schedule.timeUtcLabel})
                 </span>
               </h2>
               <p className="text-sm text-text-muted mt-1.5 flex items-center gap-2">

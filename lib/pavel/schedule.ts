@@ -1,4 +1,7 @@
-import { WORKSHOP } from "@/components/pavel/workshopDetails";
+import {
+  FALLBACK_SCHEDULE,
+  type WorkshopSchedule,
+} from "@/lib/pavel/workshopSchedule";
 
 /**
  * Schedule helpers shared by the confirmation, reminder, and post-event emails.
@@ -16,7 +19,7 @@ const MS_PER_DAY = 86_400_000;
  * start. Falls back to "happening now" once the start has passed.
  */
 export function countdownLabel(
-  targetIso: string = WORKSHOP.startUtc,
+  targetIso: string = FALLBACK_SCHEDULE.startUtc,
   now: Date = new Date()
 ): string {
   const diffMs = new Date(targetIso).getTime() - now.getTime();
@@ -34,6 +37,8 @@ export function countdownLabel(
  * "5:00 PM - 8:00 PM IST (11:30 UTC)". Shown in every email so global attendees
  * see both when it starts and how long it runs, and can convert to their zone.
  */
-export function eventTimeLabel(): string {
-  return `${WORKSHOP.timeRange} (${WORKSHOP.timeUtcLabel})`;
+export function eventTimeLabel(
+  schedule: WorkshopSchedule = FALLBACK_SCHEDULE
+): string {
+  return `${schedule.timeRange} (${schedule.timeUtcLabel})`;
 }

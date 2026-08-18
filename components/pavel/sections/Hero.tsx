@@ -9,7 +9,7 @@ import { usePricing } from "../PricingProvider";
 import { WORKSHOP } from "../workshopDetails";
 
 export const Hero: React.FC = () => {
-  const { price } = usePricing();
+  const { price, schedule } = usePricing();
 
   const scrollTo = (id: string) => {
     const el = document.getElementById(id);
@@ -45,9 +45,9 @@ export const Hero: React.FC = () => {
                   strokeWidth={1.75}
                   aria-hidden
                 />
-                {WORKSHOP.dateLabel}
+                {schedule.dateLabel}
               </span>
-              <span>{WORKSHOP.timeRange}</span>
+              <span>{schedule.timeRange}</span>
               <span className="text-white/60">Live on {WORKSHOP.platform}</span>
             </div>
 

@@ -44,6 +44,8 @@ export default async function PavelAdminPage() {
     await mutateSession("create", {
       zoomWebinarId: String(formData.get("zoomWebinarId") ?? ""),
       label: String(formData.get("label") ?? ""),
+      startsAt: String(formData.get("startsAt") ?? ""),
+      endsAt: String(formData.get("endsAt") ?? ""),
     });
     revalidatePath("/admin/pavel");
   }

@@ -36,7 +36,12 @@ export function normalizeWebinarId(value: string): string {
 
 export async function createSession(
   db: Db,
-  input: { zoomWebinarId: string; label: string; startsAt?: Date | null }
+  input: {
+    zoomWebinarId: string;
+    label: string;
+    startsAt?: Date | null;
+    endsAt?: Date | null;
+  }
 ): Promise<WebinarSession> {
   const [session] = await db
     .insert(webinarSessions)
@@ -44,6 +49,7 @@ export async function createSession(
       zoomWebinarId: normalizeWebinarId(input.zoomWebinarId),
       label: input.label.trim(),
       startsAt: input.startsAt ?? null,
+      endsAt: input.endsAt ?? null,
     })
     .returning();
   return session;

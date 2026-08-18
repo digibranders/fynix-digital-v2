@@ -1,4 +1,8 @@
 import { WORKSHOP } from "@/components/pavel/workshopDetails";
+import {
+  FALLBACK_SCHEDULE,
+  type WorkshopSchedule,
+} from "@/lib/pavel/workshopSchedule";
 import { countdownLabel, eventTimeLabel } from "@/lib/pavel/schedule";
 
 export interface PavelRegistrationSubmission {
@@ -18,6 +22,16 @@ export interface PavelRegistrationSubmission {
    * shared link only when Zoom has not yet issued one.
    */
   joinUrl?: string;
+  /**
+   * The session's schedule. Passed in rather than read from the constant so a
+   * new cohort's emails carry its own date and time.
+   */
+  schedule?: WorkshopSchedule;
+}
+
+/** The session's schedule, or the constant when the caller passed none. */
+function scheduleFor(submission: PavelRegistrationSubmission): WorkshopSchedule {
+  return submission.schedule ?? FALLBACK_SCHEDULE;
 }
 
 /** The buyer's own link when Zoom has issued one, else the shared fallback. */
@@ -233,7 +247,7 @@ export function buildPavelPaidConfirmationEmail(
                   <td style="padding: 22px 24px;">
                     <p style="margin: 0 0 4px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #565D64;">When</p>
                     <p style="margin: 0 0 16px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.5; color: #0C1E2E;">
-                      ${WORKSHOP.dateLabel} &middot; ${timeLabel}<br>
+                      ${scheduleFor(submission).dateLabel} &middot; ${timeLabel}<br>
                       <span style="font-size: 13px; color: #9A7B4F; font-weight: 600;">Starts ${countdown}</span>
                     </p>
                     <p style="margin: 0 0 4px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #565D64;">Join on Zoom</p>
@@ -303,7 +317,7 @@ Payment received. You're officially registered for the live 3-hour Semantic
 SEO workshop. Everything you need to join is below. Save this email.
 
 WHEN
-${WORKSHOP.dateLabel} · ${timeLabel}
+${scheduleFor(submission).dateLabel} · ${timeLabel}
 Starts ${countdown}
 
 JOIN ON ZOOM
@@ -441,7 +455,7 @@ export function buildPavelReminderEmail(
       <tr>
         <td style="padding: 22px 24px;">
           <p style="margin: 0 0 4px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #565D64;">When</p>
-          <p style="margin: 0 0 16px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.5; color: #0C1E2E;">${WORKSHOP.dateLabel} &middot; ${timeLabel}<br><span style="font-size: 13px; color: #9A7B4F; font-weight: 600;">Starts ${countdown}</span></p>
+          <p style="margin: 0 0 16px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.5; color: #0C1E2E;">${scheduleFor(submission).dateLabel} &middot; ${timeLabel}<br><span style="font-size: 13px; color: #9A7B4F; font-weight: 600;">Starts ${countdown}</span></p>
           <p style="margin: 0 0 4px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #565D64;">Join on Zoom</p>
           <p style="margin: 0 0 6px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 15px; line-height: 1.5;"><a href="${joinLinkFor(submission)}" style="color: #0C1E2E; text-decoration: underline; word-break: break-all;">${joinLinkFor(submission)}</a></p>
         </td>
@@ -462,7 +476,7 @@ export function buildPavelReminderEmail(
 ${lead}
 
 WHEN
-${WORKSHOP.dateLabel} · ${timeLabel}
+${scheduleFor(submission).dateLabel} · ${timeLabel}
 Starts ${countdown}
 
 JOIN ON ZOOM

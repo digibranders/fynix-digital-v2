@@ -1,5 +1,16 @@
 import type { AdminSessionRow } from "@/lib/admin/sessions";
 
+/** Session times are shown in IST, which is where the workshop runs. */
+const SESSION_TIME = new Intl.DateTimeFormat("en-GB", {
+  day: "2-digit",
+  month: "short",
+  year: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: true,
+  timeZone: "Asia/Kolkata",
+});
+
 /**
  * Webinar sessions panel.
  *
@@ -65,6 +76,15 @@ export function SessionPanel({
                 </p>
                 <p className="font-mono text-xs text-slate-500">
                   {session.zoomWebinarId}
+                  {session.startsAt ? (
+                    <span className="ml-2 font-sans text-slate-400">
+                      {SESSION_TIME.format(new Date(session.startsAt))} IST
+                    </span>
+                  ) : (
+                    <span className="ml-2 font-sans text-amber-500/80">
+                      no time set, using the built-in date
+                    </span>
+                  )}
                 </p>
               </div>
               {session.active ? null : (
@@ -102,6 +122,22 @@ export function SessionPanel({
             className="mt-1 w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm text-white placeholder-slate-600 focus:border-emerald-400/50 focus:outline-none"
           />
         </label>
+        <label className="min-w-[190px] text-xs text-slate-400">
+          Starts (IST)
+          <input
+            type="datetime-local"
+            name="startsAt"
+            className="mt-1 w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm text-white focus:border-emerald-400/50 focus:outline-none"
+          />
+        </label>
+        <label className="min-w-[190px] text-xs text-slate-400">
+          Ends (IST)
+          <input
+            type="datetime-local"
+            name="endsAt"
+            className="mt-1 w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm text-white focus:border-emerald-400/50 focus:outline-none"
+          />
+        </label>
         <button
           type="submit"
           className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-medium text-slate-950 transition hover:bg-emerald-400"
@@ -112,7 +148,8 @@ export function SessionPanel({
       <p className="mt-2 text-[11px] text-slate-500">
         Set the webinar to approve registrants manually. Paid buyers are then
         pushed in automatically, and anyone who finds the public registration
-        page stays pending.
+        page stays pending. The times you set here drive the page copy, the
+        emails and when reminders are sent.
       </p>
     </section>
   );
