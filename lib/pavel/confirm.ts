@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import type { Db } from "@/lib/db/client";
 import { registrations } from "@/lib/db/schema";
 import { dispatchPavelEmail } from "@/lib/email/dispatch";
+import { issueInvoiceForRegistration } from "@/lib/pavel/invoice";
 import {
   buildPavelPaidConfirmationEmail,
   buildPavelPaidRegistrationAdminEmail,
@@ -99,6 +100,15 @@ export async function confirmRegistrationPaid(
         reason: updateError instanceof Error ? updateError.message : "update failed",
       };
     }
+  }
+
+  // Issue the tax invoice before the emails so the confirmation can carry it.
+  // Idempotent (unique registration_id) and deliberately non-fatal: a buyer who
+  // has paid must still be confirmed even if invoicing fails, and an invoice can
+  // be re-issued afterwards where a missed confirmation cannot be undone.
+  const invoiceResult = await issueInvoiceForRegistration(db, registration.id);
+  if (invoiceResult.status === "error") {
+    console.error("[pavel/confirm] invoice issuance failed", invoiceResult.reason);
   }
 
   // Fire confirmation + admin emails. Deduped per (registration, type) in

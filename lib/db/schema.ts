@@ -119,6 +119,14 @@ export const invoices = pgTable(
     placeOfSupplyCode: text("place_of_supply_code").notNull(), // GST state code, '96' for exports
     currency: text("currency").notNull(), // 'INR' | 'USD'
 
+    // List price before any referral discount, the discount taken off it, and
+    // the code used. Snapshotted so the invoice can show how the taxable value
+    // was arrived at, and so referral payouts reconcile against issued invoices.
+    listValue: integer("list_value").notNull(),
+    discountPercent: integer("discount_percent").notNull().default(0),
+    discountAmount: integer("discount_amount").notNull().default(0),
+    referralCode: text("referral_code"),
+
     taxableValue: integer("taxable_value").notNull(),
     cgst: integer("cgst").notNull().default(0),
     sgst: integer("sgst").notNull().default(0),
