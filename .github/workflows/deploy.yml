@@ -90,6 +90,14 @@ jobs:
           ALLOWED_ORIGIN=${{ vars.ALLOWED_ORIGIN }}
           SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
           NEXT_PUBLIC_GTM_ID=${{ vars.NEXT_PUBLIC_GTM_ID }}
+          # Minutes a seat must be present before the workshop counts as
+          # completed and a certificate is issued. A variable rather than a
+          # constant because it is lowered during testing and raised for the
+          # real event — and because every deploy regenerates this file, so a
+          # value set by hand on the droplet silently reverted to the code
+          # default the next time anyone shipped. Empty here means the code
+          # default (90) applies.
+          PAVEL_ATTENDANCE_MIN_MINUTES=${{ vars.PAVEL_ATTENDANCE_MIN_MINUTES }}
           EOF
 
       - name: Upload .env to droplet
