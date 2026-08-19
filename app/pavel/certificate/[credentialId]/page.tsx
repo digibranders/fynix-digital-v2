@@ -120,7 +120,7 @@ export default async function IssuedCertificatePage({
               recipientName={certificate.recipientName}
               certificateUrl={certificateUrl}
               issuedAt={certificate.issuedAt ?? null}
-              organizationId={process.env.NEXT_PUBLIC_LINKEDIN_ORG_ID || undefined}
+              organizationId={siteConfig.linkedInOrgId}
               organizationName={siteConfig.name}
             />
             <p className="cert-toolbar__note">
