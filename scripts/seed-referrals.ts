@@ -26,10 +26,18 @@ try {
   /* .env optional — fall back to the ambient environment */
 }
 
-/** Codes to ensure exist. Add more rows here as needed. */
-const SEED: ReadonlyArray<{ code: string; discountPercent: number; label: string }> = [
-  { code: "STEVE10", discountPercent: 10, label: "Steve — 10% partner code" },
-];
+/**
+ * Codes to ensure exist. Empty on purpose.
+ *
+ * Every deploy runs this script, so anything listed here comes back after it is
+ * deleted. The test codes were cleared before launch to make room for the real
+ * partner codes, and a seeded one reappearing on the next deploy would put a
+ * live discount back in circulation that nobody chose to offer.
+ *
+ * Codes are created in the console at /admin/pavel. Add a row here only for one
+ * that must survive a rebuild from an empty database.
+ */
+const SEED: ReadonlyArray<{ code: string; discountPercent: number; label: string }> = [];
 
 async function main() {
   const db = getDb();

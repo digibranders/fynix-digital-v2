@@ -17,12 +17,16 @@ const SAMPLE = {
 
 // Headline-only takeaways: the two core deliverables followed by the two
 // certificate facts. Bodies were dropped intentionally so the left column reads
-// as a scannable list beside the certificate preview.
-const POINTS = [
-  "Three hours of live training with Pavel",
-  "Slide deck and detailed notes",
-  "LinkedIn-ready certificate",
-  "Issued on completion",
+// as a scannable list beside the certificate preview. An optional `note` renders
+// as a muted parenthetical for the one caveat worth stating inline.
+const POINTS: { label: string; note?: string }[] = [
+  { label: "Three hours of live training with Pavel" },
+  { label: "Slide deck and detailed notes" },
+  { label: "LinkedIn-ready certificate" },
+  {
+    label: "Issued on completion",
+    note: "minimum 30 minutes of attendance required",
+  },
 ];
 
 function Check() {
@@ -66,12 +70,18 @@ export const CertificateShowcase: React.FC = () => {
             <ul className="mt-8 border-t border-border lg:mt-10 lg:flex lg:flex-1 lg:flex-col lg:justify-between">
               {POINTS.map((point) => (
                 <li
-                  key={point}
+                  key={point.label}
                   className="flex items-center gap-4 border-b border-border py-4"
                 >
                   <Check />
                   <h3 className="text-[1.05rem] sm:text-[1.1rem] font-medium leading-[1.35] text-primary">
-                    {point}
+                    {point.label}
+                    {point.note && (
+                      <span className="font-normal text-text-muted">
+                        {" "}
+                        ({point.note})
+                      </span>
+                    )}
                   </h3>
                 </li>
               ))}
