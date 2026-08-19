@@ -365,3 +365,17 @@
   font-weight: 600;
   color: var(--color-primary, #0c1e2e);
 }
+
+/* Skill names for the LinkedIn entry — quieter than the actions, but readable. */
+.cert-toolbar__skills {
+  max-width: 44rem;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: var(--color-text-muted, #5b6b7a);
+  text-align: center;
+}
+.cert-toolbar__skill {
+  color: var(--color-primary, #0c1e2e);
+  font-weight: 500;
+  white-space: nowrap;
+}
