@@ -3,24 +3,24 @@ import { withSentryConfig } from "@sentry/nextjs";
 
 const nextConfig: NextConfig = {
   /**
-   * Keep the PDF renderer out of the route bundles and required at runtime.
+   * Bundle the PDF renderer instead of leaving it external.
    *
-   * It is a large library used by four routes; bundling it into each one costs
-   * build time and memory on a 1 vCPU droplet for no benefit.
+   * Turbopack externalises node_modules for the server build and rewrites this
+   * package's specifier to a content-hashed name ("@react-pdf/renderer-5f716e9b…"),
+   * which resolves to nothing at runtime. Every invoice download then failed with
+   * ERR_MODULE_NOT_FOUND while the build passed, because the import is only
+   * attempted when someone actually requests a PDF.
    *
-   * IMPORTANT — this alone does not make invoices work. Turbopack rewrites the
-   * external specifier to a content-hashed name ("@react-pdf/renderer-5f716e9b…")
-   * and emits `e.y()` against it, which resolves to nothing at runtime: every
-   * invoice download on the droplet fails with ERR_MODULE_NOT_FOUND while the
-   * build itself passes, because the import is only attempted when someone
-   * actually requests a PDF. Setting this option does not override that.
+   * transpilePackages forces it through the bundler, so there is no external
+   * specifier left to mangle. serverExternalPackages does NOT fix this — the
+   * hashed name survives it.
    *
-   * The build therefore runs webpack (`next build --webpack` in package.json),
-   * which emits a plain require and resolves correctly. Both hosts build the
-   * same way on purpose: a bundler that differs between where you test and
-   * where you run is how this stayed hidden in the first place.
+   * The obvious alternative, building with webpack, is not available here: the
+   * droplet has 961MB of RAM and a webpack build of this app dies with
+   * "Reached heap limit" at around 700MB of heap. Turbopack builds it in that
+   * envelope, so the bundler choice is fixed by the hardware.
    */
-  serverExternalPackages: ["@react-pdf/renderer"],
+  transpilePackages: ["@react-pdf/renderer"],
   images: {
     formats: ["image/avif", "image/webp"],
     // Hero art is served at quality 90 and 82; Next 16 requires every quality used to
