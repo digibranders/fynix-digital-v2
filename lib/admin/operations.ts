@@ -116,7 +116,10 @@ export async function resendConfirmation(
  * for that, and for a Zoom report that was not ready on the last attempt.
  */
 export async function runAttendanceSyncNow(db: Db): Promise<OperationResult> {
-  const attendance = await syncAttendance(db);
+  // Forced: pressing this button is the operator saying the session is over,
+  // which is a better signal than the scheduled end time. Without it the button
+  // refuses in the very case it was built for — a workshop that finished early.
+  const attendance = await syncAttendance(db, undefined, { force: true });
 
   if (attendance.status === "error") {
     return { ok: false, message: `Attendance sync failed: ${attendance.reason}` };

@@ -24,7 +24,8 @@ export type SyncResult =
 
 export async function syncAttendance(
   db: Db,
-  session?: WebinarSession
+  session?: WebinarSession,
+  options: { force?: boolean } = {}
 ): Promise<SyncResult> {
   try {
     if (!isZoomConfigured()) {
@@ -44,7 +45,14 @@ export async function syncAttendance(
     //
     // Skipping also removes a Zoom API call from every tick in the weeks before
     // an event, where it could never have returned anything.
-    if (target.endsAt && Date.now() < target.endsAt.getTime()) {
+    //
+    // `force` exists because the SCHEDULE is not the same thing as the event: a
+    // workshop that finishes early is over while its record still says
+    // otherwise. The automatic cron keeps the guard, since it is only guessing
+    // from the clock. An operator pressing "sync now" has already told us the
+    // session ended, and refusing them here would break the one button that
+    // exists for exactly this case.
+    if (!options.force && target.endsAt && Date.now() < target.endsAt.getTime()) {
       return {
         status: "skipped",
         reason: "Session has not ended yet; no attendance report to read.",
