@@ -16,6 +16,20 @@ import { type WorkshopSchedule } from "@/lib/pavel/workshopSchedule";
  */
 
 const MS_PER_HOUR = 3_600_000;
+
+/**
+ * How long post-event emails wait for a recording link before going without it.
+ *
+ * One hour, which in practice means they almost always go without it: Zoom
+ * takes roughly one to two times the session length to process a recording, so
+ * a three-hour workshop is rarely ready inside an hour.
+ *
+ * That is the intended trade. The certificate is the emotional payoff and
+ * should arrive while the workshop is still fresh; the recording is utility and
+ * can follow. Waiting for both to be ready meant saying nothing for most of a
+ * day, which reads as having been forgotten.
+ */
+export const POST_EVENT_MAX_WAIT_MS = 1 * 3_600_000;
 const MS_PER_DAY = 86_400_000;
 
 /**
@@ -49,6 +63,7 @@ export const REMINDER_TYPES = [
   "reminder_1d",
   "reminder_1h",
   "post_event",
+  "recording_ready",
 ] as const;
 export type ReminderType = (typeof REMINDER_TYPES)[number];
 
@@ -72,7 +87,11 @@ export function isReminderType(value: string): value is ReminderType {
  * email_log unique constraint remains the real guarantee that a type sends once,
  * which is also what makes a missed cron run catch up rather than skip.
  */
-export function dueReminderTypes(now: Date, schedule: WorkshopSchedule): ReminderType[] {
+export function dueReminderTypes(
+  now: Date,
+  schedule: WorkshopSchedule,
+  options: { recordingPublished?: boolean; postEventSent?: boolean } = {}
+): ReminderType[] {
   const start = new Date(schedule.startUtc).getTime();
   const end = new Date(schedule.endUtc).getTime();
   const t = now.getTime();
@@ -92,9 +111,73 @@ export function dueReminderTypes(now: Date, schedule: WorkshopSchedule): Reminde
   }
   if (tightest) due.push(tightest);
 
-  // After the event has ended.
-  if (t >= end) due.push("post_event");
+  // After the event has ended — but not the instant it does.
+  //
+  // Attendees should get their certificate and the recording in ONE email, and
+  // a no-show should get one mail that actually contains the recording it is
+  // named after. Zoom needs roughly one to two times the session length to
+  // process a cloud recording, so firing at the final minute guarantees both
+  // emails go out without it.
+  //
+  // So this waits for the link to be published. The grace period is the safety
+  // net: if nobody pastes it, the emails still go after POST_EVENT_MAX_WAIT_MS
+  // rather than never — a forgotten link must not cost someone their
+  // certificate, and the templates omit the recording section when there is
+  // none.
+  if (t >= end) {
+    const graceExpired = t >= end + POST_EVENT_MAX_WAIT_MS;
+    if (options.recordingPublished || graceExpired) due.push("post_event");
+
+    // The recording almost always arrives after the post-event mail has gone,
+    // so it gets its own message rather than being bolted onto a resend.
+    //
+    // Only once the post-event mail has actually been sent: sending "your
+    // recording is ready" to someone who has not yet heard whether they earned
+    // a certificate is the wrong order, and both would arrive within minutes of
+    // each other anyway.
+    //
+    // Everyone who already received a recording link has their slot claimed at
+    // send time, so this cannot reach them twice.
+    if (options.recordingPublished && options.postEventSent) {
+      due.push("recording_ready");
+    }
+  }
 
   return due;
 }
 
+
+
+/**
+ * When a reminder's window opens, i.e. the moment it is meant to be sent.
+ *
+ * Used to decide who should receive it: a reminder is a nudge for someone who
+ * has been waiting, so it is not sent to a buyer who registered after the
+ * moment had already passed. Without that, someone paying 70 minutes before the
+ * workshop was immediately sent "1 day to go", because the day-out window was
+ * still technically open.
+ *
+ * Returns null for post_event, which is not a countdown and goes to everyone
+ * who holds a seat regardless of when they bought it.
+ */
+export function reminderWindowOpensAt(
+  type: ReminderType,
+  schedule: WorkshopSchedule
+): Date | null {
+  const start = new Date(schedule.startUtc).getTime();
+  switch (type) {
+    case "reminder_7d":
+      return new Date(start - 7 * MS_PER_DAY);
+    case "reminder_3d":
+      return new Date(start - 3 * MS_PER_DAY);
+    case "reminder_1d":
+      return new Date(start - MS_PER_DAY);
+    case "reminder_1h":
+      return new Date(start - MS_PER_HOUR);
+    case "post_event":
+    // Neither is a countdown: both go to everyone holding a seat, whenever they
+    // bought it, once the event is behind them.
+    case "recording_ready":
+      return null;
+  }
+}

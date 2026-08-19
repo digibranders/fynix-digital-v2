@@ -1,51 +1,22 @@
-import { desc, eq } from "drizzle-orm";
+import { desc, eq, sql } from "drizzle-orm";
 import { getDb } from "@/lib/db/client";
-import { certificates, invoices, registrations } from "@/lib/db/schema";
+import {
+  certificates,
+  emailLog,
+  invoices,
+  referralCodes,
+  registrations,
+  webinarSessions,
+} from "@/lib/db/schema";
 import {
   AdminGatewayError,
   adminGatewayFetch,
   hasLocalDb,
 } from "@/lib/admin/gateway";
+import type { AdminRegistrationRow } from "@/lib/admin/registrationRow";
+import { hasEarnedCertificate } from "@/lib/pavel/certificate";
 
-/** One row of the Pavel registrations table, as the dashboard renders it. */
-export type AdminRegistrationRow = {
-  ref: string;
-  name: string;
-  email: string;
-  phone: string | null;
-  /**
-   * Pricing region, only ever "IN" or "REST". It decides which price was
-   * charged; it does not identify where the buyer is. Use `countryName` for
-   * that — collapsing every non-Indian buyer to "International" in the UI hides
-   * the country the invoice was actually raised against.
-   */
-  country: string;
-  /** The country the buyer selected, e.g. "Netherlands". Null on older rows. */
-  countryName: string | null;
-  /** Indian state / UT (place of supply). Captured for India only. */
-  state: string | null;
-  /** Code the buyer typed at registration — not yet proof of a discount. */
-  referralCode: string | null;
-  /** Set at checkout only once the code validated as active. `null` = no discount. */
-  discountPercent: number | null;
-  amountDisplay: string | null;
-  status: string;
-  createdAt: string; // ISO
-  paidAt: string | null; // ISO
-  razorpayPaymentId: string | null;
-  /** Issued tax invoice number, e.g. "FYX/26-27/0001". Null until issued. */
-  invoiceNo: string | null;
-  /**
-   * Minutes attended. `null` means attendance has not been synced from Zoom
-   * yet, which is deliberately different from 0 (registered, never joined):
-   * one is "we do not know", the other is a final answer.
-   */
-  attendedMinutes: number | null;
-  /** Whether the buyer has their own Zoom join link yet. */
-  hasJoinLink: boolean;
-  /** Issued credential id, e.g. "FYX-SS26-7A3F9C21". Null until earned. */
-  credentialId: string | null;
-};
+export type { AdminRegistrationRow };
 
 export type LoadRegistrationsResult = {
   rows: AdminRegistrationRow[];
@@ -56,8 +27,20 @@ export type LoadRegistrationsResult = {
 export const REGISTRATIONS_DATA_PATH = "/api/admin/data/registrations";
 
 /**
- * Read every registration straight from Postgres. Only callable where the
- * database is reachable — the droplet and local dev.
+ * Read every registration straight from Postgres, with everything hanging off
+ * it. Only callable where the database is reachable (the droplet, local dev).
+ *
+ * Five tables meet here because the operator's questions span all of them: what
+ * was charged (registrations), what was invoiced and taxed (invoices), which
+ * cohort it belongs to (webinar_sessions), whether a credential was issued
+ * (certificates), and who owns the code that sold it (referral_codes). Email
+ * history is a second grouped pass rather than a sixth join, because one
+ * registration has many emails and joining them would multiply every row.
+ *
+ * Money is read from BOTH sources on purpose. `registrations.amount_charged` is
+ * what Razorpay took; `invoices.total` is what was billed. They should be
+ * identical, and where they are not an invoice failed to issue, which the
+ * console surfaces rather than hides.
  */
 export async function queryRegistrations(): Promise<AdminRegistrationRow[]> {
   const db = getDb();
@@ -67,53 +50,126 @@ export async function queryRegistrations(): Promise<AdminRegistrationRow[]> {
 
   const records = await db
     .select({
+      // Identity and contact.
       ref: registrations.ref,
       name: registrations.name,
       email: registrations.email,
       phone: registrations.phone,
+      companyName: registrations.companyName,
+      gstin: registrations.gstin,
+      companyAddress: registrations.companyAddress,
       country: registrations.country,
       countryName: registrations.countryName,
+      countryCode: registrations.countryCode,
       state: registrations.state,
+
+      // Referral.
       referralCode: registrations.referralCode,
       discountPercent: registrations.discountPercent,
-      amountDisplay: registrations.amountDisplay,
+      codeOwnerName: referralCodes.ownerName,
+      codeOwnerEmail: referralCodes.ownerEmail,
+      codeCommissionPercent: referralCodes.commissionPercent,
+
+      // Payment.
       status: registrations.status,
+      amountDisplay: registrations.amountDisplay,
+      amountCharged: registrations.amountCharged,
+      currency: registrations.currency,
+      razorpayOrderId: registrations.razorpayOrderId,
+      razorpayPaymentId: registrations.razorpayPaymentId,
       createdAt: registrations.createdAt,
       paidAt: registrations.paidAt,
-      razorpayPaymentId: registrations.razorpayPaymentId,
+
+      // Invoice: the authoritative money breakdown.
       invoiceNo: invoices.invoiceNo,
-      attendedMinutes: registrations.attendedMinutes,
+      invoiceIssuedAt: invoices.issuedAt,
+      invoiceFy: invoices.fy,
+      listValue: invoices.listValue,
+      discountAmount: invoices.discountAmount,
+      taxableValue: invoices.taxableValue,
+      cgst: invoices.cgst,
+      sgst: invoices.sgst,
+      igst: invoices.igst,
+      totalTax: invoices.totalTax,
+      invoiceTotal: invoices.total,
+      taxRatePercent: invoices.ratePercent,
+      supplyType: invoices.supplyType,
+      placeOfSupply: invoices.placeOfSupply,
+      zeroRatedUnderLut: invoices.zeroRatedUnderLut,
+
+      // Cohort and Zoom.
+      sessionLabel: webinarSessions.label,
+      sessionStartsAt: webinarSessions.startsAt,
+      sessionEndsAt: webinarSessions.endsAt,
+      zoomWebinarId: webinarSessions.zoomWebinarId,
+      zoomRegistrantId: registrations.zoomRegistrantId,
       zoomJoinUrl: registrations.zoomJoinUrl,
+      zoomRegisteredAt: registrations.zoomRegisteredAt,
+      zoomAccessAttempts: registrations.zoomAccessAttempts,
+      zoomAccessLastAttemptAt: registrations.zoomAccessLastAttemptAt,
+
+      // Attendance and credential.
+      attendedMinutes: registrations.attendedMinutes,
+      firstJoinedAt: registrations.firstJoinedAt,
+      attendanceSyncedAt: registrations.attendanceSyncedAt,
       credentialId: certificates.credentialId,
+      certificateIssuedAt: certificates.issuedAt,
     })
     .from(registrations)
-    // Left join: pending seats have no invoice, and a paid seat whose issuance
-    // failed should still appear in the table (with a blank invoice cell)
-    // rather than vanish from the operator's view.
+    // Left joins throughout: a pending seat has no invoice, no certificate and
+    // possibly no session, and it must still appear in the operator's table
+    // with blank cells rather than vanish from it.
     .leftJoin(invoices, eq(invoices.registrationId, registrations.id))
     .leftJoin(certificates, eq(certificates.registrationId, registrations.id))
+    .leftJoin(webinarSessions, eq(webinarSessions.id, registrations.sessionId))
+    .leftJoin(referralCodes, eq(referralCodes.code, registrations.referralCode))
     .orderBy(desc(registrations.createdAt));
 
-  return records.map((r) => ({
-    ref: r.ref,
-    name: r.name,
-    email: r.email,
-    phone: r.phone,
-    country: r.country,
-    countryName: r.countryName,
-    state: r.state,
-    referralCode: r.referralCode,
-    discountPercent: r.discountPercent,
-    amountDisplay: r.amountDisplay,
-    status: r.status,
-    createdAt: r.createdAt.toISOString(),
-    paidAt: r.paidAt ? r.paidAt.toISOString() : null,
-    razorpayPaymentId: r.razorpayPaymentId,
-    invoiceNo: r.invoiceNo,
-    attendedMinutes: r.attendedMinutes,
-    hasJoinLink: Boolean(r.zoomJoinUrl),
-    credentialId: r.credentialId,
-  }));
+  // Which emails each registration has had, in one grouped pass. Joined into
+  // the query above it would multiply rows by the number of emails sent.
+  const emails = await db
+    .select({
+      ref: registrations.ref,
+      types: sql<string[]>`array_agg(${emailLog.type})`,
+      lastSentAt: sql<Date | null>`max(${emailLog.sentAt})`,
+    })
+    .from(emailLog)
+    .innerJoin(registrations, eq(registrations.id, emailLog.registrationId))
+    .groupBy(registrations.ref);
+
+  const emailsByRef = new Map(emails.map((e) => [e.ref, e]));
+
+  const iso = (value: Date | null | undefined): string | null =>
+    value ? new Date(value).toISOString() : null;
+
+  return records.map((r) => {
+    const mail = emailsByRef.get(r.ref);
+    const types = (mail?.types ?? []).filter(Boolean);
+    return {
+      ...r,
+      createdAt: r.createdAt.toISOString(),
+      paidAt: iso(r.paidAt),
+      invoiceIssuedAt: iso(r.invoiceIssuedAt),
+      sessionStartsAt: iso(r.sessionStartsAt),
+      sessionEndsAt: iso(r.sessionEndsAt),
+      zoomRegisteredAt: iso(r.zoomRegisteredAt),
+      zoomAccessLastAttemptAt: iso(r.zoomAccessLastAttemptAt),
+      firstJoinedAt: iso(r.firstJoinedAt),
+      attendanceSyncedAt: iso(r.attendanceSyncedAt),
+      certificateIssuedAt: iso(r.certificateIssuedAt),
+      hasJoinLink: Boolean(r.zoomJoinUrl),
+      // Decided here, with the same helper that decides whether a certificate is
+      // actually issued, so the console and the issuer can never disagree about
+      // who earned one. The threshold is configurable, so a copy of the number
+      // in the browser bundle would go stale the moment it was changed.
+      certificateEarned: hasEarnedCertificate({
+        status: r.status,
+        attendedMinutes: r.attendedMinutes,
+      }),
+      emailTypes: types,
+      lastEmailAt: iso(mail?.lastSentAt ?? null),
+    };
+  });
 }
 
 /**
@@ -121,12 +177,66 @@ export async function queryRegistrations(): Promise<AdminRegistrationRow[]> {
  *
  * The site and the API deploy separately, so during a rollout Vercel can be a
  * build ahead of the droplet. Treating a missing optional field as fatal would
- * blank the whole dashboard over one absent column, so it is normalised to null
- * instead — the type promises `string | null`, and this is what makes that true
- * at runtime.
+ * blank the whole dashboard over one absent column, so every field the row type
+ * promises is defaulted here instead. This is what makes the type true at
+ * runtime for data that crossed the gateway.
  */
 function normaliseRow(row: AdminRegistrationRow): AdminRegistrationRow {
-  return { ...row, countryName: row.countryName ?? null };
+  const n = <T>(value: T | undefined, fallback: T): T =>
+    value === undefined ? fallback : value;
+  return {
+    ...row,
+    phone: n(row.phone, null),
+    companyName: n(row.companyName, null),
+    gstin: n(row.gstin, null),
+    companyAddress: n(row.companyAddress, null),
+    countryName: n(row.countryName, null),
+    countryCode: n(row.countryCode, null),
+    state: n(row.state, null),
+    referralCode: n(row.referralCode, null),
+    discountPercent: n(row.discountPercent, null),
+    codeOwnerName: n(row.codeOwnerName, null),
+    codeOwnerEmail: n(row.codeOwnerEmail, null),
+    codeCommissionPercent: n(row.codeCommissionPercent, null),
+    amountDisplay: n(row.amountDisplay, null),
+    amountCharged: n(row.amountCharged, null),
+    currency: n(row.currency, null),
+    razorpayOrderId: n(row.razorpayOrderId, null),
+    razorpayPaymentId: n(row.razorpayPaymentId, null),
+    paidAt: n(row.paidAt, null),
+    invoiceNo: n(row.invoiceNo, null),
+    invoiceIssuedAt: n(row.invoiceIssuedAt, null),
+    invoiceFy: n(row.invoiceFy, null),
+    listValue: n(row.listValue, null),
+    discountAmount: n(row.discountAmount, null),
+    taxableValue: n(row.taxableValue, null),
+    cgst: n(row.cgst, null),
+    sgst: n(row.sgst, null),
+    igst: n(row.igst, null),
+    totalTax: n(row.totalTax, null),
+    invoiceTotal: n(row.invoiceTotal, null),
+    taxRatePercent: n(row.taxRatePercent, null),
+    supplyType: n(row.supplyType, null),
+    placeOfSupply: n(row.placeOfSupply, null),
+    zeroRatedUnderLut: n(row.zeroRatedUnderLut, null),
+    sessionLabel: n(row.sessionLabel, null),
+    sessionStartsAt: n(row.sessionStartsAt, null),
+    sessionEndsAt: n(row.sessionEndsAt, null),
+    zoomWebinarId: n(row.zoomWebinarId, null),
+    zoomRegistrantId: n(row.zoomRegistrantId, null),
+    zoomRegisteredAt: n(row.zoomRegisteredAt, null),
+    zoomAccessAttempts: n(row.zoomAccessAttempts, 0),
+    zoomAccessLastAttemptAt: n(row.zoomAccessLastAttemptAt, null),
+    attendedMinutes: n(row.attendedMinutes, null),
+    firstJoinedAt: n(row.firstJoinedAt, null),
+    attendanceSyncedAt: n(row.attendanceSyncedAt, null),
+    credentialId: n(row.credentialId, null),
+    certificateIssuedAt: n(row.certificateIssuedAt, null),
+    certificateEarned: n(row.certificateEarned, false),
+    hasJoinLink: n(row.hasJoinLink, false),
+    emailTypes: n(row.emailTypes, []),
+    lastEmailAt: n(row.lastEmailAt, null),
+  };
 }
 
 /** Narrow an untrusted JSON payload to the row shape the dashboard expects. */

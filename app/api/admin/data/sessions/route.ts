@@ -2,14 +2,17 @@ import { NextResponse } from "next/server";
 import { getDb } from "@/lib/db/client";
 import { verifyProxySecret, hasLocalDb } from "@/lib/admin/gateway";
 import {
-  listSessions,
+  listSessionsWithCounts,
   createSession,
   activateSession,
+  deleteSession,
   setRegistrationsClosed,
+  setRecordingUrl,
   updateSessionTimes,
   normalizeWebinarId,
 } from "@/lib/pavel/webinarSession";
 import { parseSessionTimes } from "@/lib/pavel/sessionTimes";
+import { isUniqueViolation } from "@/lib/admin/dbErrors";
 
 export const runtime = "nodejs";
 // Live operator data; never statically rendered or cached.
@@ -44,7 +47,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const sessions = await listSessions(db);
+    const sessions = await listSessionsWithCounts(db);
     return NextResponse.json({
       sessions: sessions.map((session) => ({
         id: session.id,
@@ -52,9 +55,11 @@ export async function GET(request: Request) {
         label: session.label,
         active: session.active,
         registrationsClosed: session.registrationsClosed,
+        recordingUrl: session.recordingUrl,
         startsAt: session.startsAt ? session.startsAt.toISOString() : null,
         endsAt: session.endsAt ? session.endsAt.toISOString() : null,
         createdAt: session.createdAt.toISOString(),
+        registrationCount: session.registrationCount,
       })),
     });
   } catch (error) {
@@ -85,7 +90,7 @@ export async function POST(request: Request) {
   // came to be stored with no schedule: the operator filled the pickers, the
   // console forwarded them, and this handler dropped them on the floor, so the
   // whole site fell back to the hardcoded date in workshopDetails.
-  const { action, zoomWebinarId, label, sessionId, startsAt, endsAt } =
+  const { action, zoomWebinarId, label, sessionId, startsAt, endsAt, recordingUrl } =
     (body ?? {}) as {
       action?: string;
       zoomWebinarId?: string;
@@ -93,6 +98,7 @@ export async function POST(request: Request) {
       sessionId?: string;
       startsAt?: string;
       endsAt?: string;
+      recordingUrl?: string;
     };
 
   try {
@@ -173,11 +179,38 @@ export async function POST(request: Request) {
       });
     }
 
+    if (action === "recording") {
+      if (!sessionId) {
+        return NextResponse.json({ error: "sessionId is required." }, { status: 400 });
+      }
+      const url = (recordingUrl ?? "").trim();
+      if (url && !/^https?:\/\/\S+$/i.test(url)) {
+        return NextResponse.json({ error: "That does not look like a link." }, { status: 400 });
+      }
+      const session = await setRecordingUrl(db, sessionId, url || null);
+      if (!session) {
+        return NextResponse.json({ error: "Session not found." }, { status: 404 });
+      }
+      return NextResponse.json({ session: { id: session.id, recordingUrl: session.recordingUrl } });
+    }
+
+    if (action === "delete") {
+      if (!sessionId) {
+        return NextResponse.json({ error: "sessionId is required." }, { status: 400 });
+      }
+      const result = await deleteSession(db, sessionId);
+      if (!result.deleted) {
+        return NextResponse.json({ error: result.reason }, { status: 409 });
+      }
+      return NextResponse.json({ deleted: true });
+    }
+
     return NextResponse.json({ error: "Unknown action." }, { status: 400 });
   } catch (error) {
     // A duplicate webinar id is an operator mistake worth naming, not a 500.
-    const message = error instanceof Error ? error.message : "";
-    if (/duplicate key|unique constraint/i.test(message)) {
+    // Read through the cause chain: Drizzle's own message is the SQL that
+    // failed, so matching on it alone never fired.
+    if (isUniqueViolation(error)) {
       return NextResponse.json(
         { error: "That webinar is already registered as a session." },
         { status: 409 }

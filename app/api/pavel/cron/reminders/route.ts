@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, inArray, lte } from "drizzle-orm";
 import { loadSchedule } from "@/lib/pavel/loadSchedule";
 import { getActiveSession } from "@/lib/pavel/webinarSession";
 import {
   REMINDER_TYPES,
   dueReminderTypes,
   isReminderType,
+  reminderWindowOpensAt,
   type ReminderType,
 } from "@/lib/pavel/schedule";
 import type { WorkshopSchedule } from "@/lib/pavel/workshopSchedule";
@@ -22,6 +23,7 @@ import { issueEarnedCertificates } from "@/lib/pavel/certificate";
 import {
   buildPavelReminderEmail,
   buildPavelCertificateEmail,
+  buildPavelRecordingReadyEmail,
   buildPavelMissedYouEmail,
   type PavelRegistrationSubmission,
 } from "@/lib/email/pavelTemplates";
@@ -55,6 +57,11 @@ function buildEmail(type: ReminderType, submission: PavelRegistrationSubmission)
       // Handled per recipient in runReminderType: what someone receives after
       // the event depends on whether they actually attended.
       return null;
+    case "recording_ready":
+      // Same for everyone who paid, attendee or not — but null when there is no
+      // recording, so this can never send an email that is entirely about a
+      // link it does not have.
+      return buildPavelRecordingReadyEmail(submission) ?? null;
   }
 }
 
@@ -62,8 +69,11 @@ async function runReminderType(
   db: Db,
   type: ReminderType,
   schedule: WorkshopSchedule,
-  activeSessionId: string
+  activeSessionId: string,
+  recordingUrl?: string
 ) {
+  const windowOpensAt = reminderWindowOpensAt(type, schedule);
+
   // Paid seats FOR THE ACTIVE SESSION only.
   //
   // This used to be every paid seat ever sold. The reminders are built from the
@@ -102,7 +112,13 @@ async function runReminderType(
       .where(
         and(
           eq(registrations.status, "paid"),
-          eq(registrations.sessionId, activeSessionId)
+          eq(registrations.sessionId, activeSessionId),
+          // Skip anyone who registered AFTER this reminder was due. Every window
+          // stays open until the workshop starts, so without this a buyer who
+          // paid 70 minutes beforehand was immediately sent "1 day to go" — a
+          // countdown that had already run out. They simply receive the next
+          // reminder instead, which is the one that actually applies to them.
+          ...(windowOpensAt ? [lte(registrations.createdAt, windowOpensAt)] : [])
         )
       );
   } catch (regError) {
@@ -148,6 +164,7 @@ async function runReminderType(
       ref: reg.ref,
       joinUrl: reg.zoomJoinUrl ?? undefined,
       schedule,
+      recordingUrl,
     };
     // After the event, what someone receives depends on whether they actually
     // turned up: a certificate for attendees, the recording for everyone else.
@@ -203,8 +220,24 @@ async function runReminderType(
       replyTo: SENDER,
     });
 
-    if (result.status === "sent" || result.status === "mocked") sent += 1;
-    else if (result.status === "skipped") skipped += 1;
+    if (result.status === "sent" || result.status === "mocked") {
+      sent += 1;
+
+      // If this post-event email already carried the recording, claim the
+      // follow-up's slot so it can never also arrive. The claim is the same
+      // unique (registration_id, type) the dispatcher uses, so this is exactly
+      // the mechanism that would have deduped it — just recorded up front.
+      //
+      // Best-effort on purpose: a failure here means someone receives a second
+      // email about a recording they already have, which is a far smaller
+      // problem than failing the run they were just sent.
+      if (type === "post_event" && submission.recordingUrl?.trim()) {
+        await db
+          .insert(emailLog)
+          .values({ registrationId: reg.id, type: "recording_ready" })
+          .catch(() => {});
+      }
+    } else if (result.status === "skipped") skipped += 1;
     else {
       failed += 1;
       console.error(`[pavel/cron] ${type} failed for ${reg.ref}: ${result.reason}`);
@@ -308,7 +341,19 @@ export async function GET(request: Request) {
     }
     types = [forced];
   } else {
-    types = dueReminderTypes(new Date(), schedule);
+    // Has the post-event mail actually gone out for this cohort? The recording
+    // follow-up waits for it, so that someone hears whether they earned a
+    // certificate before they hear the recording is up.
+    const [postEventRow] = await db
+      .select({ id: emailLog.id })
+      .from(emailLog)
+      .where(inArray(emailLog.type, ["certificate", "missed_you"]))
+      .limit(1);
+
+    types = dueReminderTypes(new Date(), schedule, {
+      recordingPublished: Boolean(activeSession.recordingUrl?.trim()),
+      postEventSent: Boolean(postEventRow),
+    });
   }
 
   if (types.length === 0) {
@@ -317,7 +362,15 @@ export async function GET(request: Request) {
 
   const results = [];
   for (const type of types) {
-    results.push(await runReminderType(db, type, schedule, activeSession.id));
+    results.push(
+      await runReminderType(
+        db,
+        type,
+        schedule,
+        activeSession.id,
+        activeSession.recordingUrl ?? undefined
+      )
+    );
   }
 
   return NextResponse.json({ ran: types, results, backfill, access, attendance, certificatesIssued });

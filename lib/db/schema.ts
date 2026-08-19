@@ -56,6 +56,20 @@ export const registrations = pgTable(
     zoomRegistrantId: text("zoom_registrant_id"),
     zoomJoinUrl: text("zoom_join_url"),
     zoomRegisteredAt: timestamp("zoom_registered_at", { withTimezone: true }),
+    /**
+     * How many times we have asked Zoom to register this seat, and when we last
+     * tried.
+     *
+     * Zoom allows only THREE registration attempts per person per webinar per
+     * day. The backfill retries every linkless paid seat on every cron run, so
+     * without a record of what has already been spent it burns that budget in
+     * minutes and locks the buyer out until 00:00 GMT — turning a transient
+     * failure into a whole day without a join link.
+     */
+    zoomAccessAttempts: integer("zoom_access_attempts").notNull().default(0),
+    zoomAccessLastAttemptAt: timestamp("zoom_access_last_attempt_at", {
+      withTimezone: true,
+    }),
 
     // Live attendance, filled from Zoom after the session. `attendedMinutes`
     // stays null until attendance has been synced, which is deliberately
@@ -99,6 +113,10 @@ export const emailLog = pgTable(
  * discount to the order amount. Looked up server-side only (checkout + the
  * /api/pavel/referral validation route) so the discount can never be forged by
  * the client. `code` is stored normalised (uppercase, no spaces).
+ *
+ * A code is redeemable only while `active`, before `expiresAt`, and while
+ * redemptions remain under `maxUses`. Both limits are nullable, and null means
+ * "no limit" — which is what every code that predates them keeps.
  */
 export const referralCodes = pgTable("referral_codes", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -106,7 +124,26 @@ export const referralCodes = pgTable("referral_codes", {
   discountPercent: integer("discount_percent").notNull(), // 1–100
   active: boolean("active").notNull().default(true),
   label: text("label"), // human note, e.g. 'Steve — partner code'
+
+  /**
+   * Redemption cap. Counted against PAID registrations that actually received
+   * the discount, so an abandoned checkout never burns a slot. Null = unlimited.
+   */
+  maxUses: integer("max_uses"),
+  /** Hard expiry. Null = never expires. */
+  expiresAt: timestamp("expires_at", { withTimezone: true }),
+
+  // Partner attribution. Kept on the code rather than in a table of its own: a
+  // code has exactly one owner, and a join would buy nothing.
+  ownerName: text("owner_name"),
+  ownerEmail: text("owner_email"),
+  /** Commission owed to the owner, as a whole percent of ex-GST revenue. */
+  commissionPercent: integer("commission_percent"),
+
   createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
 });
@@ -249,6 +286,20 @@ export const webinarSessions = pgTable("webinar_sessions", {
    * with nowhere to be sent, which is the failure this exists to prevent.
    */
   registrationsClosed: boolean("registrations_closed").notNull().default(false),
+  /**
+   * Zoom's share link for this session's cloud recording, pasted in after the
+   * event.
+   *
+   * Held per session because each cohort has its own recording, and because the
+   * post-event emails promise one: the "we missed you" mail is subject-lined
+   * "here is the workshop recording" and used to contain no recording at all.
+   * Null until published, and the emails omit the section entirely rather than
+   * linking to nothing.
+   *
+   * The 7-day window is a setting on Zoom's own share link, not something this
+   * enforces — see workshopDetails.recordingWindowDays for what buyers are told.
+   */
+  recordingUrl: text("recording_url"),
   activatedAt: timestamp("activated_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });

@@ -9,7 +9,7 @@ import {
   formatUnitAmount,
   type Country,
 } from "@/components/pavel/pricing";
-import { lookupReferral } from "@/lib/pavel/referral";
+import { evaluateReferral, referralRejectionMessage } from "@/lib/pavel/referral";
 import { computeTax } from "@/lib/pavel/tax";
 import { getActiveSession } from "@/lib/pavel/webinarSession";
 import {
@@ -85,11 +85,19 @@ export async function POST(request: Request) {
   // from the same source, but that is a cached read on another host and can be
   // stale or bypassed entirely by posting here directly, so the decision that
   // stops money moving has to be made against the database, now.
-  const registrationWindow = deriveRegistrationWindow(await getActiveSession(db));
-  if (!registrationWindow.open) {
+  const activeSession = await getActiveSession(db);
+  const registrationWindow = deriveRegistrationWindow(activeSession);
+  // Read the reason out before branching: inside the guard the union has been
+  // widened by the extra `activeSession` test and no longer narrows on its own.
+  const closedReason = registrationWindow.open ? null : registrationWindow.reason;
+
+  // `activeSession` is redundant to test — a null session already closes the
+  // window — but it narrows the type, so the query below reaches `.id` without
+  // a non-null assertion.
+  if (closedReason || !activeSession) {
     console.warn(
       "[pavel/checkout] refused: registrations closed",
-      registrationWindow.reason,
+      closedReason ?? "no_active_session",
       ref
     );
     return NextResponse.json(
@@ -124,16 +132,22 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "This seat is already paid." }, { status: 409 });
   }
 
-  // Block a second payment if this email already holds a paid seat (under any
-  // ref). Pending/abandoned attempts are still free to retry — only a confirmed
-  // paid seat stops a duplicate charge.
+  // Already paid FOR THIS SESSION — not merely at some point in the past.
+  //
+  // Scoped deliberately. Unscoped, this blocked every returning customer: buy a
+  // seat in one cohort and you could never buy another, because the check only
+  // asked whether this email had ever paid. It still does the job it exists for,
+  // which is stopping a double charge for the same workshop. Pending or
+  // abandoned attempts are still free to retry; only a confirmed paid seat
+  // blocks another.
   const [existingPaid] = await db
     .select({ ref: registrations.ref })
     .from(registrations)
     .where(
       and(
         eq(registrations.email, registration.email),
-        eq(registrations.status, "paid")
+        eq(registrations.status, "paid"),
+        eq(registrations.sessionId, activeSession.id)
       )
     )
     .limit(1);
@@ -148,10 +162,33 @@ export async function POST(request: Request) {
   const resolvedCountry: Country = registration.country === "IN" ? "IN" : "REST";
   const price = PRICING[resolvedCountry];
 
-  // Re-validate the stored referral code server-side and derive the discount
-  // here — never trust a discount from the client. Falls back to full price for
-  // an empty, unknown, or inactive code.
-  const referral = await lookupReferral(db, registration.referralCode);
+  // Re-validate the stored code and derive the discount here — never trust a
+  // discount from the client.
+  //
+  // A code can go stale between reserving a seat and paying for it: it may
+  // expire, be switched off, or have its last slot taken by someone else. The
+  // sale is refused rather than quietly repriced. Charging the list price to
+  // someone who got this far expecting a discount is the one outcome worse than
+  // an error message.
+  let referral: { code: string; discountPercent: number } | null = null;
+  if (registration.referralCode) {
+    const result = await evaluateReferral(db, registration.referralCode);
+    if (!result.ok) {
+      console.warn(
+        "[pavel/checkout] refused: referral no longer redeemable",
+        registration.referralCode,
+        result.reason
+      );
+      return NextResponse.json(
+        {
+          error: `${referralRejectionMessage(result.reason)} Please remove it and try again.`,
+          referralRejected: true,
+        },
+        { status: result.reason === "unavailable" ? 503 : 409 }
+      );
+    }
+    referral = { code: result.code, discountPercent: result.discountPercent };
+  }
 
   // Derive the charge from the taxable base: discount, then GST, then total.
   // The invoice is built from this same breakdown, so the amount charged and the

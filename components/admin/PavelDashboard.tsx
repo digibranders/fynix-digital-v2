@@ -4,247 +4,41 @@ import { Fragment, useMemo, useState } from "react";
 import Link from "next/link";
 import Logo from "@/components/Logo";
 import AdminSignOutButton from "@/components/admin/AdminSignOutButton";
-import type { AdminRegistrationRow } from "@/lib/admin/registrations";
-import { buildGroups, rowMatchesQuery } from "@/lib/admin/grouping";
-import { COUNTRIES, flagEmoji } from "@/components/pavel/countries";
+import type { AdminRegistrationRow } from "@/lib/admin/registrationRow";
+import { buildGroups } from "@/lib/admin/grouping";
+import {
+  EMPTY_FILTERS,
+  NO_REFERRAL,
+  filterOptions,
+  hasAdvancedFilters,
+  rowMatchesFilters,
+  type RegistrationFilters,
+  type StatusFilter,
+} from "@/lib/admin/registrationFilters";
+import {
+  computeTotals,
+  formatMoneyByCurrency,
+} from "@/lib/admin/registrationTotals";
+import {
+  COLUMN_GROUPS,
+  DEFAULT_COLUMN_KEYS,
+  REGISTRATION_COLUMNS,
+} from "@/components/admin/registrationColumns";
+import { useColumnPreference } from "@/components/admin/useColumnPreference";
+import { RowActions } from "@/components/admin/RowActions";
+import type { OperationState } from "@/components/admin/OperationsPanel";
 
 export type { AdminRegistrationRow };
 
 /** Rows shown per page in the registrations table. */
 const PAGE_SIZE = 20;
 
-type StatusFilter = "all" | "paid" | "pending";
-
-/** Deterministic IST formatters — same output on server and client (no hydration drift). */
-const DAY_FORMAT = new Intl.DateTimeFormat("en-GB", {
-  timeZone: "Asia/Kolkata",
-  day: "2-digit",
-  month: "short",
-  year: "numeric",
-});
-const TIME_FORMAT = new Intl.DateTimeFormat("en-GB", {
-  timeZone: "Asia/Kolkata",
-  hour: "2-digit",
-  minute: "2-digit",
-  hour12: false,
-});
-
-/** Date over time on a single non-wrapping block, so narrow columns stay tidy. */
-function DateCell({ iso }: { iso: string | null }) {
-  const date = iso ? new Date(iso) : null;
-  if (!date || Number.isNaN(date.getTime())) {
-    return <span className="text-slate-600">—</span>;
-  }
-  return (
-    <div className="whitespace-nowrap leading-tight">
-      <span className="text-slate-300">{DAY_FORMAT.format(date)}</span>
-      <span className="mt-0.5 block text-xs text-slate-500">
-        {TIME_FORMAT.format(date)}
-      </span>
-    </div>
-  );
-}
-
-/**
- * Invoice number linking to its PDF. The admin session authorises the download,
- * so no payment id is needed here. Unpaid seats have no invoice yet.
- */
-/**
- * Attendance for a paid seat.
- *
- * null means Zoom has not been synced yet, which reads very differently from a
- * synced 0 ("registered, never joined"). Conflating them would have an operator
- * chasing no-shows who simply have not been measured.
- */
-function AttendanceCell({
-  status,
-  attendedMinutes,
-  hasJoinLink,
-}: {
-  status: string;
-  attendedMinutes: number | null;
-  hasJoinLink: boolean;
-}) {
-  if (status !== "paid") return <span className="text-slate-600">&mdash;</span>;
-
-  if (attendedMinutes === null) {
-    return (
-      <span
-        className="whitespace-nowrap text-xs text-slate-500"
-        title={
-          hasJoinLink
-            ? "Registered with Zoom; attendance not synced yet"
-            : "No Zoom join link issued yet"
-        }
-      >
-        {hasJoinLink ? "not synced" : "no link"}
-      </span>
-    );
-  }
-
-  if (attendedMinutes === 0) {
-    return (
-      <span className="whitespace-nowrap text-xs font-medium text-amber-400" title="Registered but never joined">
-        no-show
-      </span>
-    );
-  }
-
-  return (
-    <span className="whitespace-nowrap tabular-nums text-slate-300">
-      {attendedMinutes} min
-    </span>
-  );
-}
-
-/** Issued credential, linking to the public certificate. */
-function CertificateCell({ credentialId }: { credentialId: string | null }) {
-  if (!credentialId) return <span className="text-slate-600">&mdash;</span>;
-  return (
-    <a
-      href={`/pavel/certificate/${encodeURIComponent(credentialId)}`}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="whitespace-nowrap font-mono text-xs text-sky-400 underline-offset-2 transition hover:text-sky-300 hover:underline"
-      title="Open the issued certificate"
-    >
-      {credentialId}
-    </a>
-  );
-}
-
-function InvoiceCell({
-  ref_,
-  invoiceNo,
-}: {
-  ref_: string;
-  invoiceNo: string | null;
-}) {
-  if (!invoiceNo) {
-    return <span className="text-slate-600">—</span>;
-  }
-  return (
-    <a
-      href={`/api/admin/invoice/${encodeURIComponent(ref_)}`}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="whitespace-nowrap font-mono text-xs text-emerald-400 underline-offset-2 transition hover:text-emerald-300 hover:underline"
-      title="Open the tax invoice PDF"
-    >
-      {invoiceNo}
-    </a>
-  );
-}
-
-/** Placeholder for an absent value, matching DateCell's empty state. */
-function Dash() {
-  return <span className="text-slate-600">—</span>;
-}
-
-/**
- * State is captured as the place of supply for Indian registrations only, so a
- * blank cell on an international row is expected rather than missing data.
- */
-function StateCell({ country, state }: { country: string; state: string | null }) {
-  if (country !== "IN" || !state) return <Dash />;
-  return <span className="whitespace-nowrap text-slate-300">{state}</span>;
-}
-
-/**
- * Referral / coupon code. The code is stored the moment it is typed, but the
- * discount is only written back once checkout re-validates it against the
- * active codes. Showing a typed-but-unredeemed code as "applied" would
- * overstate it, so the two states are rendered distinctly.
- */
-function CouponCell({
-  code,
-  discountPercent,
-}: {
-  code: string | null;
-  discountPercent: number | null;
-}) {
-  if (!code) return <Dash />;
-  const applied = discountPercent !== null && discountPercent > 0;
-  return (
-    <div className="whitespace-nowrap leading-tight">
-      <span
-        className={`font-mono text-xs ${
-          applied ? "text-emerald-300" : "text-slate-400"
-        }`}
-      >
-        {code}
-      </span>
-      <span className="mt-0.5 block text-xs">
-        {applied ? (
-          <span className="text-emerald-400/80">−{discountPercent}% applied</span>
-        ) : (
-          <span className="text-slate-600">not applied</span>
-        )}
-      </span>
-    </div>
-  );
-}
-
-/**
- * Name the buyer's country, not the pricing bucket.
- *
- * `country` is only ever "IN" or "REST", so rendering it labelled every
- * overseas buyer "International" and threw away the country the invoice was
- * raised against. `countryName` carries the real answer; the bucket is the
- * fallback for older rows that predate it.
- */
-function countryLabel(country: string, countryName: string | null): string {
-  const name = countryName?.trim();
-  if (!name) return country === "IN" ? "🇮🇳 India" : "🌍 International";
-
-  const match = COUNTRIES.find(
-    (c) => c.name.toLowerCase() === name.toLowerCase()
-  );
-  return match ? `${flagEmoji(match.code)} ${match.name}` : `🌍 ${name}`;
-}
-
-/**
- * Status indicator. The state is encoded in the dot's *shape*, not only its
- * colour, so it stays legible for colour-blind users and reads as intentional:
- *   • Paid    → a solid dot with a soft halo — settled, confirmed.
- *   • Pending → a hollow ring — an open loop still awaiting payment.
- */
-function StatusBadge({ status }: { status: string }) {
-  const isPaid = status === "paid";
-  return (
-    <span className="inline-flex items-center gap-2 whitespace-nowrap">
-      <span
-        aria-hidden="true"
-        className={
-          isPaid
-            ? "h-2 w-2 shrink-0 rounded-full bg-emerald-400 shadow-[0_0_0_3px_rgba(16,185,129,0.16)]"
-            : "h-2 w-2 shrink-0 rounded-full border-[1.5px] border-amber-400/90"
-        }
-      />
-      <span
-        className={`text-sm font-medium tracking-tight ${
-          isPaid ? "text-emerald-300" : "text-amber-200/90"
-        }`}
-      >
-        {isPaid ? "Paid" : "Pending"}
-      </span>
-    </span>
-  );
-}
-
-/** Sortable IST timestamp for spreadsheets, e.g. "2026-08-14 14:42 IST". */
 const CSV_DATE = new Intl.DateTimeFormat("en-CA", {
   timeZone: "Asia/Kolkata",
   year: "numeric",
   month: "2-digit",
   day: "2-digit",
 });
-function formatIstForCsv(iso: string | null): string {
-  if (!iso) return "";
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return "";
-  return `${CSV_DATE.format(date)} ${TIME_FORMAT.format(date)} IST`;
-}
 
 /** RFC-4180 cell: wrap in quotes only when the value contains a delimiter. */
 function csvCell(value: string | number | null): string {
@@ -252,54 +46,19 @@ function csvCell(value: string | number | null): string {
   return /[",\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
 }
 
-const CSV_HEADERS = [
-  "S.No",
-  "Ref",
-  "Name",
-  "Email",
-  "Phone",
-  "Region",
-  "State",
-  "Coupon code",
-  "Coupon applied",
-  "Discount %",
-  "Status",
-  "Registered (IST)",
-  "Paid (IST)",
-  "Attended (min)",
-  "Certificate",
-  "Invoice No",
-];
-
 /**
- * Serialise rows to CSV. The coupon is split into three columns — code, an
- * explicit applied yes/no, and the percentage — because a stored code did not
- * necessarily produce a discount (see CouponCell), and a flat "coupon" column
- * would hide that distinction from anyone opening the export in a spreadsheet.
+ * Serialise rows to CSV.
+ *
+ * Walks EVERY column, not the visible ones. The screen is a working view the
+ * operator narrows to stay sane; the export is the record, and a column hidden
+ * for readability going missing from the file is how an export quietly stops
+ * answering the question it was taken for.
  */
 function buildCsv(rows: AdminRegistrationRow[]): string {
-  const lines = [CSV_HEADERS.map(csvCell).join(",")];
+  const headers = ["S.No", ...REGISTRATION_COLUMNS.map((c) => c.label)];
+  const lines = [headers.map(csvCell).join(",")];
   rows.forEach((row, index) => {
-    const applied = row.discountPercent !== null && row.discountPercent > 0;
-    const cells: (string | number | null)[] = [
-      index + 1,
-      row.ref,
-      row.name,
-      row.email,
-      row.phone,
-      // The buyer's country, falling back to the pricing bucket on older rows.
-      row.countryName?.trim() || (row.country === "IN" ? "India" : "International"),
-      row.country === "IN" ? row.state : "",
-      row.referralCode,
-      row.referralCode ? (applied ? "yes" : "no") : "",
-      applied ? row.discountPercent : "",
-      row.status === "paid" ? "Paid" : "Pending",
-      formatIstForCsv(row.createdAt),
-      formatIstForCsv(row.paidAt),
-      row.status === "paid" && row.attendedMinutes !== null ? row.attendedMinutes : "",
-      row.credentialId,
-      row.invoiceNo,
-    ];
+    const cells = [index + 1, ...REGISTRATION_COLUMNS.map((c) => c.csv(row))];
     lines.push(cells.map(csvCell).join(","));
   });
   // CRLF line endings per RFC 4180; the reader (Excel, Sheets) normalises them.
@@ -321,12 +80,12 @@ function ExpandToggle({
       type="button"
       onClick={onClick}
       aria-expanded={open}
-      title={open ? "Hide the other attempts" : `Show all ${count} attempts`}
-      className="inline-flex items-center gap-1 rounded-md border border-white/10 bg-slate-900 px-1.5 py-0.5 text-[11px] font-medium text-slate-300 transition hover:bg-slate-800"
+      title={open ? "Hide other attempts" : `Show all ${count} attempts`}
+      className="inline-flex items-center gap-1 rounded border border-white/10 px-1.5 py-0.5 text-[10px] font-medium text-slate-400 transition hover:border-emerald-400/40 hover:text-emerald-300"
     >
       <svg
-        viewBox="0 0 12 12"
         aria-hidden="true"
+        viewBox="0 0 12 12"
         className={`h-3 w-3 transition-transform ${open ? "rotate-90" : ""}`}
       >
         <path
@@ -343,108 +102,119 @@ function ExpandToggle({
   );
 }
 
-/**
- * One registrations table row. Extracted so the flat view, a group's
- * representative, and an expanded attempt all render identical columns.
- */
-function RegistrationRow({
-  serial,
-  row,
-  refPrefix,
-  muted = false,
+/** One figure in the summary bar. */
+function Stat({
+  label,
+  value,
+  tone = "default",
+  hint,
 }: {
-  serial: React.ReactNode;
-  row: AdminRegistrationRow;
-  /** Rendered above the ref (the expand toggle on a group's header row). */
-  refPrefix?: React.ReactNode;
-  muted?: boolean;
+  label: string;
+  value: string;
+  tone?: "default" | "warn" | "good";
+  hint?: string;
 }) {
+  const colour =
+    tone === "warn"
+      ? "text-amber-300"
+      : tone === "good"
+        ? "text-emerald-300"
+        : "text-white";
   return (
-    <tr
-      className={`border-b border-white/5 transition hover:bg-slate-900/60 ${
-        muted ? "bg-slate-900/30" : "bg-slate-950"
-      }`}
-    >
-      <td className="px-3 py-3 tabular-nums text-slate-500">{serial}</td>
-      <td className="px-3 py-3 font-mono text-xs text-slate-400">
-        {refPrefix ? <div className="mb-1">{refPrefix}</div> : null}
-        <span className={muted ? "text-slate-500" : undefined}>{row.ref}</span>
-      </td>
-      <td className="px-3 py-3 font-medium text-white">{row.name}</td>
-      <td className="px-3 py-3 text-slate-300">{row.email}</td>
-      <td className="px-3 py-3">
-        {row.phone ? (
-          <a
-            href={`tel:${row.phone.replace(/\s+/g, "")}`}
-            className="whitespace-nowrap text-slate-300 transition hover:text-emerald-300"
-          >
-            {row.phone}
-          </a>
-        ) : (
-          <Dash />
-        )}
-      </td>
-      <td className="px-3 py-3 text-slate-300">
-        {countryLabel(row.country, row.countryName)}
-      </td>
-      <td className="px-3 py-3">
-        <StateCell country={row.country} state={row.state} />
-      </td>
-      <td className="px-3 py-3">
-        <CouponCell code={row.referralCode} discountPercent={row.discountPercent} />
-      </td>
-      <td className="px-3 py-3">
-        <StatusBadge status={row.status} />
-      </td>
-      <td className="px-3 py-3">
-        <DateCell iso={row.createdAt} />
-      </td>
-      <td className="px-3 py-3">
-        <DateCell iso={row.paidAt} />
-      </td>
-      <td className="px-3 py-3">
-        <AttendanceCell
-          status={row.status}
-          attendedMinutes={row.attendedMinutes}
-          hasJoinLink={row.hasJoinLink}
-        />
-      </td>
-      <td className="px-3 py-3">
-        <CertificateCell credentialId={row.credentialId} />
-      </td>
-      <td className="px-3 py-3">
-        <InvoiceCell ref_={row.ref} invoiceNo={row.invoiceNo} />
-      </td>
-    </tr>
+    <div className="min-w-[120px]" title={hint}>
+      <dt className="text-[11px] uppercase tracking-wide text-slate-500">{label}</dt>
+      <dd className={`mt-0.5 text-sm font-semibold tabular-nums ${colour}`}>{value}</dd>
+    </div>
   );
 }
+
+const SELECT =
+  "rounded-lg border border-white/10 bg-slate-900 px-2 py-1.5 text-xs text-slate-200 outline-none transition focus:border-emerald-400/60";
+
+/** A labelled dropdown in the filter panel. */
+function Choice({
+  label,
+  value,
+  onChange,
+  options,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  options: { value: string; label: string }[];
+}) {
+  return (
+    <label className="text-[11px] text-slate-500">
+      {label}
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className={`mt-1 block w-full ${SELECT}`}
+      >
+        {options.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+const ANY = { value: "", label: "Any" };
+const flagOptions = [ANY, { value: "yes", label: "Yes" }, { value: "no", label: "No" }];
 
 export default function PavelDashboard({
   rows,
   children,
+  resendConfirmationAction,
+  resendCertificateAction,
 }: {
   rows: AdminRegistrationRow[];
-  /** Slot above the table, used for the webinar session panel. */
+  /** Slot above the table: the setup panels (session, sync, referral codes). */
   children?: React.ReactNode;
+  /**
+   * Per-row recovery actions, rendered as the table's last column.
+   *
+   * Passed down rather than held in the column registry because a server action
+   * cannot be a value in a module-level data structure, and because these are
+   * controls rather than data: they are deliberately absent from the CSV, which
+   * exports every other column.
+   */
+  resendConfirmationAction: (
+    state: OperationState,
+    formData: FormData
+  ) => Promise<OperationState>;
+  resendCertificateAction: (
+    state: OperationState,
+    formData: FormData
+  ) => Promise<OperationState>;
 }) {
-  const [filter, setFilter] = useState<StatusFilter>("all");
-  const [query, setQuery] = useState("");
+  const [filters, setFilters] = useState<RegistrationFilters>(EMPTY_FILTERS);
   const [page, setPage] = useState(1);
   // One line per person by default; the abandoned-checkout trail is one row per
   // attempt, which is noisy to scan. Operators can switch to every attempt.
   const [grouped, setGrouped] = useState(true);
-  // Emails whose other attempts are currently expanded (grouped view only).
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set());
+  const [showFilters, setShowFilters] = useState(false);
+  const [showColumns, setShowColumns] = useState(false);
+  const [columnKeys, setColumns] = useColumnPreference();
 
-  // Changing the filter or search shrinks the result set, so reset to page 1 in
-  // the handlers below — never land the user on a now-empty page.
-  function changeFilter(next: StatusFilter) {
-    setFilter(next);
-    setPage(1);
+  function toggleColumn(key: string) {
+    const next = columnKeys.includes(key)
+      ? columnKeys.filter((k) => k !== key)
+      : // Keep the canonical order rather than append order, so turning a column
+        // on twice cannot shuffle the table.
+        REGISTRATION_COLUMNS.filter(
+          (c) => c.key === key || columnKeys.includes(c.key)
+        ).map((c) => c.key);
+    setColumns(next);
   }
 
-  function changeQuery(next: string) {
-    setQuery(next);
+  // Changing anything that shrinks the result set resets to page 1, so the
+  // operator never lands on a now-empty page.
+  function update(patch: Partial<RegistrationFilters>) {
+    setFilters((f) => ({ ...f, ...patch }));
     setPage(1);
   }
 
@@ -462,32 +232,39 @@ export default function PavelDashboard({
     });
   }
 
-  const q = query.trim().toLowerCase();
+  const visibleColumns = useMemo(
+    () => REGISTRATION_COLUMNS.filter((c) => columnKeys.includes(c.key)),
+    [columnKeys]
+  );
+
+  const options = useMemo(() => filterOptions(rows), [rows]);
+
+  // Normalise the query once. `rowMatchesFilters` expects it lower-cased, and
+  // doing it per row per keystroke is wasted work.
+  const active = useMemo(
+    () => ({ ...filters, query: filters.query.trim().toLowerCase() }),
+    [filters]
+  );
+
   const groups = useMemo(() => buildGroups(rows), [rows]);
 
-  // Flat, row-level view (every attempt) — the "All attempts" mode.
+  // Flat, row-level view (every attempt).
   const filteredRows = useMemo(() => {
-    return rows.filter((row) => {
-      if (filter === "paid" && row.status !== "paid") return false;
-      if (filter === "pending" && row.status === "paid") return false;
-      return rowMatchesQuery(row, q);
-    });
-  }, [rows, filter, q]);
+    const now = new Date();
+    return rows.filter((row) => rowMatchesFilters(row, active, now));
+  }, [rows, active]);
 
-  // Grouped view (one entity per email). A group is paid if any attempt is, and
-  // matches the search if any of its attempts do.
+  // Grouped view (one entity per email). A group survives if any of its
+  // attempts does, so a paid seat is never hidden by a stale earlier attempt.
   const filteredGroups = useMemo(() => {
-    return groups.filter((group) => {
-      if (filter === "paid" && !group.hasPaid) return false;
-      if (filter === "pending" && group.hasPaid) return false;
-      return group.attempts.some((a) => rowMatchesQuery(a, q));
-    });
-  }, [groups, filter, q]);
+    const now = new Date();
+    return groups.filter((group) =>
+      group.attempts.some((a) => rowMatchesFilters(a, active, now))
+    );
+  }, [groups, active]);
 
-  // The number of entities in the current mode drives paging + the summary.
   const displayCount = grouped ? filteredGroups.length : filteredRows.length;
   const totalPages = Math.max(1, Math.ceil(displayCount / PAGE_SIZE));
-  // Clamp in case the active page fell past the end (e.g. rows removed upstream).
   const currentPage = Math.min(page, totalPages);
   const pageStart = (currentPage - 1) * PAGE_SIZE;
 
@@ -500,51 +277,117 @@ export default function PavelDashboard({
     [filteredGroups, pageStart]
   );
 
-  // The CSV is always the raw, flat trail so nothing an operator might need is
-  // hidden by grouping — it exports every attempt currently in view.
-  const csvRows = useMemo(
-    () => (grouped ? filteredGroups.flatMap((group) => group.attempts) : filteredRows),
-    [grouped, filteredGroups, filteredRows]
-  );
+  /**
+   * The rows behind the summary and the export.
+   *
+   * Always the flat trail, so grouping never hides an attempt from either. In
+   * grouped mode only the attempts that actually matched are taken: including a
+   * group's non-matching attempts would let the totals count seats the filter
+   * excluded.
+   */
+  const dataRows = useMemo(() => {
+    if (!grouped) return filteredRows;
+    const now = new Date();
+    return filteredGroups.flatMap((group) =>
+      group.attempts.filter((a) => rowMatchesFilters(a, active, now))
+    );
+  }, [grouped, filteredRows, filteredGroups, active]);
 
-  // Export the current view (search + status filter applied) as a CSV the admin
-  // can open in Excel/Sheets. Built entirely client-side from data already
-  // loaded — no round-trip, and the download never leaves the browser.
+  const totals = useMemo(() => computeTotals(dataRows), [dataRows]);
+
+  // Built entirely client-side from data already loaded: no round trip, and the
+  // file never leaves the browser.
   function handleDownloadCsv() {
-    if (csvRows.length === 0) return;
+    if (dataRows.length === 0) return;
     // Prepend a UTF-8 BOM so Excel renders ₹ and — instead of mojibake.
-    const csv = "\uFEFF" + buildCsv(csvRows);
+    const csv = "﻿" + buildCsv(dataRows);
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const stamp = CSV_DATE.format(new Date()).replace(/-/g, "");
     const link = document.createElement("a");
     link.href = url;
-    link.download = `pavel-registrations-${filter}-${stamp}.csv`;
+    link.download = `pavel-registrations-${filters.status}-${stamp}.csv`;
     document.body.appendChild(link);
     link.click();
     link.remove();
     URL.revokeObjectURL(url);
   }
 
-  // Tab counts follow the current mode so they match what the table shows:
-  // people when grouped, individual attempts when not.
+  // Tab counts follow the current mode so they match what the table shows.
   const paidGroupCount = groups.filter((g) => g.hasPaid).length;
   const paidRowCount = rows.filter((r) => r.status === "paid").length;
+  const now = new Date();
+  const abandonedCount = grouped
+    ? groups.filter(
+        (g) => !g.hasPaid && g.attempts.some((a) => rowMatchesFilters(a, { ...EMPTY_FILTERS, status: "abandoned" }, now))
+      ).length
+    : rows.filter((r) => rowMatchesFilters(r, { ...EMPTY_FILTERS, status: "abandoned" }, now)).length;
+
   const tabs: { key: StatusFilter; label: string; count: number }[] = grouped
     ? [
         { key: "all", label: "All", count: groups.length },
         { key: "paid", label: "Paid", count: paidGroupCount },
         { key: "pending", label: "Pending", count: groups.length - paidGroupCount },
+        { key: "abandoned", label: "Abandoned", count: abandonedCount },
       ]
     : [
         { key: "all", label: "All", count: rows.length },
         { key: "paid", label: "Paid", count: paidRowCount },
         { key: "pending", label: "Pending", count: rows.length - paidRowCount },
+        { key: "abandoned", label: "Abandoned", count: abandonedCount },
       ];
+
+  // Row number + the chosen columns + the fixed actions column.
+  const colSpan = visibleColumns.length + 2;
+  const advanced = hasAdvancedFilters(filters);
+
+  /** One table row, rendering whichever columns are currently on. */
+  function Row({
+    serial,
+    row,
+    refPrefix,
+    muted = false,
+  }: {
+    serial: React.ReactNode;
+    row: AdminRegistrationRow;
+    refPrefix?: React.ReactNode;
+    muted?: boolean;
+  }) {
+    return (
+      <tr
+        className={`border-b border-white/5 transition hover:bg-slate-900/60 ${
+          muted ? "bg-slate-900/30" : "bg-slate-950"
+        }`}
+      >
+        <td className="px-3 py-3 tabular-nums text-slate-500">{serial}</td>
+        {visibleColumns.map((col, i) => (
+          <td
+            key={col.key}
+            className={`px-3 py-3 ${col.numeric ? "text-right" : ""} ${
+              muted ? "opacity-70" : ""
+            }`}
+          >
+            {/* The expand toggle rides above the first column, whichever it is. */}
+            {i === 0 && refPrefix ? <div className="mb-1">{refPrefix}</div> : null}
+            {col.cell(row)}
+          </td>
+        ))}
+        {/* Actions: always last, never hidden by the picker, never exported. */}
+        <td className="px-3 py-3">
+          <RowActions
+            ref_={row.ref}
+            status={row.status}
+            resendConfirmationAction={resendConfirmationAction}
+            resendCertificateAction={resendCertificateAction}
+          />
+        </td>
+      </tr>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1600px] px-4 py-8 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
@@ -563,26 +406,86 @@ export default function PavelDashboard({
           <AdminSignOutButton />
         </div>
 
-        {/* Webinar session controls, rendered by the server page. */}
+        {/* Webinar session + referral panels, rendered by the server page. */}
         <div className="mt-8">{children}</div>
 
+        {/* Summary of whatever is currently in view. */}
+        <dl className="mt-8 flex flex-wrap gap-x-8 gap-y-4 rounded-xl border border-white/10 bg-slate-900/40 p-5">
+          <Stat label="Seats" value={`${totals.paid} paid`} hint={`${totals.pending} pending`} />
+          <Stat label="Conversion" value={`${totals.conversionPercent}%`} />
+          <Stat
+            label="Collected"
+            value={formatMoneyByCurrency(totals.collected)}
+            tone="good"
+            hint="Gross, including GST. Currencies are never added together."
+          />
+          <Stat
+            label="Net (ex GST)"
+            value={formatMoneyByCurrency(totals.netExTax)}
+            hint="From issued invoices. What commission is calculated on."
+          />
+          <Stat label="Tax" value={formatMoneyByCurrency(totals.taxCollected)} />
+          <Stat
+            label="Discount given"
+            value={formatMoneyByCurrency(totals.discountGiven)}
+          />
+          <Stat
+            label="Commission"
+            value={formatMoneyByCurrency(totals.commissionOwed)}
+            hint="Owed to referral code owners, on ex-GST revenue."
+          />
+          <Stat label="Avg order" value={formatMoneyByCurrency(totals.averageOrder)} />
+          <Stat
+            label="Attendance"
+            value={
+              totals.attendedSynced > 0
+                ? `${Math.round(totals.attendedTotalMinutes / totals.attendedSynced)} min avg`
+                : "—"
+            }
+            hint={`${totals.noShows} no-shows`}
+          />
+          <Stat label="Certificates" value={String(totals.certificatesIssued)} />
+          {totals.invoicesMissing > 0 ? (
+            <Stat
+              label="Invoices missing"
+              value={String(totals.invoicesMissing)}
+              tone="warn"
+              hint="Paid seats with no invoice issued."
+            />
+          ) : null}
+          {totals.joinLinksMissing > 0 ? (
+            <Stat
+              label="No join link"
+              value={String(totals.joinLinksMissing)}
+              tone="warn"
+              hint="Paid seats Zoom never issued a link for."
+            />
+          ) : null}
+          {totals.certificatesUnissued > 0 ? (
+            <Stat
+              label="Certs unissued"
+              value={String(totals.certificatesUnissued)}
+              tone="warn"
+              hint="Attended enough to earn one, but none issued."
+            />
+          ) : null}
+        </dl>
+
         {/* Controls */}
-        <div className="mt-8 flex flex-wrap items-center justify-between gap-3">
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
           <div className="flex gap-1 rounded-lg border border-white/10 bg-slate-900/70 p-1">
             {tabs.map((tab) => (
               <button
                 key={tab.key}
-                onClick={() => changeFilter(tab.key)}
+                onClick={() => update({ status: tab.key })}
                 className={`rounded-md px-3 py-1.5 text-sm font-medium transition ${
-                  filter === tab.key
+                  filters.status === tab.key
                     ? "bg-slate-700 text-white"
                     : "text-slate-400 hover:text-slate-200"
                 }`}
               >
                 {tab.label}
-                <span className="ml-1.5 text-xs text-slate-500">
-                  {tab.count}
-                </span>
+                <span className="ml-1.5 text-xs text-slate-500">{tab.count}</span>
               </button>
             ))}
           </div>
@@ -598,85 +501,298 @@ export default function PavelDashboard({
               }
               className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm font-medium text-slate-300 transition hover:bg-slate-800"
             >
-              <svg
-                aria-hidden="true"
-                viewBox="0 0 20 20"
-                fill="none"
-                className="h-4 w-4"
-              >
-                <path
-                  d="M4 6h12M4 10h12M4 14h7"
-                  stroke="currentColor"
-                  strokeWidth="1.6"
-                  strokeLinecap="round"
-                />
-              </svg>
               {grouped ? "Grouped by email" : "All attempts"}
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowFilters((v) => !v)}
+              aria-expanded={showFilters}
+              className={`inline-flex shrink-0 items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition ${
+                advanced
+                  ? "border-emerald-400/40 bg-emerald-500/10 text-emerald-200"
+                  : "border-white/10 bg-slate-900 text-slate-300 hover:bg-slate-800"
+              }`}
+            >
+              Filters{advanced ? " ·" : ""}
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowColumns((v) => !v)}
+              aria-expanded={showColumns}
+              className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm font-medium text-slate-300 transition hover:bg-slate-800"
+            >
+              Columns
+              <span className="text-xs text-slate-500">
+                {visibleColumns.length}/{REGISTRATION_COLUMNS.length}
+              </span>
             </button>
             <input
               type="search"
-              value={query}
-              onChange={(e) => changeQuery(e.target.value)}
-              placeholder="Search name, email, phone, ref, coupon…"
+              value={filters.query}
+              onChange={(e) => update({ query: e.target.value })}
+              placeholder="Search name, email, phone, ref, coupon, invoice…"
               className="w-full max-w-xs rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition focus:border-emerald-400/60 focus:ring-2 focus:ring-emerald-400/20"
             />
             <button
               onClick={handleDownloadCsv}
-              disabled={csvRows.length === 0}
+              disabled={dataRows.length === 0}
               title={
-                csvRows.length === 0
+                dataRows.length === 0
                   ? "Nothing to export in this view"
-                  : `Download ${csvRows.length} row${csvRows.length === 1 ? "" : "s"} as CSV`
+                  : `Download ${dataRows.length} row${
+                      dataRows.length === 1 ? "" : "s"
+                    } with all ${REGISTRATION_COLUMNS.length} columns`
               }
               className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-emerald-400/30 bg-emerald-500/10 px-3.5 py-2 text-sm font-medium text-emerald-200 transition hover:bg-emerald-500/20 disabled:cursor-not-allowed disabled:opacity-40"
             >
-              <svg
-                aria-hidden="true"
-                viewBox="0 0 20 20"
-                fill="none"
-                className="h-4 w-4"
-              >
-                <path
-                  d="M10 3v9m0 0 3.5-3.5M10 12 6.5 8.5M4 15h12"
-                  stroke="currentColor"
-                  strokeWidth="1.6"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
               Download CSV
             </button>
           </div>
         </div>
 
+        {/* Column picker */}
+        {showColumns ? (
+          <div className="mt-3 rounded-xl border border-white/10 bg-slate-900/60 p-4">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+              <p className="text-xs text-slate-400">
+                Choose what the table shows. The CSV always exports all{" "}
+                {REGISTRATION_COLUMNS.length} columns regardless.
+              </p>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setColumns(REGISTRATION_COLUMNS.map((c) => c.key))}
+                  className="rounded-lg border border-white/10 px-2.5 py-1 text-xs text-slate-300 transition hover:border-emerald-400/40 hover:text-emerald-300"
+                >
+                  Show all
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setColumns(DEFAULT_COLUMN_KEYS)}
+                  className="rounded-lg border border-white/10 px-2.5 py-1 text-xs text-slate-300 transition hover:border-emerald-400/40 hover:text-emerald-300"
+                >
+                  Reset
+                </button>
+              </div>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {COLUMN_GROUPS.map((group) => (
+                <div key={group}>
+                  <p className="mb-1.5 text-[11px] font-medium uppercase tracking-wide text-slate-500">
+                    {group}
+                  </p>
+                  <ul className="space-y-1">
+                    {REGISTRATION_COLUMNS.filter((c) => c.group === group).map((col) => (
+                      <li key={col.key}>
+                        <label className="flex cursor-pointer items-center gap-2 text-xs text-slate-300">
+                          <input
+                            type="checkbox"
+                            checked={columnKeys.includes(col.key)}
+                            onChange={() => toggleColumn(col.key)}
+                            className="h-3.5 w-3.5 rounded border-white/20 bg-slate-950 accent-emerald-500"
+                          />
+                          {col.label}
+                        </label>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
+        {/* Filter panel */}
+        {showFilters ? (
+          <div className="mt-3 rounded-xl border border-white/10 bg-slate-900/60 p-4">
+            <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
+              <Choice
+                label="Cohort"
+                value={filters.session}
+                onChange={(v) => update({ session: v })}
+                options={[ANY, ...options.sessions.map((s) => ({ value: s, label: s }))]}
+              />
+              <Choice
+                label="Currency"
+                value={filters.currency}
+                onChange={(v) => update({ currency: v })}
+                options={[ANY, ...options.currencies.map((c) => ({ value: c, label: c }))]}
+              />
+              <Choice
+                label="Country"
+                value={filters.country}
+                onChange={(v) => update({ country: v })}
+                options={[ANY, ...options.countries.map((c) => ({ value: c, label: c }))]}
+              />
+              <Choice
+                label="State"
+                value={filters.state}
+                onChange={(v) => update({ state: v })}
+                options={[ANY, ...options.states.map((s) => ({ value: s, label: s }))]}
+              />
+              <Choice
+                label="Referral code"
+                value={filters.referralCode}
+                onChange={(v) => update({ referralCode: v })}
+                options={[
+                  ANY,
+                  { value: NO_REFERRAL, label: "No code" },
+                  ...options.codes.map((c) => ({ value: c, label: c })),
+                ]}
+              />
+              <Choice
+                label="Discount applied"
+                value={filters.discountApplied}
+                onChange={(v) => update({ discountApplied: v as RegistrationFilters["discountApplied"] })}
+                options={[{ value: "any", label: "Any" }, ...flagOptions.slice(1)]}
+              />
+              <Choice
+                label="Attendance"
+                value={filters.attendance}
+                onChange={(v) => update({ attendance: v as RegistrationFilters["attendance"] })}
+                options={[
+                  { value: "any", label: "Any" },
+                  { value: "full", label: "Full" },
+                  { value: "partial", label: "Partial" },
+                  { value: "no_show", label: "No-show" },
+                  { value: "not_synced", label: "Not synced" },
+                ]}
+              />
+              <Choice
+                label="Certificate"
+                value={filters.certificate}
+                onChange={(v) => update({ certificate: v as RegistrationFilters["certificate"] })}
+                options={[
+                  { value: "any", label: "Any" },
+                  { value: "issued", label: "Issued" },
+                  { value: "eligible_unissued", label: "Earned, unissued" },
+                  { value: "none", label: "None" },
+                ]}
+              />
+              <Choice
+                label="Invoice"
+                value={filters.invoice}
+                onChange={(v) => update({ invoice: v as RegistrationFilters["invoice"] })}
+                options={[
+                  { value: "any", label: "Any" },
+                  { value: "issued", label: "Issued" },
+                  { value: "missing", label: "Missing" },
+                ]}
+              />
+              <Choice
+                label="Has GSTIN"
+                value={filters.hasGstin}
+                onChange={(v) => update({ hasGstin: v as RegistrationFilters["hasGstin"] })}
+                options={[{ value: "any", label: "Any" }, ...flagOptions.slice(1)]}
+              />
+              <Choice
+                label="Join link"
+                value={filters.joinLink}
+                onChange={(v) => update({ joinLink: v as RegistrationFilters["joinLink"] })}
+                options={[{ value: "any", label: "Any" }, ...flagOptions.slice(1)]}
+              />
+              <div />
+              <label className="text-[11px] text-slate-500">
+                Registered from
+                <input
+                  type="date"
+                  value={filters.registeredFrom}
+                  onChange={(e) => update({ registeredFrom: e.target.value })}
+                  className={`mt-1 block w-full ${SELECT}`}
+                />
+              </label>
+              <label className="text-[11px] text-slate-500">
+                Registered to
+                <input
+                  type="date"
+                  value={filters.registeredTo}
+                  onChange={(e) => update({ registeredTo: e.target.value })}
+                  className={`mt-1 block w-full ${SELECT}`}
+                />
+              </label>
+              <label className="text-[11px] text-slate-500">
+                Paid from
+                <input
+                  type="date"
+                  value={filters.paidFrom}
+                  onChange={(e) => update({ paidFrom: e.target.value })}
+                  className={`mt-1 block w-full ${SELECT}`}
+                />
+              </label>
+              <label className="text-[11px] text-slate-500">
+                Paid to
+                <input
+                  type="date"
+                  value={filters.paidTo}
+                  onChange={(e) => update({ paidTo: e.target.value })}
+                  className={`mt-1 block w-full ${SELECT}`}
+                />
+              </label>
+              <label className="text-[11px] text-slate-500">
+                Min amount
+                <input
+                  type="number"
+                  min={0}
+                  value={filters.amountMin}
+                  onChange={(e) => update({ amountMin: e.target.value })}
+                  placeholder="any"
+                  className={`mt-1 block w-full ${SELECT}`}
+                />
+              </label>
+              <label className="text-[11px] text-slate-500">
+                Max amount
+                <input
+                  type="number"
+                  min={0}
+                  value={filters.amountMax}
+                  onChange={(e) => update({ amountMax: e.target.value })}
+                  placeholder="any"
+                  className={`mt-1 block w-full ${SELECT}`}
+                />
+              </label>
+            </div>
+            <div className="mt-3 flex items-center justify-between gap-2">
+              <p className="text-[11px] text-slate-500">
+                Amounts are in the charged currency&apos;s main unit, so filter by
+                currency alongside them or ₹ and $ will be compared to each other.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  setFilters({ ...EMPTY_FILTERS, status: filters.status, query: filters.query });
+                  setPage(1);
+                }}
+                className="shrink-0 rounded-lg border border-white/10 px-2.5 py-1 text-xs text-slate-300 transition hover:border-emerald-400/40 hover:text-emerald-300"
+              >
+                Clear filters
+              </button>
+            </div>
+          </div>
+        ) : null}
+
         {/* Table */}
         <div className="mt-4 overflow-x-auto rounded-xl border border-white/10">
-          <table className="w-full min-w-[1120px] border-collapse text-left text-sm">
+          <table className="w-full border-collapse text-left text-sm">
             <thead>
               <tr className="border-b border-white/10 bg-slate-900/70 text-xs uppercase tracking-wide text-slate-400">
                 <th className="px-3 py-3 font-medium">#</th>
-                <th className="px-3 py-3 font-medium">Ref</th>
-                <th className="px-3 py-3 font-medium">Name</th>
-                <th className="px-3 py-3 font-medium">Email</th>
-                <th className="px-3 py-3 font-medium">Phone</th>
-                <th className="px-3 py-3 font-medium">Region</th>
-                <th className="px-3 py-3 font-medium">State</th>
-                <th className="px-3 py-3 font-medium">Coupon</th>
-                <th className="px-3 py-3 font-medium">Status</th>
-                <th className="px-3 py-3 font-medium">Registered (IST)</th>
-                <th className="px-3 py-3 font-medium">Paid (IST)</th>
-                <th className="px-3 py-3 font-medium">Attended</th>
-                <th className="px-3 py-3 font-medium">Certificate</th>
-                <th className="px-3 py-3 font-medium">Invoice</th>
+                {visibleColumns.map((col) => (
+                  <th
+                    key={col.key}
+                    className={`whitespace-nowrap px-3 py-3 font-medium ${
+                      col.numeric ? "text-right" : ""
+                    }`}
+                  >
+                    {col.label}
+                  </th>
+                ))}
+                <th className="whitespace-nowrap px-3 py-3 font-medium">Actions</th>
               </tr>
             </thead>
             <tbody>
               {displayCount === 0 ? (
                 <tr>
-                  <td
-                    colSpan={14}
-                    className="px-4 py-12 text-center text-sm text-slate-500"
-                  >
+                  <td colSpan={colSpan} className="px-4 py-12 text-center text-sm text-slate-500">
                     No registrations match this view.
                   </td>
                 </tr>
@@ -689,7 +805,7 @@ export default function PavelDashboard({
                   );
                   return (
                     <Fragment key={group.email}>
-                      <RegistrationRow
+                      <Row
                         serial={pageStart + index + 1}
                         row={group.representative}
                         refPrefix={
@@ -705,7 +821,7 @@ export default function PavelDashboard({
                       {multiple &&
                         isOpen &&
                         others.map((attempt) => (
-                          <RegistrationRow
+                          <Row
                             key={attempt.ref}
                             serial={
                               <span className="text-slate-700" aria-hidden="true">
@@ -721,11 +837,7 @@ export default function PavelDashboard({
                 })
               ) : (
                 pagedRows.map((row, index) => (
-                  <RegistrationRow
-                    key={row.ref}
-                    serial={pageStart + index + 1}
-                    row={row}
-                  />
+                  <Row key={row.ref} serial={pageStart + index + 1} row={row} />
                 ))
               )}
             </tbody>
@@ -752,8 +864,8 @@ export default function PavelDashboard({
             {grouped && displayCount > 0 && (
               <span className="text-slate-600">
                 {" "}
-                · {csvRows.length}{" "}
-                {csvRows.length === 1 ? "registration" : "registrations"}
+                · {dataRows.length}{" "}
+                {dataRows.length === 1 ? "registration" : "registrations"}
               </span>
             )}
             {(grouped ? displayCount !== groups.length : displayCount !== rows.length) && (

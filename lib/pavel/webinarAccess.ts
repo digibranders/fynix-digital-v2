@@ -1,4 +1,4 @@
-import { and, asc, eq, isNull } from "drizzle-orm";
+import { and, asc, eq, isNull, lt, or } from "drizzle-orm";
 import type { Db } from "@/lib/db/client";
 import { registrations, type Registration } from "@/lib/db/schema";
 import { getActiveSession } from "@/lib/pavel/webinarSession";
@@ -68,6 +68,18 @@ export async function grantWebinarAccess(
       };
     }
 
+    // Count the attempt BEFORE calling Zoom. Zoom has already spent one of the
+    // three daily slots by the time it answers, so recording it afterwards would
+    // lose the count on any crash or timeout and let the retry loop spend the
+    // rest.
+    await db
+      .update(registrations)
+      .set({
+        zoomAccessAttempts: (registration.zoomAccessAttempts ?? 0) + 1,
+        zoomAccessLastAttemptAt: new Date(),
+      })
+      .where(eq(registrations.id, registration.id));
+
     const registrant = await registerAttendee(session.zoomWebinarId, {
       name: registration.name,
       email: registration.email,
@@ -104,17 +116,47 @@ export async function grantWebinarAccess(
  * by payment time and run sequentially: Zoom's registrant endpoint is rate
  * limited, and there is no benefit to racing it.
  */
+/**
+ * Attempts to spend before giving up for the day. Zoom's own limit is three;
+ * stopping at two keeps one in hand for a deliberate manual retry.
+ */
+const MAX_ACCESS_ATTEMPTS = 2;
+
+/** Minimum gap between automatic retries for the same seat. */
+const ACCESS_RETRY_COOLDOWN_MS = 30 * 60 * 1000;
+
 export async function backfillWebinarAccess(
   db: Db,
   limit = 50
 ): Promise<{ granted: number; failed: number; skipped: number }> {
   if (!isZoomConfigured()) return { granted: 0, failed: 0, skipped: 0 };
 
+  // Zoom allows THREE registration attempts per person per webinar per day, and
+  // this runs every few minutes, so an unqualified retry spends the whole budget
+  // within the hour and locks the buyer out until 00:00 GMT. Two guards:
+  //
+  //   attempts < MAX   leave a slot in reserve for a manual fix
+  //   cooldown         space retries out, so a transient Zoom fault gets a
+  //                    second chance later rather than three in five minutes
+  //
+  // A seat that exhausts its attempts stops being retried and stays visible in
+  // the admin table with no join link, which is the state an operator needs to
+  // see rather than a silent loop.
+  const cooldownSince = new Date(Date.now() - ACCESS_RETRY_COOLDOWN_MS);
+
   const pending: Pick<Registration, "id">[] = await db
     .select({ id: registrations.id })
     .from(registrations)
     .where(
-      and(eq(registrations.status, "paid"), isNull(registrations.zoomJoinUrl))
+      and(
+        eq(registrations.status, "paid"),
+        isNull(registrations.zoomJoinUrl),
+        lt(registrations.zoomAccessAttempts, MAX_ACCESS_ATTEMPTS),
+        or(
+          isNull(registrations.zoomAccessLastAttemptAt),
+          lt(registrations.zoomAccessLastAttemptAt, cooldownSince)
+        )
+      )
     )
     .orderBy(asc(registrations.paidAt))
     .limit(limit);

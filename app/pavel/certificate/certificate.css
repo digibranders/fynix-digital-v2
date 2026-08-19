@@ -33,7 +33,27 @@
   background: var(--cream);
   color: var(--ink);
   font-family: var(--font-sans), "Figtree", system-ui, sans-serif;
-  font-size: clamp(8px, 1.62cqi, 22px);
+  /*
+   * Root em as a pure fraction of the sheet's width, with NO clamp.
+   *
+   * 1.5488cqi is exactly the print ratio: the print rules set 4.6mm on a 297mm
+   * A4 landscape sheet, and 4.6 / 297 = 1.5488%. Screen and print are therefore
+   * the same drawing at different sizes, which is the whole promise of this
+   * layout.
+   *
+   * The clamp that used to be here broke both halves of that. Its 8px floor
+   * kicked in below ~500px of container, so on a phone the contents were laid
+   * out for a 522em-wide sheet inside a 335px box: the photo panel rode over the
+   * name, the body text spilled through the frame and the entire footer —
+   * signature, seal, credential id — was cut off. Its 1.62cqi rate also ran
+   * about 4.6% larger than print, so even on a desktop this was never quite the
+   * page that came out of the printer.
+   *
+   * Text does get small on a narrow screen. That is what an A4 landscape sheet
+   * looks like on a phone, and a faithful small certificate the reader can zoom
+   * beats a broken large one.
+   */
+  font-size: 1.5488cqi;
   line-height: 1.2;
   border-radius: 0.6em;
   box-shadow: 0 2.2em 5em -1.6em rgba(12, 30, 46, 0.32);
@@ -303,23 +323,45 @@
 }
 
 /* --- Screen presentation shell (not printed) ----------------------------- */
+
+/* Clears the fixed navbar the page now sits under. */
+.cert-main {
+  padding-top: 44px;
+}
+@media (min-width: 768px) {
+  .cert-main { padding-top: 68px; }
+}
+
 .cert-page {
-  min-height: 100vh;
   background:
     radial-gradient(120% 80% at 50% -10%, #12293b 0%, #0a1824 46%, #060f18 100%);
-  padding: clamp(1.25rem, 4vw, 3.5rem) 1.25rem;
+  /* Side padding scales with the viewport rather than sitting at a fixed
+     1.25rem. The sheet is scaled from its width, so on a phone every 20px of
+     gutter is text the reader loses. */
+  padding: clamp(1.5rem, 4vw, 3.5rem) clamp(0.5rem, 3vw, 1.25rem);
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
 }
 .cert-shell {
   width: min(100%, 62rem);
 }
-/* Unobtrusive floating actions — hidden when the certificate is printed. */
-.cert-actions {
-  position: fixed;
-  top: 1rem;
-  right: 1rem;
-  z-index: 10;
+
+/* --- Share + save actions, below the sheet ------------------------------- */
+.cert-toolbar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.85rem;
+  padding: clamp(1.5rem, 4vw, 2.5rem) 1.25rem clamp(2rem, 5vw, 3.5rem);
+}
+.cert-toolbar__note {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted, #5b6b7a);
+  text-align: center;
+}
+.cert-toolbar__id {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-weight: 600;
+  color: var(--color-primary, #0c1e2e);
 }

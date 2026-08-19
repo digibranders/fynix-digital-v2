@@ -5,14 +5,17 @@ import {
   hasLocalDb,
 } from "@/lib/admin/gateway";
 import {
-  listSessions,
+  listSessionsWithCounts,
   createSession,
   activateSession,
+  deleteSession,
   setRegistrationsClosed,
+  setRecordingUrl,
   updateSessionTimes,
   normalizeWebinarId,
 } from "@/lib/pavel/webinarSession";
 import { parseSessionTimes } from "@/lib/pavel/sessionTimes";
+import { isUniqueViolation } from "@/lib/admin/dbErrors";
 
 /**
  * Webinar sessions, as the console sees them.
@@ -29,9 +32,17 @@ export type AdminSessionRow = {
   active: boolean;
   /** Whether this session is refusing new registrations. */
   registrationsClosed: boolean;
+  /** Zoom share link for this session's recording, once published. */
+  recordingUrl: string | null;
   startsAt: string | null;
   endsAt: string | null;
   createdAt: string;
+  /**
+   * Seats sold into this session. Drives whether it can be deleted: a cohort
+   * that sold anything is a business record, and deleting it would orphan those
+   * rows from the workshop they belong to.
+   */
+  registrationCount: number;
 };
 
 export const SESSIONS_DATA_PATH = "/api/admin/data/sessions";
@@ -57,7 +68,7 @@ export async function loadSessions(): Promise<LoadSessionsResult> {
     try {
       const db = getDb();
       if (!db) throw new Error("no database");
-      const sessions = await listSessions(db);
+      const sessions = await listSessionsWithCounts(db);
       return {
         sessions: sessions.map((s) => ({
           id: s.id,
@@ -65,9 +76,11 @@ export async function loadSessions(): Promise<LoadSessionsResult> {
           label: s.label,
           active: s.active,
           registrationsClosed: s.registrationsClosed,
+          recordingUrl: s.recordingUrl,
           startsAt: s.startsAt ? s.startsAt.toISOString() : null,
           endsAt: s.endsAt ? s.endsAt.toISOString() : null,
           createdAt: s.createdAt.toISOString(),
+          registrationCount: s.registrationCount,
         })),
         error: null,
       };
@@ -109,13 +122,21 @@ export async function loadSessions(): Promise<LoadSessionsResult> {
 
 /** Perform a session action wherever the data lives. Returns an error message or null. */
 export async function mutateSession(
-  action: "create" | "activate" | "close" | "reopen" | "update",
+  action:
+    | "create"
+    | "activate"
+    | "close"
+    | "reopen"
+    | "update"
+    | "delete"
+    | "recording",
   input: {
     zoomWebinarId?: string;
     label?: string;
     sessionId?: string;
     startsAt?: string;
     endsAt?: string;
+    recordingUrl?: string;
   }
 ): Promise<string | null> {
   if (hasLocalDb()) {
@@ -148,6 +169,21 @@ export async function mutateSession(
         });
         return session ? null : "Session not found.";
       }
+      if (action === "recording") {
+        const url = (input.recordingUrl ?? "").trim();
+        // Anything that is not an http(s) URL is refused rather than stored:
+        // this value is emailed to every buyer, so a typo becomes a dead link
+        // in someone's inbox that nobody sees until they complain.
+        if (url && !/^https?:\/\/\S+$/i.test(url)) {
+          return "That does not look like a link. Paste the Zoom share URL, or clear the field to remove it.";
+        }
+        await setRecordingUrl(db, input.sessionId, url || null);
+        return null;
+      }
+      if (action === "delete") {
+        const result = await deleteSession(db, input.sessionId);
+        return result.deleted ? null : (result.reason ?? "Could not delete.");
+      }
       if (action === "close" || action === "reopen") {
         await setRegistrationsClosed(db, input.sessionId, action === "close");
         return null;
@@ -155,8 +191,10 @@ export async function mutateSession(
       await activateSession(db, input.sessionId);
       return null;
     } catch (error) {
-      const message = error instanceof Error ? error.message : "";
-      if (/duplicate key|unique constraint/i.test(message)) {
+      // A duplicate webinar id is an operator mistake worth naming, not a
+      // generic failure. Matching on `error.message` never fired: Drizzle's own
+      // message is the SQL that failed, and the constraint sits on `cause`.
+      if (isUniqueViolation(error)) {
         return "That webinar is already registered as a session.";
       }
       console.error("[admin] session action failed", error);

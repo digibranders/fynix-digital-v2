@@ -1,0 +1,2 @@
+ALTER TABLE "registrations" ADD COLUMN "zoom_access_attempts" integer DEFAULT 0 NOT NULL;--> statement-breakpoint
+ALTER TABLE "registrations" ADD COLUMN "zoom_access_last_attempt_at" timestamp with time zone;

@@ -16,15 +16,31 @@ import { loadSchedule } from "@/lib/pavel/loadSchedule";
 /** Prefix shared by every credential in this cohort. */
 const CREDENTIAL_PREFIX = "FYX-SS26";
 
+/** Minutes required when nothing valid is configured. Half a three-hour session. */
+const DEFAULT_ATTENDANCE_THRESHOLD_MINUTES = 90;
+
 /**
  * Minutes a seat must be present before the workshop counts as completed.
  *
- * The session runs three hours, and this is the line between "attended" and
- * "dropped in". It is a business judgement rather than a technical one, so it is
- * configurable; the default asks for half the session.
+ * The line between "attended" and "dropped in". A business judgement rather
+ * than a technical one, so it is configurable — lowered while testing, raised
+ * for the real event.
+ *
+ * Parsed defensively because the deploy writes this line whether or not the
+ * variable is set, so an unset variable arrives as an EMPTY STRING rather than
+ * undefined. `??` does not catch that and `Number("")` is 0 — which would hand
+ * a certificate to everyone who registered, including people who never joined.
+ * Anything that is not a positive finite number falls back to the default.
  */
-export const ATTENDANCE_THRESHOLD_MINUTES = Number(
-  process.env.PAVEL_ATTENDANCE_MIN_MINUTES ?? 90
+export function readThreshold(raw: string | undefined): number {
+  const parsed = Number((raw ?? "").trim());
+  return Number.isFinite(parsed) && parsed > 0
+    ? parsed
+    : DEFAULT_ATTENDANCE_THRESHOLD_MINUTES;
+}
+
+export const ATTENDANCE_THRESHOLD_MINUTES = readThreshold(
+  process.env.PAVEL_ATTENDANCE_MIN_MINUTES
 );
 
 /**

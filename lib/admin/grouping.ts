@@ -21,24 +21,6 @@ export type RegistrationGroup = {
   hasPaid: boolean;
 };
 
-/**
- * Does a single registration match the free-text search? Shared by the flat and
- * grouped views so a query behaves identically in both. `query` must already be
- * trimmed and lower-cased by the caller.
- */
-export function rowMatchesQuery(row: AdminRegistrationRow, query: string): boolean {
-  if (!query) return true;
-  return (
-    row.name.toLowerCase().includes(query) ||
-    row.email.toLowerCase().includes(query) ||
-    row.ref.toLowerCase().includes(query) ||
-    (row.phone?.toLowerCase().includes(query) ?? false) ||
-    (row.state?.toLowerCase().includes(query) ?? false) ||
-    (row.referralCode?.toLowerCase().includes(query) ?? false) ||
-    (row.razorpayPaymentId?.toLowerCase().includes(query) ?? false)
-  );
-}
-
 /** Most recent paid-or-created ISO timestamp across a group, for recency sort. */
 function groupActivity(group: RegistrationGroup): string {
   let latest = "";

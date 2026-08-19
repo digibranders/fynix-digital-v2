@@ -24,7 +24,8 @@ export type SyncResult =
 
 export async function syncAttendance(
   db: Db,
-  session?: WebinarSession
+  session?: WebinarSession,
+  options: { force?: boolean } = {}
 ): Promise<SyncResult> {
   try {
     if (!isZoomConfigured()) {
@@ -34,6 +35,28 @@ export async function syncAttendance(
     const target = session ?? (await getActiveSession(db));
     if (!target) {
       return { status: "skipped", reason: "No active webinar session." };
+    }
+
+    // Nothing to sync until the session has finished. Zoom's participant report
+    // does not exist for a webinar that has not happened, and asking for it
+    // answers "Meeting does not exist" — which this reported as an ERROR on
+    // every run. With the cron running every few minutes that is a steady
+    // stream of false alarms, and a real failure is indistinguishable from it.
+    //
+    // Skipping also removes a Zoom API call from every tick in the weeks before
+    // an event, where it could never have returned anything.
+    //
+    // `force` exists because the SCHEDULE is not the same thing as the event: a
+    // workshop that finishes early is over while its record still says
+    // otherwise. The automatic cron keeps the guard, since it is only guessing
+    // from the clock. An operator pressing "sync now" has already told us the
+    // session ended, and refusing them here would break the one button that
+    // exists for exactly this case.
+    if (!options.force && target.endsAt && Date.now() < target.endsAt.getTime()) {
+      return {
+        status: "skipped",
+        reason: "Session has not ended yet; no attendance report to read.",
+      };
     }
 
     const attendance = await fetchAttendance(target.zoomWebinarId);

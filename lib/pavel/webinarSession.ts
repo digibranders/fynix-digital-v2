@@ -1,6 +1,10 @@
-import { desc, eq } from "drizzle-orm";
+import { desc, eq, sql } from "drizzle-orm";
 import type { Db } from "@/lib/db/client";
-import { webinarSessions, type WebinarSession } from "@/lib/db/schema";
+import {
+  registrations,
+  webinarSessions,
+  type WebinarSession,
+} from "@/lib/db/schema";
 
 /**
  * The webinar new registrations are sold into.
@@ -75,6 +79,32 @@ export async function listSessions(db: Db): Promise<WebinarSession[]> {
     .orderBy(desc(webinarSessions.createdAt));
 }
 
+/**
+ * Sessions with the number of seats sold into each.
+ *
+ * The count is what tells an operator whether a session can be removed, so it
+ * is fetched with the list rather than left for the delete to discover: a
+ * button that fails when pressed is worse than one that explains itself.
+ */
+export async function listSessionsWithCounts(
+  db: Db
+): Promise<Array<WebinarSession & { registrationCount: number }>> {
+  const rows = await db
+    .select({
+      session: webinarSessions,
+      registrationCount: sql<number>`count(${registrations.id})`,
+    })
+    .from(webinarSessions)
+    .leftJoin(registrations, eq(registrations.sessionId, webinarSessions.id))
+    .groupBy(webinarSessions.id)
+    .orderBy(desc(webinarSessions.createdAt));
+
+  return rows.map((r) => ({
+    ...r.session,
+    registrationCount: Number(r.registrationCount),
+  }));
+}
+
 /** Zoom webinar ids are numeric; strip the spaces operators paste from the UI. */
 export function normalizeWebinarId(value: string): string {
   return value.replace(/\D/g, "");
@@ -123,4 +153,74 @@ export async function activateSession(
 
     return session;
   });
+}
+
+/**
+ * Remove a session that was never used.
+ *
+ * Deliberately refuses in two cases rather than doing what was asked:
+ *
+ *   active            deleting it would stop sales with nothing to fall back on
+ *   has registrations `registrations.session_id` is ON DELETE SET NULL, so the
+ *                     rows would survive with no cohort attached — invoices and
+ *                     certificates would still exist while the record of which
+ *                     workshop they were for quietly disappeared
+ *
+ * So this is for tidying mistakes: a mistyped webinar id, a session created and
+ * superseded before anyone bought. A cohort that sold seats is a business
+ * record and stays.
+ */
+export async function deleteSession(
+  db: Db,
+  sessionId: string
+): Promise<{ deleted: boolean; reason?: string }> {
+  const [session] = await db
+    .select()
+    .from(webinarSessions)
+    .where(eq(webinarSessions.id, sessionId))
+    .limit(1);
+
+  if (!session) return { deleted: false, reason: "Session not found." };
+  if (session.active) {
+    return {
+      deleted: false,
+      reason: "This session is active. Activate another one first.",
+    };
+  }
+
+  const [{ count }] = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(registrations)
+    .where(eq(registrations.sessionId, sessionId));
+
+  if (Number(count) > 0) {
+    return {
+      deleted: false,
+      reason: `${count} registration(s) belong to this session, so it cannot be deleted.`,
+    };
+  }
+
+  await db.delete(webinarSessions).where(eq(webinarSessions.id, sessionId));
+  return { deleted: true };
+}
+
+/**
+ * Publish (or clear) the recording link for a session.
+ *
+ * Stored rather than derived because it comes from Zoom's own share settings,
+ * where the 7-day expiry and passcode are configured. Clearing it removes the
+ * recording section from the post-event emails entirely, rather than leaving
+ * them promising something that no longer resolves.
+ */
+export async function setRecordingUrl(
+  db: Db,
+  sessionId: string,
+  url: string | null
+): Promise<WebinarSession | undefined> {
+  const [session] = await db
+    .update(webinarSessions)
+    .set({ recordingUrl: url })
+    .where(eq(webinarSessions.id, sessionId))
+    .returning();
+  return session;
 }

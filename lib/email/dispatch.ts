@@ -25,6 +25,7 @@ export const EMAILS_ENABLED = true;
 export type PavelEmailType =
   | "confirmation"
   | "admin"
+  | "recording_ready"
   | "reminder_7d"
   | "reminder_3d"
   | "reminder_1d"

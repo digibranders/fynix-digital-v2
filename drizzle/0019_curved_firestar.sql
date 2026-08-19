@@ -1,0 +1,1 @@
+ALTER TABLE "webinar_sessions" ADD COLUMN "recording_url" text;
