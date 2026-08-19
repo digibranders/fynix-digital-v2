@@ -7,6 +7,11 @@ import { loadSessions, mutateSession } from "@/lib/admin/sessions";
 import { loadReferrals, mutateReferral } from "@/lib/admin/referrals";
 import PavelDashboard from "@/components/admin/PavelDashboard";
 import { SessionPanel } from "@/components/admin/SessionPanel";
+import {
+  OperationsPanel,
+  type OperationState,
+} from "@/components/admin/OperationsPanel";
+import { runAdminOperation } from "@/lib/admin/operations";
 import { ReferralPanel } from "@/components/admin/ReferralPanel";
 
 export const runtime = "nodejs";
@@ -168,6 +173,41 @@ export default async function PavelAdminPage() {
     revalidatePath("/admin/pavel");
   }
 
+  /**
+   * Manual recovery actions. Each returns what happened so the panel can show
+   * it: these are used when something already failed once, and a silent result
+   * is indistinguishable from another failure.
+   */
+  async function resendConfirmationAction(
+    _state: OperationState,
+    formData: FormData
+  ): Promise<OperationState> {
+    "use server";
+    if (!(await isAdminAuthenticated())) redirect("/admin");
+    return runAdminOperation("resend_confirmation", {
+      ref: String(formData.get("ref") ?? ""),
+    });
+  }
+
+  async function resendCertificateAction(
+    _state: OperationState,
+    formData: FormData
+  ): Promise<OperationState> {
+    "use server";
+    if (!(await isAdminAuthenticated())) redirect("/admin");
+    return runAdminOperation("resend_certificate", {
+      ref: String(formData.get("ref") ?? ""),
+    });
+  }
+
+  async function syncAttendanceAction(): Promise<OperationState> {
+    "use server";
+    if (!(await isAdminAuthenticated())) redirect("/admin");
+    const result = await runAdminOperation("sync_attendance");
+    revalidatePath("/admin/pavel");
+    return result;
+  }
+
   if (error) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-950 px-4">
@@ -183,6 +223,11 @@ export default async function PavelAdminPage() {
 
   return (
     <PavelDashboard rows={rows}>
+      <OperationsPanel
+        resendConfirmationAction={resendConfirmationAction}
+        resendCertificateAction={resendCertificateAction}
+        syncAttendanceAction={syncAttendanceAction}
+      />
       <SessionPanel
         sessions={sessionsResult.sessions}
         error={sessionsResult.error}
