@@ -18,8 +18,19 @@
     background: none;
     padding: 0;
   }
+  .cert-main { padding-top: 0; }
   .cert-shell { width: 100%; }
-  .cert-actions {
+  /*
+   * Everything that is not the sheet.
+   *
+   * The page now carries the site's navbar and footer, and both would otherwise
+   * print: the header is `position: fixed`, which in print means it repeats on
+   * the page rather than scrolling away. The certificate is a keepsake, so the
+   * printed sheet has to be the certificate and nothing else.
+   */
+  .cert-toolbar,
+  header,
+  footer {
     display: none !important;
   }
   .cert-stage {
