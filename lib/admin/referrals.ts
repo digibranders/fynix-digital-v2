@@ -1,5 +1,5 @@
-import { and, desc, eq, gt, sql, sum } from "drizzle-orm";
-import { getDb } from "@/lib/db/client";
+import { count, desc, eq, sql, sum } from "drizzle-orm";
+import { getDb, type Db } from "@/lib/db/client";
 import { invoices, referralCodes, registrations } from "@/lib/db/schema";
 import {
   AdminGatewayError,
@@ -13,6 +13,7 @@ import {
   type AdminReferralRow,
 } from "@/lib/admin/referralStats";
 import { isUniqueViolation } from "@/lib/admin/dbErrors";
+import { parseIstWallClock } from "@/lib/pavel/sessionTimes";
 
 // Re-exported so server callers have one import path, while the console panel
 // (a client component) imports them from `referralStats` directly and does not
@@ -231,9 +232,13 @@ export function parseReferralInput(
 
   let expiresAt: Date | null = null;
   if (!blank(input.expiresAt)) {
-    const parsed = new Date(String(input.expiresAt));
-    if (Number.isNaN(parsed.getTime())) return { error: "That expiry date is not valid." };
-    expiresAt = parsed;
+    // Read as IST, the zone the operator is typing in and the workshop runs in.
+    // `new Date(value)` would read the picker's zoneless string in the SERVER's
+    // zone — UTC in production — quietly moving every expiry by 5.5 hours.
+    expiresAt = parseIstWallClock(String(input.expiresAt).trim());
+    if (!expiresAt) {
+      return { error: "That expiry date is not valid." };
+    }
   }
 
   const trim = (v: unknown): string | null => {
@@ -253,6 +258,30 @@ export function parseReferralInput(
       expiresAt,
     },
   };
+}
+
+/**
+ * How many rows reference this code by string — registrations of any status,
+ * plus issued invoices.
+ *
+ * The question both destructive guards ask. Deliberately broader than
+ * "redeemed": a full-price seat still carries the code as attribution, and a
+ * pending seat may still be paid, so either would be orphaned by a rename or a
+ * delete. Invoices are counted too because an invoice outlives its registration
+ * conceptually and is the record a payout reconciles against.
+ */
+async function countReferences(db: Db, code: string): Promise<number> {
+  const [regs] = await db
+    .select({ value: count() })
+    .from(registrations)
+    .where(eq(registrations.referralCode, code));
+  if ((regs?.value ?? 0) > 0) return regs.value;
+
+  const [invs] = await db
+    .select({ value: count() })
+    .from(invoices)
+    .where(eq(invoices.referralCode, code));
+  return invs?.value ?? 0;
 }
 
 export type ReferralAction = "create" | "update" | "toggle" | "delete";
@@ -275,6 +304,31 @@ export async function mutateReferral(
           return null;
         }
         if (!input.id) return "A code id is required.";
+
+        // Renaming a code that has been used is refused.
+        //
+        // Registrations and invoices record the code as a STRING, not a foreign
+        // key, so renaming silently cuts the row off from its own history: the
+        // redemption count drops to zero, which resets a spent cap and lets the
+        // code be redeemed all over again, and the owner's revenue disappears
+        // from the payout report. Rewriting those references is not an option
+        // either — an invoice is a legal record of what was issued and must
+        // reproduce exactly as issued. Everything else about the code stays
+        // editable; only the identity is frozen once it has been earned.
+        const [existing] = await db
+          .select({ code: referralCodes.code })
+          .from(referralCodes)
+          .where(eq(referralCodes.id, input.id))
+          .limit(1);
+        if (!existing) return "That code no longer exists.";
+
+        if (existing.code !== parsed.values.code) {
+          const referenced = await countReferences(db, existing.code);
+          if (referenced > 0) {
+            return `${existing.code} has been used, so its code cannot be changed. Switch it off and create a new one instead.`;
+          }
+        }
+
         await db
           .update(referralCodes)
           .set({ ...parsed.values, updatedAt: new Date() })
@@ -292,19 +346,24 @@ export async function mutateReferral(
         return null;
       }
 
-      // Deleting is refused once a code has been redeemed. Registrations and
-      // invoices reference it by string, not by key, so removing the row would
-      // leave paid seats pointing at a code nobody can look up and take a
-      // partner's payout history with it. Switching off is how a used code is
-      // retired.
-      const [used] = await db
-        .select({ id: registrations.id })
-        .from(registrations)
-        .innerJoin(referralCodes, eq(referralCodes.code, registrations.referralCode))
-        .where(and(eq(referralCodes.id, input.id), gt(registrations.discountPercent, 0)))
+      // Deleting is refused once ANYTHING references the code. Registrations
+      // and invoices reference it by string, not by key, so removing the row
+      // would leave those rows pointing at a code nobody can look up.
+      //
+      // Any reference counts, not just a discounted one: a seat paid at full
+      // price still carries the code as attribution, and a pending seat may yet
+      // be paid. Testing only for a discount let both be orphaned by a direct
+      // call to the internal API, which is the real boundary — the panel hides
+      // the button, but the panel is not what enforces this.
+      const [existing] = await db
+        .select({ code: referralCodes.code })
+        .from(referralCodes)
+        .where(eq(referralCodes.id, input.id))
         .limit(1);
-      if (used) {
-        return "That code has been redeemed, so it cannot be deleted. Switch it off instead.";
+      if (!existing) return "That code no longer exists.";
+
+      if ((await countReferences(db, existing.code)) > 0) {
+        return "That code has been used, so it cannot be deleted. Switch it off instead.";
       }
 
       await db.delete(referralCodes).where(eq(referralCodes.id, input.id));

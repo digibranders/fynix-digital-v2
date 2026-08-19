@@ -1,6 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useActionState, useMemo, useState } from "react";
+import { AlertCircle, CheckCircle2 } from "lucide-react";
+import type { OperationState } from "@/components/admin/OperationsPanel";
+import { toIstWallClock } from "@/lib/pavel/sessionTimes";
 // Imported from `referralStats`, not `referrals`: the latter reaches the
 // database, and pulling it in here would bundle the Postgres driver into the
 // browser.
@@ -51,18 +54,36 @@ type Filter = "all" | ReferralStatus;
 
 const TABS: Filter[] = ["all", "active", "inactive", "expired", "exhausted"];
 
-/** `datetime-local` wants 'YYYY-MM-DDTHH:mm' with no zone. */
-function toLocalInput(iso: string | null): string {
-  if (!iso) return "";
-  const d = new Date(iso);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(
-    d.getHours()
-  )}:${pad(d.getMinutes())}`;
-}
+// Expiries are entered and shown in IST, the zone the workshop runs in and the
+// one the server parses them as. Rendering the picker in the BROWSER's zone
+// instead meant an operator outside India saw a different time in the edit form
+// than the row above it, and typed a value that then moved again on the server.
 
 const FIELD =
   "mt-1 w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm text-white placeholder-slate-600 focus:border-emerald-400/50 focus:outline-none";
+
+/**
+ * Outcome of the last mutation. Failures are shown as plainly as successes:
+ * every message here is one an operator can act on, and the panel used to
+ * discard them, so a refused create looked exactly like a completed one.
+ */
+function Result({ state }: { state: OperationState }) {
+  if (!state) return null;
+  return (
+    <p
+      className={`flex items-start gap-1.5 text-[11px] leading-snug ${
+        state.ok ? "text-emerald-400" : "text-amber-400"
+      }`}
+    >
+      {state.ok ? (
+        <CheckCircle2 className="mt-0.5 h-3 w-3 shrink-0" />
+      ) : (
+        <AlertCircle className="mt-0.5 h-3 w-3 shrink-0" />
+      )}
+      <span>{state.message}</span>
+    </p>
+  );
+}
 
 /** The create and edit forms take the same fields, so they share one body. */
 function CodeFields({ row }: { row?: AdminReferralRow }) {
@@ -102,11 +123,11 @@ function CodeFields({ row }: { row?: AdminReferralRow }) {
         />
       </label>
       <label className="text-xs text-slate-400">
-        Expires
+        Expires (IST)
         <input
           name="expiresAt"
           type="datetime-local"
-          defaultValue={toLocalInput(row?.expiresAt ?? null)}
+          defaultValue={toIstWallClock(row?.expiresAt ?? null)}
           className={FIELD}
         />
       </label>
@@ -164,15 +185,34 @@ export function ReferralPanel({
 }: {
   codes: AdminReferralRow[];
   error: string | null;
-  createAction: (formData: FormData) => Promise<void>;
-  updateAction: (formData: FormData) => Promise<void>;
-  toggleAction: (formData: FormData) => Promise<void>;
-  deleteAction: (formData: FormData) => Promise<void>;
+  createAction: (
+    state: OperationState,
+    formData: FormData
+  ) => Promise<OperationState>;
+  updateAction: (
+    state: OperationState,
+    formData: FormData
+  ) => Promise<OperationState>;
+  toggleAction: (
+    state: OperationState,
+    formData: FormData
+  ) => Promise<OperationState>;
+  deleteAction: (
+    state: OperationState,
+    formData: FormData
+  ) => Promise<OperationState>;
 }) {
   const [filter, setFilter] = useState<Filter>("all");
   const [query, setQuery] = useState("");
   const [editing, setEditing] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
+
+  // One state per action rather than per row: only one mutation is in flight at
+  // a time, and the message names the code it concerns.
+  const [createState, createSubmit] = useActionState(createAction, null);
+  const [updateState, updateSubmit] = useActionState(updateAction, null);
+  const [toggleState, toggleSubmit] = useActionState(toggleAction, null);
+  const [deleteState, deleteSubmit] = useActionState(deleteAction, null);
 
   // One clock for the whole render, so two rows can never disagree about
   // whether the same expiry has passed.
@@ -287,19 +327,28 @@ export function ReferralPanel({
 
       {adding ? (
         <form
-          action={createAction}
+          action={createSubmit}
           className="mb-4 grid gap-3 rounded-lg border border-emerald-400/20 bg-slate-950 p-4 sm:grid-cols-2 lg:grid-cols-4"
         >
           <CodeFields />
-          <div className="sm:col-span-2 lg:col-span-4">
+          <div className="flex flex-wrap items-center gap-3 sm:col-span-2 lg:col-span-4">
             <button
               type="submit"
               className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-medium text-slate-950 transition hover:bg-emerald-400"
             >
               Create code
             </button>
+            <Result state={createState} />
           </div>
         </form>
+      ) : null}
+
+      {/* Results for the row-level actions, which have no room of their own. */}
+      {!adding && (toggleState || deleteState) ? (
+        <div className="mb-3 space-y-1">
+          <Result state={toggleState} />
+          <Result state={deleteState} />
+        </div>
       ) : null}
 
       {visible.length === 0 ? (
@@ -361,7 +410,7 @@ export function ReferralPanel({
                     >
                       {editing === row.id ? "Close" : "Edit"}
                     </button>
-                    <form action={toggleAction}>
+                    <form action={toggleSubmit}>
                       <input type="hidden" name="id" value={row.id} />
                       <input
                         type="hidden"
@@ -380,7 +429,7 @@ export function ReferralPanel({
                       </button>
                     </form>
                     {removable ? (
-                      <form action={deleteAction}>
+                      <form action={deleteSubmit}>
                         <input type="hidden" name="id" value={row.id} />
                         <button
                           type="submit"
@@ -434,19 +483,27 @@ export function ReferralPanel({
 
                 {editing === row.id ? (
                   <form
-                    action={updateAction}
+                    action={updateSubmit}
                     className="mt-2 grid gap-3 border-t border-white/5 pt-3 sm:grid-cols-2 lg:grid-cols-4"
                   >
                     <input type="hidden" name="id" value={row.id} />
                     <CodeFields row={row} />
-                    <div className="sm:col-span-2 lg:col-span-4">
+                    <div className="flex flex-wrap items-center gap-3 sm:col-span-2 lg:col-span-4">
                       <button
                         type="submit"
                         className="rounded-lg border border-emerald-400/40 px-4 py-2 text-xs text-emerald-300 transition hover:bg-emerald-500/10"
                       >
                         Save changes
                       </button>
+                      <Result state={updateState} />
                     </div>
+                    {row.redeemed > 0 || row.attributed > 0 || row.pending > 0 ? (
+                      <p className="text-[11px] text-slate-500 sm:col-span-2 lg:col-span-4">
+                        This code has been used, so its code cannot be changed —
+                        registrations and invoices record it by name. Everything
+                        else here is still editable.
+                      </p>
+                    ) : null}
                   </form>
                 ) : null}
               </li>

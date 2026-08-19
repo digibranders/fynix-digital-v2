@@ -512,6 +512,16 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
       }
     }
 
+    // A code sitting unapplied in the field is not a discount, and only the
+    // applied one is ever sent. Submitting anyway charged the list price and
+    // recorded no attribution, so the buyer lost the discount and the partner
+    // lost the sale, both silently. Stop and say so instead.
+    if (referralCode.trim() && !appliedReferral) {
+      setReferralOpen(true);
+      setReferralError("Tap Apply to use this code, or clear the field.");
+      return;
+    }
+
     // Combine the selected country's dial code with the typed number.
     const fullPhone = `${selectedDialCode} ${trimmedPhone}`.trim();
 

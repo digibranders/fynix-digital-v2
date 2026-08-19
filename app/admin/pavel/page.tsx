@@ -42,6 +42,27 @@ async function revalidateLanding() {
 }
 
 /**
+ * Read the referral code fields out of a submitted form.
+ *
+ * Module scope on purpose. Declared inside the component it became a closure
+ * the inline server actions captured, and an action's captured bindings are
+ * serialised — a function is not something that can survive that.
+ * `mutateReferral` validates every one of these, so they are passed through raw.
+ */
+function referralFields(formData: FormData) {
+  return {
+    code: String(formData.get("code") ?? ""),
+    discountPercent: String(formData.get("discountPercent") ?? ""),
+    label: String(formData.get("label") ?? ""),
+    ownerName: String(formData.get("ownerName") ?? ""),
+    ownerEmail: String(formData.get("ownerEmail") ?? ""),
+    commissionPercent: String(formData.get("commissionPercent") ?? ""),
+    maxUses: String(formData.get("maxUses") ?? ""),
+    expiresAt: String(formData.get("expiresAt") ?? ""),
+  };
+}
+
+/**
  * Registrations dashboard for the Semantic SEO workshop.
  *
  * Sign-in lives at `/admin`, so an unauthenticated visitor is sent there rather
@@ -124,53 +145,73 @@ export default async function PavelAdminPage() {
    * authorising only the page render would leave these callable by anyone who
    * knows the action id.
    *
+   * Each returns what happened rather than swallowing it. `mutateReferral` does
+   * all the validation and answers with a message an operator can act on ("That
+   * code already exists", "Discount must be a whole number between 1 and 100"),
+   * and discarding that made a rejected create indistinguishable from a
+   * successful one: the form simply cleared and no code appeared.
+   *
    * Only `/admin/pavel` is revalidated, not the landing page: a code change
    * alters nothing that is cached publicly. The page never renders a code, and
    * checkout re-reads the rules from the database on every attempt.
    */
-  const referralFields = (formData: FormData) => ({
-    code: String(formData.get("code") ?? ""),
-    discountPercent: String(formData.get("discountPercent") ?? ""),
-    label: String(formData.get("label") ?? ""),
-    ownerName: String(formData.get("ownerName") ?? ""),
-    ownerEmail: String(formData.get("ownerEmail") ?? ""),
-    commissionPercent: String(formData.get("commissionPercent") ?? ""),
-    maxUses: String(formData.get("maxUses") ?? ""),
-    expiresAt: String(formData.get("expiresAt") ?? ""),
-  });
-
-  async function createReferralAction(formData: FormData) {
+  async function createReferralAction(
+    _state: OperationState,
+    formData: FormData
+  ): Promise<OperationState> {
     "use server";
     if (!(await isAdminAuthenticated())) redirect("/admin");
-    await mutateReferral("create", referralFields(formData));
+    const error = await mutateReferral("create", referralFields(formData));
     revalidatePath("/admin/pavel");
+    return error
+      ? { ok: false, message: error }
+      : { ok: true, message: "Code created." };
   }
 
-  async function updateReferralAction(formData: FormData) {
+  async function updateReferralAction(
+    _state: OperationState,
+    formData: FormData
+  ): Promise<OperationState> {
     "use server";
     if (!(await isAdminAuthenticated())) redirect("/admin");
-    await mutateReferral("update", {
+    const error = await mutateReferral("update", {
       id: String(formData.get("id") ?? ""),
       ...referralFields(formData),
     });
     revalidatePath("/admin/pavel");
+    return error ? { ok: false, message: error } : { ok: true, message: "Saved." };
   }
 
-  async function toggleReferralAction(formData: FormData) {
+  async function toggleReferralAction(
+    _state: OperationState,
+    formData: FormData
+  ): Promise<OperationState> {
     "use server";
     if (!(await isAdminAuthenticated())) redirect("/admin");
-    await mutateReferral("toggle", {
+    const active = formData.get("active") === "true";
+    const error = await mutateReferral("toggle", {
       id: String(formData.get("id") ?? ""),
-      active: formData.get("active") === "true",
+      active,
     });
     revalidatePath("/admin/pavel");
+    return error
+      ? { ok: false, message: error }
+      : { ok: true, message: active ? "Code switched on." : "Code switched off." };
   }
 
-  async function deleteReferralAction(formData: FormData) {
+  async function deleteReferralAction(
+    _state: OperationState,
+    formData: FormData
+  ): Promise<OperationState> {
     "use server";
     if (!(await isAdminAuthenticated())) redirect("/admin");
-    await mutateReferral("delete", { id: String(formData.get("id") ?? "") });
+    const error = await mutateReferral("delete", {
+      id: String(formData.get("id") ?? ""),
+    });
     revalidatePath("/admin/pavel");
+    return error
+      ? { ok: false, message: error }
+      : { ok: true, message: "Code deleted." };
   }
 
   /**

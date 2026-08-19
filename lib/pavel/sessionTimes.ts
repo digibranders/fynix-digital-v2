@@ -16,6 +16,27 @@ export type ParsedSessionTimes = {
 };
 
 /**
+ * Read one `YYYY-MM-DDTHH:mm` wall-clock string as IST. Returns null if it is
+ * not exactly that shape.
+ *
+ * Every datetime an operator types in the console goes through here, so a
+ * picker value means the same instant wherever it is parsed. The server runs
+ * UTC, so handing these strings to `new Date()` directly reads them as UTC and
+ * silently shifts every time by 5.5 hours.
+ *
+ * The shape test is not belt-and-braces: `new Date("nonsense:00+05:30")` is an
+ * Invalid Date and would be caught, but a partial like "2026-08-19" parses
+ * happily as midnight UTC and stores a time nobody chose.
+ */
+export function parseIstWallClock(value: string): Date | null {
+  const SHAPE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
+  if (!SHAPE.test(value)) return null;
+  // "+05:30" pins the wall-clock time the operator typed to IST.
+  const parsed = new Date(`${value}:00+05:30`);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+/**
  * Read the start and end an operator typed.
  *
  * Both or neither: a start without an end cannot express a session range, and
@@ -42,18 +63,9 @@ export function parseSessionTimes(
     };
   }
 
-  // Reject anything that is not the exact wall-clock shape before parsing:
-  // `new Date("nonsense:00+05:30")` is Invalid Date, but a partial like
-  // "2026-08-19" would parse as midnight UTC and store a time nobody chose.
-  const SHAPE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
-  if (!SHAPE.test(start) || !SHAPE.test(end)) {
-    return { startsAt: null, endsAt: null, error: "That date or time is not valid." };
-  }
-
-  // "+05:30" pins the wall-clock time the operator typed to IST.
-  const parsedStart = new Date(`${start}:00+05:30`);
-  const parsedEnd = new Date(`${end}:00+05:30`);
-  if (Number.isNaN(parsedStart.getTime()) || Number.isNaN(parsedEnd.getTime())) {
+  const parsedStart = parseIstWallClock(start);
+  const parsedEnd = parseIstWallClock(end);
+  if (!parsedStart || !parsedEnd) {
     return { startsAt: null, endsAt: null, error: "That date or time is not valid." };
   }
   if (parsedEnd <= parsedStart) {

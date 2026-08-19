@@ -136,13 +136,24 @@ describe("parseReferralInput", () => {
     expect("values" in parsed && parsed.values.commissionPercent).toBe(0);
   });
 
-  it("parses an expiry into a Date", () => {
+  it("reads the expiry as IST, not as the server's own timezone", () => {
+    // The picker sends a zoneless wall-clock string. 10:00 IST is 04:30 UTC.
+    // Handing it to `new Date()` on a UTC server stored 10:00 UTC instead —
+    // 15:30 IST — quietly keeping every code alive 5.5 hours too long.
     const parsed = parseReferralInput({ ...base, expiresAt: "2026-09-01T10:00" });
-    expect("values" in parsed && parsed.values.expiresAt).toBeInstanceOf(Date);
+    expect("values" in parsed && parsed.values.expiresAt?.toISOString()).toBe(
+      "2026-09-01T04:30:00.000Z"
+    );
   });
 
   it("rejects an unparseable expiry", () => {
     expect("error" in parseReferralInput({ ...base, expiresAt: "not a date" })).toBe(true);
+  });
+
+  it("rejects a date with no time rather than assuming midnight", () => {
+    // `new Date("2026-09-01")` parses happily as midnight UTC, which is a time
+    // the operator never chose.
+    expect("error" in parseReferralInput({ ...base, expiresAt: "2026-09-01" })).toBe(true);
   });
 
   it("stores blank optional text as null, not an empty string", () => {
