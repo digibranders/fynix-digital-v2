@@ -114,11 +114,22 @@ jobs:
           git checkout main
           git reset --hard origin/main
 
-          # Install + build. The running service keeps serving the old build
-          # until this succeeds, so a broken build never causes an outage.
+          # Install + build.
+          #
+          # The heap cap must stay BELOW the droplet's physical memory (961MB).
+          # It was 1536MB, which let V8 grow past what the box has: instead of
+          # collecting garbage it thrashed into swap until the machine stopped
+          # answering and the deploy died mid-build with a broken pipe. A cap
+          # under physical RAM makes V8 collect instead of drown.
+          #
+          # Note this build is NOT free of consequence if it fails: `next build`
+          # writes into .next in place, so a failed build leaves no usable build
+          # on disk. The running process survives on what it already loaded, but
+          # the next restart — a crash, a reboot, a deploy — has nothing to
+          # start from. Treat a red deploy as something to fix now, not later.
           npm ci --no-audit --no-fund
           set -a; . ./.env; set +a
-          NODE_OPTIONS=--max-old-space-size=1536 npm run build
+          NODE_OPTIONS=--max-old-space-size=768 npm run build
 
           # Apply pending migrations, then the idempotent referral seed.
           npm run db:migrate
