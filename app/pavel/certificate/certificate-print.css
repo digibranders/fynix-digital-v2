@@ -28,7 +28,7 @@
    * the page rather than scrolling away. The certificate is a keepsake, so the
    * printed sheet has to be the certificate and nothing else.
    */
-  .cert-toolbar,
+  .cert-outro,
   header,
   footer {
     display: none !important;

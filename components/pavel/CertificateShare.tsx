@@ -32,26 +32,6 @@ function LinkedInMark() {
 
 const WORKSHOP_NAME = "Semantic SEO Masterclass";
 
-/**
- * Skills to suggest for the LinkedIn entry.
- *
- * LinkedIn's add-to-profile link cannot pre-fill these — the documented
- * parameters stop at name, organisation, dates, certUrl and certId, and the
- * Skills field is a typeahead the member has to pick from themselves. But the
- * form *requires* at least one, so without a prompt everyone invents their own
- * wording and the credential scatters across a dozen near-synonyms.
- *
- * Naming them here means attendees tag the same four skills, which is what
- * makes the workshop legible on LinkedIn in aggregate. These are LinkedIn's own
- * skill names, so they match the typeahead rather than creating new entries.
- */
-const SUGGESTED_SKILLS = [
-  "Search Engine Optimization (SEO)",
-  "Semantic Search",
-  "Content Strategy",
-  "Keyword Research",
-];
-
 export type CertificateShareProps = {
   credentialId: string;
   recipientName: string;
@@ -135,8 +115,7 @@ export const CertificateShare: React.FC<CertificateShareProps> = (props) => {
   };
 
   return (
-    <div className="flex flex-col items-center gap-3">
-      <div className="flex flex-wrap items-center justify-center gap-2.5">
+    <div className="flex flex-wrap items-center justify-center gap-2.5">
       <a
         href={addToProfileUrl(props)}
         target="_blank"
@@ -192,23 +171,6 @@ export const CertificateShare: React.FC<CertificateShareProps> = (props) => {
         <Printer className="h-4 w-4" strokeWidth={2} />
         Save or print
       </button>
-      </div>
-
-      {/*
-        LinkedIn asks for at least one skill and cannot be told which, so the
-        names are offered here. Presented as plain text because the field is a
-        typeahead: the member types a few letters and picks LinkedIn's own
-        entry, which pasting a list would not do.
-      */}
-      <p className="cert-toolbar__skills">
-        Adding it to LinkedIn? It asks for at least one skill.{" "}
-        {SUGGESTED_SKILLS.map((skill, i) => (
-          <React.Fragment key={skill}>
-            {i > 0 ? <span aria-hidden="true"> &middot; </span> : null}
-            <span className="cert-toolbar__skill">{skill}</span>
-          </React.Fragment>
-        ))}
-      </p>
     </div>
   );
 };

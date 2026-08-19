@@ -347,35 +347,83 @@
   width: min(100%, 62rem);
 }
 
-/* --- Share + save actions, below the sheet ------------------------------- */
-.cert-toolbar {
+/* --- Below the sheet: the achievement, then what to do with it ------------ */
+.cert-outro {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.85rem;
-  padding: clamp(1.5rem, 4vw, 2.5rem) 1.25rem clamp(2rem, 5vw, 3.5rem);
-}
-.cert-toolbar__note {
-  font-size: 0.8125rem;
-  color: var(--color-text-muted, #5b6b7a);
+  gap: 1.25rem;
+  max-width: 46rem;
+  margin: 0 auto;
+  padding: clamp(2.25rem, 6vw, 3.5rem) 1.25rem clamp(2.5rem, 6vw, 4rem);
   text-align: center;
 }
-.cert-toolbar__id {
+
+.cert-outro__title {
+  font-family: var(--font-cormorant), "Cormorant", Georgia, serif;
+  font-size: clamp(1.75rem, 4.5vw, 2.5rem);
+  line-height: 1.15;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  color: var(--color-primary, #0c1e2e);
+}
+.cert-outro__lead {
+  margin-top: -0.6rem;
+  font-size: clamp(0.95rem, 2.2vw, 1.0625rem);
+  line-height: 1.6;
+  color: var(--color-text-muted, #5b6b7a);
+}
+
+/* --- Skills ------------------------------------------------------------- */
+.cert-skills {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  /* Hairlines above and below rather than a filled card: this sits on the same
+     cream as everything else, and a box would compete with the certificate. */
+  padding: 1.5rem 0;
+  border-top: 1px solid var(--color-border, rgba(12, 30, 46, 0.12));
+  border-bottom: 1px solid var(--color-border, rgba(12, 30, 46, 0.12));
+}
+.cert-skills__label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-accent-strong, #b0714a);
+}
+.cert-skills__list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.cert-skills__chip {
+  padding: 0.4rem 0.85rem;
+  border: 1px solid var(--color-border, rgba(12, 30, 46, 0.14));
+  border-radius: 999px;
+  background: #fff;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--color-primary, #0c1e2e);
+}
+.cert-skills__hint {
+  font-size: 0.75rem;
+  color: var(--color-text-muted, #5b6b7a);
+}
+
+.cert-outro__note {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted, #5b6b7a);
+}
+.cert-outro__id {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-weight: 600;
   color: var(--color-primary, #0c1e2e);
-}
-
-/* Skill names for the LinkedIn entry — quieter than the actions, but readable. */
-.cert-toolbar__skills {
-  max-width: 44rem;
-  font-size: 0.8125rem;
-  line-height: 1.6;
-  color: var(--color-text-muted, #5b6b7a);
-  text-align: center;
-}
-.cert-toolbar__skill {
-  color: var(--color-primary, #0c1e2e);
-  font-weight: 500;
-  white-space: nowrap;
 }
