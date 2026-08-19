@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import Link from "next/link";
 import Logo from "@/components/Logo";
 import AdminSignOutButton from "@/components/admin/AdminSignOutButton";
 import type { AdminRegistrationRow } from "@/lib/admin/registrations";
+import { buildGroups, rowMatchesQuery } from "@/lib/admin/grouping";
 import { COUNTRIES, flagEmoji } from "@/components/pavel/countries";
 
 export type { AdminRegistrationRow };
@@ -305,6 +306,119 @@ function buildCsv(rows: AdminRegistrationRow[]): string {
   return lines.join("\r\n");
 }
 
+/** Chevron button that expands a group to reveal its other attempts. */
+function ExpandToggle({
+  open,
+  count,
+  onClick,
+}: {
+  open: boolean;
+  count: number;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-expanded={open}
+      title={open ? "Hide the other attempts" : `Show all ${count} attempts`}
+      className="inline-flex items-center gap-1 rounded-md border border-white/10 bg-slate-900 px-1.5 py-0.5 text-[11px] font-medium text-slate-300 transition hover:bg-slate-800"
+    >
+      <svg
+        viewBox="0 0 12 12"
+        aria-hidden="true"
+        className={`h-3 w-3 transition-transform ${open ? "rotate-90" : ""}`}
+      >
+        <path
+          d="M4 2.5 7.5 6 4 9.5"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+      &times;{count}
+    </button>
+  );
+}
+
+/**
+ * One registrations table row. Extracted so the flat view, a group's
+ * representative, and an expanded attempt all render identical columns.
+ */
+function RegistrationRow({
+  serial,
+  row,
+  refPrefix,
+  muted = false,
+}: {
+  serial: React.ReactNode;
+  row: AdminRegistrationRow;
+  /** Rendered above the ref (the expand toggle on a group's header row). */
+  refPrefix?: React.ReactNode;
+  muted?: boolean;
+}) {
+  return (
+    <tr
+      className={`border-b border-white/5 transition hover:bg-slate-900/60 ${
+        muted ? "bg-slate-900/30" : "bg-slate-950"
+      }`}
+    >
+      <td className="px-3 py-3 tabular-nums text-slate-500">{serial}</td>
+      <td className="px-3 py-3 font-mono text-xs text-slate-400">
+        {refPrefix ? <div className="mb-1">{refPrefix}</div> : null}
+        <span className={muted ? "text-slate-500" : undefined}>{row.ref}</span>
+      </td>
+      <td className="px-3 py-3 font-medium text-white">{row.name}</td>
+      <td className="px-3 py-3 text-slate-300">{row.email}</td>
+      <td className="px-3 py-3">
+        {row.phone ? (
+          <a
+            href={`tel:${row.phone.replace(/\s+/g, "")}`}
+            className="whitespace-nowrap text-slate-300 transition hover:text-emerald-300"
+          >
+            {row.phone}
+          </a>
+        ) : (
+          <Dash />
+        )}
+      </td>
+      <td className="px-3 py-3 text-slate-300">
+        {countryLabel(row.country, row.countryName)}
+      </td>
+      <td className="px-3 py-3">
+        <StateCell country={row.country} state={row.state} />
+      </td>
+      <td className="px-3 py-3">
+        <CouponCell code={row.referralCode} discountPercent={row.discountPercent} />
+      </td>
+      <td className="px-3 py-3">
+        <StatusBadge status={row.status} />
+      </td>
+      <td className="px-3 py-3">
+        <DateCell iso={row.createdAt} />
+      </td>
+      <td className="px-3 py-3">
+        <DateCell iso={row.paidAt} />
+      </td>
+      <td className="px-3 py-3">
+        <AttendanceCell
+          status={row.status}
+          attendedMinutes={row.attendedMinutes}
+          hasJoinLink={row.hasJoinLink}
+        />
+      </td>
+      <td className="px-3 py-3">
+        <CertificateCell credentialId={row.credentialId} />
+      </td>
+      <td className="px-3 py-3">
+        <InvoiceCell ref_={row.ref} invoiceNo={row.invoiceNo} />
+      </td>
+    </tr>
+  );
+}
+
 export default function PavelDashboard({
   rows,
   children,
@@ -316,6 +430,11 @@ export default function PavelDashboard({
   const [filter, setFilter] = useState<StatusFilter>("all");
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
+  // One line per person by default; the abandoned-checkout trail is one row per
+  // attempt, which is noisy to scan. Operators can switch to every attempt.
+  const [grouped, setGrouped] = useState(true);
+  // Emails whose other attempts are currently expanded (grouped view only).
+  const [expanded, setExpanded] = useState<Set<string>>(() => new Set());
 
   // Changing the filter or search shrinks the result set, so reset to page 1 in
   // the handlers below — never land the user on a now-empty page.
@@ -329,47 +448,72 @@ export default function PavelDashboard({
     setPage(1);
   }
 
-  const stats = useMemo(() => {
-    const paid = rows.filter((r) => r.status === "paid").length;
-    const pending = rows.length - paid;
-    const rate = rows.length > 0 ? Math.round((paid / rows.length) * 100) : 0;
-    return { total: rows.length, paid, pending, rate };
-  }, [rows]);
+  function toggleGrouped() {
+    setGrouped((g) => !g);
+    setPage(1);
+  }
 
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
+  function toggleExpanded(email: string) {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(email)) next.delete(email);
+      else next.add(email);
+      return next;
+    });
+  }
+
+  const q = query.trim().toLowerCase();
+  const groups = useMemo(() => buildGroups(rows), [rows]);
+
+  // Flat, row-level view (every attempt) — the "All attempts" mode.
+  const filteredRows = useMemo(() => {
     return rows.filter((row) => {
       if (filter === "paid" && row.status !== "paid") return false;
       if (filter === "pending" && row.status === "paid") return false;
-      if (!q) return true;
-      return (
-        row.name.toLowerCase().includes(q) ||
-        row.email.toLowerCase().includes(q) ||
-        row.ref.toLowerCase().includes(q) ||
-        (row.phone?.toLowerCase().includes(q) ?? false) ||
-        (row.state?.toLowerCase().includes(q) ?? false) ||
-        (row.referralCode?.toLowerCase().includes(q) ?? false) ||
-        (row.razorpayPaymentId?.toLowerCase().includes(q) ?? false)
-      );
+      return rowMatchesQuery(row, q);
     });
-  }, [rows, filter, query]);
+  }, [rows, filter, q]);
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  // Grouped view (one entity per email). A group is paid if any attempt is, and
+  // matches the search if any of its attempts do.
+  const filteredGroups = useMemo(() => {
+    return groups.filter((group) => {
+      if (filter === "paid" && !group.hasPaid) return false;
+      if (filter === "pending" && group.hasPaid) return false;
+      return group.attempts.some((a) => rowMatchesQuery(a, q));
+    });
+  }, [groups, filter, q]);
+
+  // The number of entities in the current mode drives paging + the summary.
+  const displayCount = grouped ? filteredGroups.length : filteredRows.length;
+  const totalPages = Math.max(1, Math.ceil(displayCount / PAGE_SIZE));
   // Clamp in case the active page fell past the end (e.g. rows removed upstream).
   const currentPage = Math.min(page, totalPages);
   const pageStart = (currentPage - 1) * PAGE_SIZE;
-  const paged = useMemo(
-    () => filtered.slice(pageStart, pageStart + PAGE_SIZE),
-    [filtered, pageStart]
+
+  const pagedRows = useMemo(
+    () => filteredRows.slice(pageStart, pageStart + PAGE_SIZE),
+    [filteredRows, pageStart]
+  );
+  const pagedGroups = useMemo(
+    () => filteredGroups.slice(pageStart, pageStart + PAGE_SIZE),
+    [filteredGroups, pageStart]
+  );
+
+  // The CSV is always the raw, flat trail so nothing an operator might need is
+  // hidden by grouping — it exports every attempt currently in view.
+  const csvRows = useMemo(
+    () => (grouped ? filteredGroups.flatMap((group) => group.attempts) : filteredRows),
+    [grouped, filteredGroups, filteredRows]
   );
 
   // Export the current view (search + status filter applied) as a CSV the admin
   // can open in Excel/Sheets. Built entirely client-side from data already
   // loaded — no round-trip, and the download never leaves the browser.
   function handleDownloadCsv() {
-    if (filtered.length === 0) return;
+    if (csvRows.length === 0) return;
     // Prepend a UTF-8 BOM so Excel renders ₹ and — instead of mojibake.
-    const csv = "\uFEFF" + buildCsv(filtered);
+    const csv = "\uFEFF" + buildCsv(csvRows);
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const stamp = CSV_DATE.format(new Date()).replace(/-/g, "");
@@ -382,11 +526,21 @@ export default function PavelDashboard({
     URL.revokeObjectURL(url);
   }
 
-  const tabs: { key: StatusFilter; label: string; count: number }[] = [
-    { key: "all", label: "All", count: stats.total },
-    { key: "paid", label: "Paid", count: stats.paid },
-    { key: "pending", label: "Pending", count: stats.pending },
-  ];
+  // Tab counts follow the current mode so they match what the table shows:
+  // people when grouped, individual attempts when not.
+  const paidGroupCount = groups.filter((g) => g.hasPaid).length;
+  const paidRowCount = rows.filter((r) => r.status === "paid").length;
+  const tabs: { key: StatusFilter; label: string; count: number }[] = grouped
+    ? [
+        { key: "all", label: "All", count: groups.length },
+        { key: "paid", label: "Paid", count: paidGroupCount },
+        { key: "pending", label: "Pending", count: groups.length - paidGroupCount },
+      ]
+    : [
+        { key: "all", label: "All", count: rows.length },
+        { key: "paid", label: "Paid", count: paidRowCount },
+        { key: "pending", label: "Pending", count: rows.length - paidRowCount },
+      ];
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
@@ -433,6 +587,32 @@ export default function PavelDashboard({
             ))}
           </div>
           <div className="flex flex-1 flex-wrap items-center justify-end gap-3">
+            <button
+              type="button"
+              onClick={toggleGrouped}
+              aria-pressed={grouped}
+              title={
+                grouped
+                  ? "Showing one row per person. Click to list every attempt."
+                  : "Showing every attempt. Click to group by email."
+              }
+              className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm font-medium text-slate-300 transition hover:bg-slate-800"
+            >
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 20 20"
+                fill="none"
+                className="h-4 w-4"
+              >
+                <path
+                  d="M4 6h12M4 10h12M4 14h7"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                />
+              </svg>
+              {grouped ? "Grouped by email" : "All attempts"}
+            </button>
             <input
               type="search"
               value={query}
@@ -442,11 +622,11 @@ export default function PavelDashboard({
             />
             <button
               onClick={handleDownloadCsv}
-              disabled={filtered.length === 0}
+              disabled={csvRows.length === 0}
               title={
-                filtered.length === 0
+                csvRows.length === 0
                   ? "Nothing to export in this view"
-                  : `Download ${filtered.length} row${filtered.length === 1 ? "" : "s"} as CSV`
+                  : `Download ${csvRows.length} row${csvRows.length === 1 ? "" : "s"} as CSV`
               }
               className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-emerald-400/30 bg-emerald-500/10 px-3.5 py-2 text-sm font-medium text-emerald-200 transition hover:bg-emerald-500/20 disabled:cursor-not-allowed disabled:opacity-40"
             >
@@ -491,7 +671,7 @@ export default function PavelDashboard({
               </tr>
             </thead>
             <tbody>
-              {filtered.length === 0 ? (
+              {displayCount === 0 ? (
                 <tr>
                   <td
                     colSpan={14}
@@ -500,69 +680,52 @@ export default function PavelDashboard({
                     No registrations match this view.
                   </td>
                 </tr>
+              ) : grouped ? (
+                pagedGroups.map((group, index) => {
+                  const multiple = group.attempts.length > 1;
+                  const isOpen = expanded.has(group.email);
+                  const others = group.attempts.filter(
+                    (a) => a.ref !== group.representative.ref
+                  );
+                  return (
+                    <Fragment key={group.email}>
+                      <RegistrationRow
+                        serial={pageStart + index + 1}
+                        row={group.representative}
+                        refPrefix={
+                          multiple ? (
+                            <ExpandToggle
+                              open={isOpen}
+                              count={group.attempts.length}
+                              onClick={() => toggleExpanded(group.email)}
+                            />
+                          ) : undefined
+                        }
+                      />
+                      {multiple &&
+                        isOpen &&
+                        others.map((attempt) => (
+                          <RegistrationRow
+                            key={attempt.ref}
+                            serial={
+                              <span className="text-slate-700" aria-hidden="true">
+                                ↳
+                              </span>
+                            }
+                            row={attempt}
+                            muted
+                          />
+                        ))}
+                    </Fragment>
+                  );
+                })
               ) : (
-                paged.map((row, index) => (
-                  <tr
+                pagedRows.map((row, index) => (
+                  <RegistrationRow
                     key={row.ref}
-                    className="border-b border-white/5 bg-slate-950 transition hover:bg-slate-900/60"
-                  >
-                    <td className="px-3 py-3 tabular-nums text-slate-500">
-                      {pageStart + index + 1}
-                    </td>
-                    <td className="px-3 py-3 font-mono text-xs text-slate-400">
-                      {row.ref}
-                    </td>
-                    <td className="px-3 py-3 font-medium text-white">
-                      {row.name}
-                    </td>
-                    <td className="px-3 py-3 text-slate-300">{row.email}</td>
-                    <td className="px-3 py-3">
-                      {row.phone ? (
-                        <a
-                          href={`tel:${row.phone.replace(/\s+/g, "")}`}
-                          className="whitespace-nowrap text-slate-300 transition hover:text-emerald-300"
-                        >
-                          {row.phone}
-                        </a>
-                      ) : (
-                        <Dash />
-                      )}
-                    </td>
-                    <td className="px-3 py-3 text-slate-300">
-                      {countryLabel(row.country, row.countryName)}
-                    </td>
-                    <td className="px-3 py-3">
-                      <StateCell country={row.country} state={row.state} />
-                    </td>
-                    <td className="px-3 py-3">
-                      <CouponCell
-                        code={row.referralCode}
-                        discountPercent={row.discountPercent}
-                      />
-                    </td>
-                    <td className="px-3 py-3">
-                      <StatusBadge status={row.status} />
-                    </td>
-                    <td className="px-3 py-3">
-                      <DateCell iso={row.createdAt} />
-                    </td>
-                    <td className="px-3 py-3">
-                      <DateCell iso={row.paidAt} />
-                    </td>
-                    <td className="px-3 py-3">
-                      <AttendanceCell
-                        status={row.status}
-                        attendedMinutes={row.attendedMinutes}
-                        hasJoinLink={row.hasJoinLink}
-                      />
-                    </td>
-                    <td className="px-3 py-3">
-                      <CertificateCell credentialId={row.credentialId} />
-                    </td>
-                    <td className="px-3 py-3">
-                      <InvoiceCell ref_={row.ref} invoiceNo={row.invoiceNo} />
-                    </td>
-                  </tr>
+                    serial={pageStart + index + 1}
+                    row={row}
+                  />
                 ))
               )}
             </tbody>
@@ -572,14 +735,32 @@ export default function PavelDashboard({
         {/* Footer: range summary + pagination */}
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
           <p className="text-xs text-slate-500">
-            {filtered.length === 0
+            {displayCount === 0
               ? "No registrations"
               : `Showing ${pageStart + 1}–${Math.min(
                   pageStart + PAGE_SIZE,
-                  filtered.length
-                )} of ${filtered.length}`}
-            {filtered.length !== rows.length && (
-              <span className="text-slate-600"> (filtered from {rows.length})</span>
+                  displayCount
+                )} of ${displayCount} ${
+                  grouped
+                    ? displayCount === 1
+                      ? "person"
+                      : "people"
+                    : displayCount === 1
+                      ? "registration"
+                      : "registrations"
+                }`}
+            {grouped && displayCount > 0 && (
+              <span className="text-slate-600">
+                {" "}
+                · {csvRows.length}{" "}
+                {csvRows.length === 1 ? "registration" : "registrations"}
+              </span>
+            )}
+            {(grouped ? displayCount !== groups.length : displayCount !== rows.length) && (
+              <span className="text-slate-600">
+                {" "}
+                (filtered from {grouped ? groups.length : rows.length})
+              </span>
             )}
           </p>
 
