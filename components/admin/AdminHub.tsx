@@ -23,13 +23,13 @@ export default function AdminHub() {
       </a>
 
       <header className="border-b border-border">
-        <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-4 px-6 py-5">
+        <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-4 px-6 py-5">
           <Logo width={84} height={35} className="text-primary" />
           <AdminSignOutButton />
         </div>
       </header>
 
-      <main id="main" className="mx-auto max-w-5xl px-6 py-10">
+      <main id="main" className="mx-auto max-w-4xl px-6 py-10">
         <p className="font-mono text-[11px] uppercase tracking-widest text-accent-strong">
           Console
         </p>
@@ -49,40 +49,44 @@ export default function AdminHub() {
             />
           </Card>
         ) : (
-          <ul className="mt-8 grid gap-4 sm:grid-cols-2">
+          // A full-width list, not a card grid: one event in a two-column grid
+          // occupies half a row with dead space beside it, which reads as a page
+          // that failed to load. A list is correct at every count.
+          <ul className="mt-8 space-y-3">
             {ADMIN_EVENTS.map((event) => (
               <li key={event.slug}>
-                <Card as="article" className="h-full">
-                  <div className="flex h-full flex-col p-6">
-                    <p className="font-mono text-[11px] uppercase tracking-widest text-accent-strong">
-                      {event.dateLabel}
-                    </p>
-                    <h2 className="mt-2 text-lg font-semibold text-primary">
-                      {/*
-                        The whole card is the target, via a stretched link. A
-                        nested "public page" link would be swallowed by an outer
-                        anchor, so only the heading carries the href and the
-                        pseudo-element does the reaching.
-                      */}
-                      <Link
-                        href={`/admin/${event.slug}`}
-                        className="console-focus rounded after:absolute after:inset-0 after:content-['']"
-                      >
-                        {event.name}
-                      </Link>
-                    </h2>
-                    <p className="mt-1.5 text-sm leading-relaxed text-text-muted">
-                      {event.summary}
-                    </p>
-                    <p className="mt-4 text-xs text-text-muted">
-                      {event.formatLabel}
-                    </p>
+                <Card
+                  as="article"
+                  className="transition-colors hover:border-console-control"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-4 p-6">
+                    <div className="min-w-[16rem] flex-1">
+                      <p className="font-mono text-[11px] uppercase tracking-widest text-accent-strong">
+                        {event.dateLabel}
+                      </p>
+                      <h2 className="mt-1.5 text-lg font-semibold text-primary">
+                        {/*
+                          The whole card is the target, via a stretched link. A
+                          nested "public page" link would be swallowed by an
+                          outer anchor, so only the heading carries the href and
+                          the pseudo-element does the reaching.
+                        */}
+                        <Link
+                          href={`/admin/${event.slug}`}
+                          className="console-focus rounded after:absolute after:inset-0 after:content-['']"
+                        >
+                          {event.name}
+                        </Link>
+                      </h2>
+                      <p className="mt-1 text-sm leading-relaxed text-text-muted">
+                        {event.summary}
+                      </p>
+                      <p className="mt-2 text-xs text-text-muted">
+                        {event.formatLabel}
+                      </p>
+                    </div>
 
-                    <div className="mt-6 flex items-center justify-between gap-3 border-t border-border pt-4">
-                      <span className="inline-flex items-center gap-1.5 text-sm font-medium text-primary">
-                        Open dashboard
-                        <ArrowRight aria-hidden="true" className="h-3.5 w-3.5" />
-                      </span>
+                    <div className="flex shrink-0 items-center gap-5">
                       {/* Above the stretched link, so it stays clickable. */}
                       <Link
                         href={event.publicPath}
@@ -93,6 +97,10 @@ export default function AdminHub() {
                         Public page
                         <ArrowUpRight aria-hidden="true" className="h-3 w-3" />
                       </Link>
+                      <span className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3.5 py-2 text-sm font-medium text-white">
+                        Open dashboard
+                        <ArrowRight aria-hidden="true" className="h-3.5 w-3.5" />
+                      </span>
                     </div>
                   </div>
                 </Card>

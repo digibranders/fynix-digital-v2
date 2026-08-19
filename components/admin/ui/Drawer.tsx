@@ -38,7 +38,23 @@ export function Drawer({
   // Whatever had focus when the drawer opened, so it can be handed back.
   const returnTo = useRef<HTMLElement | null>(null);
 
-  const close = useCallback(() => onClose(), [onClose]);
+  /*
+    The close callback, held in a ref.
+
+    Callers pass an inline arrow, so `onClose` is a new function on every parent
+    render. Depending on it directly would tear down and re-run the effect below
+    each time — which re-runs "focus the first focusable element", so typing a
+    single character into a filter field would bounce focus back to the top of
+    the drawer, and `returnTo` would be overwritten with a node inside the
+    drawer itself. The effect therefore depends only on `open`, and reads the
+    current callback through this ref.
+  */
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
+  const close = useCallback(() => onCloseRef.current(), []);
 
   useEffect(() => {
     if (!open) return;
@@ -61,7 +77,7 @@ export function Drawer({
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
         event.stopPropagation();
-        close();
+        onCloseRef.current();
         return;
       }
       if (event.key !== "Tab" || !panelRef.current) return;
@@ -93,7 +109,8 @@ export function Drawer({
       // Return focus to whatever opened it, so keyboard position is not lost.
       returnTo.current?.focus?.();
     };
-  }, [open, close]);
+    // `open` only: see the note on `onCloseRef`.
+  }, [open]);
 
   if (!open) return null;
   if (typeof document === "undefined") return null;

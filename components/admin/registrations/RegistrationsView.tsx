@@ -1,6 +1,6 @@
 "use client";
 
-import { Download, Filter, Columns3, Loader2, Users, List } from "lucide-react";
+import { Download, Filter, Columns3, Users, List } from "lucide-react";
 import { Alert, Button, Card, EmptyState, StatTile } from "@/components/admin/ui";
 import { SegmentedTabs } from "@/components/admin/ui/SegmentedTabs";
 import { FilterChips } from "@/components/admin/registrations/FilterChips";
@@ -40,6 +40,7 @@ export function RegistrationsView({
   filters,
   onFilterChange,
   onClearFilters,
+  onResetView,
   grouped,
   onToggleGrouped,
   columns,
@@ -61,7 +62,6 @@ export function RegistrationsView({
   onOpenFilters,
   onOpenColumns,
   onExport,
-  exporting,
   advanced,
   resendConfirmationAction,
   resendCertificateAction,
@@ -72,6 +72,8 @@ export function RegistrationsView({
   filters: RegistrationFilters;
   onFilterChange: (patch: Partial<RegistrationFilters>) => void;
   onClearFilters: () => void;
+  /** Clears everything, including the status tab and the search box. */
+  onResetView: () => void;
   grouped: boolean;
   onToggleGrouped: () => void;
   columns: RegistrationColumn[];
@@ -93,7 +95,6 @@ export function RegistrationsView({
   onOpenFilters: () => void;
   onOpenColumns: () => void;
   onExport: () => void;
-  exporting: boolean;
   advanced: boolean;
   resendConfirmationAction: (
     state: OperationState,
@@ -230,8 +231,7 @@ export function RegistrationsView({
             <Button
               variant="primary"
               onClick={onExport}
-              disabled={dataRowCount === 0 || exporting}
-              aria-busy={exporting}
+              disabled={dataRowCount === 0}
               title={
                 dataRowCount === 0
                   ? "Nothing to export in this view"
@@ -240,12 +240,8 @@ export function RegistrationsView({
                     } with all ${REGISTRATION_COLUMNS.length} columns`
               }
             >
-              {exporting ? (
-                <Loader2 aria-hidden="true" className="h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <Download aria-hidden="true" className="h-3.5 w-3.5" />
-              )}
-              {exporting ? "Preparing" : "Export CSV"}
+              <Download aria-hidden="true" className="h-3.5 w-3.5" />
+              Export CSV
             </Button>
           </div>
         </div>
@@ -281,8 +277,12 @@ export function RegistrationsView({
                   title="No registrations match this view"
                   description="The status tab, the search box or the filters are excluding every row."
                   action={
-                    <Button size="sm" onClick={onClearFilters}>
-                      Clear filters
+                    /* Resets all three, not just the drawer's filters: the tab
+                       and the search box are named above as possible causes, and
+                       a button that left them in place would appear to do
+                       nothing in exactly those two cases. */
+                    <Button size="sm" onClick={onResetView}>
+                      Show all registrations
                     </Button>
                   }
                 />

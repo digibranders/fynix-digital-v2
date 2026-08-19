@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import type { AdminRegistrationRow } from "@/lib/admin/registrationRow";
 import { buildGroups, type RegistrationGroup } from "@/lib/admin/grouping";
 import {
@@ -118,7 +118,6 @@ export default function PavelDashboard({
   const [showColumns, setShowColumns] = useState(false);
   const [detailRow, setDetailRow] = useState<AdminRegistrationRow | null>(null);
   const [columnKeys, setColumns] = useColumnPreference();
-  const [exporting, startExport] = useTransition();
   // Set when a "needs attention" figure is clicked, so the shell can follow.
   const [jumpTo, setJumpTo] = useState<ViewKey | null>(null);
 
@@ -142,6 +141,12 @@ export default function PavelDashboard({
 
   function clearFilters() {
     setFilters((f) => clearedFilters(f));
+    setPage(1);
+  }
+
+  /** Everything off: the advanced filters, the status tab and the search box. */
+  function resetView() {
+    setFilters(EMPTY_FILTERS);
     setPage(1);
   }
 
@@ -172,7 +177,10 @@ export default function PavelDashboard({
    * make the figure look like a lie.
    */
   function jumpToAttention(key: AttentionKey) {
-    setFilters(attentionFilters(key, filters.query));
+    // No search text is carried across. The figure counted every matching seat
+    // in the event, so leaving a query in place would open a strictly smaller
+    // set than the number the operator just pressed.
+    setFilters(attentionFilters(key, ""));
     setPage(1);
     setJumpTo("registrations");
   }
@@ -233,6 +241,18 @@ export default function PavelDashboard({
   const totals = useMemo(() => computeTotals(dataRows), [dataRows]);
 
   /**
+   * The whole event, ignoring the filter.
+   *
+   * The overview reports these; the registrations view reports `totals`, which
+   * follow the filter sitting directly above the table. The split matters most
+   * for the "needs attention" figures: those open a view with the filter set
+   * REPLACED, so a figure counted against a narrowed set would open a larger
+   * one and appear to have been wrong. Counting them against everything is what
+   * makes the figure and the view it opens agree.
+   */
+  const eventTotals = useMemo(() => computeTotals(rows), [rows]);
+
+  /**
    * The display order.
    *
    * Sorting a group sorts it by its representative — the row that speaks for
@@ -277,20 +297,27 @@ export default function PavelDashboard({
   // file never leaves the browser.
   function handleDownloadCsv() {
     if (dataRows.length === 0) return;
-    startExport(() => {
-      // Prepend a UTF-8 BOM so Excel renders ₹ and — instead of mojibake.
-      const csv = "﻿" + buildCsv(dataRows, REGISTRATION_COLUMNS);
-      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const stamp = CSV_DATE.format(new Date()).replace(/-/g, "");
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `pavel-registrations-${filters.status}-${stamp}.csv`;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      URL.revokeObjectURL(url);
-    });
+    /*
+      Synchronous on purpose, and with no pending state.
+
+      Serialising a few hundred rows takes a moment, not a wait, and it blocks
+      the main thread throughout — so a spinner set here would never be painted
+      before the work finished and the state cleared again. An affordance that
+      cannot appear is worse than none: it reads as a bug the one time the
+      export is slow enough to notice.
+    */
+    // Prepend a UTF-8 BOM so Excel renders ₹ and — instead of mojibake.
+    const csv = "﻿" + buildCsv(dataRows, REGISTRATION_COLUMNS);
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const stamp = CSV_DATE.format(new Date()).replace(/-/g, "");
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `pavel-registrations-${filters.status}-${stamp}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
   }
 
   // Tab counts follow the current mode so they match what the table shows.
@@ -343,8 +370,7 @@ export default function PavelDashboard({
         overview={
           <OverviewView
             error={error}
-            totals={totals}
-            filtered={advanced || filters.status !== "all" || filters.query !== ""}
+            totals={eventTotals}
             onJumpTo={jumpToAttention}
           />
         }
@@ -356,6 +382,7 @@ export default function PavelDashboard({
             filters={filters}
             onFilterChange={update}
             onClearFilters={clearFilters}
+            onResetView={resetView}
             grouped={grouped}
             onToggleGrouped={toggleGrouped}
             columns={visibleColumns}
@@ -377,7 +404,6 @@ export default function PavelDashboard({
             onOpenFilters={() => setShowFilters(true)}
             onOpenColumns={() => setShowColumns(true)}
             onExport={handleDownloadCsv}
-            exporting={exporting}
             advanced={advanced}
             resendConfirmationAction={resendConfirmationAction}
             resendCertificateAction={resendCertificateAction}
@@ -427,7 +453,10 @@ export default function PavelDashboard({
  * `RegistrationColumn`.
  */
 function keyOf(column: RegistrationColumn): (row: AdminRegistrationRow) => SortKey {
-  const accessor = column.sortKey;
-  if (accessor) return accessor;
-  return (row) => toSortKey(column.csv(row));
+  const accessor = column.sortKey ?? column.csv;
+  // Normalised either way. `toSortKey` is what rejects a NaN — which
+  // `-new Date(row.createdAt).getTime()` produces on a malformed timestamp, and
+  // a NaN key makes every comparison against it false, so the comparator stops
+  // being a total order and the sort result becomes undefined.
+  return (row) => toSortKey(accessor(row));
 }

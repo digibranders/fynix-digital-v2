@@ -15,11 +15,11 @@ import type { AttentionKey } from "@/lib/admin/attentionFilters";
 /**
  * The event at a glance.
  *
- * Its job is EXPLANATION, not display: the registrations view already carries
- * the headline figures beside the filter that drives them, so repeating them
- * here would only invite the two to disagree. What lives here is the part that
- * does not fit above a table: how the collected number is built up from list
- * price, discount and tax, how delivery went, and what still needs doing.
+ * Its job is EXPLANATION: how the collected number is built up from list price,
+ * discount and tax, how delivery went, and what still needs doing. The
+ * registrations view carries the same headline figures for whatever its filter
+ * selects, beside the filter that changes them; everything here covers the
+ * whole event.
  *
  * The "needs attention" figures are the reason this view is worth having. They
  * were dead ends before: the console reported that two paid seats had no join
@@ -39,13 +39,18 @@ function moneyLines(value: Record<string, number>): string[] {
 export function OverviewView({
   error,
   totals,
-  filtered,
   onJumpTo,
 }: {
   error: string | null;
+  /**
+   * The WHOLE event, never the filtered subset.
+   *
+   * The registrations view reports the filtered figures, beside the filter that
+   * changes them. Here they must be unfiltered, because the "needs attention"
+   * figures open a view with the filters replaced: a figure counted against a
+   * narrowed set would open a larger one and look like it had been lying.
+   */
   totals: RegistrationTotals;
-  /** Whether a filter is narrowing what these figures cover. */
-  filtered: boolean;
   onJumpTo: (key: AttentionKey) => void;
 }) {
   if (error) {
@@ -123,12 +128,10 @@ export function OverviewView({
             hint="Collected divided by paid seats, per currency."
           />
         </dl>
-        {filtered ? (
-          <p className="border-t border-border px-5 py-2 text-xs text-warning">
-            A filter is active in the registrations view, and every figure on
-            this page follows it. Clear the filters to see the whole event.
-          </p>
-        ) : null}
+        <p className="border-t border-border px-5 py-2 text-xs text-text-muted">
+          The whole event. The registrations view reports the same figures for
+          whatever its filters currently select.
+        </p>
       </Card>
 
       <div className="grid gap-4 lg:grid-cols-3">

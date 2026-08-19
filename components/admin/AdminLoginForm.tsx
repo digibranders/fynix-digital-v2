@@ -62,96 +62,110 @@ export default function AdminLoginForm({
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="w-full max-w-sm">
-        <div className="mb-8 text-center">
-          <Logo width={104} height={43} className="mx-auto text-primary" />
-          <h1 className="mt-4 text-2xl font-semibold text-primary">
-            Fynix Admin
+    <div className="flex min-h-screen flex-col bg-background">
+      <header className="border-b border-border">
+        <div className="mx-auto w-full max-w-5xl px-6 py-5">
+          <Logo width={84} height={35} className="text-primary" />
+        </div>
+      </header>
+
+      <main className="flex flex-1 items-center justify-center px-6 py-12">
+        <div className="w-full max-w-sm">
+          <p className="font-mono text-[11px] uppercase tracking-widest text-accent-strong">
+            Fynix console
+          </p>
+          <h1 className="mt-2 font-serif text-3xl font-normal text-primary">
+            Sign in
           </h1>
-          <p className="mt-1 text-sm text-text-muted">
-            Sign in to manage events and registrations.
+          <p className="mt-2 text-sm leading-relaxed text-text-muted">
+            One sign-in covers every event dashboard.
+          </p>
+
+          <form
+            onSubmit={handleSubmit}
+            className="mt-8 rounded-xl border border-border bg-console-surface p-6"
+          >
+            {/* Honeypot decoys — hidden from users and assistive tech. */}
+            <div
+              aria-hidden="true"
+              style={{
+                position: "absolute",
+                left: "-9999px",
+                width: "1px",
+                height: "1px",
+                overflow: "hidden",
+              }}
+            >
+              {honeypotFields.map((field) => (
+                <input
+                  key={field}
+                  type="text"
+                  name={field}
+                  tabIndex={-1}
+                  autoComplete="off"
+                  value={decoys[field] ?? ""}
+                  onChange={(e) =>
+                    setDecoys((prev) => ({ ...prev, [field]: e.target.value }))
+                  }
+                />
+              ))}
+            </div>
+
+            <label className="block">
+              <span className="font-mono text-[11px] uppercase tracking-widest text-text-muted">
+                Email
+              </span>
+              <input
+                type="email"
+                required
+                autoComplete="username"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="console-focus mt-1.5 w-full rounded-lg border border-console-control bg-console-surface px-3 py-2.5 text-sm text-foreground transition-colors placeholder:text-text-muted"
+                placeholder="you@fynix.digital"
+              />
+            </label>
+
+            <label className="mt-5 block">
+              <span className="font-mono text-[11px] uppercase tracking-widest text-text-muted">
+                Password
+              </span>
+              <input
+                type="password"
+                required
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="console-focus mt-1.5 w-full rounded-lg border border-console-control bg-console-surface px-3 py-2.5 text-sm text-foreground transition-colors placeholder:text-text-muted"
+                placeholder="••••••••"
+              />
+            </label>
+
+            {error && (
+              <p
+                role="alert"
+                className="mt-5 rounded-lg border border-danger/25 bg-danger-surface px-3 py-2 text-xs leading-relaxed text-danger"
+              >
+                {error}
+              </p>
+            )}
+
+            <button
+              type="submit"
+              disabled={submitting}
+              aria-busy={submitting}
+              className="console-focus mt-6 w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {submitting ? "Signing in…" : "Sign in"}
+            </button>
+          </form>
+
+          <p className="mt-4 text-xs leading-relaxed text-text-muted">
+            This console is not indexed and is rate limited. If you have been
+            locked out, wait a minute before trying again.
           </p>
         </div>
-
-        <form
-          onSubmit={handleSubmit}
-          className="rounded-2xl border border-border bg-console-surface p-6 shadow-sm"
-        >
-          {/* Honeypot decoys — hidden from users and assistive tech. */}
-          <div
-            aria-hidden="true"
-            style={{
-              position: "absolute",
-              left: "-9999px",
-              width: "1px",
-              height: "1px",
-              overflow: "hidden",
-            }}
-          >
-            {honeypotFields.map((field) => (
-              <input
-                key={field}
-                type="text"
-                name={field}
-                tabIndex={-1}
-                autoComplete="off"
-                value={decoys[field] ?? ""}
-                onChange={(e) =>
-                  setDecoys((prev) => ({ ...prev, [field]: e.target.value }))
-                }
-              />
-            ))}
-          </div>
-
-          <label className="block">
-            <span className="mb-1.5 block text-sm font-medium text-foreground">
-              Email
-            </span>
-            <input
-              type="email"
-              required
-              autoComplete="username"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="console-focus w-full rounded-lg border border-console-control bg-console-surface px-3 py-2.5 text-sm text-foreground transition-colors placeholder:text-text-muted"
-              placeholder="fynix@gmail.com"
-            />
-          </label>
-
-          <label className="mt-4 block">
-            <span className="mb-1.5 block text-sm font-medium text-foreground">
-              Password
-            </span>
-            <input
-              type="password"
-              required
-              autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="console-focus w-full rounded-lg border border-console-control bg-console-surface px-3 py-2.5 text-sm text-foreground transition-colors placeholder:text-text-muted"
-              placeholder="••••••••"
-            />
-          </label>
-
-          {error && (
-            <p
-              role="alert"
-              className="mt-4 rounded-lg border border-danger/25 bg-danger-surface px-3 py-2 text-sm text-danger"
-            >
-              {error}
-            </p>
-          )}
-
-          <button
-            type="submit"
-            disabled={submitting}
-            className="console-focus mt-6 w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {submitting ? "Signing in…" : "Sign in"}
-          </button>
-        </form>
-      </div>
+      </main>
     </div>
   );
 }

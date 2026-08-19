@@ -19,6 +19,16 @@ import { useCallback, useSyncExternalStore } from "react";
 
 const listeners = new Set<() => void>();
 
+/**
+ * The last fragment that actually named a view.
+ *
+ * Module scope, like the cache in `useColumnPreference`, because
+ * `useSyncExternalStore` needs a snapshot that is stable between renders and a
+ * ref read during render is not one. Strings compare by value, so returning the
+ * same name twice is enough for React to see no change.
+ */
+let lastKnownView = "";
+
 function subscribe(listener: () => void): () => void {
   listeners.add(listener);
   window.addEventListener("hashchange", listener);
@@ -28,26 +38,37 @@ function subscribe(listener: () => void): () => void {
   };
 }
 
-function readHash(): string {
-  return window.location.hash.replace(/^#/, "");
+/**
+ * The active view, resolved from the fragment.
+ *
+ * A fragment that does not name a view is IGNORED rather than treated as the
+ * default. The page has other fragment targets — the skip link points at
+ * `#main` — and resolving those to the fallback would throw an operator back to
+ * Registrations the moment they used the keyboard to skip into the content,
+ * with the wrong view then persisting across a reload.
+ */
+function snapshotFor(views: readonly string[], fallback: string): string {
+  const raw = window.location.hash.replace(/^#/, "");
+  if (views.includes(raw)) lastKnownView = raw;
+  else if (!views.includes(lastKnownView)) lastKnownView = fallback;
+  return lastKnownView;
 }
 
 export function useHashView<T extends string>(
   views: readonly T[],
   fallback: T
 ): [T, (next: T) => void] {
-  const raw = useSyncExternalStore(
-    subscribe,
-    readHash,
-    // The server has no fragment: it never reaches the server at all.
-    () => ""
+  const getSnapshot = useCallback(
+    () => snapshotFor(views, fallback),
+    [views, fallback]
   );
 
-  // An unknown fragment (a stale bookmark, a typo) resolves to the default
-  // rather than rendering nothing.
-  const current = (views as readonly string[]).includes(raw)
-    ? (raw as T)
-    : fallback;
+  const current = useSyncExternalStore(
+    subscribe,
+    getSnapshot,
+    // The server has no fragment: it never reaches the server at all.
+    () => fallback
+  ) as T;
 
   const setView = useCallback((next: T) => {
     const url = `${window.location.pathname}${window.location.search}#${next}`;
