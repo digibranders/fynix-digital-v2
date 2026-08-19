@@ -2,6 +2,25 @@ import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs";
 
 const nextConfig: NextConfig = {
+  /**
+   * Keep the PDF renderer out of the route bundles and required at runtime.
+   *
+   * It is a large library used by four routes; bundling it into each one costs
+   * build time and memory on a 1 vCPU droplet for no benefit.
+   *
+   * IMPORTANT — this alone does not make invoices work. Turbopack rewrites the
+   * external specifier to a content-hashed name ("@react-pdf/renderer-5f716e9b…")
+   * and emits `e.y()` against it, which resolves to nothing at runtime: every
+   * invoice download on the droplet fails with ERR_MODULE_NOT_FOUND while the
+   * build itself passes, because the import is only attempted when someone
+   * actually requests a PDF. Setting this option does not override that.
+   *
+   * The build therefore runs webpack (`next build --webpack` in package.json),
+   * which emits a plain require and resolves correctly. Both hosts build the
+   * same way on purpose: a bundler that differs between where you test and
+   * where you run is how this stayed hidden in the first place.
+   */
+  serverExternalPackages: ["@react-pdf/renderer"],
   images: {
     formats: ["image/avif", "image/webp"],
     // Hero art is served at quality 90 and 82; Next 16 requires every quality used to
