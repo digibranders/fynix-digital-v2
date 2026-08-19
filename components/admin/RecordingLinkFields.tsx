@@ -55,7 +55,7 @@ export function RecordingLinkFields({
 
   return (
     <>
-      <label className="min-w-[240px] flex-1 text-xs text-slate-400">
+      <label className="min-w-[240px] flex-1 text-xs text-text-muted">
         Recording link (Zoom share URL)
         <input
           name="recordingUrl"
@@ -65,10 +65,10 @@ export function RecordingLinkFields({
           placeholder="Paste Zoom's share block: link and passcode split themselves"
           autoComplete="off"
           spellCheck={false}
-          className="mt-1 w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-xs text-white placeholder-slate-600 focus:border-emerald-400/50 focus:outline-none"
+          className="mt-1 w-full rounded-lg border border-border bg-console-surface px-3 py-2 text-xs text-primary placeholder:text-text-muted focus:border-primary focus:outline-none"
         />
       </label>
-      <label className="w-full min-w-[140px] text-xs text-slate-400 sm:w-auto sm:flex-none">
+      <label className="w-full min-w-[140px] text-xs text-text-muted sm:w-auto sm:flex-none">
         Passcode
         <input
           name="recordingPasscode"
@@ -78,7 +78,7 @@ export function RecordingLinkFields({
           placeholder="Leave blank if none"
           autoComplete="off"
           spellCheck={false}
-          className="mt-1 w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 font-mono text-xs text-white placeholder-slate-600 focus:border-emerald-400/50 focus:outline-none sm:w-[180px]"
+          className="mt-1 w-full rounded-lg border border-border bg-console-surface px-3 py-2 font-mono text-xs text-primary placeholder:text-text-muted focus:border-primary focus:outline-none sm:w-[180px]"
         />
       </label>
     </>

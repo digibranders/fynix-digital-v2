@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { CheckCircle2, AlertCircle, RefreshCw, Video } from "lucide-react";
 import { SubmitButton } from "@/components/admin/SubmitButton";
+import { Alert, Card, CardHeader } from "@/components/admin/ui";
 
 export type OperationState = { ok: boolean; message: string } | null;
 
@@ -41,72 +42,76 @@ export function OperationsPanel({
   return (
     /* One row, not two cards.
        These are rarely-pressed recovery actions, and they were taking more
-       vertical space than the registrations table they sit above — which is
-       what the page is actually for. The explanation of each moves to a title
-       attribute: it matters the first time and never again. */
-    <section className="mb-6 rounded-xl border border-white/10 bg-slate-900/40 px-5 py-3">
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-        <div className="mr-auto">
-          <h2 className="text-sm font-semibold text-white">Manual actions</h2>
-          <p className="text-[11px] text-slate-500">
-            Both run automatically. Per-seat resends are in the table below.
-          </p>
-        </div>
+       vertical space than the registrations table they used to sit above. The
+       explanation of each moves to a title attribute: it matters the first time
+       and never again. */
+    <Card>
+      <CardHeader
+        eyebrow="Recovery"
+        title="Manual actions"
+        description="Both run automatically. These are for when they have not yet, or did not. Per-seat resends live on each row in the registrations table."
+        actions={
+          <>
+            <form action={syncAction}>
+              <SubmitButton
+                pendingLabel="Syncing…"
+                title="Pulls Zoom's report and issues any certificates earned. Use when a session ended earlier than scheduled."
+                className="console-focus rounded-lg border border-console-control px-3 py-1.5 text-xs font-medium text-primary hover:bg-console-sunken"
+              >
+                <RefreshCw aria-hidden="true" className="h-3.5 w-3.5" />
+                Sync attendance
+              </SubmitButton>
+            </form>
 
-        <form action={syncAction}>
-          <SubmitButton
-            pendingLabel="Syncing…"
-            title="Pulls Zoom's report and issues any certificates earned. Use when a session ended earlier than scheduled."
-            className="rounded-lg border border-white/15 px-3 py-1.5 text-xs text-slate-300 hover:border-emerald-400/40 hover:text-emerald-300"
-          >
-            <RefreshCw className="h-3.5 w-3.5" />
-            Sync attendance
-          </SubmitButton>
-        </form>
-
-        {/* Sending the recording is automatic once the link is published — this
-            is for sending it now rather than on the next tick, and for picking
-            up anyone a failed send left behind. Anyone whose post-event email
-            already carried the link is skipped. */}
-        <form action={recAction}>
-          <SubmitButton
-            pendingLabel="Sending…"
-            title="Goes out on its own once the recording link is published. This sends it now, and skips anyone who already has it."
-            className="rounded-lg border border-white/15 px-3 py-1.5 text-xs text-slate-300 hover:border-emerald-400/40 hover:text-emerald-300"
-          >
-            <Video className="h-3.5 w-3.5" />
-            Send recording
-          </SubmitButton>
-        </form>
-      </div>
+            {/* Sending the recording is automatic once the link is published —
+                this is for sending it now rather than on the next tick, and for
+                picking up anyone a failed send left behind. Anyone whose
+                post-event email already carried the link is skipped. */}
+            <form action={recAction}>
+              <SubmitButton
+                pendingLabel="Sending…"
+                title="Goes out on its own once the recording link is published. This sends it now, and skips anyone who already has it."
+                className="console-focus rounded-lg border border-console-control px-3 py-1.5 text-xs font-medium text-primary hover:bg-console-sunken"
+              >
+                <Video aria-hidden="true" className="h-3.5 w-3.5" />
+                Send recording
+              </SubmitButton>
+            </form>
+          </>
+        }
+      />
 
       {/* Results sit under the row so a long message cannot stretch a button,
           and both are visible at once when both have been run. */}
       {syncState || recState ? (
-        <div className="mt-2 space-y-1 border-t border-white/5 pt-2">
+        <div className="space-y-2 px-5 py-3">
           <Result state={syncState} />
           <Result state={recState} />
         </div>
       ) : null}
-    </section>
+    </Card>
   );
 }
 
-/** Outcome of the last run. Failures are shown as plainly as successes. */
+/**
+ * Outcome of the last run. Failures are shown as plainly as successes, and both
+ * announce: these are used when something has already gone wrong once, and a
+ * result nobody is told about is indistinguishable from another failure.
+ */
 function Result({ state }: { state: OperationState }) {
   if (!state) return null;
   return (
-    <p
-      className={`flex items-start gap-1.5 text-[11px] leading-snug ${
-        state.ok ? "text-emerald-400" : "text-amber-400"
-      }`}
+    <Alert
+      tone={state.ok ? "success" : "warning"}
+      icon={
+        state.ok ? (
+          <CheckCircle2 aria-hidden="true" className="h-3.5 w-3.5" />
+        ) : (
+          <AlertCircle aria-hidden="true" className="h-3.5 w-3.5" />
+        )
+      }
     >
-      {state.ok ? (
-        <CheckCircle2 className="mt-0.5 h-3 w-3 shrink-0" />
-      ) : (
-        <AlertCircle className="mt-0.5 h-3 w-3 shrink-0" />
-      )}
-      <span>{state.message}</span>
-    </p>
+      {state.message}
+    </Alert>
   );
 }

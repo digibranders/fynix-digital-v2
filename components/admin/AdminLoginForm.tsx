@@ -62,21 +62,21 @@ export default function AdminLoginForm({
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-950 px-4">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
-          <Logo width={104} height={43} className="mx-auto text-white" />
-          <h1 className="mt-4 text-2xl font-semibold text-white">
+          <Logo width={104} height={43} className="mx-auto text-primary" />
+          <h1 className="mt-4 text-2xl font-semibold text-primary">
             Fynix Admin
           </h1>
-          <p className="mt-1 text-sm text-slate-400">
+          <p className="mt-1 text-sm text-text-muted">
             Sign in to manage events and registrations.
           </p>
         </div>
 
         <form
           onSubmit={handleSubmit}
-          className="rounded-2xl border border-white/10 bg-slate-900/70 p-6 shadow-xl"
+          className="rounded-2xl border border-border bg-console-surface p-6 shadow-sm"
         >
           {/* Honeypot decoys — hidden from users and assistive tech. */}
           <div
@@ -105,7 +105,7 @@ export default function AdminLoginForm({
           </div>
 
           <label className="block">
-            <span className="mb-1.5 block text-sm font-medium text-slate-300">
+            <span className="mb-1.5 block text-sm font-medium text-foreground">
               Email
             </span>
             <input
@@ -114,13 +114,13 @@ export default function AdminLoginForm({
               autoComplete="username"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2.5 text-sm text-white outline-none transition focus:border-emerald-400/60 focus:ring-2 focus:ring-emerald-400/20"
+              className="console-focus w-full rounded-lg border border-console-control bg-console-surface px-3 py-2.5 text-sm text-foreground transition-colors placeholder:text-text-muted"
               placeholder="fynix@gmail.com"
             />
           </label>
 
           <label className="mt-4 block">
-            <span className="mb-1.5 block text-sm font-medium text-slate-300">
+            <span className="mb-1.5 block text-sm font-medium text-foreground">
               Password
             </span>
             <input
@@ -129,7 +129,7 @@ export default function AdminLoginForm({
               autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2.5 text-sm text-white outline-none transition focus:border-emerald-400/60 focus:ring-2 focus:ring-emerald-400/20"
+              className="console-focus w-full rounded-lg border border-console-control bg-console-surface px-3 py-2.5 text-sm text-foreground transition-colors placeholder:text-text-muted"
               placeholder="••••••••"
             />
           </label>
@@ -137,7 +137,7 @@ export default function AdminLoginForm({
           {error && (
             <p
               role="alert"
-              className="mt-4 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300"
+              className="mt-4 rounded-lg border border-danger/25 bg-danger-surface px-3 py-2 text-sm text-danger"
             >
               {error}
             </p>
@@ -146,7 +146,7 @@ export default function AdminLoginForm({
           <button
             type="submit"
             disabled={submitting}
-            className="mt-6 w-full rounded-lg bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
+            className="console-focus mt-6 w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
           >
             {submitting ? "Signing in…" : "Sign in"}
           </button>
