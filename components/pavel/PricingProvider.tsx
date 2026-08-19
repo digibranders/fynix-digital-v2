@@ -3,6 +3,7 @@
 import React, {
   createContext,
   useContext,
+  useEffect,
   useMemo,
   useState,
   useSyncExternalStore,
@@ -17,6 +18,10 @@ import {
   FALLBACK_WINDOW,
   type RegistrationWindow,
 } from "@/lib/pavel/registrationWindow";
+import {
+  TIME_ZONE_COOKIE,
+  TIME_ZONE_COOKIE_MAX_AGE,
+} from "@/lib/pavel/timeZoneCookie";
 
 type PricingContextValue = {
   country: Country;
@@ -119,6 +124,8 @@ function subscribeToNothing(): () => void {
   return () => {};
 }
 
+
+
 function readBrowserTimeZone(): string {
   try {
     return Intl.DateTimeFormat().resolvedOptions().timeZone ?? "";
@@ -135,6 +142,20 @@ export function useViewerSchedule(): WorkshopSchedule {
     readBrowserTimeZone,
     () => detectedTimeZone
   );
+
+  // Hand the zone to the server for next time. Only the FIRST visit can flicker,
+  // and only when geo disagreed; after this the server already knows.
+  useEffect(() => {
+    if (!timeZone || typeof document === "undefined") return;
+    const current = document.cookie
+      .split("; ")
+      .find((part) => part.startsWith(`${TIME_ZONE_COOKIE}=`))
+      ?.slice(TIME_ZONE_COOKIE.length + 1);
+    if (current === encodeURIComponent(timeZone)) return;
+    document.cookie =
+      `${TIME_ZONE_COOKIE}=${encodeURIComponent(timeZone)}; path=/; ` +
+      `max-age=${TIME_ZONE_COOKIE_MAX_AGE}; samesite=lax`;
+  }, [timeZone]);
 
   return useMemo(
     () => scheduleInZone(schedule, timeZone || detectedTimeZone),

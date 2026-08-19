@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import "./pavel.css";
 import { PricingProvider } from "@/components/pavel/PricingProvider";
+import { TIME_ZONE_COOKIE } from "@/lib/pavel/timeZoneCookie";
 import { COUNTRIES } from "@/components/pavel/countries";
 import { loadWorkshopState } from "@/lib/pavel/loadSchedule";
 import {
@@ -47,6 +48,26 @@ export const metadata: Metadata = {
   },
 };
 
+/**
+ * Accept a timezone only if this runtime can actually format with it.
+ *
+ * The value arrives in a cookie, so it is attacker-controlled: it reaches
+ * Intl.DateTimeFormat and is rendered into the page. Checking it against the
+ * runtime's own zone database rejects both junk and injection outright, rather
+ * than trusting a pattern match to be exhaustive.
+ */
+function validTimeZone(value: string | undefined): string | undefined {
+  if (!value) return undefined;
+  const zone = decodeURIComponent(value).trim();
+  if (zone.length > 64) return undefined;
+  try {
+    new Intl.DateTimeFormat("en-GB", { timeZone: zone });
+    return zone;
+  } catch {
+    return undefined;
+  }
+}
+
 export default async function PavelWorkshopPage({
   searchParams,
 }: {
@@ -55,9 +76,10 @@ export default async function PavelWorkshopPage({
   // Auto-detect the visitor's country from Vercel's edge geo header so the
   // correct price is server-rendered on the single /pavel URL. `?country=in`
   // (or `rest`) overrides detection for local dev and QA of both variants.
-  const [{ country: countryParam }, headerList, workshop] = await Promise.all([
+  const [{ country: countryParam }, headerList, cookieStore, workshop] = await Promise.all([
     searchParams,
     headers(),
+    cookies(),
     // The active session's date, time and whether it is selling, so a new
     // cohort (or a close) needs no deploy.
     loadWorkshopState(),
@@ -77,7 +99,13 @@ export default async function PavelWorkshopPage({
   // shows their local time instead of IST. The browser's own zone replaces it
   // on hydration: it is exact where this is only country-level (one zone for
   // all of the US), but it does not exist until the page is running.
-  const detectedTimeZone = detected?.tz ?? "";
+  //
+  // The browser's own zone wins when it has told us (see TIME_ZONE_COOKIE): it
+  // is exact, where geo only resolves one zone per country. Falling back to geo
+  // keeps the very first visit close to right rather than defaulting everyone
+  // to IST.
+  const detectedTimeZone =
+    validTimeZone(cookieStore.get(TIME_ZONE_COOKIE)?.value) ?? detected?.tz ?? "";
 
   return (
     <PricingProvider
