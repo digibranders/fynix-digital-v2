@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
+import { parseReferralInput } from "@/lib/admin/referrals";
 import {
   commissionOwed,
-  parseReferralInput,
   referralStatus,
   type AdminReferralRow,
-} from "@/lib/admin/referrals";
+} from "@/lib/admin/referralStats";
 
 const NOW = new Date("2026-08-19T10:00:00Z");
 

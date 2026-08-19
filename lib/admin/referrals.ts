@@ -8,6 +8,21 @@ import {
 } from "@/lib/admin/gateway";
 import { redemptionTotals } from "@/lib/pavel/referral";
 import { normalizeReferralCode } from "@/components/pavel/pricing";
+import {
+  isReferralRow,
+  type AdminReferralRow,
+} from "@/lib/admin/referralStats";
+import { isUniqueViolation } from "@/lib/admin/dbErrors";
+
+// Re-exported so server callers have one import path, while the console panel
+// (a client component) imports them from `referralStats` directly and does not
+// drag the database driver into the browser bundle.
+export {
+  commissionOwed,
+  referralStatus,
+  type AdminReferralRow,
+  type ReferralStatus,
+} from "@/lib/admin/referralStats";
 
 /**
  * Referral codes, as the console sees them: the stored rules plus the usage
@@ -28,82 +43,12 @@ import { normalizeReferralCode } from "@/components/pavel/pricing";
  * is visible rather than silently absorbed.
  */
 
-export type AdminReferralRow = {
-  id: string;
-  code: string;
-  discountPercent: number;
-  active: boolean;
-  label: string | null;
-  ownerName: string | null;
-  ownerEmail: string | null;
-  commissionPercent: number | null;
-  maxUses: number | null;
-  expiresAt: string | null; // ISO
-  createdAt: string; // ISO
-
-  /** Paid seats that actually received the discount. Counts against `maxUses`. */
-  redeemed: number;
-  /** Paid seats carrying this code at all, discounted or not. */
-  attributed: number;
-  /** Unpaid registrations carrying this code. Pipeline, not revenue. */
-  pending: number;
-  /** Ex-GST invoiced revenue in minor units (paise / cents), per currency. */
-  netRevenueInr: number;
-  netRevenueUsd: number;
-};
-
-/** What an operator sees at a glance. Derived on read, never stored. */
-export type ReferralStatus = "active" | "inactive" | "expired" | "exhausted";
-
 export const REFERRALS_DATA_PATH = "/api/admin/data/referrals";
-
-/**
- * The one-word state of a code.
- *
- * Order matters. A code switched off by hand reports "inactive" even when it is
- * also expired, because that is the operator's own decision and the one they
- * need to see in order to undo it.
- */
-export function referralStatus(
-  row: AdminReferralRow,
-  now: Date = new Date()
-): ReferralStatus {
-  if (!row.active) return "inactive";
-  if (row.expiresAt && new Date(row.expiresAt).getTime() <= now.getTime()) {
-    return "expired";
-  }
-  if (row.maxUses !== null && row.redeemed >= row.maxUses) return "exhausted";
-  return "active";
-}
-
-/** Commission owed to the code's owner, in minor units per currency. */
-export function commissionOwed(row: AdminReferralRow): { inr: number; usd: number } {
-  const pct = row.commissionPercent;
-  if (!pct || pct <= 0) return { inr: 0, usd: 0 };
-  const clamped = Math.max(0, Math.min(100, Math.round(pct)));
-  return {
-    inr: Math.round((row.netRevenueInr * clamped) / 100),
-    usd: Math.round((row.netRevenueUsd * clamped) / 100),
-  };
-}
 
 export type LoadReferralsResult = {
   codes: AdminReferralRow[];
   error: string | null;
 };
-
-/** Narrow an untrusted JSON payload to the row shape the console expects. */
-function isReferralRow(value: unknown): value is AdminReferralRow {
-  if (typeof value !== "object" || value === null) return false;
-  const row = value as Record<string, unknown>;
-  return (
-    typeof row.id === "string" &&
-    typeof row.code === "string" &&
-    typeof row.discountPercent === "number" &&
-    typeof row.active === "boolean" &&
-    typeof row.redeemed === "number"
-  );
-}
 
 /** Read every code with its usage, straight from Postgres. */
 export async function queryReferrals(): Promise<AdminReferralRow[]> {
@@ -365,10 +310,10 @@ export async function mutateReferral(
       await db.delete(referralCodes).where(eq(referralCodes.id, input.id));
       return null;
     } catch (error) {
-      const message = error instanceof Error ? error.message : "";
-      if (/duplicate key|unique constraint/i.test(message)) {
-        return "That code already exists.";
-      }
+      // A code that already exists is an operator mistake worth naming, not a
+      // generic failure. The check reads the cause chain because Drizzle's own
+      // message is only the SQL that failed.
+      if (isUniqueViolation(error)) return "That code already exists.";
       console.error("[admin] referral action failed", error);
       return "Could not update referral codes.";
     }

@@ -1,12 +1,15 @@
 "use client";
 
 import { useMemo, useState } from "react";
+// Imported from `referralStats`, not `referrals`: the latter reaches the
+// database, and pulling it in here would bundle the Postgres driver into the
+// browser.
 import {
   commissionOwed,
   referralStatus,
   type AdminReferralRow,
   type ReferralStatus,
-} from "@/lib/admin/referrals";
+} from "@/lib/admin/referralStats";
 
 /**
  * Referral codes panel.
