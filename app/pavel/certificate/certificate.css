@@ -418,6 +418,142 @@
   color: var(--color-text-muted, #5b6b7a);
 }
 
+/* --- Verification page (/pavel/certificate) ------------------------------ */
+.cert-verify {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: clamp(2.5rem, 7vw, 4.5rem) 1.25rem clamp(3rem, 8vw, 5rem);
+  text-align: center;
+}
+.cert-verify__eyebrow {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-accent-strong, #b0714a);
+}
+.cert-verify__title {
+  margin-top: 0.6rem;
+  font-family: var(--font-cormorant), "Cormorant", Georgia, serif;
+  font-size: clamp(1.9rem, 5vw, 2.75rem);
+  line-height: 1.12;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  color: var(--color-primary, #0c1e2e);
+}
+.cert-verify__lead {
+  margin-top: 0.85rem;
+  font-size: clamp(0.95rem, 2.2vw, 1.0625rem);
+  line-height: 1.65;
+  color: var(--color-text-muted, #5b6b7a);
+}
+
+.cert-verify__form {
+  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+/* Stacked on a phone, side by side with the "or" between once there is room. */
+.cert-verify__fields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: stretch;
+}
+@media (min-width: 640px) {
+  .cert-verify__fields {
+    flex-direction: row;
+    align-items: flex-end;
+    gap: 0.85rem;
+  }
+  .cert-verify__field { flex: 1 1 0; }
+}
+.cert-verify__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  text-align: left;
+}
+.cert-verify__label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-primary, #0c1e2e);
+}
+.cert-verify__input {
+  width: 100%;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--color-border, rgba(12, 30, 46, 0.16));
+  border-radius: 0.75rem;
+  background: #fff;
+  font-size: 0.9375rem;
+  color: var(--color-primary, #0c1e2e);
+  transition: border-color 0.15s ease;
+}
+.cert-verify__input::placeholder { color: rgba(91, 107, 122, 0.6); }
+.cert-verify__input:focus {
+  outline: none;
+  border-color: var(--color-accent-strong, #b0714a);
+}
+.cert-verify__input--mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  text-transform: uppercase;
+}
+.cert-verify__or {
+  padding-bottom: 0.85rem;
+  font-size: 0.75rem;
+  color: var(--color-text-muted, #5b6b7a);
+}
+
+/* Off-screen rather than display:none — a bot reading the DOM still finds it. */
+.cert-verify__decoy {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.cert-verify__submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  align-self: center;
+  padding: 0.75rem 1.6rem;
+  border-radius: 999px;
+  background: var(--color-primary, #0c1e2e);
+  color: #fff;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  transition: opacity 0.15s ease;
+}
+.cert-verify__submit:hover { opacity: 0.9; }
+.cert-verify__submit:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.cert-verify__error {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 0.45rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: #b4401f;
+  text-align: left;
+}
+
+.cert-verify__note {
+  margin-top: 2rem;
+  font-size: 0.8125rem;
+  line-height: 1.65;
+  color: var(--color-text-muted, #5b6b7a);
+}
+.cert-verify__link {
+  color: var(--color-accent-strong, #b0714a);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .cert-outro__note {
   font-size: 0.8125rem;
   color: var(--color-text-muted, #5b6b7a);
