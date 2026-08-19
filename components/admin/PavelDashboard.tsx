@@ -25,6 +25,8 @@ import {
   REGISTRATION_COLUMNS,
 } from "@/components/admin/registrationColumns";
 import { useColumnPreference } from "@/components/admin/useColumnPreference";
+import { RowActions } from "@/components/admin/RowActions";
+import type { OperationState } from "@/components/admin/OperationsPanel";
 
 export type { AdminRegistrationRow };
 
@@ -165,20 +167,28 @@ const flagOptions = [ANY, { value: "yes", label: "Yes" }, { value: "no", label: 
 export default function PavelDashboard({
   rows,
   children,
-  footer,
+  resendConfirmationAction,
+  resendCertificateAction,
 }: {
   rows: AdminRegistrationRow[];
-  /** Slot above the table: the setup panels (session, referral codes). */
+  /** Slot above the table: the setup panels (session, sync, referral codes). */
   children?: React.ReactNode;
   /**
-   * Slot below the table: recovery actions.
+   * Per-row recovery actions, rendered as the table's last column.
    *
-   * Separate from `children` because these are reached for after reading the
-   * table, not before. Sitting above it they pushed the registrations, the
-   * filters and the totals down the page on every visit, to serve the rarest
-   * thing an operator does here.
+   * Passed down rather than held in the column registry because a server action
+   * cannot be a value in a module-level data structure, and because these are
+   * controls rather than data: they are deliberately absent from the CSV, which
+   * exports every other column.
    */
-  footer?: React.ReactNode;
+  resendConfirmationAction: (
+    state: OperationState,
+    formData: FormData
+  ) => Promise<OperationState>;
+  resendCertificateAction: (
+    state: OperationState,
+    formData: FormData
+  ) => Promise<OperationState>;
 }) {
   const [filters, setFilters] = useState<RegistrationFilters>(EMPTY_FILTERS);
   const [page, setPage] = useState(1);
@@ -327,7 +337,8 @@ export default function PavelDashboard({
         { key: "abandoned", label: "Abandoned", count: abandonedCount },
       ];
 
-  const colSpan = visibleColumns.length + 1;
+  // Row number + the chosen columns + the fixed actions column.
+  const colSpan = visibleColumns.length + 2;
   const advanced = hasAdvancedFilters(filters);
 
   /** One table row, rendering whichever columns are currently on. */
@@ -361,6 +372,15 @@ export default function PavelDashboard({
             {col.cell(row)}
           </td>
         ))}
+        {/* Actions: always last, never hidden by the picker, never exported. */}
+        <td className="px-3 py-3">
+          <RowActions
+            ref_={row.ref}
+            status={row.status}
+            resendConfirmationAction={resendConfirmationAction}
+            resendCertificateAction={resendCertificateAction}
+          />
+        </td>
       </tr>
     );
   }
@@ -766,6 +786,7 @@ export default function PavelDashboard({
                     {col.label}
                   </th>
                 ))}
+                <th className="whitespace-nowrap px-3 py-3 font-medium">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -877,9 +898,6 @@ export default function PavelDashboard({
             </div>
           )}
         </div>
-
-        {/* Recovery actions, below the table they are used in response to. */}
-        {footer ? <div className="mt-8">{footer}</div> : null}
       </div>
     </div>
   );

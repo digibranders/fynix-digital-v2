@@ -265,13 +265,9 @@ export default async function PavelAdminPage() {
   return (
     <PavelDashboard
       rows={rows}
-      footer={
-        <OperationsPanel
-          resendConfirmationAction={resendConfirmationAction}
-          resendCertificateAction={resendCertificateAction}
-          syncAttendanceAction={syncAttendanceAction}
-        />
-      }
+      // Per-seat recovery, rendered as the table's Actions column.
+      resendConfirmationAction={resendConfirmationAction}
+      resendCertificateAction={resendCertificateAction}
     >
       <SessionPanel
         sessions={sessionsResult.sessions}
@@ -282,6 +278,9 @@ export default async function PavelAdminPage() {
         deleteAction={deleteSessionAction}
         updateAction={updateSessionAction}
       />
+      {/* Sits with the session because that is what it acts on: it pulls the
+          active webinar's attendance report. */}
+      <OperationsPanel syncAttendanceAction={syncAttendanceAction} />
       <ReferralPanel
         codes={referralsResult.codes}
         error={referralsResult.error}
