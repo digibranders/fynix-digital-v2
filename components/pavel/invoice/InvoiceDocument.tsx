@@ -260,6 +260,9 @@ export const InvoiceDocument: React.FC<InvoiceDocumentProps> = ({
   const currency = invoice.currency;
   const isIntraState = invoice.supplyType === "intra";
   const isExport = invoice.supplyType === "export";
+  // On a domestic supply `placeOfSupply` is the buyer's state; on an export it
+  // is the destination country, which the address already names.
+  const isDomestic = !isExport;
   const halfRate = invoice.ratePercent / 2;
 
   return (
@@ -330,6 +333,15 @@ export const InvoiceDocument: React.FC<InvoiceDocumentProps> = ({
                     </Text>
                   ))
                 : null}
+              {/* State belongs in the recipient's address, not only in the
+                  place-of-supply strip. Rule 46 wants the recipient's address
+                  with the state named on it, and it is collected as a mandatory
+                  field anyway. Domestic supplies only: on an export
+                  `placeOfSupply` holds the destination country, which the line
+                  below already prints. */}
+              {isDomestic && invoice.placeOfSupply ? (
+                <Text style={styles.partyLine}>{invoice.placeOfSupply}</Text>
+              ) : null}
               {invoice.buyerCountry ? (
                 <Text style={styles.partyLine}>{invoice.buyerCountry}</Text>
               ) : null}
