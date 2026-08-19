@@ -1,9 +1,16 @@
 "use client";
 
-import React, { createContext, useContext, useMemo, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { PRICING, type PriceInfo, type Country } from "./pricing";
 import {
   FALLBACK_SCHEDULE,
+  scheduleInZone,
   type WorkshopSchedule,
 } from "@/lib/pavel/workshopSchedule";
 import {
@@ -25,8 +32,14 @@ type PricingContextValue = {
    * rather than everyone defaulting to one country.
    */
   detectedCountryName: string;
-  /** The active session's schedule, resolved server-side. */
+  /** The active session's schedule, in the workshop's own timezone (IST). */
   schedule: WorkshopSchedule;
+  /**
+   * Server-side guess at the viewer's timezone, from the edge geo country.
+   * Country-level only, and empty where geo is unavailable. `useViewerSchedule`
+   * prefers the browser's exact zone once the page is running.
+   */
+  detectedTimeZone: string;
   /**
    * Whether seats are on sale. Advisory: it decides what the page shows, while
    * the checkout route re-derives it from the database before charging. A stale
@@ -45,12 +58,14 @@ const PricingContext = createContext<PricingContextValue | null>(null);
 export function PricingProvider({
   initialCountry,
   detectedCountryName = "",
+  detectedTimeZone = "",
   schedule = FALLBACK_SCHEDULE,
   registration = FALLBACK_WINDOW,
   children,
 }: {
   initialCountry: Country;
   detectedCountryName?: string;
+  detectedTimeZone?: string;
   schedule?: WorkshopSchedule;
   registration?: RegistrationWindow;
   children: React.ReactNode;
@@ -63,10 +78,11 @@ export function PricingProvider({
       price: PRICING[country],
       setCountry,
       detectedCountryName,
+      detectedTimeZone,
       schedule,
       registration,
     }),
-    [country, detectedCountryName, schedule, registration],
+    [country, detectedCountryName, detectedTimeZone, schedule, registration],
   );
 
   return (
@@ -80,4 +96,48 @@ export function usePricing(): PricingContextValue {
     throw new Error("usePricing must be used within a PricingProvider");
   }
   return ctx;
+}
+
+/**
+ * The workshop schedule in the viewer's own timezone.
+ *
+ * Someone loading this page from Chicago should read the time they will
+ * actually attend, not IST they have to convert in their head. Every place the
+ * page prints the date or time uses this, so the hero, the pricing card and the
+ * banner can never disagree with one another.
+ *
+ * The zone is read through `useSyncExternalStore` rather than an effect for one
+ * specific reason: the server has no access to the browser's timezone, so the
+ * server snapshot is the country-level guess from geo and the client snapshot is
+ * the exact `Intl` zone. That is precisely the split this hook is built for, and
+ * it keeps the hydration render matching the HTML instead of tripping a
+ * mismatch, then re-renders once with the exact zone.
+ */
+function subscribeToNothing(): () => void {
+  // The timezone cannot change while the page is open, so there is nothing to
+  // subscribe to; the store is read once at hydration.
+  return () => {};
+}
+
+function readBrowserTimeZone(): string {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone ?? "";
+  } catch {
+    return "";
+  }
+}
+
+export function useViewerSchedule(): WorkshopSchedule {
+  const { schedule, detectedTimeZone } = usePricing();
+
+  const timeZone = useSyncExternalStore(
+    subscribeToNothing,
+    readBrowserTimeZone,
+    () => detectedTimeZone
+  );
+
+  return useMemo(
+    () => scheduleInZone(schedule, timeZone || detectedTimeZone),
+    [schedule, timeZone, detectedTimeZone]
+  );
 }

@@ -70,13 +70,20 @@ export default async function PavelWorkshopPage({
   // can pre-select it. countryFromGeo collapses everything to IN or REST, which
   // cannot name a country. Absent locally and on the droplet, where the edge geo
   // header does not exist.
-  const detectedCountryName =
-    COUNTRIES.find((c) => c.code === geoCode?.toUpperCase())?.name ?? "";
+  const detected = COUNTRIES.find((c) => c.code === geoCode?.toUpperCase());
+  const detectedCountryName = detected?.name ?? "";
+
+  // A first guess at the viewer's timezone, so the server-rendered HTML already
+  // shows their local time instead of IST. The browser's own zone replaces it
+  // on hydration: it is exact where this is only country-level (one zone for
+  // all of the US), but it does not exist until the page is running.
+  const detectedTimeZone = detected?.tz ?? "";
 
   return (
     <PricingProvider
       initialCountry={initialCountry}
       detectedCountryName={detectedCountryName}
+      detectedTimeZone={detectedTimeZone}
       schedule={workshop.schedule}
       registration={workshop.registration}
     >

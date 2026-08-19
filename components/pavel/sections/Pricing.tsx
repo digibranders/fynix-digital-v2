@@ -6,7 +6,7 @@ import { Container } from "../ui/Container";
 import { Button } from "../ui/Button";
 import { ArrowRight, Check, X } from "lucide-react";
 import { WORKSHOP } from "../workshopDetails";
-import { usePricing } from "../PricingProvider";
+import { usePricing, useViewerSchedule } from "../PricingProvider";
 import { closedMessage } from "@/lib/pavel/registrationWindow";
 import { CheckoutModal } from "../CheckoutModal";
 
@@ -24,7 +24,8 @@ const NOT_INCLUDED = [
 ];
 
 export const Pricing: React.FC = () => {
-  const { price, schedule, registration } = usePricing();
+  const { price, registration } = usePricing();
+  const schedule = useViewerSchedule();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Registration + Razorpay Checkout both run inside the modal.
