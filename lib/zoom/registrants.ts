@@ -29,6 +29,59 @@ interface BatchRegistrantResponse {
   }>;
 }
 
+interface RegistrantListResponse {
+  registrants?: Array<{
+    id?: string;
+    email?: string;
+    join_url?: string;
+    status?: string;
+  }>;
+  next_page_token?: string;
+}
+
+/**
+ * Find an already-registered buyer's join link by reading the webinar's
+ * registrant list.
+ *
+ * This is a GET, so it does NOT count against Zoom's three-per-person-per-day
+ * registration budget, and it is the recovery path for the case below: the batch
+ * endpoint accepts a registrant it already knows about but echoes back no
+ * `join_url`. The link still exists on Zoom's side; we just have to read it.
+ */
+async function findApprovedJoinUrl(
+  zoomWebinarId: string,
+  email: string
+): Promise<ZoomRegistrant | null> {
+  const target = email.trim().toLowerCase();
+  let pageToken: string | undefined;
+
+  do {
+    const page = await zoomRequest<RegistrantListResponse>(
+      `/webinars/${zoomWebinarId}/registrants`,
+      {
+        query: {
+          status: "approved",
+          page_size: "300",
+          ...(pageToken ? { next_page_token: pageToken } : {}),
+        },
+      }
+    );
+
+    const match = page.registrants?.find(
+      (r) => (r.email ?? "").trim().toLowerCase() === target && r.join_url
+    );
+    if (match?.join_url) {
+      // The registrant list keys the correlation id as `id`; this is the same
+      // value that later appears as `registrant_id` on the attendance report.
+      return { registrantId: match.id ?? "", joinUrl: match.join_url };
+    }
+
+    pageToken = page.next_page_token || undefined;
+  } while (pageToken);
+
+  return null;
+}
+
 /** Split a full name into the first/last Zoom expects. */
 function splitName(fullName: string): { first: string; last?: string } {
   const parts = fullName.trim().split(/\s+/);
@@ -70,20 +123,30 @@ export async function registerAttendee(
   );
 
   const registrant = response.registrants?.[0];
-  if (!registrant?.join_url) {
-    throw new ZoomApiError(
-      `Zoom accepted the registration for ${attendee.email} but returned no join URL.`,
-      502
-    );
+  if (registrant?.join_url) {
+    return {
+      // Zoom returns the correlation id as `registrant_id` on batch and `id` on
+      // the single-registrant endpoint. Take whichever is present: this value is
+      // what attendance is matched on later.
+      registrantId: registrant.registrant_id ?? registrant.id ?? "",
+      joinUrl: registrant.join_url,
+    };
   }
 
-  return {
-    // Zoom returns the correlation id as `registrant_id` on batch and `id` on
-    // the single-registrant endpoint. Take whichever is present: this value is
-    // what attendance is matched on later.
-    registrantId: registrant.registrant_id ?? registrant.id ?? "",
-    joinUrl: registrant.join_url,
-  };
+  // Zoom accepted the registration but returned no join URL. This is what
+  // happens when the buyer is already registered on the webinar: the batch call
+  // succeeds but echoes no link, and re-posting only burns the daily attempt
+  // budget. The link exists — read it from the registrant list instead of
+  // throwing the successful registration away and leaving the seat stuck.
+  const existing = await findApprovedJoinUrl(zoomWebinarId, attendee.email);
+  if (existing) {
+    return existing;
+  }
+
+  throw new ZoomApiError(
+    `Zoom accepted the registration for ${attendee.email} but returned no join URL.`,
+    502
+  );
 }
 
 /**
