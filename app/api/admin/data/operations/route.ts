@@ -5,6 +5,7 @@ import {
   resendCertificate,
   resendConfirmation,
   runAttendanceSyncNow,
+  sendRecordingToAll,
 } from "@/lib/admin/operations";
 
 export const runtime = "nodejs";
@@ -45,6 +46,10 @@ export async function POST(request: Request) {
       }
       case "resend_certificate": {
         const result = await resendCertificate(db, ref ?? "");
+        return NextResponse.json({ message: result.message }, { status: result.ok ? 200 : 409 });
+      }
+      case "send_recording": {
+        const result = await sendRecordingToAll(db);
         return NextResponse.json({ message: result.message }, { status: result.ok ? 200 : 409 });
       }
       case "sync_attendance": {

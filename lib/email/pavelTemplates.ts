@@ -100,6 +100,52 @@ function recordingText(submission: PavelRegistrationSubmission): string {
   return `\nThe full recording is yours for the next ${WORKSHOP.recordingWindowDays} days:\n${url}\n`;
 }
 
+
+/**
+ * "Your recording is ready" — the follow-up when the recording was not
+ * available at the time the post-event email went out.
+ *
+ * Goes to attendees and no-shows alike. The FAQ promises the recording to
+ * everyone who paid, and for a no-show it is the only thing they receive.
+ *
+ * Returns null when there is no recording, so a caller cannot accidentally send
+ * an email whose entire subject is a link it does not have.
+ */
+export function buildPavelRecordingReadyEmail(
+  submission: PavelRegistrationSubmission
+): { subject: string; html: string; text: string } | null {
+  if (!submission.recordingUrl?.trim()) return null;
+
+  const firstName = submission.name?.split(" ")[0] || "there";
+  const ref = submission.ref ?? "";
+  const subject = `Your Semantic SEO workshop recording is ready`;
+  const preheader = `Watch it any time in the next ${WORKSHOP.recordingWindowDays} days.`;
+  const heading = `The recording is <span style="font-style: italic; color: #9A7B4F;">ready</span>, ${firstName}.`;
+
+  const bodyHtml = `
+    <p style="margin: 0 0 18px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.65; color: #454F58;">
+      Pavel&rsquo;s full Semantic SEO workshop is now available to watch back.
+    </p>
+    ${recordingBlock(submission)}`;
+
+  const html = renderPavelEmailShell({
+    subject,
+    preheader,
+    eyebrow: "Workshop recording",
+    heading,
+    bodyHtml,
+    ref,
+  });
+
+  const text = `The recording is ready, ${firstName}.
+
+Pavel's full Semantic SEO workshop is now available to watch back.
+${recordingText(submission)}
+Reference ${ref}`;
+
+  return { subject, html, text };
+}
+
 export function buildPavelConfirmationEmail(submission: PavelRegistrationSubmission) {
   const ticketId = submission.ticketNumber || "TK-042";
   const firstName = submission.name.split(" ")[0] || "there";

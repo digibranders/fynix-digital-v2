@@ -10,6 +10,7 @@ import { dispatchPavelEmail } from "@/lib/email/dispatch";
 import {
   buildPavelConfirmationEmail,
   buildPavelCertificateEmail,
+  buildPavelRecordingReadyEmail,
 } from "@/lib/email/pavelTemplates";
 import type { PavelRegistrationSubmission } from "@/lib/email/pavelTemplates";
 import { loadSchedule } from "@/lib/pavel/loadSchedule";
@@ -220,7 +221,8 @@ export const OPERATIONS_DATA_PATH = "/api/admin/data/operations";
 export type AdminOperation =
   | "resend_confirmation"
   | "sync_attendance"
-  | "resend_certificate";
+  | "resend_certificate"
+  | "send_recording";
 
 /**
  * Run an operation wherever the data lives.
@@ -244,6 +246,8 @@ export async function runAdminOperation(
           return await resendCertificate(db, input.ref ?? "");
         case "sync_attendance":
           return await runAttendanceSyncNow(db);
+        case "send_recording":
+          return await sendRecordingToAll(db);
       }
     } catch (error) {
       console.error("[admin/operations] failed", error);
@@ -273,4 +277,94 @@ export async function runAdminOperation(
     console.error("[admin/operations] gateway request failed", error);
     return { ok: false, message: "Could not reach the operations service." };
   }
+}
+
+
+/**
+ * Send the recording to everyone in the active cohort who has not had it.
+ *
+ * The cron does this on its own once the link is published — this is for
+ * sending it now rather than on the next tick, and for picking up anyone a
+ * failed send left behind.
+ *
+ * Anyone whose post-event email already carried the link had this slot claimed
+ * at send time, so they are skipped here by the same unique constraint that
+ * dedupes everything else. Attendees and no-shows both receive it: the FAQ
+ * promises the recording to everyone who paid, and for a no-show it is the only
+ * thing they get.
+ */
+export async function sendRecordingToAll(db: Db): Promise<OperationResult> {
+  const session = await getActiveSession(db);
+  if (!session) return { ok: false, message: "No active session." };
+
+  const recordingUrl = session.recordingUrl?.trim();
+  if (!recordingUrl) {
+    return {
+      ok: false,
+      message: "No recording link on this session yet. Paste it above first.",
+    };
+  }
+
+  const schedule = await loadSchedule();
+
+  const paid = await db
+    .select({
+      id: registrations.id,
+      ref: registrations.ref,
+      name: registrations.name,
+      email: registrations.email,
+      country: registrations.country,
+      amountDisplay: registrations.amountDisplay,
+      zoomJoinUrl: registrations.zoomJoinUrl,
+    })
+    .from(registrations)
+    .where(
+      and(
+        eq(registrations.status, "paid"),
+        eq(registrations.sessionId, session.id)
+      )
+    );
+
+  let sent = 0;
+  let skipped = 0;
+  let failed = 0;
+
+  for (const reg of paid) {
+    const email = buildPavelRecordingReadyEmail({
+      name: reg.name,
+      email: reg.email,
+      country: reg.country,
+      amountDisplay: reg.amountDisplay ?? undefined,
+      ref: reg.ref,
+      joinUrl: reg.zoomJoinUrl ?? undefined,
+      schedule,
+      recordingUrl,
+    });
+    if (!email) {
+      failed += 1;
+      continue;
+    }
+
+    const result = await dispatchPavelEmail({
+      registrationId: reg.id,
+      type: "recording_ready",
+      to: [{ email: reg.email, name: reg.name }],
+      subject: email.subject,
+      htmlContent: email.html,
+      textContent: email.text,
+      sender: SENDER,
+    });
+
+    if (result.status === "sent" || result.status === "mocked") sent += 1;
+    else if (result.status === "skipped") skipped += 1;
+    else failed += 1;
+  }
+
+  return {
+    ok: failed === 0,
+    message:
+      `Recording sent to ${sent} seat(s).` +
+      (skipped ? ` ${skipped} already had it.` : "") +
+      (failed ? ` ${failed} failed — check the logs.` : ""),
+  };
 }

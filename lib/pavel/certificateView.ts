@@ -17,6 +17,16 @@ export interface CertificateView {
   credentialId: string;
   recipientName: string;
   issueDateLabel: string;
+  /**
+   * When it was issued, ISO. The printed label is prose ("1 September 2026");
+   * LinkedIn's "add to profile" link wants a year and a month as numbers, and
+   * parsing them back out of English prose would break the first time that
+   * wording changed.
+   *
+   * Optional because an older droplet build does not send it yet. Absent, the
+   * LinkedIn link simply omits the date and the member fills it in.
+   */
+  issuedAt?: string | null;
 }
 
 function isCertificateView(value: unknown): value is CertificateView {
@@ -41,6 +51,7 @@ export async function loadCertificate(
       credentialId: certificate.credentialId,
       recipientName: certificate.recipientName,
       issueDateLabel: certificate.issueDateLabel,
+      issuedAt: certificate.issuedAt ? certificate.issuedAt.toISOString() : null,
     };
   }
 

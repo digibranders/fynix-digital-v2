@@ -99,34 +99,49 @@ describe("reminderWindowOpensAt", () => {
   });
 });
 
-describe("post_event waits for the recording", () => {
+describe("post-event and the recording follow-up", () => {
   const end = new Date(schedule.endUtc).getTime();
-  const at = (ms: number, recordingPublished: boolean) =>
-    dueReminderTypes(new Date(end + ms), schedule, { recordingPublished });
+  const at = (
+    ms: number,
+    opts: { recordingPublished?: boolean; postEventSent?: boolean } = {}
+  ) => dueReminderTypes(new Date(end + ms), schedule, opts);
 
-  it("holds the emails while the recording is still processing", () => {
-    // Zoom needs roughly the session's own length to process. Sending now would
-    // give attendees a certificate with no recording and no-shows an email
-    // named after one it does not contain.
-    expect(at(60_000, false)).toEqual([]);
-    expect(at(6 * 3_600_000, false)).toEqual([]);
+  it("holds the post-event mail for up to an hour, hoping for the recording", () => {
+    expect(at(60_000)).toEqual([]);
+    expect(at(30 * 60_000)).toEqual([]);
   });
 
-  it("sends as soon as the recording is published", () => {
-    expect(at(60_000, true)).toEqual(["post_event"]);
-    expect(at(2 * 3_600_000, true)).toEqual(["post_event"]);
+  it("sends it at the one-hour mark even with no recording", () => {
+    // The certificate should not wait on Zoom's processing queue. The
+    // templates omit the recording section when there is none.
+    expect(at(59 * 60_000)).toEqual([]);
+    expect(at(3_600_000)).toEqual(["post_event"]);
   });
 
-  it("sends anyway after 24 hours, so a forgotten link costs nobody a certificate", () => {
-    expect(at(23 * 3_600_000, false)).toEqual([]);
-    expect(at(24 * 3_600_000, false)).toEqual(["post_event"]);
-    expect(at(48 * 3_600_000, false)).toEqual(["post_event"]);
+  it("sends immediately if the recording beat the hour", () => {
+    expect(at(60_000, { recordingPublished: true })).toEqual(["post_event"]);
+  });
+
+  it("holds the follow-up until the post-event mail has gone", () => {
+    // Hearing "your recording is ready" before hearing whether you earned a
+    // certificate is the wrong order.
+    expect(at(2 * 3_600_000, { recordingPublished: true, postEventSent: false }))
+      .toEqual(["post_event"]);
+  });
+
+  it("sends the follow-up once the recording is up and the post-event mail has gone", () => {
+    expect(at(4 * 3_600_000, { recordingPublished: true, postEventSent: true }))
+      .toEqual(["post_event", "recording_ready"]);
+  });
+
+  it("never offers the follow-up without a recording", () => {
+    expect(at(48 * 3_600_000, { postEventSent: true })).toEqual(["post_event"]);
   });
 
   it("sends nothing while the session is still running", () => {
     // A minute before the END is mid-session: past the start, so no pre-event
-    // reminder applies, and post_event is not due however ready the recording.
-    expect(at(-60_000, true)).toEqual([]);
-    expect(at(-60_000, false)).toEqual([]);
+    // reminder applies, and nothing post-event is due however ready Zoom is.
+    expect(at(-60_000, { recordingPublished: true })).toEqual([]);
+    expect(at(-60_000)).toEqual([]);
   });
 });

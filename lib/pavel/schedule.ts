@@ -20,11 +20,16 @@ const MS_PER_HOUR = 3_600_000;
 /**
  * How long post-event emails wait for a recording link before going without it.
  *
- * Zoom's own guarantee is 24 hours, and processing usually finishes well inside
- * that. Waiting a full day past the outer limit would leave attendees wondering
- * whether they were forgotten, so this sits at the guarantee itself.
+ * One hour, which in practice means they almost always go without it: Zoom
+ * takes roughly one to two times the session length to process a recording, so
+ * a three-hour workshop is rarely ready inside an hour.
+ *
+ * That is the intended trade. The certificate is the emotional payoff and
+ * should arrive while the workshop is still fresh; the recording is utility and
+ * can follow. Waiting for both to be ready meant saying nothing for most of a
+ * day, which reads as having been forgotten.
  */
-export const POST_EVENT_MAX_WAIT_MS = 24 * 3_600_000;
+export const POST_EVENT_MAX_WAIT_MS = 1 * 3_600_000;
 const MS_PER_DAY = 86_400_000;
 
 /**
@@ -58,6 +63,7 @@ export const REMINDER_TYPES = [
   "reminder_1d",
   "reminder_1h",
   "post_event",
+  "recording_ready",
 ] as const;
 export type ReminderType = (typeof REMINDER_TYPES)[number];
 
@@ -84,7 +90,7 @@ export function isReminderType(value: string): value is ReminderType {
 export function dueReminderTypes(
   now: Date,
   schedule: WorkshopSchedule,
-  options: { recordingPublished?: boolean } = {}
+  options: { recordingPublished?: boolean; postEventSent?: boolean } = {}
 ): ReminderType[] {
   const start = new Date(schedule.startUtc).getTime();
   const end = new Date(schedule.endUtc).getTime();
@@ -121,6 +127,20 @@ export function dueReminderTypes(
   if (t >= end) {
     const graceExpired = t >= end + POST_EVENT_MAX_WAIT_MS;
     if (options.recordingPublished || graceExpired) due.push("post_event");
+
+    // The recording almost always arrives after the post-event mail has gone,
+    // so it gets its own message rather than being bolted onto a resend.
+    //
+    // Only once the post-event mail has actually been sent: sending "your
+    // recording is ready" to someone who has not yet heard whether they earned
+    // a certificate is the wrong order, and both would arrive within minutes of
+    // each other anyway.
+    //
+    // Everyone who already received a recording link has their slot claimed at
+    // send time, so this cannot reach them twice.
+    if (options.recordingPublished && options.postEventSent) {
+      due.push("recording_ready");
+    }
   }
 
   return due;
@@ -155,6 +175,9 @@ export function reminderWindowOpensAt(
     case "reminder_1h":
       return new Date(start - MS_PER_HOUR);
     case "post_event":
+    // Neither is a countdown: both go to everyone holding a seat, whenever they
+    // bought it, once the event is behind them.
+    case "recording_ready":
       return null;
   }
 }

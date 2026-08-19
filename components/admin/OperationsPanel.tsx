@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { CheckCircle2, AlertCircle, RefreshCw } from "lucide-react";
+import { CheckCircle2, AlertCircle, RefreshCw, Video } from "lucide-react";
 import { SubmitButton } from "@/components/admin/SubmitButton";
 
 export type OperationState = { ok: boolean; message: string } | null;
@@ -24,13 +24,19 @@ export type OperationState = { ok: boolean; message: string } | null;
  */
 export function OperationsPanel({
   syncAttendanceAction,
+  sendRecordingAction,
 }: {
   syncAttendanceAction: (
     state: OperationState,
     formData: FormData
   ) => Promise<OperationState>;
+  sendRecordingAction: (
+    state: OperationState,
+    formData: FormData
+  ) => Promise<OperationState>;
 }) {
   const [syncState, syncAction] = useActionState(syncAttendanceAction, null);
+  const [recState, recAction] = useActionState(sendRecordingAction, null);
 
   return (
     <section className="mb-8 rounded-xl border border-white/10 bg-slate-900/40 p-5">
@@ -40,9 +46,10 @@ export function OperationsPanel({
         Per-seat resends live in the Actions column of the table above.
       </p>
 
+      <div className="grid gap-3 sm:grid-cols-2">
       <form
         action={syncAction}
-        className="max-w-sm space-y-2 rounded-lg border border-white/5 bg-slate-950 p-3"
+        className="space-y-2 rounded-lg border border-white/5 bg-slate-950 p-3"
       >
         <span className="flex items-center gap-1.5 text-xs font-medium text-slate-300">
           <RefreshCw className="h-3.5 w-3.5" /> Sync attendance now
@@ -59,6 +66,31 @@ export function OperationsPanel({
         </SubmitButton>
         <Result state={syncState} />
       </form>
+
+      {/* Sending the recording is automatic once the link is published — this
+          is for sending it now rather than on the next tick, and for picking up
+          anyone a failed send left behind. Anyone whose post-event email
+          already carried the link is skipped. */}
+      <form
+        action={recAction}
+        className="space-y-2 rounded-lg border border-white/5 bg-slate-950 p-3"
+      >
+        <span className="flex items-center gap-1.5 text-xs font-medium text-slate-300">
+          <Video className="h-3.5 w-3.5" /> Send recording to all
+        </span>
+        <p className="text-[11px] leading-snug text-slate-500">
+          Goes out on its own once the recording link is published. This sends
+          it now, and skips anyone who already has it.
+        </p>
+        <SubmitButton
+          pendingLabel="Sending…"
+          className="w-full justify-center rounded-lg border border-white/15 px-3 py-1.5 text-xs text-slate-300 hover:border-emerald-400/40 hover:text-emerald-300"
+        >
+          Send now
+        </SubmitButton>
+        <Result state={recState} />
+      </form>
+      </div>
     </section>
   );
 }

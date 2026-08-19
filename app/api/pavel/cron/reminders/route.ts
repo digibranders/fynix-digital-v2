@@ -23,6 +23,7 @@ import { issueEarnedCertificates } from "@/lib/pavel/certificate";
 import {
   buildPavelReminderEmail,
   buildPavelCertificateEmail,
+  buildPavelRecordingReadyEmail,
   buildPavelMissedYouEmail,
   type PavelRegistrationSubmission,
 } from "@/lib/email/pavelTemplates";
@@ -56,6 +57,11 @@ function buildEmail(type: ReminderType, submission: PavelRegistrationSubmission)
       // Handled per recipient in runReminderType: what someone receives after
       // the event depends on whether they actually attended.
       return null;
+    case "recording_ready":
+      // Same for everyone who paid, attendee or not — but null when there is no
+      // recording, so this can never send an email that is entirely about a
+      // link it does not have.
+      return buildPavelRecordingReadyEmail(submission) ?? null;
   }
 }
 
@@ -214,8 +220,24 @@ async function runReminderType(
       replyTo: SENDER,
     });
 
-    if (result.status === "sent" || result.status === "mocked") sent += 1;
-    else if (result.status === "skipped") skipped += 1;
+    if (result.status === "sent" || result.status === "mocked") {
+      sent += 1;
+
+      // If this post-event email already carried the recording, claim the
+      // follow-up's slot so it can never also arrive. The claim is the same
+      // unique (registration_id, type) the dispatcher uses, so this is exactly
+      // the mechanism that would have deduped it — just recorded up front.
+      //
+      // Best-effort on purpose: a failure here means someone receives a second
+      // email about a recording they already have, which is a far smaller
+      // problem than failing the run they were just sent.
+      if (type === "post_event" && submission.recordingUrl?.trim()) {
+        await db
+          .insert(emailLog)
+          .values({ registrationId: reg.id, type: "recording_ready" })
+          .catch(() => {});
+      }
+    } else if (result.status === "skipped") skipped += 1;
     else {
       failed += 1;
       console.error(`[pavel/cron] ${type} failed for ${reg.ref}: ${result.reason}`);
@@ -319,8 +341,18 @@ export async function GET(request: Request) {
     }
     types = [forced];
   } else {
+    // Has the post-event mail actually gone out for this cohort? The recording
+    // follow-up waits for it, so that someone hears whether they earned a
+    // certificate before they hear the recording is up.
+    const [postEventRow] = await db
+      .select({ id: emailLog.id })
+      .from(emailLog)
+      .where(inArray(emailLog.type, ["certificate", "missed_you"]))
+      .limit(1);
+
     types = dueReminderTypes(new Date(), schedule, {
       recordingPublished: Boolean(activeSession.recordingUrl?.trim()),
+      postEventSent: Boolean(postEventRow),
     });
   }
 

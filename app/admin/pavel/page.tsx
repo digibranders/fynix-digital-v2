@@ -252,6 +252,12 @@ export default async function PavelAdminPage() {
     });
   }
 
+  async function sendRecordingAction(): Promise<OperationState> {
+    "use server";
+    if (!(await isAdminAuthenticated())) redirect("/admin");
+    return runAdminOperation("send_recording");
+  }
+
   async function syncAttendanceAction(): Promise<OperationState> {
     "use server";
     if (!(await isAdminAuthenticated())) redirect("/admin");
@@ -292,7 +298,10 @@ export default async function PavelAdminPage() {
       />
       {/* Sits with the session because that is what it acts on: it pulls the
           active webinar's attendance report. */}
-      <OperationsPanel syncAttendanceAction={syncAttendanceAction} />
+      <OperationsPanel
+        syncAttendanceAction={syncAttendanceAction}
+        sendRecordingAction={sendRecordingAction}
+      />
       <ReferralPanel
         codes={referralsResult.codes}
         error={referralsResult.error}
