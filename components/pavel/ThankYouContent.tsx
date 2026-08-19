@@ -5,7 +5,14 @@ import { useSearchParams } from "next/navigation";
 import { WORKSHOP } from "@/components/pavel/workshopDetails";
 import { Container } from "@/components/pavel/ui/Container";
 import { Button } from "@/components/pavel/ui/Button";
-import { Video, Copy, Check, Loader2, ShieldAlert } from "lucide-react";
+import {
+  Video,
+  Copy,
+  Check,
+  Loader2,
+  ShieldAlert,
+  CalendarDays,
+} from "lucide-react";
 import { apiUrl } from "@/lib/pavel/apiBase";
 import { usePricing } from "@/components/pavel/PricingProvider";
 import { COUNTRIES } from "@/components/pavel/countries";
@@ -119,21 +126,76 @@ export const ThankYouContent: React.FC = () => {
     setTimeout(() => setCopied(false), 2500);
   };
 
-  const createGoogleCalendarLink = () => {
-    // Google Calendar wants compact UTC timestamps: YYYYMMDDTHHMMSSZ.
-    const toCalDate = (iso: string) => iso.replace(/[-:]/g, "").replace(/\.\d{3}/, "");
-    const dates = `${toCalDate(schedule.startUtc)}/${toCalDate(schedule.endUtc)}`;
+  /** Compact UTC stamp every calendar provider accepts: YYYYMMDDTHHMMSSZ. */
+  const toCalDate = (iso: string) =>
+    iso.replace(/[-:]/g, "").replace(/\.\d{3}/, "");
 
+  const calendarTitle = "Semantic SEO Workshop with Pavel Klimakov";
+  const calendarDetails = `Your personal Zoom link (do not share): ${zoomUrl}\n\nReference: ${attendeeRef}`;
+
+  const createGoogleCalendarLink = () => {
     const params = new URLSearchParams({
       action: "TEMPLATE",
-      text: "Semantic SEO Workshop with Pavel Klimakov",
-      dates,
-      details: `Your personal Zoom link (do not share): ${zoomUrl}\n\nReference: ${attendeeRef}`,
+      text: calendarTitle,
+      dates: `${toCalDate(schedule.startUtc)}/${toCalDate(schedule.endUtc)}`,
+      details: calendarDetails,
       location: zoomUrl,
       // Google renders the entry in this zone, so use the buyer's own.
       ctz: buyerTimeZone || "Asia/Kolkata",
     });
     return `https://calendar.google.com/calendar/render?${params.toString()}`;
+  };
+
+  const createYahooCalendarLink = () => {
+    const params = new URLSearchParams({
+      v: "60",
+      title: calendarTitle,
+      st: toCalDate(schedule.startUtc),
+      et: toCalDate(schedule.endUtc),
+      desc: calendarDetails,
+      in_loc: zoomUrl,
+    });
+    return `https://calendar.yahoo.com/?${params.toString()}`;
+  };
+
+  /**
+   * A downloadable .ics, which is what Outlook (and Apple Calendar) actually
+   * want — their web "add event" URLs drop the description on long values and
+   * silently lose the join link, which is the one thing this entry exists to
+   * carry.
+   *
+   * Built as a data URI so it needs no route and no round trip. CRLF line
+   * endings and escaped commas are not cosmetic: RFC 5545 requires them, and
+   * Outlook rejects the file outright without them.
+   */
+  const createIcsHref = () => {
+    const escape = (value: string) =>
+      value.replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\n/g, "\\n");
+
+    const lines = [
+      "BEGIN:VCALENDAR",
+      "VERSION:2.0",
+      "PRODID:-//Fynix Digital//Semantic SEO Workshop//EN",
+      "CALSCALE:GREGORIAN",
+      "METHOD:PUBLISH",
+      "BEGIN:VEVENT",
+      `UID:${attendeeRef}@fynix.digital`,
+      `DTSTAMP:${toCalDate(new Date().toISOString())}`,
+      `DTSTART:${toCalDate(schedule.startUtc)}`,
+      `DTEND:${toCalDate(schedule.endUtc)}`,
+      `SUMMARY:${escape(calendarTitle)}`,
+      `DESCRIPTION:${escape(calendarDetails)}`,
+      `LOCATION:${escape(zoomUrl)}`,
+      "BEGIN:VALARM",
+      "TRIGGER:-PT1H",
+      "ACTION:DISPLAY",
+      "DESCRIPTION:Reminder",
+      "END:VALARM",
+      "END:VEVENT",
+      "END:VCALENDAR",
+    ];
+
+    return `data:text/calendar;charset=utf-8,${encodeURIComponent(lines.join("\r\n"))}`;
   };
 
   // The buyer's timezone comes from the country they chose at checkout.
@@ -237,7 +299,10 @@ export const ThankYouContent: React.FC = () => {
               </p>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3">
+            {/* Three, because people do not all keep one calendar. Google and
+                Yahoo take a URL; Outlook and Apple want a file, so that one is
+                a download rather than a link. */}
+            <div className="flex flex-wrap items-center gap-2">
               <a
                 href={createGoogleCalendarLink()}
                 target="_blank"
@@ -246,7 +311,28 @@ export const ThankYouContent: React.FC = () => {
               >
                 <Button variant="outline" size="md">
                   <GoogleCalendarIcon className="w-4 h-4" />
-                  Add to Google Calendar
+                  Google Calendar
+                </Button>
+              </a>
+              <a
+                href={createIcsHref()}
+                download="semantic-seo-workshop.ics"
+                className="inline-flex"
+              >
+                <Button variant="outline" size="md">
+                  <CalendarDays className="w-4 h-4" />
+                  Outlook / Apple (.ics)
+                </Button>
+              </a>
+              <a
+                href={createYahooCalendarLink()}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex"
+              >
+                <Button variant="outline" size="md">
+                  <CalendarDays className="w-4 h-4" />
+                  Yahoo Calendar
                 </Button>
               </a>
             </div>
