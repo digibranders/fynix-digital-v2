@@ -54,7 +54,7 @@ export const FinalCTA: React.FC = () => {
 
       <Container className="relative">
         <Reveal className="max-w-[760px] mx-auto text-center">
-          <h2 className="text-[2.2rem] sm:text-[2.8rem] lg:text-[3.4rem] leading-[1.06] font-medium tracking-[-0.028em] text-white">
+          <h2 className="text-[2.15rem] sm:text-[2.65rem] lg:text-[3.05rem] leading-[1.06] font-medium tracking-[-0.028em] text-white">
             Reserve your seat before{" "}
             <span className="font-serif italic font-normal">it&rsquo;s gone.</span>
           </h2>

@@ -33,7 +33,7 @@ export const Problem: React.FC = () => {
     >
       <Container>
         <div className="max-w-[820px] mb-16 md:mb-20">
-          <h2 className="text-[2.15rem] sm:text-[2.65rem] lg:text-[3.15rem] leading-[1.08] font-medium tracking-[-0.026em] text-primary">
+          <h2 className="text-[2.15rem] sm:text-[2.65rem] lg:text-[3.05rem] leading-[1.08] font-medium tracking-[-0.026em] text-primary">
             You already know more about SEO than{" "}
             <span className="font-serif italic font-medium">most so-called SEOs.</span>
           </h2>

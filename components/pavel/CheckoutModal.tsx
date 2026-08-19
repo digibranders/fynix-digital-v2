@@ -778,12 +778,21 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
           <div
             aria-hidden="true"
             style={{
+              // Clip out of view rather than shoving the field off-screen with
+              // `left: -9999px`: an off-screen decoy widens the page's layout
+              // box, and mobile browsers fit-to-width by zooming the modal out
+              // (inconsistently across devices). Clipping keeps the field in
+              // flow at 1px, so it stays hidden without extending the viewport.
               position: "absolute",
-              left: "-9999px",
-              top: 0,
               width: 1,
               height: 1,
+              padding: 0,
+              margin: -1,
               overflow: "hidden",
+              clip: "rect(0 0 0 0)",
+              clipPath: "inset(50%)",
+              whiteSpace: "nowrap",
+              border: 0,
             }}
           >
             <input

@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { Container } from "../ui/Container";
 import { Plus, Minus } from "lucide-react";
+import { WHATSAPP_QUERY_URL } from "@/components/pavel/workshopDetails";
 
 const FAQS = [
   {
@@ -39,8 +40,23 @@ export const FAQ: React.FC = () => {
               <span className="font-serif italic font-medium">answered plainly.</span>
             </h2>
             <p className="mt-6 text-[1.1rem] text-text-muted leading-[1.65] italic font-normal max-w-[340px]">
-              Still have a specific question? Email us and we will reply
-              personally.
+              Still have a specific question?{" "}
+              <a
+                href="mailto:hello@fynix.digital"
+                className="text-primary underline decoration-border underline-offset-4 hover:decoration-accent"
+              >
+                Email us
+              </a>{" "}
+              or{" "}
+              <a
+                href={WHATSAPP_QUERY_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary underline decoration-border underline-offset-4 hover:decoration-accent"
+              >
+                message us on WhatsApp
+              </a>
+              . We reply personally.
             </p>
           </div>
 

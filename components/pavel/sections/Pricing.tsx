@@ -42,7 +42,7 @@ export const Pricing: React.FC = () => {
       <Container>
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-14 lg:gap-16">
           <div className="lg:col-span-5">
-            <h2 className="text-[2.15rem] sm:text-[2.65rem] lg:text-[3.15rem] leading-[1.08] font-medium tracking-[-0.026em] text-primary">
+            <h2 className="text-[2.15rem] sm:text-[2.65rem] lg:text-[3.05rem] leading-[1.08] font-medium tracking-[-0.026em] text-primary">
               One seat.{" "}
               <span className="font-serif italic font-medium whitespace-nowrap">
                 One price.
