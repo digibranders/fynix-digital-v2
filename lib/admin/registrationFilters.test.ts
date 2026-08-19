@@ -111,7 +111,7 @@ describe("rowMatchesFilters", () => {
   });
 
   it("filters by attendance band", () => {
-    const full = row({ status: "paid", attendedMinutes: 120 });
+    const full = row({ status: "paid", attendedMinutes: 120, certificateEarned: true });
     const partial = row({ status: "paid", attendedMinutes: 30 });
     const noShow = row({ status: "paid", attendedMinutes: 0 });
     const unsynced = row({ status: "paid", attendedMinutes: null });
@@ -125,8 +125,8 @@ describe("rowMatchesFilters", () => {
   });
 
   it("finds certificates earned but not issued", () => {
-    const earned = row({ status: "paid", attendedMinutes: 95, credentialId: null });
-    const issued = row({ status: "paid", attendedMinutes: 95, credentialId: "FYX-1" });
+    const earned = row({ status: "paid", attendedMinutes: 95, certificateEarned: true, credentialId: null });
+    const issued = row({ status: "paid", attendedMinutes: 95, certificateEarned: true, credentialId: "FYX-1" });
     const short = row({ status: "paid", attendedMinutes: 20, credentialId: null });
     expect(rowMatchesFilters(earned, f({ certificate: "eligible_unissued" }), NOW)).toBe(true);
     expect(rowMatchesFilters(issued, f({ certificate: "eligible_unissued" }), NOW)).toBe(false);

@@ -87,7 +87,7 @@ describe("computeTotals", () => {
     const t = computeTotals([
       row({ status: "paid", invoiceNo: null }), // invoice never issued
       row({ status: "paid", hasJoinLink: false }), // cannot attend
-      row({ status: "paid", attendedMinutes: 120, credentialId: null }), // earned, unissued
+      row({ status: "paid", attendedMinutes: 120, certificateEarned: true, credentialId: null }), // earned, unissued
     ]);
     expect(t.invoicesMissing).toBe(3);
     expect(t.joinLinksMissing).toBe(3);
@@ -129,7 +129,9 @@ describe("formatMoneyByCurrency", () => {
 
 describe("derived row values", () => {
   it("bands attendance, treating unsynced as unknown not zero", () => {
-    expect(attendanceBand(row({ status: "paid", attendedMinutes: 120 }))).toBe("full");
+    expect(
+      attendanceBand(row({ status: "paid", attendedMinutes: 120, certificateEarned: true }))
+    ).toBe("full");
     expect(attendanceBand(row({ status: "paid", attendedMinutes: 45 }))).toBe("partial");
     expect(attendanceBand(row({ status: "paid", attendedMinutes: 0 }))).toBe("no_show");
     expect(attendanceBand(row({ status: "paid", attendedMinutes: null }))).toBe("not_synced");
@@ -177,8 +179,17 @@ describe("derived row values", () => {
     expect(rowCommission(row({ taxableValue: 562500 }))).toBeNull();
   });
 
-  it("does not call an unissued certificate earned when attendance is short", () => {
-    expect(certificateEligibleUnissued(row({ status: "paid", attendedMinutes: 90 }))).toBe(true);
-    expect(certificateEligibleUnissued(row({ status: "paid", attendedMinutes: 89 }))).toBe(false);
+  it("takes the server's word on who earned a certificate", () => {
+    // The threshold is configurable and lives on the server, so the console
+    // reports what it was told rather than re-deciding with a stale number.
+    expect(
+      certificateEligibleUnissued(row({ certificateEarned: true, credentialId: null }))
+    ).toBe(true);
+    expect(
+      certificateEligibleUnissued(row({ certificateEarned: true, credentialId: "FYX-1" }))
+    ).toBe(false);
+    expect(
+      certificateEligibleUnissued(row({ certificateEarned: false, credentialId: null }))
+    ).toBe(false);
   });
 });

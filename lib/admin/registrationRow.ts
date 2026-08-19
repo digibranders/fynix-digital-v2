@@ -90,15 +90,22 @@ export type AdminRegistrationRow = {
   attendanceSyncedAt: string | null;
   credentialId: string | null;
   certificateIssuedAt: string | null;
+  /**
+   * Whether this seat has earned a certificate, decided by the SERVER.
+   *
+   * Carried on the row rather than recomputed here, because the threshold is
+   * configurable (`PAVEL_ATTENDANCE_MIN_MINUTES`) and is deliberately lowered
+   * while testing. A copy of the number in this browser-side module would
+   * disagree with the server the moment it was changed, and the console would
+   * quietly report the wrong people as having earned one.
+   */
+  certificateEarned: boolean;
 
   // Lifecycle.
   /** Email types already sent, e.g. ['confirmation','reminder_1d']. */
   emailTypes: string[];
   lastEmailAt: string | null;
 };
-
-/** Minutes of attendance that earn a certificate. Mirrors PAVEL_ATTENDANCE_MIN_MINUTES. */
-export const CERTIFICATE_MINUTES = 90;
 
 /** A pending seat older than this is treated as abandoned rather than in-flight. */
 export const ABANDONED_AFTER_DAYS = 7;
@@ -116,7 +123,9 @@ export function attendanceBand(row: AdminRegistrationRow): AttendanceBand {
   if (row.status !== "paid") return "n/a";
   if (row.attendedMinutes === null) return "not_synced";
   if (row.attendedMinutes === 0) return "no_show";
-  return row.attendedMinutes >= CERTIFICATE_MINUTES ? "full" : "partial";
+  // "full" means the seat cleared the certificate threshold, which only the
+  // server knows: see `certificateEarned`.
+  return row.certificateEarned ? "full" : "partial";
 }
 
 /** Attended minutes as a percentage of the session's scheduled length. */
@@ -134,12 +143,7 @@ export function attendancePercent(row: AdminRegistrationRow): number | null {
 
 /** Earned a certificate but has not been issued one. Actionable, so it is its own signal. */
 export function certificateEligibleUnissued(row: AdminRegistrationRow): boolean {
-  return (
-    row.status === "paid" &&
-    row.attendedMinutes !== null &&
-    row.attendedMinutes >= CERTIFICATE_MINUTES &&
-    !row.credentialId
-  );
+  return row.certificateEarned && !row.credentialId;
 }
 
 /** Paid but no invoice was ever issued. Always an operator problem. */

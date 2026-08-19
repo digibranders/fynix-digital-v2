@@ -14,6 +14,7 @@ import {
   hasLocalDb,
 } from "@/lib/admin/gateway";
 import type { AdminRegistrationRow } from "@/lib/admin/registrationRow";
+import { hasEarnedCertificate } from "@/lib/pavel/certificate";
 
 export type { AdminRegistrationRow };
 
@@ -157,6 +158,14 @@ export async function queryRegistrations(): Promise<AdminRegistrationRow[]> {
       attendanceSyncedAt: iso(r.attendanceSyncedAt),
       certificateIssuedAt: iso(r.certificateIssuedAt),
       hasJoinLink: Boolean(r.zoomJoinUrl),
+      // Decided here, with the same helper that decides whether a certificate is
+      // actually issued, so the console and the issuer can never disagree about
+      // who earned one. The threshold is configurable, so a copy of the number
+      // in the browser bundle would go stale the moment it was changed.
+      certificateEarned: hasEarnedCertificate({
+        status: r.status,
+        attendedMinutes: r.attendedMinutes,
+      }),
       emailTypes: types,
       lastEmailAt: iso(mail?.lastSentAt ?? null),
     };
@@ -223,6 +232,7 @@ function normaliseRow(row: AdminRegistrationRow): AdminRegistrationRow {
     attendanceSyncedAt: n(row.attendanceSyncedAt, null),
     credentialId: n(row.credentialId, null),
     certificateIssuedAt: n(row.certificateIssuedAt, null),
+    certificateEarned: n(row.certificateEarned, false),
     hasJoinLink: n(row.hasJoinLink, false),
     emailTypes: n(row.emailTypes, []),
     lastEmailAt: n(row.lastEmailAt, null),

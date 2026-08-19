@@ -69,6 +69,7 @@ export function testRow(
     attendanceSyncedAt: null,
     credentialId: null,
     certificateIssuedAt: null,
+    certificateEarned: false,
 
     emailTypes: [],
     lastEmailAt: null,
