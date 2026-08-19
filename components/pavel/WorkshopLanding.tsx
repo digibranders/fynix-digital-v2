@@ -8,17 +8,16 @@ import { Hero } from "@/components/pavel/sections/Hero";
 import { Instructor } from "@/components/pavel/sections/Instructor";
 import { Testimonials } from "@/components/pavel/sections/Testimonials";
 import { Problem } from "@/components/pavel/sections/Problem";
-import { Shift } from "@/components/pavel/sections/Shift";
 import { Proof } from "@/components/pavel/sections/Proof";
 import { Curriculum } from "@/components/pavel/sections/Curriculum";
 import { Audience } from "@/components/pavel/sections/Audience";
-import { Deliverables } from "@/components/pavel/sections/Deliverables";
 import { CertificateShowcase } from "@/components/pavel/sections/CertificateShowcase";
 import { Pricing } from "@/components/pavel/sections/Pricing";
 import { FAQ } from "@/components/pavel/sections/FAQ";
 import { FinalCTA } from "@/components/pavel/sections/FinalCTA";
 import { Footer } from "@/components/pavel/sections/Footer";
 import { MobileStickyBanner } from "@/components/pavel/sections/MobileStickyBanner";
+import { WhatsAppQuery } from "@/components/pavel/sections/WhatsAppQuery";
 
 /**
  * The workshop landing page.
@@ -65,16 +64,15 @@ export async function WorkshopLanding({
         <Proof />
         <Problem />
         <Curriculum />
-        <Shift />
+        <CertificateShowcase />
         <Testimonials />
         <Audience />
-        <Deliverables />
-        <CertificateShowcase />
         <Pricing />
         <FAQ />
         <FinalCTA />
         <Footer />
         <MobileStickyBanner />
+        <WhatsAppQuery />
       </div>
     </PricingProvider>
   );

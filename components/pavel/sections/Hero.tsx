@@ -9,57 +9,28 @@ import { usePricing, useViewerSchedule } from "../PricingProvider";
 import { WORKSHOP } from "../workshopDetails";
 
 /**
- * Art direction for the hero portrait.
+ * Hero portrait — a single image at every breakpoint.
  *
- * The phone crop and the desktop stage shot are genuinely different images, and
- * they used to be two <Image>s toggled with `md:hidden` / `hidden md:block`.
- * CSS visibility does not stop a download: both stayed in the DOM and, because
- * both were `priority`, Next emitted a `<link rel="preload" as="image">` for
- * each with no `media` attribute. The preload scanner fetched both before any
- * CSS applied, so every visitor paid for the image they could not see on top of
- * the one they could -- 37KB of dead weight on a phone, and the phone crop
- * requested at w=1920 on desktop.
+ * We use the cleaner phone crop (`new_hero_mobile.webp`) on desktop as well as
+ * mobile, so there is one download and one framing to reason about. `sizes`
+ * still tells the optimizer the box is ~45vw on desktop and full-width below, so
+ * each viewport fetches an appropriately-sized variant rather than the largest.
  *
- * `getImageProps` gives us the optimizer's srcSet without rendering an element,
- * so the choice can move into `<picture><source media>`, where the preload
- * scanner resolves the media query itself and fetches exactly one image.
+ * `priority` is passed for its non-lazy semantics, but it does NOT survive
+ * getImageProps the way it does on <Image>: no `fetchpriority` attribute is
+ * returned and no preload link is emitted, because getImageProps is a pure
+ * function with no way to reach the document head. The LCP hint is therefore
+ * set explicitly on the element below.
  */
 const HERO_ALT = "Pavel Klimakov presenting on stage at SEO Vibes Summit";
+const HERO_SIZES = "(min-width: 1024px) 45vw, 100vw";
 
-// Matches the `md` breakpoint the two crops were previously switched on.
-// Stated in `rem`, not `px`, because that is what Tailwind v4 emits: the
-// `md:object-[center_22%]` / `md:scale-105` framing below is inside
-// `@media (min-width:48rem)`. The two are only equal at a 16px root font size,
-// so a visitor who has raised their browser's default font size would otherwise
-// get the desktop crop from this <source> while the framing classes that go
-// with it had not applied yet.
-const HERO_DESKTOP_MEDIA = "(min-width: 48rem)";
-const HERO_DESKTOP_SIZES = "(min-width: 1024px) 45vw, 100vw";
-
-const {
-  props: { srcSet: heroDesktopSrcSet },
-} = getImageProps({
+const { props: heroProps } = getImageProps({
   alt: HERO_ALT,
   fill: true,
   priority: true,
   quality: 90,
-  sizes: HERO_DESKTOP_SIZES,
-  src: "/pavel/pavel-seo-vibes-summit-2025.webp",
-});
-
-// The phone crop also supplies the <img> fallback, so it keeps the prop set
-// that `fill` produces (src, srcSet, sizes, style, decoding).
-//
-// `priority` is passed for its non-lazy semantics, but note it does NOT survive
-// getImageProps the way it does on <Image>: no `fetchpriority` attribute is
-// returned and no preload link is emitted, because getImageProps is a pure
-// function with no way to reach the document head. The LCP hint is therefore
-// set explicitly on the element below.
-const { props: heroMobileProps } = getImageProps({
-  alt: HERO_ALT,
-  fill: true,
-  priority: true,
-  sizes: "100vw",
+  sizes: HERO_SIZES,
   src: "/pavel/new_hero_mobile.webp",
 });
 
@@ -163,27 +134,21 @@ export const Hero: React.FC = () => {
                 is a constant for the life of the page: the hero renders exactly
                 as it did under `dvh` at load, then stops moving. */}
             <div className="relative mx-auto max-w-[460px] lg:max-w-none h-[calc(100svh-16rem)] max-h-[560px] min-h-[320px] sm:h-[480px] sm:max-h-none sm:min-h-0 lg:h-[540px] w-full overflow-hidden">
-              {/* One element, one download. The <source> carries the desktop
-                  stage shot; the <img> falls back to the phone crop (a cleaner
-                  framing with no "Refine the…" strip up top). The per-crop
-                  framing that used to live on two separate elements is now
-                  breakpoint-scoped on the single <img>, switching at the same
-                  `md` boundary as the <source> above it. */}
+              {/* One element, one download — the phone crop at every breakpoint,
+                  top-anchored so Pavel's head stays in frame as the box gets
+                  taller on desktop. Wrapped in <picture> so the optimizer-built
+                  <img> is the allowed form of the element (and to leave room for
+                  an art-directed <source> later without restructuring). */}
               <picture>
-                <source
-                  media={HERO_DESKTOP_MEDIA}
-                  srcSet={heroDesktopSrcSet}
-                  sizes={HERO_DESKTOP_SIZES}
-                />
                 <img
-                  {...heroMobileProps}
+                  {...heroProps}
                   alt={HERO_ALT}
                   // This is the LCP element on every viewport. Set explicitly
                   // because `priority` above cannot emit it through
                   // getImageProps; without it the hero competes at the default
                   // image priority.
                   fetchPriority="high"
-                  className="object-cover object-top md:object-[center_22%] md:scale-105"
+                  className="object-cover object-top"
                 />
               </picture>
 

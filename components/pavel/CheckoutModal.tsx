@@ -2,7 +2,10 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { X, ArrowRight, Loader2, CheckCircle2, Tag } from "lucide-react";
-import { usePricing } from "@/components/pavel/PricingProvider";
+import {
+  usePricing,
+  useViewerSchedule,
+} from "@/components/pavel/PricingProvider";
 import { applyDiscount, formatUnitAmount } from "@/components/pavel/pricing";
 import { Button } from "@/components/pavel/ui/Button";
 import { PhoneField } from "@/components/pavel/ui/PhoneField";
@@ -208,7 +211,8 @@ async function ensureFormToken(
 }
 
 export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
-  const { price, detectedCountryName, schedule } = usePricing();
+  const { price, detectedCountryName } = usePricing();
+  const viewerSchedule = useViewerSchedule();
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -624,60 +628,28 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
     }
   };
 
-  // Convert the fixed workshop instant (schedule.startUtc) into the selected
-  // country's local date + time. Until a country is picked, we show the default
-  // IST labels. An unsupported IANA zone falls back to those defaults too.
+  // The country selector drives billing: which currency to charge, whether GST
+  // applies, and the dial code. It deliberately no longer drives the clock.
   const selectedCountry = country
     ? COUNTRIES.find((c) => c.name === country)
     : undefined;
-  const selectedTz = selectedCountry?.tz;
   const selectedDialCode = selectedCountry?.dialCode ?? "";
   // GST applies to the India-priced (₹ + GST) invoice, so the GST fields are
   // shown only when India is the selected country.
   const isIndian = selectedCountry?.code === "IN";
 
-  // Default (no country) shows the IST range with the zone in brackets.
-  const defaultTimeLabel = schedule.timeRange.replace(/\sIST$/, " (IST)");
-  let dateLabel: string = schedule.dateLabel;
-  let timeLabel: string = defaultTimeLabel;
-  if (selectedTz) {
-    try {
-      const startInstant = new Date(schedule.startUtc);
-      const endInstant = new Date(schedule.endUtc);
-      dateLabel = new Intl.DateTimeFormat("en-GB", {
-        timeZone: selectedTz,
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-      }).format(startInstant);
-      const startLabel = new Intl.DateTimeFormat("en-US", {
-        timeZone: selectedTz,
-        hour: "numeric",
-        minute: "2-digit",
-      }).format(startInstant);
-      const endLabel = new Intl.DateTimeFormat("en-US", {
-        timeZone: selectedTz,
-        hour: "numeric",
-        minute: "2-digit",
-      }).format(endInstant);
-      const tzName =
-        new Intl.DateTimeFormat("en-US", {
-          timeZone: selectedTz,
-          timeZoneName: "short",
-        })
-          .formatToParts(endInstant)
-          .find((part) => part.type === "timeZoneName")?.value ?? "";
-      // Intl renders India's zone as "GMT+5:30"; show the familiar "IST".
-      const tz = tzName.replace("GMT+5:30", "IST");
-      timeLabel = tz
-        ? `${startLabel} - ${endLabel} (${tz})`
-        : `${startLabel} - ${endLabel}`;
-    } catch {
-      // Unsupported zone in this runtime — keep the default IST labels.
-      dateLabel = schedule.dateLabel;
-      timeLabel = defaultTimeLabel;
-    }
-  }
+  // The session in the buyer's own timezone, from the same source the rest of
+  // the page uses. It previously came from the country picked in this form,
+  // which meant the modal could claim one "local time" while the pricing card
+  // directly behind it showed another — and the country someone bills from is
+  // not necessarily the clock they live by.
+  const dateLabel = viewerSchedule.dateLabel;
+  // The page prints "5:00 PM - 8:00 PM IST"; this panel has always bracketed
+  // the zone. Guard against a range with no zone label, where the last token
+  // would be "PM" and bracketing it would read as nonsense.
+  const timeLabel = /\s(AM|PM)$/i.test(viewerSchedule.timeRange)
+    ? viewerSchedule.timeRange
+    : viewerSchedule.timeRange.replace(/\s(\S+)$/, " ($1)");
 
   return (
     <div
@@ -754,7 +726,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
             </span>
           </div>
           <p className="mt-1 text-[11px] text-text-muted/80">
-            {selectedTz ? "Shown in your local time" : "Select your country below to see your local time"}
+            Shown in your local time
           </p>
         </div>
 
@@ -778,12 +750,21 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
           <div
             aria-hidden="true"
             style={{
+              // Clip out of view rather than shoving the field off-screen with
+              // `left: -9999px`: an off-screen decoy widens the page's layout
+              // box, and mobile browsers fit-to-width by zooming the modal out
+              // (inconsistently across devices). Clipping keeps the field in
+              // flow at 1px, so it stays hidden without extending the viewport.
               position: "absolute",
-              left: "-9999px",
-              top: 0,
               width: 1,
               height: 1,
+              padding: 0,
+              margin: -1,
               overflow: "hidden",
+              clip: "rect(0 0 0 0)",
+              clipPath: "inset(50%)",
+              whiteSpace: "nowrap",
+              border: 0,
             }}
           >
             <input

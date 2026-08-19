@@ -48,6 +48,15 @@ export default function Reveal({
   useIsoLayoutEffect(() => {
     const el = ref.current;
     if (!el) return;
+    // Never gate content behind an animation that can silently fail to run.
+    // When IntersectionObserver is unavailable, or the document is hidden
+    // (background tab, embedded/preview browsers, some in-app webviews) — where
+    // IO callbacks are suppressed and would leave the element stuck at
+    // opacity 0 — reveal immediately instead of waiting for a scroll trigger.
+    if (typeof IntersectionObserver === "undefined" || document.hidden) {
+      setVisible(true);
+      return;
+    }
     const rect = el.getBoundingClientRect();
     if (rect.top < window.innerHeight && rect.bottom > 0) {
       setVisible(true);

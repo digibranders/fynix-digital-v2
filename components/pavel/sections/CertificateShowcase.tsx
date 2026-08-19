@@ -2,6 +2,8 @@ import React from "react";
 import Reveal from "@/components/Reveal";
 import { Container } from "../ui/Container";
 import { CertificateEmbed } from "../ui/CertificateEmbed";
+import { CertificateTilt } from "../ui/CertificateTilt";
+import { ReserveSeatButton } from "../ui/ReserveSeatButton";
 import { WORKSHOP } from "../workshopDetails";
 // Screen-only certificate styles. The route's A4 print rules live in a separate
 // stylesheet (certificate-print.css) so they can't hijack this page's printing.
@@ -13,15 +15,14 @@ const SAMPLE = {
   credentialId: "FYX-SS26-0184",
 };
 
+// Headline-only takeaways: the two core deliverables followed by the two
+// certificate facts. Bodies were dropped intentionally so the left column reads
+// as a scannable list beside the certificate preview.
 const POINTS = [
-  {
-    title: "Ready for LinkedIn",
-    body: "Add it to your profile's Licenses & Certifications and your Featured section in a couple of clicks.",
-  },
-  {
-    title: "Issued on completion",
-    body: "Attend the full live session and your personalised certificate is generated the same day.",
-  },
+  "Three hours of live training with Pavel",
+  "Slide deck and detailed notes",
+  "Ready for LinkedIn",
+  "Issued on completion",
 ];
 
 function Check() {
@@ -30,7 +31,7 @@ function Check() {
       viewBox="0 0 20 20"
       fill="none"
       aria-hidden="true"
-      className="mt-0.5 h-4 w-4 shrink-0 text-accent"
+      className="h-4 w-4 shrink-0 text-accent"
     >
       <path
         d="m5 10.5 3.2 3.2L15 7"
@@ -50,42 +51,50 @@ export const CertificateShowcase: React.FC = () => {
       className="relative isolate overflow-hidden py-16 sm:py-20 bg-transparent"
     >
       <Container className="relative">
-        <div className="grid grid-cols-1 items-center gap-x-16 gap-y-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]">
-          {/* Copy */}
-          <Reveal className="max-w-[520px]">
-            <h2 className="text-[2.15rem] font-medium leading-[1.08] tracking-[-0.026em] text-primary sm:text-[2.5rem] lg:text-[2.85rem]">
-              Leave with proof,{" "}
+        <div className="grid grid-cols-1 items-center gap-x-12 gap-y-8 lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)] lg:items-stretch lg:gap-y-12">
+          {/* Copy — on desktop it fills the certificate's height so the heading
+              sits level with the certificate's top edge and the bullet rows
+              spread down to meet its bottom edge. */}
+          <Reveal className="max-w-[520px] lg:flex lg:flex-col">
+            <h2 className="text-[2.15rem] font-medium leading-[1.08] tracking-[-0.026em] text-primary sm:text-[2.65rem] lg:text-[3.05rem]">
+              What you leave with,{" "}
               <span className="whitespace-nowrap font-serif italic font-medium">
-                not just knowledge.
+                beyond the session.
               </span>
             </h2>
 
-            <ul className="mt-8 space-y-4">
-              {POINTS.map((p) => (
-                <li key={p.title} className="flex gap-3.5">
+            <ul className="mt-8 border-t border-border lg:mt-10 lg:flex lg:flex-1 lg:flex-col lg:justify-between">
+              {POINTS.map((point) => (
+                <li
+                  key={point}
+                  className="flex items-center gap-4 border-b border-border py-4"
+                >
                   <Check />
-                  <div className="space-y-1">
-                    <h3 className="font-serif text-[1.1rem] font-semibold leading-[1.3] text-primary">
-                      {p.title}
-                    </h3>
-                    <p className="text-[14.5px] leading-[1.6] text-text-muted">
-                      {p.body}
-                    </p>
-                  </div>
+                  <h3 className="text-[1.05rem] sm:text-[1.1rem] font-medium leading-[1.35] text-primary">
+                    {point}
+                  </h3>
                 </li>
               ))}
             </ul>
+
+            <ReserveSeatButton className="mt-8 w-full sm:w-auto lg:self-start" />
           </Reveal>
 
-          {/* Certificate preview — scaled render of the real component */}
+          {/* Certificate preview — scaled render of the real component, matted
+              on a soft cream panel with a caption, so it reads as a framed award. */}
           <Reveal delay={120}>
-            <div className="[transform:perspective(1600px)_rotateY(-4deg)] transition-transform duration-500 ease-out hover:[transform:perspective(1600px)_rotateY(0deg)]">
-              <CertificateEmbed
-                recipientName={SAMPLE.name}
-                credentialId={SAMPLE.credentialId}
-                issueDate={WORKSHOP.dateLabel}
-              />
-            </div>
+            <figure className="rounded-[1.75rem] bg-[#F2EBE1] p-3 sm:p-5">
+              <CertificateTilt className="overflow-hidden rounded-[1rem] shadow-[0_12px_28px_-10px_rgba(12,30,46,0.30)]">
+                <CertificateEmbed
+                  recipientName={SAMPLE.name}
+                  credentialId={SAMPLE.credentialId}
+                  issueDate={WORKSHOP.dateLabel}
+                />
+              </CertificateTilt>
+              <figcaption className="mt-5 flex items-center justify-center px-2 text-center text-[9px] font-medium uppercase tracking-[0.18em] text-text-muted">
+                A certificate to recognize your learning and commitment.
+              </figcaption>
+            </figure>
           </Reveal>
         </div>
       </Container>

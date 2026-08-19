@@ -52,5 +52,23 @@ export const WORKSHOP = {
    * thank-you page so only confirmed seats can join. ⚠️ PLACEHOLDER — swap for
    * the real group invite link before going live.
    */
-  whatsappGroupUrl: "https://chat.whatsapp.com/EScrV53wlYrJuBOufygDtV?s=cl&p=a&ilr=1",
+  whatsappGroupUrl: "https://chat.whatsapp.com/ELBzlRLp5DxAjOLKrvgZva?s=cl&p=i&ilr=4",
+  /**
+   * Public pre-sale support line — a direct WhatsApp chat for prospects with
+   * questions about the workshop. Surfaced on the landing page (floating button
+   * + FAQ) so an unsure visitor can reach us in one tap instead of only email.
+   * Kept in sync with `PAVEL_SELLER_PHONE` in lib/pavel/sellerProfile.ts.
+   */
+  whatsappQueryNumber: "917897896607",
+  whatsappQueryPrompt:
+    "Hi! I have a question about the Semantic SEO workshop.",
 } as const;
+
+/**
+ * A wa.me deep link that opens a direct WhatsApp chat with the support line,
+ * pre-filled with `whatsappQueryPrompt`. Built once here so the floating button
+ * and the FAQ link stay identical.
+ */
+export const WHATSAPP_QUERY_URL = `https://wa.me/${WORKSHOP.whatsappQueryNumber}?text=${encodeURIComponent(
+  WORKSHOP.whatsappQueryPrompt,
+)}`;
