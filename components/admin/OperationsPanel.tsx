@@ -39,58 +39,55 @@ export function OperationsPanel({
   const [recState, recAction] = useActionState(sendRecordingAction, null);
 
   return (
-    <section className="mb-8 rounded-xl border border-white/10 bg-slate-900/40 p-5">
-      <h2 className="mb-1 text-sm font-semibold text-white">Manual actions</h2>
-      <p className="mb-4 text-xs text-slate-500">
-        Runs automatically after every session. Use this when it has not yet.
-        Per-seat resends live in the Actions column of the table above.
-      </p>
+    /* One row, not two cards.
+       These are rarely-pressed recovery actions, and they were taking more
+       vertical space than the registrations table they sit above — which is
+       what the page is actually for. The explanation of each moves to a title
+       attribute: it matters the first time and never again. */
+    <section className="mb-6 rounded-xl border border-white/10 bg-slate-900/40 px-5 py-3">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+        <div className="mr-auto">
+          <h2 className="text-sm font-semibold text-white">Manual actions</h2>
+          <p className="text-[11px] text-slate-500">
+            Both run automatically. Per-seat resends are in the table below.
+          </p>
+        </div>
 
-      <div className="grid gap-3 sm:grid-cols-2">
-      <form
-        action={syncAction}
-        className="space-y-2 rounded-lg border border-white/5 bg-slate-950 p-3"
-      >
-        <span className="flex items-center gap-1.5 text-xs font-medium text-slate-300">
-          <RefreshCw className="h-3.5 w-3.5" /> Sync attendance now
-        </span>
-        <p className="text-[11px] leading-snug text-slate-500">
-          Pulls Zoom&rsquo;s report and issues any certificates earned. Useful
-          when a session ended earlier than scheduled.
-        </p>
-        <SubmitButton
-          pendingLabel="Syncing…"
-          className="w-full justify-center rounded-lg border border-white/15 px-3 py-1.5 text-xs text-slate-300 hover:border-emerald-400/40 hover:text-emerald-300"
-        >
-          Sync now
-        </SubmitButton>
-        <Result state={syncState} />
-      </form>
+        <form action={syncAction}>
+          <SubmitButton
+            pendingLabel="Syncing…"
+            title="Pulls Zoom's report and issues any certificates earned. Use when a session ended earlier than scheduled."
+            className="rounded-lg border border-white/15 px-3 py-1.5 text-xs text-slate-300 hover:border-emerald-400/40 hover:text-emerald-300"
+          >
+            <RefreshCw className="h-3.5 w-3.5" />
+            Sync attendance
+          </SubmitButton>
+        </form>
 
-      {/* Sending the recording is automatic once the link is published — this
-          is for sending it now rather than on the next tick, and for picking up
-          anyone a failed send left behind. Anyone whose post-event email
-          already carried the link is skipped. */}
-      <form
-        action={recAction}
-        className="space-y-2 rounded-lg border border-white/5 bg-slate-950 p-3"
-      >
-        <span className="flex items-center gap-1.5 text-xs font-medium text-slate-300">
-          <Video className="h-3.5 w-3.5" /> Send recording to all
-        </span>
-        <p className="text-[11px] leading-snug text-slate-500">
-          Goes out on its own once the recording link is published. This sends
-          it now, and skips anyone who already has it.
-        </p>
-        <SubmitButton
-          pendingLabel="Sending…"
-          className="w-full justify-center rounded-lg border border-white/15 px-3 py-1.5 text-xs text-slate-300 hover:border-emerald-400/40 hover:text-emerald-300"
-        >
-          Send now
-        </SubmitButton>
-        <Result state={recState} />
-      </form>
+        {/* Sending the recording is automatic once the link is published — this
+            is for sending it now rather than on the next tick, and for picking
+            up anyone a failed send left behind. Anyone whose post-event email
+            already carried the link is skipped. */}
+        <form action={recAction}>
+          <SubmitButton
+            pendingLabel="Sending…"
+            title="Goes out on its own once the recording link is published. This sends it now, and skips anyone who already has it."
+            className="rounded-lg border border-white/15 px-3 py-1.5 text-xs text-slate-300 hover:border-emerald-400/40 hover:text-emerald-300"
+          >
+            <Video className="h-3.5 w-3.5" />
+            Send recording
+          </SubmitButton>
+        </form>
       </div>
+
+      {/* Results sit under the row so a long message cannot stretch a button,
+          and both are visible at once when both have been run. */}
+      {syncState || recState ? (
+        <div className="mt-2 space-y-1 border-t border-white/5 pt-2">
+          <Result state={syncState} />
+          <Result state={recState} />
+        </div>
+      ) : null}
     </section>
   );
 }
