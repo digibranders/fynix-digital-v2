@@ -1,3 +1,4 @@
+import { ChevronRight } from "lucide-react";
 import type { AdminSessionRow } from "@/lib/admin/sessions";
 import { SessionTimeFields } from "@/components/admin/SessionTimeFields";
 import { SubmitButton } from "@/components/admin/SubmitButton";
@@ -100,6 +101,24 @@ export function SessionPanel({
           {error}
         </p>
       ) : null}
+
+      {/* Collapsed by default: once a session is active and selling, the banner
+          above is the whole story and the list is just noise on a page whose
+          real subject is the registrations below.
+
+          It opens itself when something needs attention — nothing active, an
+          error, or registrations closed — because those are exactly the states
+          where hiding the controls would be unhelpful. `details` keeps this a
+          server component with no client JavaScript. */}
+      <details open={!selling || Boolean(error)} className="group">
+        <summary className="mb-3 inline-flex cursor-pointer list-none items-center gap-1.5 rounded-lg border border-white/10 px-3 py-1.5 text-xs text-slate-400 transition hover:border-white/25 hover:text-slate-200 [&::-webkit-details-marker]:hidden">
+          <ChevronRight className="h-3.5 w-3.5 transition-transform group-open:rotate-90" />
+          {sessions.length === 1 ? "1 session" : `${sessions.length} sessions`}
+          <span className="text-slate-600">·</span>
+          <span className="group-open:hidden">Manage</span>
+          <span className="hidden group-open:inline">Hide</span>
+        </summary>
+
 
       {sessions.length > 0 ? (
         <ul className="mb-4 space-y-2">
@@ -258,13 +277,15 @@ export function SessionPanel({
         >
           Add session
         </SubmitButton>
-      </form>
-      <p className="mt-2 text-[11px] text-slate-500">
-        Set the webinar to approve registrants manually. Paid buyers are then
-        pushed in automatically, and anyone who finds the public registration
-        page stays pending. The times you set here drive the page copy, the
-        emails and when reminders are sent.
-      </p>
+        </form>
+
+        <p className="mt-2 text-[11px] text-slate-500">
+          Set the webinar to approve registrants manually. Paid buyers are then
+          pushed in automatically, and anyone who finds the public registration
+          page stays pending. The times you set here drive the page copy, the
+          emails and when reminders are sent.
+        </p>
+      </details>
     </section>
   );
 }
