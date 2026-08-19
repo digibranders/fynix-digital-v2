@@ -215,11 +215,14 @@ export async function deleteSession(
 export async function setRecordingUrl(
   db: Db,
   sessionId: string,
-  url: string | null
+  url: string | null,
+  passcode: string | null = null
 ): Promise<WebinarSession | undefined> {
   const [session] = await db
     .update(webinarSessions)
-    .set({ recordingUrl: url })
+    // Cleared together: a passcode left behind after the link is removed would
+    // be printed against the next recording published here.
+    .set({ recordingUrl: url, recordingPasscode: url ? passcode : null })
     .where(eq(webinarSessions.id, sessionId))
     .returning();
   return session;

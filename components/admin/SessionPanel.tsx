@@ -250,10 +250,16 @@ export function SessionPanel({
               </form>
 
               {/* Recording link, pasted in after the event.
-                  Zoom hosts it and its own share settings carry the passcode
-                  and the 7-day expiry; this is only where buyers are told to
-                  find it. Empty until published, and the post-event emails omit
-                  the section entirely rather than promising a dead link. */}
+                  Zoom hosts it and its own share settings carry the 7-day
+                  expiry; this is only where buyers are told to find it. Empty
+                  until published, and the post-event emails omit the section
+                  entirely rather than promising a dead link.
+
+                  The passcode is a separate field because Zoom's "invitees can
+                  access without the passcode" exempts people it invited itself,
+                  not people arriving on a link forwarded by email. Without it
+                  the buyer reaches the player and is asked for a code nobody
+                  gave them. */}
               <form
                 action={recordingAction}
                 className="mt-2 flex w-full flex-wrap items-end gap-2 border-t border-white/5 pt-2"
@@ -266,6 +272,17 @@ export function SessionPanel({
                     defaultValue={session.recordingUrl ?? ""}
                     placeholder="https://us06web.zoom.us/rec/share/…"
                     className="mt-1 w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-xs text-white placeholder-slate-600 focus:border-emerald-400/50 focus:outline-none"
+                  />
+                </label>
+                <label className="w-full min-w-[140px] text-xs text-slate-400 sm:w-auto sm:flex-none">
+                  Passcode
+                  <input
+                    name="recordingPasscode"
+                    defaultValue={session.recordingPasscode ?? ""}
+                    placeholder="Leave blank if none"
+                    autoComplete="off"
+                    spellCheck={false}
+                    className="mt-1 w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 font-mono text-xs text-white placeholder-slate-600 focus:border-emerald-400/50 focus:outline-none sm:w-[180px]"
                   />
                 </label>
                 <SubmitButton

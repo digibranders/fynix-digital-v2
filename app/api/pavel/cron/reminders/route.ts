@@ -70,7 +70,8 @@ async function runReminderType(
   type: ReminderType,
   schedule: WorkshopSchedule,
   activeSessionId: string,
-  recordingUrl?: string
+  recordingUrl?: string,
+  recordingPasscode?: string
 ) {
   const windowOpensAt = reminderWindowOpensAt(type, schedule);
 
@@ -165,6 +166,7 @@ async function runReminderType(
       joinUrl: reg.zoomJoinUrl ?? undefined,
       schedule,
       recordingUrl,
+      recordingPasscode,
     };
     // After the event, what someone receives depends on whether they actually
     // turned up: a certificate for attendees, the recording for everyone else.
@@ -368,7 +370,8 @@ export async function GET(request: Request) {
         type,
         schedule,
         activeSession.id,
-        activeSession.recordingUrl ?? undefined
+        activeSession.recordingUrl ?? undefined,
+        activeSession.recordingPasscode ?? undefined
       )
     );
   }

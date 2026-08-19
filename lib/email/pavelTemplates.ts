@@ -35,6 +35,11 @@ export interface PavelRegistrationSubmission {
    * that does not mention it. Every block below is omitted when this is absent.
    */
   recordingUrl?: string;
+  /**
+   * Passcode for the recording link, when Zoom requires one. Printed beside the
+   * link; omitted entirely when the recording has no passcode.
+   */
+  recordingPasscode?: string;
 }
 
 /** The session's schedule, or the constant when the caller passed none. */
@@ -80,13 +85,26 @@ export interface PavelAuditSubmission {
 function recordingBlock(submission: PavelRegistrationSubmission): string {
   const url = submission.recordingUrl?.trim();
   if (!url) return "";
+  const passcode = submission.recordingPasscode?.trim();
+
+  // The passcode is not optional dressing. Zoom's share link asks for it, and
+  // its "allow invitees without the passcode" setting exempts people invited
+  // through Zoom — not people arriving on the link, which is everyone here.
+  // Without this line every buyer meets a prompt they cannot answer.
+  const passcodeLine = passcode
+    ? `
+    <p style="margin: 0 0 28px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.7; color: #454F58;">
+      Passcode: <strong style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: 0.02em;">${passcode}</strong>
+    </p>`
+    : "";
+
   return `
     <p style="margin: 0 0 20px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.7; color: #454F58;">
       The full recording is yours for the next ${WORKSHOP.recordingWindowDays} days.
     </p>
-    <p style="margin: 0 0 28px 0;">
+    <p style="margin: 0 0 ${passcode ? "16px" : "28px"} 0;">
       <a href="${url}" style="display: inline-block; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 15px; font-weight: 600; color: #FFFFFF; background-color: #0C1E2E; text-decoration: none; padding: 12px 22px; border-radius: 10px;">Watch the recording &rarr;</a>
-    </p>
+    </p>${passcodeLine}
     <p style="margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.7; color: #454F58;">
       If the button doesn&rsquo;t work, copy this link into your browser:<br>
       <a href="${url}" style="color: #0C1E2E; text-decoration: underline; word-break: break-all;">${url}</a>
@@ -97,7 +115,11 @@ function recordingBlock(submission: PavelRegistrationSubmission): string {
 function recordingText(submission: PavelRegistrationSubmission): string {
   const url = submission.recordingUrl?.trim();
   if (!url) return "";
-  return `\nThe full recording is yours for the next ${WORKSHOP.recordingWindowDays} days:\n${url}\n`;
+  const passcode = submission.recordingPasscode?.trim();
+  return (
+    `\nThe full recording is yours for the next ${WORKSHOP.recordingWindowDays} days:\n${url}\n` +
+    (passcode ? `Passcode: ${passcode}\n` : "")
+  );
 }
 
 

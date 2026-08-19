@@ -56,6 +56,7 @@ export async function GET(request: Request) {
         active: session.active,
         registrationsClosed: session.registrationsClosed,
         recordingUrl: session.recordingUrl,
+        recordingPasscode: session.recordingPasscode,
         startsAt: session.startsAt ? session.startsAt.toISOString() : null,
         endsAt: session.endsAt ? session.endsAt.toISOString() : null,
         createdAt: session.createdAt.toISOString(),
@@ -90,8 +91,16 @@ export async function POST(request: Request) {
   // came to be stored with no schedule: the operator filled the pickers, the
   // console forwarded them, and this handler dropped them on the floor, so the
   // whole site fell back to the hardcoded date in workshopDetails.
-  const { action, zoomWebinarId, label, sessionId, startsAt, endsAt, recordingUrl } =
-    (body ?? {}) as {
+  const {
+    action,
+    zoomWebinarId,
+    label,
+    sessionId,
+    startsAt,
+    endsAt,
+    recordingUrl,
+    recordingPasscode,
+  } = (body ?? {}) as {
       action?: string;
       zoomWebinarId?: string;
       label?: string;
@@ -99,6 +108,7 @@ export async function POST(request: Request) {
       startsAt?: string;
       endsAt?: string;
       recordingUrl?: string;
+      recordingPasscode?: string;
     };
 
   try {
@@ -187,11 +197,22 @@ export async function POST(request: Request) {
       if (url && !/^https?:\/\/\S+$/i.test(url)) {
         return NextResponse.json({ error: "That does not look like a link." }, { status: 400 });
       }
-      const session = await setRecordingUrl(db, sessionId, url || null);
+      const session = await setRecordingUrl(
+        db,
+        sessionId,
+        url || null,
+        (recordingPasscode ?? "").trim() || null
+      );
       if (!session) {
         return NextResponse.json({ error: "Session not found." }, { status: 404 });
       }
-      return NextResponse.json({ session: { id: session.id, recordingUrl: session.recordingUrl } });
+      return NextResponse.json({
+        session: {
+          id: session.id,
+          recordingUrl: session.recordingUrl,
+          recordingPasscode: session.recordingPasscode,
+        },
+      });
     }
 
     if (action === "delete") {
