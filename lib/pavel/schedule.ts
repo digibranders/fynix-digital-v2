@@ -1,5 +1,7 @@
 import { type WorkshopSchedule } from "@/lib/pavel/workshopSchedule";
 
+
+
 /**
  * Schedule helpers shared by the confirmation, reminder, and post-event emails.
  *
@@ -39,3 +41,60 @@ export function countdownLabel(targetIso: string, now: Date = new Date()): strin
 export function eventTimeLabel(schedule: WorkshopSchedule): string {
   return `${schedule.timeRange} (${schedule.timeUtcLabel})`;
 }
+
+/** Reminder types this cron can send, and how to build each email. */
+export const REMINDER_TYPES = [
+  "reminder_7d",
+  "reminder_3d",
+  "reminder_1d",
+  "reminder_1h",
+  "post_event",
+] as const;
+export type ReminderType = (typeof REMINDER_TYPES)[number];
+
+export function isReminderType(value: string): value is ReminderType {
+  return (REMINDER_TYPES as readonly string[]).includes(value);
+}
+
+/**
+ * Which reminders are due right now, based on the active session's schedule.
+ *
+ * At most ONE pre-event reminder is returned: the tightest window that applies.
+ *
+ * Every window stays open until the event starts, so listing all of them meant a
+ * buyer who paid inside the last day received the 7-day, 3-day, 1-day and 1-hour
+ * emails together on the next cron run — four messages, minutes apart, three of
+ * them describing a lead time that had already passed. Someone who buys an hour
+ * before the workshop should get one email that says it starts in an hour.
+ *
+ * This costs nothing for buyers who register early: each window becomes the
+ * tightest in turn, so they still receive the full sequence, one at a time. The
+ * email_log unique constraint remains the real guarantee that a type sends once,
+ * which is also what makes a missed cron run catch up rather than skip.
+ */
+export function dueReminderTypes(now: Date, schedule: WorkshopSchedule): ReminderType[] {
+  const start = new Date(schedule.startUtc).getTime();
+  const end = new Date(schedule.endUtc).getTime();
+  const t = now.getTime();
+  const due: ReminderType[] = [];
+
+  // Ordered widest to tightest; the last match wins.
+  const preEvent: Array<[ReminderType, number]> = [
+    ["reminder_7d", 7 * MS_PER_DAY],
+    ["reminder_3d", 3 * MS_PER_DAY],
+    ["reminder_1d", 1 * MS_PER_DAY],
+    ["reminder_1h", 1 * MS_PER_HOUR],
+  ];
+
+  let tightest: ReminderType | null = null;
+  for (const [type, lead] of preEvent) {
+    if (t >= start - lead && t < start) tightest = type;
+  }
+  if (tightest) due.push(tightest);
+
+  // After the event has ended.
+  if (t >= end) due.push("post_event");
+
+  return due;
+}
+

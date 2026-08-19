@@ -1,6 +1,13 @@
 import { NextResponse } from "next/server";
-import { eq, inArray } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { loadSchedule } from "@/lib/pavel/loadSchedule";
+import { getActiveSession } from "@/lib/pavel/webinarSession";
+import {
+  REMINDER_TYPES,
+  dueReminderTypes,
+  isReminderType,
+  type ReminderType,
+} from "@/lib/pavel/schedule";
 import type { WorkshopSchedule } from "@/lib/pavel/workshopSchedule";
 import { getDb, type Db } from "@/lib/db/client";
 import { registrations, emailLog } from "@/lib/db/schema";
@@ -32,58 +39,6 @@ const SITE_ORIGIN = (
   process.env.NEXT_PUBLIC_SITE_URL || "https://www.fynix.digital"
 ).replace(/\/+$/, "");
 
-const MS_PER_HOUR = 3_600_000;
-const MS_PER_DAY = 86_400_000;
-
-/** Reminder types this cron can send, and how to build each email. */
-const REMINDER_TYPES = [
-  "reminder_7d",
-  "reminder_3d",
-  "reminder_1d",
-  "reminder_1h",
-  "post_event",
-] as const;
-type ReminderType = (typeof REMINDER_TYPES)[number];
-
-function isReminderType(value: string): value is ReminderType {
-  return (REMINDER_TYPES as readonly string[]).includes(value);
-}
-
-/**
- * Only the cron scheduler (or an authorised manual trigger) may run this. Vercel
- * Cron sends `Authorization: Bearer <CRON_SECRET>`; locally, curl the same
- * header. If no secret is configured the route stays closed rather than open.
- */
-function isAuthorized(request: Request): boolean {
-  const secret = process.env.CRON_SECRET || process.env.PAVEL_CRON_SECRET;
-  if (!secret) return false;
-  return request.headers.get("authorization") === `Bearer ${secret}`;
-}
-
-/**
- * Which reminders are due right now, based on the fixed event schedule.
- *
- * Each pre-event reminder becomes "due" once its lead-time threshold passes and
- * stays due until the event starts. The email_log unique constraint dedupes, so
- * each type sends exactly once — on the first cron run after its mark is crossed
- * (which also means a missed run is caught up on the next one, never skipped).
- */
-function dueReminderTypes(now: Date, schedule: WorkshopSchedule): ReminderType[] {
-  const start = new Date(schedule.startUtc).getTime();
-  const end = new Date(schedule.endUtc).getTime();
-  const t = now.getTime();
-  const due: ReminderType[] = [];
-
-  // Pre-event touchpoints: 7 days, 3 days, 1 day, and 1 hour before the start.
-  if (t >= start - 7 * MS_PER_DAY && t < start) due.push("reminder_7d");
-  if (t >= start - 3 * MS_PER_DAY && t < start) due.push("reminder_3d");
-  if (t >= start - 1 * MS_PER_DAY && t < start) due.push("reminder_1d");
-  if (t >= start - 1 * MS_PER_HOUR && t < start) due.push("reminder_1h");
-  // After the event has ended.
-  if (t >= end) due.push("post_event");
-
-  return due;
-}
 
 function buildEmail(type: ReminderType, submission: PavelRegistrationSubmission) {
   switch (type) {
@@ -106,9 +61,16 @@ function buildEmail(type: ReminderType, submission: PavelRegistrationSubmission)
 async function runReminderType(
   db: Db,
   type: ReminderType,
-  schedule: WorkshopSchedule
+  schedule: WorkshopSchedule,
+  activeSessionId: string
 ) {
-  // All paid seats.
+  // Paid seats FOR THE ACTIVE SESSION only.
+  //
+  // This used to be every paid seat ever sold. The reminders are built from the
+  // active session's schedule and carry that webinar's join link, so opening a
+  // second cohort would have emailed the first cohort about an event they had
+  // not bought, with a link they cannot use — and, after it ran, told them they
+  // missed a workshop they were never in.
   let paid: {
     id: string;
     ref: string;
@@ -137,7 +99,12 @@ async function runReminderType(
       })
       .from(registrations)
       .leftJoin(certificates, eq(certificates.registrationId, registrations.id))
-      .where(eq(registrations.status, "paid"));
+      .where(
+        and(
+          eq(registrations.status, "paid"),
+          eq(registrations.sessionId, activeSessionId)
+        )
+      );
   } catch (regError) {
     const reason = regError instanceof Error ? regError.message : "query failed";
     return { type, error: reason, sent: 0, skipped: 0, failed: 0 };
@@ -248,6 +215,17 @@ async function runReminderType(
 }
 
 /**
+ * Only the cron scheduler (or an authorised manual trigger) may run this. Vercel
+ * Cron sends `Authorization: Bearer <CRON_SECRET>`; locally, curl the same
+ * header. If no secret is configured the route stays closed rather than open.
+ */
+function isAuthorized(request: Request): boolean {
+  const secret = process.env.CRON_SECRET || process.env.PAVEL_CRON_SECRET;
+  if (!secret) return false;
+  return request.headers.get("authorization") === `Bearer ${secret}`;
+}
+
+/**
  * GET is what Vercel Cron issues. A `?type=<reminder_7d|reminder_3d|reminder_1d|
  * reminder_1h|post_event>` query param forces a single type regardless of
  * schedule — used to exercise the flow locally, where the event date isn't yet
@@ -264,8 +242,22 @@ export async function GET(request: Request) {
   }
 
   // Reminders are timed against the ACTIVE SESSION, so opening a new cohort
-  // never means editing a date in code and redeploying.
-  const schedule = await loadSchedule();
+  // never means editing a date in code and redeploying. The session's identity
+  // matters as much as its schedule: it is what scopes who gets emailed.
+  const [schedule, activeSession] = await Promise.all([
+    loadSchedule(),
+    getActiveSession(db),
+  ]);
+
+  // No active session means no cohort to remind. Returning here rather than
+  // falling through avoids the worst outcome: reminders built from the fallback
+  // schedule going out to whoever happens to be in the table.
+  if (!activeSession) {
+    return NextResponse.json({
+      ran: [],
+      message: "No active session; nothing to remind.",
+    });
+  }
 
   // Self-heal first, before any early return: issue invoices for paid seats that
   // are missing one (issuance is deliberately non-fatal, so a failure at payment
@@ -325,7 +317,7 @@ export async function GET(request: Request) {
 
   const results = [];
   for (const type of types) {
-    results.push(await runReminderType(db, type, schedule));
+    results.push(await runReminderType(db, type, schedule, activeSession.id));
   }
 
   return NextResponse.json({ ran: types, results, backfill, access, attendance, certificatesIssued });
