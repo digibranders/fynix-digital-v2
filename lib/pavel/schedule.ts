@@ -1,7 +1,4 @@
-import {
-  FALLBACK_SCHEDULE,
-  type WorkshopSchedule,
-} from "@/lib/pavel/workshopSchedule";
+import { type WorkshopSchedule } from "@/lib/pavel/workshopSchedule";
 
 /**
  * Schedule helpers shared by the confirmation, reminder, and post-event emails.
@@ -9,6 +6,11 @@ import {
  * The countdown is a DURATION ("in 6 days"), computed at send time — it is
  * timezone-agnostic by design, so it reads correctly for a worldwide audience
  * without per-recipient localisation (which email clients can't do anyway).
+ *
+ * Neither helper defaults to the fallback schedule any more. They used to, and
+ * the templates called them bare, so an email printed the real session's DATE
+ * beside the constant's TIME and counted down to the wrong event entirely.
+ * Requiring the argument makes that a compile error rather than a wrong email.
  */
 
 const MS_PER_HOUR = 3_600_000;
@@ -18,10 +20,7 @@ const MS_PER_DAY = 86_400_000;
  * Human "in N days / in N hours" label for the time between `now` and the event
  * start. Falls back to "happening now" once the start has passed.
  */
-export function countdownLabel(
-  targetIso: string = FALLBACK_SCHEDULE.startUtc,
-  now: Date = new Date()
-): string {
+export function countdownLabel(targetIso: string, now: Date = new Date()): string {
   const diffMs = new Date(targetIso).getTime() - now.getTime();
   if (diffMs <= 0) return "happening now";
 
@@ -37,8 +36,6 @@ export function countdownLabel(
  * "5:00 PM - 8:00 PM IST (11:30 UTC)". Shown in every email so global attendees
  * see both when it starts and how long it runs, and can convert to their zone.
  */
-export function eventTimeLabel(
-  schedule: WorkshopSchedule = FALLBACK_SCHEDULE
-): string {
+export function eventTimeLabel(schedule: WorkshopSchedule): string {
   return `${schedule.timeRange} (${schedule.timeUtcLabel})`;
 }

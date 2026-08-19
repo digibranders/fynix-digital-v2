@@ -192,8 +192,13 @@ export function buildPavelPaidConfirmationEmail(
 ) {
   const firstName = submission.name.split(" ")[0] || "there";
   const ref = submission.ref || "PVL-0000";
-  const countdown = countdownLabel();
-  const timeLabel = eventTimeLabel();
+  // Both must be derived from the SESSION, not the constant. Calling these bare
+  // let the email print the fallback time and count down to the fallback date
+  // while the date line beside them came from the real session — so a buyer was
+  // told the right day and the wrong hour, in the same sentence.
+  const emailSchedule = scheduleFor(submission);
+  const countdown = countdownLabel(emailSchedule.startUtc);
+  const timeLabel = eventTimeLabel(emailSchedule);
 
   const subject = `You're in: your Zoom link for Pavel's Semantic SEO Workshop`;
   const preheader = `Seat confirmed. Your Zoom access, the date, and everything you need are inside.`;
@@ -429,8 +434,13 @@ export function buildPavelReminderEmail(
 ) {
   const firstName = submission.name.split(" ")[0] || "there";
   const ref = submission.ref || "PVL-0000";
-  const countdown = countdownLabel();
-  const timeLabel = eventTimeLabel();
+  // Both must be derived from the SESSION, not the constant. Calling these bare
+  // let the email print the fallback time and count down to the fallback date
+  // while the date line beside them came from the real session — so a buyer was
+  // told the right day and the wrong hour, in the same sentence.
+  const emailSchedule = scheduleFor(submission);
+  const countdown = countdownLabel(emailSchedule.startUtc);
+  const timeLabel = eventTimeLabel(emailSchedule);
 
   const subject =
     variant === "hour"
