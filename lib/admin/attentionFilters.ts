@@ -25,16 +25,23 @@ import {
  */
 
 export type AttentionKey =
+  | "amountsMismatched"
   | "invoicesMissing"
   | "joinLinksMissing"
+  | "zoomAccessStuck"
   | "certificatesUnissued";
 
 const FILTERS: Record<AttentionKey, Partial<RegistrationFilters>> = {
+  // `amountMismatch` needs both an amount and an invoice total, so it implies
+  // paid on its own.
+  amountsMismatched: { amountCheck: "mismatched" },
   // `invoice: "missing"` already means "paid and no invoice".
   invoicesMissing: { invoice: "missing" },
   // `joinLink: "no"` does NOT imply paid. Pinning the status is what keeps this
   // view equal to the figure above it.
   joinLinksMissing: { status: "paid", joinLink: "no" },
+  // `zoomAccessStuck` is built on `joinLinkMissing`, so it is paid-only too.
+  zoomAccessStuck: { zoomAccess: "stuck" },
   // `certificateEligibleUnissued` is itself paid-only.
   certificatesUnissued: { certificate: "eligible_unissued" },
 };

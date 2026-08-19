@@ -1,9 +1,11 @@
 import {
+  amountMismatch,
   attendanceBand,
   certificateEligibleUnissued,
   invoiceMissing,
   isAbandoned,
   joinLinkMissing,
+  zoomAccessStuck,
   type AdminRegistrationRow,
 } from "@/lib/admin/registrationRow";
 
@@ -26,6 +28,15 @@ export type AttendanceFilter =
 export type CertificateFilter = "any" | "issued" | "eligible_unissued" | "none";
 export type InvoiceFilter = "any" | "issued" | "missing";
 export type FlagFilter = "any" | "yes" | "no";
+/**
+ * Two one-sided filters.
+ *
+ * Deliberately not `FlagFilter`. "Not mismatched" and "not stuck" describe
+ * almost every row ever taken and are not questions anyone asks, so offering a
+ * "no" would add a control whose only use is to hide the thing worth seeing.
+ */
+export type AmountCheckFilter = "any" | "mismatched";
+export type ZoomAccessFilter = "any" | "stuck";
 
 export type RegistrationFilters = {
   status: StatusFilter;
@@ -41,6 +52,10 @@ export type RegistrationFilters = {
   attendance: AttendanceFilter;
   certificate: CertificateFilter;
   invoice: InvoiceFilter;
+  /** Charged does not equal invoiced. */
+  amountCheck: AmountCheckFilter;
+  /** Paid, no join link, and out of Zoom attempts. */
+  zoomAccess: ZoomAccessFilter;
   /** ISO dates (yyyy-mm-dd), inclusive. */
   registeredFrom: string;
   registeredTo: string;
@@ -65,6 +80,8 @@ export const EMPTY_FILTERS: RegistrationFilters = {
   attendance: "any",
   certificate: "any",
   invoice: "any",
+  amountCheck: "any",
+  zoomAccess: "any",
   registeredFrom: "",
   registeredTo: "",
   paidFrom: "",
@@ -90,6 +107,8 @@ export function hasAdvancedFilters(f: RegistrationFilters): boolean {
     f.attendance !== "any" ||
     f.certificate !== "any" ||
     f.invoice !== "any" ||
+    f.amountCheck !== "any" ||
+    f.zoomAccess !== "any" ||
     f.registeredFrom !== "" ||
     f.registeredTo !== "" ||
     f.paidFrom !== "" ||
@@ -183,6 +202,9 @@ export function rowMatchesFilters(
 
   if (f.invoice === "issued" && !row.invoiceNo) return false;
   if (f.invoice === "missing" && !invoiceMissing(row)) return false;
+
+  if (f.amountCheck === "mismatched" && !amountMismatch(row)) return false;
+  if (f.zoomAccess === "stuck" && !zoomAccessStuck(row)) return false;
 
   if (!withinDate(row.createdAt, f.registeredFrom, f.registeredTo)) return false;
   if (

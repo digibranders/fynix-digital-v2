@@ -70,29 +70,55 @@ export function OverviewView({
     );
   }
 
+  /*
+    Ordered by severity, worst first.
+
+    "Charged does not match invoiced" leads because it is the only one that
+    says a number is wrong rather than a step is outstanding: the money taken
+    and the money on the tax invoice disagree, and no amount of waiting fixes
+    it. The rest are things that have not happened yet.
+  */
   const attention: {
     key: AttentionKey;
     label: string;
     count: number;
     hint: string;
+    tone: "danger" | "warning";
   }[] = [
+    {
+      key: "amountsMismatched",
+      label: "Charged ≠ invoiced",
+      count: totals.amountsMismatched,
+      hint: "The amount taken and the amount on the tax invoice disagree. One of the two writes did not land.",
+      tone: "danger",
+    },
     {
       key: "invoicesMissing",
       label: "Invoices missing",
       count: totals.invoicesMissing,
       hint: "Paid seats with no invoice issued.",
+      tone: "warning",
     },
     {
       key: "joinLinksMissing",
       label: "No join link",
       count: totals.joinLinksMissing,
       hint: "Paid seats Zoom never issued a link for, so the buyer cannot attend.",
+      tone: "warning",
+    },
+    {
+      key: "zoomAccessStuck",
+      label: "Out of Zoom attempts",
+      count: totals.zoomAccessStuck,
+      hint: "Counted above as having no join link, and past Zoom's three-attempt limit, so these will not recover on their own.",
+      tone: "warning",
     },
     {
       key: "certificatesUnissued",
       label: "Certificates unissued",
       count: totals.certificatesUnissued,
       hint: "Attended enough to earn one, but none was issued.",
+      tone: "warning",
     },
   ];
 
@@ -228,22 +254,35 @@ export function OverviewView({
           {outstanding.length === 0 ? (
             <p className="flex items-center gap-2 text-sm text-success">
               <CheckCircle2 aria-hidden="true" className="h-4 w-4 shrink-0" />
-              Every paid seat has its invoice, its join link and its certificate.
+              Every paid seat has its invoice, its join link and its
+              certificate, and every amount charged matches its invoice.
             </p>
           ) : (
-            <ul className="grid gap-3 sm:grid-cols-3">
+            <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {outstanding.map((item) => (
                 <li key={item.key}>
                   <button
                     type="button"
                     onClick={() => onJumpTo(item.key)}
-                    className="console-focus group flex h-full w-full flex-col items-start gap-1 rounded-lg border border-warning/25 bg-warning-surface px-4 py-3 text-left transition-colors hover:border-warning/50"
+                    className={`console-focus group flex h-full w-full flex-col items-start gap-1 rounded-lg border px-4 py-3 text-left transition-colors ${
+                      item.tone === "danger"
+                        ? "border-danger/25 bg-danger-surface hover:border-danger/50"
+                        : "border-warning/25 bg-warning-surface hover:border-warning/50"
+                    }`}
                   >
-                    <span className="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-widest text-warning">
+                    <span
+                      className={`flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-widest ${
+                        item.tone === "danger" ? "text-danger" : "text-warning"
+                      }`}
+                    >
                       <AlertCircle aria-hidden="true" className="h-3 w-3" />
                       {item.label}
                     </span>
-                    <span className="text-2xl font-semibold tabular-nums text-warning">
+                    <span
+                      className={`text-2xl font-semibold tabular-nums ${
+                        item.tone === "danger" ? "text-danger" : "text-warning"
+                      }`}
+                    >
                       {item.count}
                     </span>
                     <span className="text-xs leading-snug text-text-muted">

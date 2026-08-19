@@ -34,9 +34,32 @@ const rows = [
     hasJoinLink: true,
     certificateEarned: true,
   }),
-  // An abandoned checkout. Has no join link either, but is not a problem:
-  // nobody paid for it.
-  testRow({ ref: "E", status: "pending", hasJoinLink: false }),
+  // An abandoned checkout. Has no join link either, and has burned Zoom
+  // attempts, but is not a problem: nobody paid for it.
+  testRow({
+    ref: "E",
+    status: "pending",
+    hasJoinLink: false,
+    zoomAccessAttempts: 3,
+  }),
+  // Paid, invoiced, no link, and out of Zoom attempts. Will not recover on its
+  // own, so it is both "no join link" and "stuck".
+  testRow({
+    ref: "F",
+    status: "paid",
+    invoiceNo: "FYX/4",
+    hasJoinLink: false,
+    zoomAccessAttempts: 3,
+  }),
+  // Charged and invoiced disagree: the worst thing this data can say.
+  testRow({
+    ref: "G",
+    status: "paid",
+    invoiceNo: "FYX/5",
+    hasJoinLink: true,
+    amountCharged: 884900,
+    invoiceTotal: 749900,
+  }),
 ];
 
 function matching(key: Parameters<typeof attentionFilters>[0]) {
@@ -55,8 +78,29 @@ describe("attentionFilters", () => {
   it("opens exactly the PAID seats counted as missing a join link", () => {
     // E has no link either, but was never paid for, so neither the figure nor
     // the view may include it.
-    expect(totals.joinLinksMissing).toBe(1);
-    expect(matching("joinLinksMissing")).toEqual(["C"]);
+    expect(totals.joinLinksMissing).toBe(2);
+    expect(matching("joinLinksMissing")).toEqual(["C", "F"]);
+  });
+
+  it("opens exactly the seats counted as out of Zoom attempts", () => {
+    // A strict subset of the seats with no join link: C is mid-flight and may
+    // still get one, F has burned its quota. E is unpaid and counts for
+    // neither, however many attempts it made.
+    expect(totals.zoomAccessStuck).toBe(1);
+    expect(matching("zoomAccessStuck")).toEqual(["F"]);
+  });
+
+  it("opens exactly the seats counted as charged-not-equal-invoiced", () => {
+    expect(totals.amountsMismatched).toBe(1);
+    expect(matching("amountsMismatched")).toEqual(["G"]);
+  });
+
+  it("keeps stuck seats inside the join-link figure rather than beside it", () => {
+    // If these ever stop overlapping, one of the two predicates has drifted and
+    // the overview is double-counting a seat it should report once.
+    const stuck = matching("zoomAccessStuck");
+    const missing = matching("joinLinksMissing");
+    expect(stuck.every((ref) => missing.includes(ref))).toBe(true);
   });
 
   it("opens exactly the seats counted as having earned an unissued certificate", () => {
@@ -70,5 +114,7 @@ describe("attentionFilters", () => {
     expect(filters.status).toBe("all");
     expect(filters.certificate).toBe("any");
     expect(filters.joinLink).toBe("any");
+    expect(filters.amountCheck).toBe("any");
+    expect(filters.zoomAccess).toBe("any");
   });
 });

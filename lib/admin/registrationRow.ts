@@ -157,10 +157,36 @@ export function joinLinkMissing(row: AdminRegistrationRow): boolean {
 }
 
 /**
+ * Zoom allows three registration attempts per person, per webinar, per day.
+ *
+ * Lives here rather than as a literal in the column that renders it, because
+ * the same number now decides a cell's colour, a summary figure and a filter,
+ * and three copies of it would drift.
+ */
+export const ZOOM_ACCESS_ATTEMPT_LIMIT = 3;
+
+/**
+ * A paid seat with no join link that has burned its Zoom attempts.
+ *
+ * A strict subset of `joinLinkMissing`, and worth separating from it: a seat
+ * merely missing a link is usually mid-flight and resolves itself on the next
+ * attempt, while one at the quota will not recover until the limit resets and
+ * needs a person to intervene. Reported as one figure, the two are
+ * indistinguishable, and the urgent case hides inside the routine one.
+ */
+export function zoomAccessStuck(row: AdminRegistrationRow): boolean {
+  return (
+    joinLinkMissing(row) && row.zoomAccessAttempts >= ZOOM_ACCESS_ATTEMPT_LIMIT
+  );
+}
+
+/**
  * Charged and invoiced amounts disagree.
  *
  * They are derived from the same tax breakdown and should be identical by
- * construction, so a mismatch means one of the two writes did not land.
+ * construction, so a mismatch means one of the two writes did not land. That
+ * makes it the most serious thing this data can say: the money taken and the
+ * money on the tax invoice are different numbers, and one of them is wrong.
  */
 export function amountMismatch(row: AdminRegistrationRow): boolean {
   if (row.amountCharged === null || row.invoiceTotal === null) return false;

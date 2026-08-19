@@ -88,6 +88,18 @@ export function activeChips(f: RegistrationFilters): Chip[] {
       label: `Join link: ${FLAG_LABEL[f.joinLink]}`,
       clear: { joinLink: "any" },
     });
+  if (f.amountCheck !== "any")
+    chips.push({
+      key: "amountCheck",
+      label: "Charged ≠ invoiced",
+      clear: { amountCheck: "any" },
+    });
+  if (f.zoomAccess !== "any")
+    chips.push({
+      key: "zoomAccess",
+      label: "Out of Zoom attempts",
+      clear: { zoomAccess: "any" },
+    });
 
   add("registeredFrom", `Registered from ${f.registeredFrom}`, "");
   add("registeredTo", `Registered to ${f.registeredTo}`, "");
