@@ -25,7 +25,7 @@ export default function AdminSignOutButton() {
     <button
       onClick={handleLogout}
       disabled={loggingOut}
-      className="rounded-lg border border-white/10 bg-slate-900 px-3.5 py-2 text-sm font-medium text-slate-300 transition hover:bg-slate-800 disabled:opacity-60"
+      className="console-focus rounded-lg border border-console-control bg-console-surface px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-console-sunken disabled:cursor-not-allowed disabled:opacity-60"
     >
       {loggingOut ? "Signing out…" : "Sign out"}
     </button>

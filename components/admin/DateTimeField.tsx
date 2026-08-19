@@ -120,19 +120,19 @@ function TimeSelect({
         aria-haspopup="listbox"
         aria-expanded={open}
         onClick={() => setOpen((isOpen) => !isOpen)}
-        className={`flex w-[58px] items-center justify-between gap-1 rounded-md border bg-slate-950 px-2 py-1 text-sm text-white transition ${
-          open ? "border-emerald-400/50" : "border-white/10 hover:border-white/25"
+        className={`flex w-[58px] items-center justify-between gap-1 rounded-md border bg-console-surface px-2 py-1 text-sm text-primary transition ${
+          open ? "border-primary" : "border-console-control hover:border-primary"
         }`}
       >
         {pad(value)}
-        <ChevronDown className="h-3 w-3 shrink-0 text-slate-500" />
+        <ChevronDown className="h-3 w-3 shrink-0 text-text-muted" />
       </button>
 
       {open && (
         <ul
           role="listbox"
           aria-label={ariaLabel}
-          className="absolute bottom-full left-0 z-40 mb-1 max-h-44 w-full overflow-y-auto rounded-md border border-white/10 bg-slate-900 py-1 shadow-2xl"
+          className="absolute bottom-full left-0 z-40 mb-1 max-h-44 w-full overflow-y-auto rounded-md border border-border bg-console-surface py-1 shadow-lg"
         >
           {options.map((option) => {
             const selected = option === value;
@@ -149,8 +149,8 @@ function TimeSelect({
                   }}
                   className={`block w-full px-2 py-1 text-center text-sm transition ${
                     selected
-                      ? "bg-emerald-500 font-semibold text-slate-950"
-                      : "text-slate-300 hover:bg-white/10"
+                      ? "bg-primary font-semibold text-white"
+                      : "text-foreground hover:bg-console-sunken"
                   }`}
                 >
                   {pad(option)}
@@ -258,7 +258,7 @@ export function DateTimeField({
   const lead = firstWeekdayIndex(view.year, view.month);
 
   return (
-    <div className="min-w-[190px] text-xs text-slate-400" ref={containerRef}>
+    <div className="min-w-[190px] text-xs text-text-muted" ref={containerRef}>
       {label}
       {/* The server action reads this; the controls above only ever set it. */}
       <input type="hidden" name={name} value={value} />
@@ -269,41 +269,41 @@ export function DateTimeField({
           onClick={() => setOpen((isOpen) => !isOpen)}
           aria-haspopup="dialog"
           aria-expanded={open}
-          className={`flex w-full items-center justify-between gap-2 rounded-lg border bg-slate-950 px-3 py-2 text-left text-sm transition focus:outline-none ${
+          className={`flex w-full items-center justify-between gap-2 rounded-lg border bg-console-surface px-3 py-2 text-left text-sm transition focus:outline-none ${
             open
-              ? "border-emerald-400/50 text-white"
-              : "border-white/10 text-white hover:border-white/25"
+              ? "border-primary text-primary"
+              : "border-console-control text-primary hover:border-primary"
           }`}
         >
-          <span className={parsed ? "text-white" : "text-slate-600"}>
+          <span className={parsed ? "text-primary" : "text-text-muted"}>
             {parsed ? formatLabel(parsed) : "Pick a date and time"}
           </span>
-          <CalendarDays className="h-4 w-4 shrink-0 text-slate-500" />
+          <CalendarDays className="h-4 w-4 shrink-0 text-text-muted" />
         </button>
 
         {open && (
           <div
             role="dialog"
             aria-label={label}
-            className="absolute left-0 top-full z-30 mt-2 w-[280px] rounded-xl border border-white/10 bg-slate-900 p-3 shadow-2xl"
+            className="absolute left-0 top-full z-30 mt-2 w-[280px] rounded-xl border border-border bg-console-surface p-3 shadow-lg"
           >
             <div className="mb-2 flex items-center justify-between">
               <button
                 type="button"
                 onClick={() => shiftMonth(-1)}
                 aria-label="Previous month"
-                className="rounded-md p-1 text-slate-400 transition hover:bg-white/5 hover:text-white"
+                className="rounded-md p-1 text-text-muted transition hover:bg-console-sunken hover:text-primary"
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
-              <p className="text-sm font-medium text-white">
+              <p className="text-sm font-medium text-primary">
                 {MONTHS[view.month]} {view.year}
               </p>
               <button
                 type="button"
                 onClick={() => shiftMonth(1)}
                 aria-label="Next month"
-                className="rounded-md p-1 text-slate-400 transition hover:bg-white/5 hover:text-white"
+                className="rounded-md p-1 text-text-muted transition hover:bg-console-sunken hover:text-primary"
               >
                 <ChevronRight className="h-4 w-4" />
               </button>
@@ -313,7 +313,7 @@ export function DateTimeField({
               {WEEKDAYS.map((day) => (
                 <span
                   key={day}
-                  className="py-1 text-center text-[10px] font-medium uppercase tracking-wide text-slate-500"
+                  className="py-1 text-center text-[10px] font-medium uppercase tracking-wide text-text-muted"
                 >
                   {day}
                 </span>
@@ -337,8 +337,8 @@ export function DateTimeField({
                     aria-pressed={selected}
                     className={`rounded-md py-1.5 text-center text-xs transition ${
                       selected
-                        ? "bg-emerald-500 font-semibold text-slate-950"
-                        : "text-slate-300 hover:bg-white/10"
+                        ? "bg-primary font-semibold text-white"
+                        : "text-foreground hover:bg-console-sunken"
                     }`}
                   >
                     {day}
@@ -347,15 +347,15 @@ export function DateTimeField({
               })}
             </div>
 
-            <div className="mt-3 flex items-center gap-2 border-t border-white/10 pt-3">
-              <span className="text-[11px] text-slate-400">Time (IST)</span>
+            <div className="mt-3 flex items-center gap-2 border-t border-border pt-3">
+              <span className="text-[11px] text-text-muted">Time (IST)</span>
               <TimeSelect
                 ariaLabel="Hour"
                 value={parsed?.hour ?? 17}
                 options={HOURS}
                 onChange={(hour) => setTime(hour, parsed?.minute ?? 0)}
               />
-              <span className="text-slate-500">:</span>
+              <span className="text-text-muted">:</span>
               <TimeSelect
                 ariaLabel="Minute"
                 value={parsed?.minute ?? 0}
@@ -364,12 +364,12 @@ export function DateTimeField({
               />
             </div>
 
-            <div className="mt-3 flex items-center justify-between gap-2 border-t border-white/10 pt-3">
+            <div className="mt-3 flex items-center justify-between gap-2 border-t border-border pt-3">
               {value ? (
                 <button
                   type="button"
                   onClick={() => setValue("")}
-                  className="flex items-center gap-1 rounded-md px-2 py-1 text-[11px] text-slate-400 transition hover:bg-white/5 hover:text-white"
+                  className="flex items-center gap-1 rounded-md px-2 py-1 text-[11px] text-text-muted transition hover:bg-console-sunken hover:text-primary"
                 >
                   <X className="h-3 w-3" />
                   Clear
@@ -382,7 +382,7 @@ export function DateTimeField({
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="flex items-center gap-1 rounded-md bg-emerald-500 px-3 py-1 text-[11px] font-medium text-slate-950 transition hover:bg-emerald-400"
+                className="console-focus flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-[11px] font-medium text-white transition-colors hover:bg-primary-hover"
               >
                 <Check className="h-3 w-3" />
                 Done

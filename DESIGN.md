@@ -258,3 +258,106 @@ If a request doesn't fit the system:
 3. If it needs a new palette color, font, or easing, that's a system-level change — pause and discuss.
 
 The system is here so decisions get faster and more consistent, not so we ship worse work.
+
+---
+
+## 13. Admin Console
+
+The console at `/admin` is a working tool, not a marketing surface. It uses the
+same palette, the same typeface and the same easing, but it answers to a
+different reader: one operator, many times a day, scanning dense numbers under
+time pressure. Where the two goals conflict, the console optimises for reading
+data and the site optimises for persuasion. The exceptions below are the whole
+list; anything not named here follows the rest of this document.
+
+### 13.1 Surfaces
+
+| Token | Value | Usage |
+|---|---|---|
+| `--console-surface` | `#FFFFFF` | Cards, table body, drawers |
+| `--console-sunken` | `#F6F5F2` | Toolbars, table head, wells, skeletons |
+| `--console-control` | `#8E8A83` | Input, checkbox and segmented-control borders |
+
+The page ground stays `--background` so white surfaces separate from it.
+
+**`#FFFFFF` is the one lift of the "no pure white" rule in §2.** A 61-column
+numeric table needs the maximum contrast between the reading surface and the
+page behind it, and the cream ground plus the warm hairlines are what keep the
+console in the family. Pure white is permitted on console surfaces only.
+
+`--console-control` exists because §2 has no border dark enough for a control.
+`--border` is 1.45:1 on white: correct for a hairline between rows, and below
+the 3:1 WCAG 2.2 SC 1.4.11 asks of a boundary that is the only thing telling
+you an input is there. `--console-control` is 3.44:1 on white and 3.15:1 on
+`--console-sunken`. Use `--border` for rules and card edges, `--console-control`
+for anything the operator types into or toggles.
+
+### 13.2 Status colours
+
+The marketing palette has no vocabulary for state, because a page selling a
+workshop never has to say "paid", "closed", "over cap" or "this invoice was
+never issued". The console says all four on every row.
+
+| Token | Value | Tint | Meaning |
+|---|---|---|---|
+| `--success` | `#2E6B4F` | `--success-surface` `#EAF2ED` | Paid, open, synced, healthy |
+| `--warning` | `#8A5A16` | `--warning-surface` `#FAF2E4` | Pending, closed, unissued, needs a look |
+| `--danger` | `#98332F` | `--danger-surface` `#FBEDEC` | Failed, over cap, charged does not match invoiced |
+| `--info` | `#2C5478` | `--info-surface` `#EAF0F6` | Neutral notice, explanation |
+
+**Rules**
+- **Console only.** Nothing on the marketing site may use these. Aged gold
+  remains the site's single accent, and adding a fifth hue there is still a
+  system-level change under §12.
+- Each value clears 4.5:1 on `--console-surface`, on `--background`, on
+  `--console-sunken` and on its own tint. They carry meaning as text, not only
+  as fill, so the text bar is the one that applies.
+- Colour is never the only signal. Every status pairs with a word, and the
+  paid/pending indicator encodes its state in the dot's shape as well as its
+  fill.
+- The tints are for badges, inline alerts and row emphasis. Never wash a whole
+  card or a table body in one.
+
+### 13.3 Neutrals, type and motion
+
+- Meta text is `--text-muted` (6.68:1 on white). The console does not introduce
+  a lighter tier: a fainter grey for labels is what put the previous console
+  below AA.
+- Sizes come from the §3 scale. `text-sm` for data, `text-xs` for meta,
+  `text-[11px]` mono uppercase for eyebrows and column heads. No other
+  arbitrary sizes.
+- Every figure is `tabular-nums`, so a column of numbers does not jitter
+  between renders.
+- Motion is 150–200ms on hover and press, 220ms for a drawer. **No scroll
+  reveals.** `Reveal` and `CountUp` belong to the site; an operator opening
+  this thirty times a day does not want data animating in.
+- Focus is one ring everywhere: `.console-focus`, 2px `--accent-strong`, 2px
+  offset.
+
+### 13.4 Two carve-outs from §8 and §11
+
+- **Icons.** §11 says prefer inline SVG over an icon library. The console uses
+  `lucide-react` throughout, which is the right call for UI affordances at this
+  density and is already a dependency. §11's rule governs marketing surfaces.
+- **The em dash.** §11 bans the em dash. The console uses `—` as the
+  placeholder for an absent value in tables, figures and money formatting, and
+  `lib/admin/registrationTotals.ts` is tested on it. The ban applies to prose:
+  no em dashes in sentences; the em dash stays the typographic placeholder for
+  a value that is not there.
+
+### 13.5 Structure
+
+- One route per event, four views in a topbar segmented control: Overview,
+  Registrations, Sessions, Referral codes. **Registrations is the default** —
+  it is what the page is for.
+- No sidebar. The registrations table needs every pixel of width it can get.
+- All four views stay mounted and are toggled with `hidden`, never unmounted.
+  Unmounting throws away in-flight action results, half-filled forms and open
+  editors, which is how an operator loses a "Sync attendance" result by
+  glancing at another tab.
+- Filters, columns and row detail are **drawers**, not inline panels. Expanding
+  a panel inline shoves the table down the page and costs the operator their
+  place.
+- The table is `border-separate` with hairlines drawn as inset shadows: a
+  sticky cell in a `border-collapse` table loses its borders, because the table
+  paints them rather than the cell.

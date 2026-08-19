@@ -55,6 +55,106 @@ html.lenis body {
   --font-serif: var(--font-sans), system-ui, sans-serif;
   --font-sans: var(--font-sans), system-ui, sans-serif;
   --font-mono: var(--font-sans), system-ui, sans-serif;
+
+  /* Console tokens. See the block below and DESIGN.md section 13. */
+  --color-console-surface: var(--console-surface);
+  --color-console-sunken: var(--console-sunken);
+  --color-console-control: var(--console-control);
+  --color-success: var(--success);
+  --color-success-surface: var(--success-surface);
+  --color-warning: var(--warning);
+  --color-warning-surface: var(--warning-surface);
+  --color-danger: var(--danger);
+  --color-danger-surface: var(--danger-surface);
+  --color-info: var(--info);
+  --color-info-surface: var(--info-surface);
+}
+
+/* -----------------------------------------------------------
+   Admin console tokens.
+
+   The marketing palette has no vocabulary for state: a page that
+   sells a workshop never has to say "paid", "closed", "over cap"
+   or "this invoice was never issued". The console does, on every
+   row. These four hues supply that vocabulary and nothing else.
+
+   They are console-only by rule. The marketing site keeps aged
+   gold as its single accent; nothing on it may reach for these.
+   Every value clears 4.5:1 on white, on cream, and on its own
+   tint, because they carry meaning as text and not only as fill.
+
+   Neutrals reuse the site's own: --border for hairlines,
+   --text-muted for meta text. The one addition is a darker
+   border for controls, since a 1.45:1 hairline is legal around a
+   card and not around an input (WCAG 2.2 SC 1.4.11 wants 3:1 for
+   a boundary that is the only thing telling you a control is
+   there).
+   ----------------------------------------------------------- */
+:root {
+  /* Surfaces. Pure white is deliberate here and is the one place the
+     "no pure white" rule in DESIGN.md section 2 is lifted: a dense
+     numeric table needs the maximum separation from the cream page
+     behind it, and the warm ground is what supplies the warmth. */
+  --console-surface: #FFFFFF;
+  --console-sunken: #F6F5F2;
+  /* Boundary for inputs, checkboxes and segmented controls. 3.44:1 on
+     white, 3.15:1 on the sunken surface. */
+  --console-control: #8E8A83;
+
+  --success: #2E6B4F;
+  --success-surface: #EAF2ED;
+  --warning: #8A5A16;
+  --warning-surface: #FAF2E4;
+  --danger: #98332F;
+  --danger-surface: #FBEDEC;
+  --info: #2C5478;
+  --info-surface: #EAF0F6;
+}
+
+/* Console focus ring. One shape, one colour, on every control. */
+.console-focus:focus-visible {
+  outline: 2px solid var(--accent-strong);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* Skeletons breathe while data loads. The global reduced-motion rule only
+   shortens the duration, which turns a pulse into a flicker frozen at
+   whatever opacity it landed on, so the animation is removed outright and
+   the block is left at full strength. */
+@keyframes consolePulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.45; }
+}
+.console-skeleton {
+  background-color: var(--console-sunken);
+  animation: consolePulse 1.6s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .console-skeleton {
+    animation: none !important;
+    opacity: 1;
+  }
+}
+
+/* A sticky cell in a border-collapse table loses its border: the table
+   paints it, not the cell, so it is not carried along. The console table
+   uses border-separate with zero spacing and draws its hairlines as inset
+   shadows, which travel with the cell. */
+.console-table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+.console-table th {
+  box-shadow: inset 0 -1px 0 var(--border);
+}
+.console-table td {
+  box-shadow: inset 0 -1px 0 var(--border);
+}
+/* The pinned columns need a right-hand edge as well, so the boundary is
+   visible while the rest of the row slides underneath them. */
+.console-table .console-pinned {
+  box-shadow: inset 0 -1px 0 var(--border), inset -1px 0 0 var(--border);
 }
 
 @keyframes ringFill {
