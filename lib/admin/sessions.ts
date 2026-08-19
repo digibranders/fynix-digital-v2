@@ -5,9 +5,10 @@ import {
   hasLocalDb,
 } from "@/lib/admin/gateway";
 import {
-  listSessions,
+  listSessionsWithCounts,
   createSession,
   activateSession,
+  deleteSession,
   setRegistrationsClosed,
   updateSessionTimes,
   normalizeWebinarId,
@@ -32,6 +33,12 @@ export type AdminSessionRow = {
   startsAt: string | null;
   endsAt: string | null;
   createdAt: string;
+  /**
+   * Seats sold into this session. Drives whether it can be deleted: a cohort
+   * that sold anything is a business record, and deleting it would orphan those
+   * rows from the workshop they belong to.
+   */
+  registrationCount: number;
 };
 
 export const SESSIONS_DATA_PATH = "/api/admin/data/sessions";
@@ -57,7 +64,7 @@ export async function loadSessions(): Promise<LoadSessionsResult> {
     try {
       const db = getDb();
       if (!db) throw new Error("no database");
-      const sessions = await listSessions(db);
+      const sessions = await listSessionsWithCounts(db);
       return {
         sessions: sessions.map((s) => ({
           id: s.id,
@@ -68,6 +75,7 @@ export async function loadSessions(): Promise<LoadSessionsResult> {
           startsAt: s.startsAt ? s.startsAt.toISOString() : null,
           endsAt: s.endsAt ? s.endsAt.toISOString() : null,
           createdAt: s.createdAt.toISOString(),
+          registrationCount: s.registrationCount,
         })),
         error: null,
       };
@@ -109,7 +117,7 @@ export async function loadSessions(): Promise<LoadSessionsResult> {
 
 /** Perform a session action wherever the data lives. Returns an error message or null. */
 export async function mutateSession(
-  action: "create" | "activate" | "close" | "reopen" | "update",
+  action: "create" | "activate" | "close" | "reopen" | "update" | "delete",
   input: {
     zoomWebinarId?: string;
     label?: string;
@@ -147,6 +155,10 @@ export async function mutateSession(
           endsAt: times.endsAt,
         });
         return session ? null : "Session not found.";
+      }
+      if (action === "delete") {
+        const result = await deleteSession(db, input.sessionId);
+        return result.deleted ? null : (result.reason ?? "Could not delete.");
       }
       if (action === "close" || action === "reopen") {
         await setRegistrationsClosed(db, input.sessionId, action === "close");

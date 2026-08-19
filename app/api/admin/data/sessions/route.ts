@@ -2,9 +2,10 @@ import { NextResponse } from "next/server";
 import { getDb } from "@/lib/db/client";
 import { verifyProxySecret, hasLocalDb } from "@/lib/admin/gateway";
 import {
-  listSessions,
+  listSessionsWithCounts,
   createSession,
   activateSession,
+  deleteSession,
   setRegistrationsClosed,
   updateSessionTimes,
   normalizeWebinarId,
@@ -44,7 +45,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const sessions = await listSessions(db);
+    const sessions = await listSessionsWithCounts(db);
     return NextResponse.json({
       sessions: sessions.map((session) => ({
         id: session.id,
@@ -55,6 +56,7 @@ export async function GET(request: Request) {
         startsAt: session.startsAt ? session.startsAt.toISOString() : null,
         endsAt: session.endsAt ? session.endsAt.toISOString() : null,
         createdAt: session.createdAt.toISOString(),
+        registrationCount: session.registrationCount,
       })),
     });
   } catch (error) {
@@ -171,6 +173,17 @@ export async function POST(request: Request) {
       return NextResponse.json({
         session: { id: session.id, registrationsClosed: session.registrationsClosed },
       });
+    }
+
+    if (action === "delete") {
+      if (!sessionId) {
+        return NextResponse.json({ error: "sessionId is required." }, { status: 400 });
+      }
+      const result = await deleteSession(db, sessionId);
+      if (!result.deleted) {
+        return NextResponse.json({ error: result.reason }, { status: 409 });
+      }
+      return NextResponse.json({ deleted: true });
     }
 
     return NextResponse.json({ error: "Unknown action." }, { status: 400 });

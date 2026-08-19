@@ -1,5 +1,6 @@
 import type { AdminSessionRow } from "@/lib/admin/sessions";
 import { SessionTimeFields } from "@/components/admin/SessionTimeFields";
+import { SubmitButton } from "@/components/admin/SubmitButton";
 import { toIstWallClock } from "@/lib/pavel/sessionTimes";
 
 /** Session times are shown in IST, which is where the workshop runs. */
@@ -37,6 +38,7 @@ export function SessionPanel({
   createAction,
   activateAction,
   setClosedAction,
+  deleteAction,
   updateAction,
 }: {
   sessions: AdminSessionRow[];
@@ -44,6 +46,7 @@ export function SessionPanel({
   createAction: (formData: FormData) => Promise<void>;
   activateAction: (formData: FormData) => Promise<void>;
   setClosedAction: (formData: FormData) => Promise<void>;
+  deleteAction: (formData: FormData) => Promise<void>;
   updateAction: (formData: FormData) => Promise<void>;
 }) {
   const active = sessions.find((s) => s.active);
@@ -148,9 +151,11 @@ export function SessionPanel({
                       name="closed"
                       value={session.registrationsClosed ? "false" : "true"}
                     />
-                    <button
-                      type="submit"
-                      className={`rounded-full border px-3 py-1 text-xs transition ${
+                    <SubmitButton
+                      pendingLabel={
+                        session.registrationsClosed ? "Reopening…" : "Closing…"
+                      }
+                      className={`rounded-full border px-3 py-1 text-xs ${
                         session.registrationsClosed
                           ? "border-emerald-400/40 text-emerald-300 hover:bg-emerald-500/10"
                           : "border-amber-400/40 text-amber-300 hover:bg-amber-500/10"
@@ -159,17 +164,43 @@ export function SessionPanel({
                       {session.registrationsClosed
                         ? "Reopen registrations"
                         : "Close registrations"}
-                    </button>
+                    </SubmitButton>
                   </form>
                 ) : (
                   <form action={activateAction}>
                     <input type="hidden" name="sessionId" value={session.id} />
-                    <button
-                      type="submit"
-                      className="rounded-full border border-white/15 px-3 py-1 text-xs text-slate-300 transition hover:border-emerald-400/40 hover:text-emerald-300"
+                    <SubmitButton
+                      pendingLabel="Activating…"
+                      className="rounded-full border border-white/15 px-3 py-1 text-xs text-slate-300 hover:border-emerald-400/40 hover:text-emerald-300"
                     >
                       Make active
-                    </button>
+                    </SubmitButton>
+                  </form>
+                )}
+
+                {/* Delete is offered only where it can actually succeed. A
+                    session that sold seats is a business record: removing it
+                    would leave those registrations, invoices and certificates
+                    with no cohort attached. The seat count is shown instead, so
+                    the reason is visible rather than discovered by pressing a
+                    button that fails. */}
+                {session.active ? null : session.registrationCount > 0 ? (
+                  <span
+                    className="whitespace-nowrap text-[11px] text-slate-500"
+                    title="A session with registrations cannot be deleted."
+                  >
+                    {session.registrationCount} registered
+                  </span>
+                ) : (
+                  <form action={deleteAction}>
+                    <input type="hidden" name="sessionId" value={session.id} />
+                    <SubmitButton
+                      pendingLabel="Deleting…"
+                      title="Delete this session"
+                      className="rounded-full border border-white/10 px-3 py-1 text-xs text-slate-500 hover:border-red-400/40 hover:text-red-300"
+                    >
+                      Delete
+                    </SubmitButton>
                   </form>
                 )}
               </div>
@@ -189,12 +220,12 @@ export function SessionPanel({
                   initialStartsAt={toIstWallClock(session.startsAt)}
                   initialEndsAt={toIstWallClock(session.endsAt)}
                 />
-                <button
-                  type="submit"
-                  className="rounded-lg border border-white/15 px-3 py-2 text-xs text-slate-300 transition hover:border-emerald-400/40 hover:text-emerald-300"
+                <SubmitButton
+                  pendingLabel="Saving…"
+                  className="rounded-lg border border-white/15 px-3 py-2 text-xs text-slate-300 hover:border-emerald-400/40 hover:text-emerald-300"
                 >
                   {session.startsAt ? "Update times" : "Set times"}
-                </button>
+                </SubmitButton>
               </form>
             </li>
           ))}
@@ -221,12 +252,12 @@ export function SessionPanel({
           />
         </label>
         <SessionTimeFields />
-        <button
-          type="submit"
-          className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-medium text-slate-950 transition hover:bg-emerald-400"
+        <SubmitButton
+          pendingLabel="Adding…"
+          className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-medium text-slate-950 hover:bg-emerald-400"
         >
           Add session
-        </button>
+        </SubmitButton>
       </form>
       <p className="mt-2 text-[11px] text-slate-500">
         Set the webinar to approve registrants manually. Paid buyers are then
