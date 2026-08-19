@@ -11,6 +11,7 @@ import {
   normalizeWebinarId,
 } from "@/lib/pavel/webinarSession";
 import { parseSessionTimes } from "@/lib/pavel/sessionTimes";
+import { isUniqueViolation } from "@/lib/admin/dbErrors";
 
 export const runtime = "nodejs";
 // Live operator data; never statically rendered or cached.
@@ -189,8 +190,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unknown action." }, { status: 400 });
   } catch (error) {
     // A duplicate webinar id is an operator mistake worth naming, not a 500.
-    const message = error instanceof Error ? error.message : "";
-    if (/duplicate key|unique constraint/i.test(message)) {
+    // Read through the cause chain: Drizzle's own message is the SQL that
+    // failed, so matching on it alone never fired.
+    if (isUniqueViolation(error)) {
       return NextResponse.json(
         { error: "That webinar is already registered as a session." },
         { status: 409 }

@@ -14,6 +14,7 @@ import {
   normalizeWebinarId,
 } from "@/lib/pavel/webinarSession";
 import { parseSessionTimes } from "@/lib/pavel/sessionTimes";
+import { isUniqueViolation } from "@/lib/admin/dbErrors";
 
 /**
  * Webinar sessions, as the console sees them.
@@ -167,8 +168,10 @@ export async function mutateSession(
       await activateSession(db, input.sessionId);
       return null;
     } catch (error) {
-      const message = error instanceof Error ? error.message : "";
-      if (/duplicate key|unique constraint/i.test(message)) {
+      // A duplicate webinar id is an operator mistake worth naming, not a
+      // generic failure. Matching on `error.message` never fired: Drizzle's own
+      // message is the SQL that failed, and the constraint sits on `cause`.
+      if (isUniqueViolation(error)) {
         return "That webinar is already registered as a session.";
       }
       console.error("[admin] session action failed", error);
