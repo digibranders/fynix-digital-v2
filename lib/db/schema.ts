@@ -300,6 +300,19 @@ export const webinarSessions = pgTable("webinar_sessions", {
    * enforces — see workshopDetails.recordingWindowDays for what buyers are told.
    */
   recordingUrl: text("recording_url"),
+  /**
+   * Passcode for the recording link, when Zoom's share settings require one.
+   *
+   * Zoom's "allow invitees to access without the passcode" exempts people
+   * invited through Zoom itself, NOT people arriving on the shared link — which
+   * is everyone we email. Verified in a private window: the link asks for the
+   * passcode. Sending the link without it would put every buyer in front of a
+   * prompt they cannot answer.
+   *
+   * Optional: the passcode can be switched off in Zoom, and then the emails say
+   * nothing about one.
+   */
+  recordingPasscode: text("recording_passcode"),
   activatedAt: timestamp("activated_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });

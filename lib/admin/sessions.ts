@@ -34,6 +34,8 @@ export type AdminSessionRow = {
   registrationsClosed: boolean;
   /** Zoom share link for this session's recording, once published. */
   recordingUrl: string | null;
+  /** Passcode Zoom asks for on that link, when one is set. */
+  recordingPasscode: string | null;
   startsAt: string | null;
   endsAt: string | null;
   createdAt: string;
@@ -77,6 +79,7 @@ export async function loadSessions(): Promise<LoadSessionsResult> {
           active: s.active,
           registrationsClosed: s.registrationsClosed,
           recordingUrl: s.recordingUrl,
+          recordingPasscode: s.recordingPasscode,
           startsAt: s.startsAt ? s.startsAt.toISOString() : null,
           endsAt: s.endsAt ? s.endsAt.toISOString() : null,
           createdAt: s.createdAt.toISOString(),
@@ -137,6 +140,7 @@ export async function mutateSession(
     startsAt?: string;
     endsAt?: string;
     recordingUrl?: string;
+    recordingPasscode?: string;
   }
 ): Promise<string | null> {
   if (hasLocalDb()) {
@@ -177,7 +181,12 @@ export async function mutateSession(
         if (url && !/^https?:\/\/\S+$/i.test(url)) {
           return "That does not look like a link. Paste the Zoom share URL, or clear the field to remove it.";
         }
-        await setRecordingUrl(db, input.sessionId, url || null);
+        await setRecordingUrl(
+          db,
+          input.sessionId,
+          url || null,
+          (input.recordingPasscode ?? "").trim() || null
+        );
         return null;
       }
       if (action === "delete") {

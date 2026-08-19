@@ -925,6 +925,19 @@ export const siteConfig = {
   email: "hello@fynix.digital",
   phone: "+91 789 789 6607",
   phoneHref: "+917897896607",
+  /**
+   * LinkedIn's numeric id for the Fynix Digital company page
+   * (linkedin.com/company/fynixofficial).
+   *
+   * Used by the certificate's "Add to LinkedIn profile" link so the entry
+   * attaches to the real company page, with its logo, instead of a plain text
+   * organisation name.
+   *
+   * A constant rather than an env var on purpose: the id is public, it does not
+   * change, and as configuration it could silently go missing on one host and
+   * quietly downgrade every certificate issued from it.
+   */
+  linkedInOrgId: "77049625",
   locations: "London & Bengaluru",
   address: {
     line1: "Office No. 2617, 26th Floor, Solus Building, Hiranandani Estate,",

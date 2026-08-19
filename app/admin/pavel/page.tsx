@@ -120,13 +120,14 @@ export default async function PavelAdminPage() {
     await revalidateLanding();
   }
 
-  /** Publish or clear the Zoom recording link for a session. */
+  /** Publish or clear the Zoom recording link, and its passcode, for a session. */
   async function setRecordingAction(formData: FormData) {
     "use server";
     if (!(await isAdminAuthenticated())) redirect("/admin");
     await mutateSession("recording", {
       sessionId: String(formData.get("sessionId") ?? ""),
       recordingUrl: String(formData.get("recordingUrl") ?? ""),
+      recordingPasscode: String(formData.get("recordingPasscode") ?? ""),
     });
     await revalidateLanding();
   }

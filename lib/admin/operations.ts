@@ -191,6 +191,7 @@ export async function resendCertificate(
     joinUrl: registration.zoomJoinUrl ?? undefined,
     schedule,
     recordingUrl: session?.recordingUrl ?? undefined,
+    recordingPasscode: session?.recordingPasscode ?? undefined,
     certificateUrl: `${SITE_ORIGIN}/pavel/certificate/${certificate.credentialId}`,
   });
 
@@ -339,6 +340,7 @@ export async function sendRecordingToAll(db: Db): Promise<OperationResult> {
       joinUrl: reg.zoomJoinUrl ?? undefined,
       schedule,
       recordingUrl,
+      recordingPasscode: session.recordingPasscode ?? undefined,
     });
     if (!email) {
       failed += 1;

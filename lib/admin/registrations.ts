@@ -15,6 +15,7 @@ import {
 } from "@/lib/admin/gateway";
 import type { AdminRegistrationRow } from "@/lib/admin/registrationRow";
 import { hasEarnedCertificate } from "@/lib/pavel/certificate";
+import { canonicalCode } from "@/lib/pavel/referral";
 
 export type { AdminRegistrationRow };
 
@@ -122,7 +123,13 @@ export async function queryRegistrations(): Promise<AdminRegistrationRow[]> {
     .leftJoin(invoices, eq(invoices.registrationId, registrations.id))
     .leftJoin(certificates, eq(certificates.registrationId, registrations.id))
     .leftJoin(webinarSessions, eq(webinarSessions.id, registrations.sessionId))
-    .leftJoin(referralCodes, eq(referralCodes.code, registrations.referralCode))
+    // Joined on the canonical form: rows written before the code was validated
+    // hold whatever was typed, and matching those exactly left the owner and
+    // commission null on real redemptions.
+    .leftJoin(
+      referralCodes,
+      eq(referralCodes.code, canonicalCode(registrations.referralCode))
+    )
     .orderBy(desc(registrations.createdAt));
 
   // Which emails each registration has had, in one grouped pass. Joined into

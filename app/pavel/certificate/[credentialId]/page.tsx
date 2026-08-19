@@ -19,6 +19,35 @@ export const dynamic = "force-dynamic";
 const WORKSHOP_NAME = "Semantic SEO Masterclass";
 
 /**
+ * What the workshop covered, named in LinkedIn's own vocabulary.
+ *
+ * These are shown to the attendee as what they learned, and they double as the
+ * skills to attach to the LinkedIn entry — which requires at least one and
+ * cannot be pre-filled, because its Skills field is a typeahead bound to
+ * LinkedIn's taxonomy rather than anything a link can pass.
+ *
+ * Naming them means every attendee tags the same four rather than inventing a
+ * dozen near-synonyms, which is the difference between the workshop
+ * accumulating on LinkedIn and disappearing into noise.
+ */
+const SKILLS = [
+  "Search Engine Optimization (SEO)",
+  "Semantic Search",
+  "Content Strategy",
+  "Keyword Research",
+];
+
+/**
+ * First name for the greeting, falling back to the whole string.
+ *
+ * Only ever used to say hello. Anything unexpected — one word, extra spaces —
+ * degrades to the full name rather than an empty greeting.
+ */
+function firstName(fullName: string): string {
+  return fullName.trim().split(/\s+/)[0] || fullName;
+}
+
+/**
  * Per-certificate metadata.
  *
  * `robots: noindex` stays: a credential is meant to be shared with the people
@@ -114,21 +143,48 @@ export default async function IssuedCertificatePage({
             </div>
           </div>
 
-          <div className="cert-toolbar">
+          {/*
+            The page earns its second half by being about the achievement
+            rather than about the buttons: what they did, what it covered, and
+            only then what they can do with it.
+          */}
+          <section className="cert-outro">
+            <h1 className="cert-outro__title">
+              Congratulations, {firstName(certificate.recipientName)}.
+            </h1>
+            <p className="cert-outro__lead">
+              You completed the live {WORKSHOP_NAME} with Pavel Klimakov.
+            </p>
+
+            <div className="cert-skills">
+              <h2 className="cert-skills__label">What you learned</h2>
+              <ul className="cert-skills__list">
+                {SKILLS.map((skill) => (
+                  <li key={skill} className="cert-skills__chip">
+                    {skill}
+                  </li>
+                ))}
+              </ul>
+              <p className="cert-skills__hint">
+                Worth adding to your profile alongside the credential.
+              </p>
+            </div>
+
             <CertificateShare
               credentialId={certificate.credentialId}
               recipientName={certificate.recipientName}
               certificateUrl={certificateUrl}
               issuedAt={certificate.issuedAt ?? null}
-              organizationId={process.env.NEXT_PUBLIC_LINKEDIN_ORG_ID || undefined}
+              organizationId={siteConfig.linkedInOrgId}
               organizationName={siteConfig.name}
             />
-            <p className="cert-toolbar__note">
+
+            <p className="cert-outro__note">
               Credential{" "}
-              <span className="cert-toolbar__id">{certificate.credentialId}</span>{" "}
+              <span className="cert-outro__id">{certificate.credentialId}</span>{" "}
               &middot; anyone with this link can verify it.
             </p>
-          </div>
+          </section>
         </main>
         <Footer />
       </div>

@@ -21,7 +21,7 @@ const SAMPLE = {
 const POINTS = [
   "Three hours of live training with Pavel",
   "Slide deck and detailed notes",
-  "Ready for LinkedIn",
+  "LinkedIn-ready certificate",
   "Issued on completion",
 ];
 

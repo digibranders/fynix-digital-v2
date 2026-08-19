@@ -134,8 +134,9 @@ export const Curriculum: React.FC = () => {
                 <Reveal key={m.n} delay={(i % 3) * 60}>
                   <div className="group py-6 sm:py-7 transition-colors duration-200 hover:bg-white/[0.015] px-2 sm:px-4 rounded-xl">
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-8 items-start">
-                      {/* Number & Category Badge */}
-                      <div className="md:col-span-3 flex items-center md:flex-col md:items-start justify-start gap-3">
+                      {/* Number & Category Badge — kept on one row (badge beside
+                          the number) at every breakpoint. */}
+                      <div className="md:col-span-3 flex items-center justify-start gap-3">
                         <span
                           className="font-serif italic text-3xl sm:text-4xl font-normal leading-none tnum opacity-90"
                           style={{ color: theme.accent }}
@@ -152,15 +153,11 @@ export const Curriculum: React.FC = () => {
                         </span>
                       </div>
 
-                      {/* Title & Description */}
-                      <div className="md:col-span-9 space-y-2">
+                      {/* Title only — descriptions removed for a scannable list */}
+                      <div className="md:col-span-9">
                         <h3 className="font-serif text-xl sm:text-2xl font-medium text-white leading-snug tracking-tight group-hover:text-slate-100 transition-colors">
                           {m.title}
                         </h3>
-
-                        <p className="text-sm sm:text-base text-white/75 leading-relaxed font-normal">
-                          {m.summary}
-                        </p>
                       </div>
                     </div>
                   </div>
