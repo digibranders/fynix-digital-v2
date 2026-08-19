@@ -149,7 +149,7 @@ export const Hero: React.FC = () => {
           </div>
 
           {/* RIGHT: Image 1 with Seamless Transition into Pure Black (No Borders) */}
-          <div className="hero-rise-delayed order-1 lg:order-2 lg:col-span-5">
+          <div className="order-1 lg:order-2 lg:col-span-5">
             {/* The phone-sized height is measured in `svh`, not `dvh`, and that
                 choice is load-bearing. `dvh` tracks the *current* viewport, which
                 mobile Chrome and Safari grow the moment their address bar and
