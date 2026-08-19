@@ -2,10 +2,10 @@
 
 import React from "react";
 import { ArrowRight } from "lucide-react";
-import { usePricing } from "@/components/pavel/PricingProvider";
+import { useViewerSchedule } from "@/components/pavel/PricingProvider";
 
 export const MobileStickyBanner: React.FC = () => {
-  const { schedule } = usePricing();
+  const schedule = useViewerSchedule();
   const scrollToPricing = () => {
     const el = document.getElementById("pricing");
     if (el) {

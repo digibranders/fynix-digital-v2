@@ -27,6 +27,8 @@ export interface WorkshopSchedule {
 }
 
 const IST = "Asia/Kolkata";
+/** Zones that ARE the workshop's own, including the alias older systems report. */
+const IST_ZONES = new Set([IST, "Asia/Calcutta"]);
 
 function istDate(value: Date): string {
   return new Intl.DateTimeFormat("en-GB", {
@@ -141,4 +143,71 @@ export function localTimeLabel(
     // An unknown zone should never take the confirmation page down.
     return null;
   }
+}
+
+/**
+ * The same session, expressed in a viewer's own timezone.
+ *
+ * Returns the identical shape as the IST schedule so callers can swap one for
+ * the other with no other change: every label is re-derived from the same two
+ * instants, which is why the date and the time can never drift apart.
+ *
+ * Unlike `localTimeLabel`, this never returns null. It is the page's only
+ * clock, so there has to be an answer for every viewer; a zone matching the
+ * workshop's simply reproduces the IST labels.
+ */
+export function scheduleInZone(
+  schedule: WorkshopSchedule,
+  timeZone: string | null | undefined
+): WorkshopSchedule {
+  // "Asia/Calcutta" is the legacy alias many systems still report, so matching
+  // only the canonical name would show Indian viewers "GMT+5:30" instead of IST.
+  if (!timeZone || IST_ZONES.has(timeZone)) return schedule;
+
+  const start = new Date(schedule.startUtc);
+  const end = new Date(schedule.endUtc);
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return schedule;
+
+  try {
+    const time = (value: Date) =>
+      new Intl.DateTimeFormat("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+        timeZone,
+      })
+        .format(value)
+        .replace(/\s/g, " ");
+
+    const zoneLabel = shortZoneLabel(start, timeZone);
+
+    return {
+      ...schedule,
+      // The viewer's calendar date, which can differ from the workshop's:
+      // 5:00 PM IST is still the previous day across much of the Americas.
+      dateLabel: new Intl.DateTimeFormat("en-GB", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+        timeZone,
+      }).format(start),
+      time: `${time(start)} ${zoneLabel}`.trim(),
+      timeRange: `${time(start)} - ${time(end)} ${zoneLabel}`.trim(),
+    };
+  } catch {
+    // An unrecognised zone must never take the landing page down; showing the
+    // workshop's own time is a correct answer, just not a personalised one.
+    return schedule;
+  }
+}
+
+/** e.g. "EDT". Far more recognisable than a raw offset. */
+function shortZoneLabel(at: Date, timeZone: string): string {
+  const label =
+    new Intl.DateTimeFormat("en-US", { timeZone, timeZoneName: "short" })
+      .formatToParts(at)
+      .find((part) => part.type === "timeZoneName")?.value ?? "";
+  // Intl has no short name for India and renders the offset; use the name
+  // everyone there actually recognises.
+  return label === "GMT+5:30" ? "IST" : label;
 }

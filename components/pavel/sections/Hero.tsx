@@ -5,7 +5,7 @@ import { getImageProps } from "next/image";
 import { Container } from "../ui/Container";
 import { Button } from "../ui/Button";
 import { ArrowRight, CalendarDays } from "lucide-react";
-import { usePricing } from "../PricingProvider";
+import { usePricing, useViewerSchedule } from "../PricingProvider";
 import { WORKSHOP } from "../workshopDetails";
 
 /**
@@ -64,7 +64,10 @@ const { props: heroMobileProps } = getImageProps({
 });
 
 export const Hero: React.FC = () => {
-  const { price, schedule, registration } = usePricing();
+  const { price, registration } = usePricing();
+  // The viewer's own timezone, so the hero never advertises a time they would
+  // have to convert. Identical to IST for visitors in India.
+  const schedule = useViewerSchedule();
 
   const scrollTo = (id: string) => {
     const el = document.getElementById(id);

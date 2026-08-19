@@ -5,11 +5,12 @@ import Reveal from "@/components/Reveal";
 import { Container } from "../ui/Container";
 import { ArrowRight } from "lucide-react";
 import { WORKSHOP } from "../workshopDetails";
-import { usePricing } from "../PricingProvider";
+import { usePricing, useViewerSchedule } from "../PricingProvider";
 
 
 export const FinalCTA: React.FC = () => {
-  const { price, schedule, registration } = usePricing();
+  const { price, registration } = usePricing();
+  const schedule = useViewerSchedule();
 
 // Split the range so the end time drops cleanly to a second line in the
 // narrow essentials column.
