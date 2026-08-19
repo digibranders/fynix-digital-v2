@@ -12,6 +12,7 @@ import {
 import { isValidGstin, normalizeGstin } from "@/lib/pavel/gst";
 import { isValidIndianState } from "@/lib/pavel/indianStates";
 import { getActiveSession } from "@/lib/pavel/webinarSession";
+import { evaluateReferral, referralRejectionMessage } from "@/lib/pavel/referral";
 import {
   closedMessage,
   deriveRegistrationWindow,
@@ -109,11 +110,9 @@ export async function POST(request: Request) {
     "guest@example.com";
   const attendeePhone =
     (phone && typeof phone === "string" && phone.trim()) || null;
-  // Optional referral code — trimmed and length-capped so a stray value can't
-  // bloat the row; attribution only, no discount is applied here.
-  const attendeeReferral =
-    (referralCode && typeof referralCode === "string" && referralCode.trim().slice(0, 60)) ||
-    null;
+  // Optional referral code. Nothing is stored unless it validates — see below.
+  const typedReferral =
+    typeof referralCode === "string" && referralCode.trim() ? referralCode : null;
   const resolvedCountry = countryFromParam(country) ?? "REST";
   // Keep the buyer's ACTUAL country alongside the pricing region: an export
   // invoice must name the country of destination, which 'REST' cannot express.
@@ -185,6 +184,25 @@ export async function POST(request: Request) {
       );
     }
     attendeeState = stateTrimmed;
+  }
+
+  // Validate the code here, not only at checkout.
+  //
+  // Storing whatever was typed is how a typo ('STEVE 10', 'steve1O') became a
+  // row that looks like partner attribution, grants no discount, and reconciles
+  // against nothing. A code now either earns its place on the row or the
+  // registration is refused, so this column can be counted on for money. The
+  // stored value is the NORMALISED code, so a report can group on it.
+  let attendeeReferral: string | null = null;
+  if (typedReferral) {
+    const result = await evaluateReferral(db, typedReferral);
+    if (!result.ok) {
+      return NextResponse.json(
+        { error: referralRejectionMessage(result.reason), referralRejected: true },
+        { status: result.reason === "unavailable" ? 503 : 400 }
+      );
+    }
+    attendeeReferral = result.code;
   }
 
   const ref = generateRef();

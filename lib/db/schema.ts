@@ -113,6 +113,10 @@ export const emailLog = pgTable(
  * discount to the order amount. Looked up server-side only (checkout + the
  * /api/pavel/referral validation route) so the discount can never be forged by
  * the client. `code` is stored normalised (uppercase, no spaces).
+ *
+ * A code is redeemable only while `active`, before `expiresAt`, and while
+ * redemptions remain under `maxUses`. Both limits are nullable, and null means
+ * "no limit" — which is what every code that predates them keeps.
  */
 export const referralCodes = pgTable("referral_codes", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -120,7 +124,26 @@ export const referralCodes = pgTable("referral_codes", {
   discountPercent: integer("discount_percent").notNull(), // 1–100
   active: boolean("active").notNull().default(true),
   label: text("label"), // human note, e.g. 'Steve — partner code'
+
+  /**
+   * Redemption cap. Counted against PAID registrations that actually received
+   * the discount, so an abandoned checkout never burns a slot. Null = unlimited.
+   */
+  maxUses: integer("max_uses"),
+  /** Hard expiry. Null = never expires. */
+  expiresAt: timestamp("expires_at", { withTimezone: true }),
+
+  // Partner attribution. Kept on the code rather than in a table of its own: a
+  // code has exactly one owner, and a join would buy nothing.
+  ownerName: text("owner_name"),
+  ownerEmail: text("owner_email"),
+  /** Commission owed to the owner, as a whole percent of ex-GST revenue. */
+  commissionPercent: integer("commission_percent"),
+
   createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
 });

@@ -9,7 +9,7 @@ import {
   formatUnitAmount,
   type Country,
 } from "@/components/pavel/pricing";
-import { lookupReferral } from "@/lib/pavel/referral";
+import { evaluateReferral, referralRejectionMessage } from "@/lib/pavel/referral";
 import { computeTax } from "@/lib/pavel/tax";
 import { getActiveSession } from "@/lib/pavel/webinarSession";
 import {
@@ -162,10 +162,33 @@ export async function POST(request: Request) {
   const resolvedCountry: Country = registration.country === "IN" ? "IN" : "REST";
   const price = PRICING[resolvedCountry];
 
-  // Re-validate the stored referral code server-side and derive the discount
-  // here — never trust a discount from the client. Falls back to full price for
-  // an empty, unknown, or inactive code.
-  const referral = await lookupReferral(db, registration.referralCode);
+  // Re-validate the stored code and derive the discount here — never trust a
+  // discount from the client.
+  //
+  // A code can go stale between reserving a seat and paying for it: it may
+  // expire, be switched off, or have its last slot taken by someone else. The
+  // sale is refused rather than quietly repriced. Charging the list price to
+  // someone who got this far expecting a discount is the one outcome worse than
+  // an error message.
+  let referral: { code: string; discountPercent: number } | null = null;
+  if (registration.referralCode) {
+    const result = await evaluateReferral(db, registration.referralCode);
+    if (!result.ok) {
+      console.warn(
+        "[pavel/checkout] refused: referral no longer redeemable",
+        registration.referralCode,
+        result.reason
+      );
+      return NextResponse.json(
+        {
+          error: `${referralRejectionMessage(result.reason)} Please remove it and try again.`,
+          referralRejected: true,
+        },
+        { status: result.reason === "unavailable" ? 503 : 409 }
+      );
+    }
+    referral = { code: result.code, discountPercent: result.discountPercent };
+  }
 
   // Derive the charge from the taxable base: discount, then GST, then total.
   // The invoice is built from this same breakdown, so the amount charged and the

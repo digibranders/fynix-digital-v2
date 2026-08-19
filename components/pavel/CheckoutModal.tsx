@@ -35,6 +35,8 @@ interface RegisterResponse {
   email?: string;
   message?: string;
   error?: string;
+  /** The referral code was refused server-side. See `ReferralRejectedError`. */
+  referralRejected?: boolean;
 }
 
 /**
@@ -54,6 +56,26 @@ interface CheckoutResponse {
   email?: string;
   ref?: string;
   error?: string;
+  /** The referral code was refused server-side. See `ReferralRejectedError`. */
+  referralRejected?: boolean;
+}
+
+/**
+ * A failure caused specifically by the referral code, rather than by the form.
+ *
+ * A code can go stale between the moment it validates in this modal and the
+ * moment the order is created: it can expire, be switched off, or have its last
+ * slot claimed by someone else. The server refuses the sale instead of quietly
+ * charging the list price, and this type carries that distinction back to the
+ * catch block so the applied discount can be dropped and the field reopened —
+ * rather than leaving the buyer staring at a discounted quote the server has
+ * already rejected.
+ */
+class ReferralRejectedError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "ReferralRejectedError";
+  }
 }
 
 /** The three values the Razorpay Checkout overlay hands back on success. */
@@ -537,13 +559,21 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
                 companyAddress: companyAddress.trim(),
               }
             : {}),
-          ...(referralCode.trim() ? { referralCode: referralCode.trim() } : {}),
+          // Send the code that VALIDATED, never the raw input. The server
+          // re-checks it either way, but sending the typed string meant a code
+          // the buyer had already been told was invalid still travelled with
+          // the registration — and now that the server refuses those, it would
+          // fail a checkout for a discount the buyer never had.
+          ...(appliedReferral ? { referralCode: appliedReferral.code } : {}),
           ...antiBot,
         }),
       });
 
       const data: RegisterResponse = await res.json();
       if (!res.ok || !data.success) {
+        if (data.referralRejected) {
+          throw new ReferralRejectedError(data.error || "That code isn’t valid.");
+        }
         throw new Error(data.error || "Registration failed.");
       }
 
@@ -581,6 +611,11 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
       // Razorpay: a checkout that cannot start is a checkout that failed, and
       // showing "You're on the list" for one hands out seats nobody paid for.
       if (!checkoutRes.ok) {
+        if (checkout.referralRejected) {
+          throw new ReferralRejectedError(
+            checkout.error || "That code is no longer valid."
+          );
+        }
         throw new Error(
           checkout.error || "Could not start checkout. Please try again."
         );
@@ -623,6 +658,17 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
       });
       rzp.open();
     } catch (err: unknown) {
+      // A refused code is shown on the referral field, not as a form-wide
+      // failure. The applied discount is dropped so the quote stops advertising
+      // a price the server will not honour, and the field is reopened so the
+      // buyer can correct or remove the code and continue.
+      if (err instanceof ReferralRejectedError) {
+        setAppliedReferral(null);
+        setReferralOpen(true);
+        setReferralError(err.message);
+        setLoading(false);
+        return;
+      }
       setError(err instanceof Error ? err.message : "Something went wrong.");
       setLoading(false);
     }
