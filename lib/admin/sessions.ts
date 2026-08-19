@@ -10,6 +10,7 @@ import {
   activateSession,
   deleteSession,
   setRegistrationsClosed,
+  setRecordingUrl,
   updateSessionTimes,
   normalizeWebinarId,
 } from "@/lib/pavel/webinarSession";
@@ -31,6 +32,8 @@ export type AdminSessionRow = {
   active: boolean;
   /** Whether this session is refusing new registrations. */
   registrationsClosed: boolean;
+  /** Zoom share link for this session's recording, once published. */
+  recordingUrl: string | null;
   startsAt: string | null;
   endsAt: string | null;
   createdAt: string;
@@ -73,6 +76,7 @@ export async function loadSessions(): Promise<LoadSessionsResult> {
           label: s.label,
           active: s.active,
           registrationsClosed: s.registrationsClosed,
+          recordingUrl: s.recordingUrl,
           startsAt: s.startsAt ? s.startsAt.toISOString() : null,
           endsAt: s.endsAt ? s.endsAt.toISOString() : null,
           createdAt: s.createdAt.toISOString(),
@@ -118,13 +122,21 @@ export async function loadSessions(): Promise<LoadSessionsResult> {
 
 /** Perform a session action wherever the data lives. Returns an error message or null. */
 export async function mutateSession(
-  action: "create" | "activate" | "close" | "reopen" | "update" | "delete",
+  action:
+    | "create"
+    | "activate"
+    | "close"
+    | "reopen"
+    | "update"
+    | "delete"
+    | "recording",
   input: {
     zoomWebinarId?: string;
     label?: string;
     sessionId?: string;
     startsAt?: string;
     endsAt?: string;
+    recordingUrl?: string;
   }
 ): Promise<string | null> {
   if (hasLocalDb()) {
@@ -156,6 +168,17 @@ export async function mutateSession(
           endsAt: times.endsAt,
         });
         return session ? null : "Session not found.";
+      }
+      if (action === "recording") {
+        const url = (input.recordingUrl ?? "").trim();
+        // Anything that is not an http(s) URL is refused rather than stored:
+        // this value is emailed to every buyer, so a typo becomes a dead link
+        // in someone's inbox that nobody sees until they complain.
+        if (url && !/^https?:\/\/\S+$/i.test(url)) {
+          return "That does not look like a link. Paste the Zoom share URL, or clear the field to remove it.";
+        }
+        await setRecordingUrl(db, input.sessionId, url || null);
+        return null;
       }
       if (action === "delete") {
         const result = await deleteSession(db, input.sessionId);

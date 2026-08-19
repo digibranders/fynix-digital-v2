@@ -120,6 +120,17 @@ export default async function PavelAdminPage() {
     await revalidateLanding();
   }
 
+  /** Publish or clear the Zoom recording link for a session. */
+  async function setRecordingAction(formData: FormData) {
+    "use server";
+    if (!(await isAdminAuthenticated())) redirect("/admin");
+    await mutateSession("recording", {
+      sessionId: String(formData.get("sessionId") ?? ""),
+      recordingUrl: String(formData.get("recordingUrl") ?? ""),
+    });
+    await revalidateLanding();
+  }
+
   async function deleteSessionAction(formData: FormData) {
     "use server";
     if (!(await isAdminAuthenticated())) redirect("/admin");
@@ -276,6 +287,7 @@ export default async function PavelAdminPage() {
         activateAction={activateSessionAction}
         setClosedAction={setClosedAction}
         deleteAction={deleteSessionAction}
+        recordingAction={setRecordingAction}
         updateAction={updateSessionAction}
       />
       {/* Sits with the session because that is what it acts on: it pulls the

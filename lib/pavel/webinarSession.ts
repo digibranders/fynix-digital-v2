@@ -203,3 +203,24 @@ export async function deleteSession(
   await db.delete(webinarSessions).where(eq(webinarSessions.id, sessionId));
   return { deleted: true };
 }
+
+/**
+ * Publish (or clear) the recording link for a session.
+ *
+ * Stored rather than derived because it comes from Zoom's own share settings,
+ * where the 7-day expiry and passcode are configured. Clearing it removes the
+ * recording section from the post-event emails entirely, rather than leaving
+ * them promising something that no longer resolves.
+ */
+export async function setRecordingUrl(
+  db: Db,
+  sessionId: string,
+  url: string | null
+): Promise<WebinarSession | undefined> {
+  const [session] = await db
+    .update(webinarSessions)
+    .set({ recordingUrl: url })
+    .where(eq(webinarSessions.id, sessionId))
+    .returning();
+  return session;
+}

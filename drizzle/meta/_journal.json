@@ -134,6 +134,13 @@
       "when": 1787134227631,
       "tag": "0018_fair_gorgon",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1787140737336,
+      "tag": "0019_curved_firestar",
+      "breakpoints": true
     }
   ]
 }

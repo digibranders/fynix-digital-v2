@@ -40,6 +40,7 @@ export function SessionPanel({
   activateAction,
   setClosedAction,
   deleteAction,
+  recordingAction,
   updateAction,
 }: {
   sessions: AdminSessionRow[];
@@ -48,6 +49,7 @@ export function SessionPanel({
   activateAction: (formData: FormData) => Promise<void>;
   setClosedAction: (formData: FormData) => Promise<void>;
   deleteAction: (formData: FormData) => Promise<void>;
+  recordingAction: (formData: FormData) => Promise<void>;
   updateAction: (formData: FormData) => Promise<void>;
 }) {
   const active = sessions.find((s) => s.active);
@@ -244,6 +246,33 @@ export function SessionPanel({
                   className="rounded-lg border border-white/15 px-3 py-2 text-xs text-slate-300 hover:border-emerald-400/40 hover:text-emerald-300"
                 >
                   {session.startsAt ? "Update times" : "Set times"}
+                </SubmitButton>
+              </form>
+
+              {/* Recording link, pasted in after the event.
+                  Zoom hosts it and its own share settings carry the passcode
+                  and the 7-day expiry; this is only where buyers are told to
+                  find it. Empty until published, and the post-event emails omit
+                  the section entirely rather than promising a dead link. */}
+              <form
+                action={recordingAction}
+                className="mt-2 flex w-full flex-wrap items-end gap-2 border-t border-white/5 pt-2"
+              >
+                <input type="hidden" name="sessionId" value={session.id} />
+                <label className="min-w-[240px] flex-1 text-xs text-slate-400">
+                  Recording link (Zoom share URL)
+                  <input
+                    name="recordingUrl"
+                    defaultValue={session.recordingUrl ?? ""}
+                    placeholder="https://us06web.zoom.us/rec/share/…"
+                    className="mt-1 w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-xs text-white placeholder-slate-600 focus:border-emerald-400/50 focus:outline-none"
+                  />
+                </label>
+                <SubmitButton
+                  pendingLabel="Saving…"
+                  className="rounded-lg border border-white/15 px-3 py-2 text-xs text-slate-300 hover:border-emerald-400/40 hover:text-emerald-300"
+                >
+                  {session.recordingUrl ? "Update link" : "Publish"}
                 </SubmitButton>
               </form>
             </li>

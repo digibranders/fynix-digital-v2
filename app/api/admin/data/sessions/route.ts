@@ -7,6 +7,7 @@ import {
   activateSession,
   deleteSession,
   setRegistrationsClosed,
+  setRecordingUrl,
   updateSessionTimes,
   normalizeWebinarId,
 } from "@/lib/pavel/webinarSession";
@@ -54,6 +55,7 @@ export async function GET(request: Request) {
         label: session.label,
         active: session.active,
         registrationsClosed: session.registrationsClosed,
+        recordingUrl: session.recordingUrl,
         startsAt: session.startsAt ? session.startsAt.toISOString() : null,
         endsAt: session.endsAt ? session.endsAt.toISOString() : null,
         createdAt: session.createdAt.toISOString(),
@@ -88,7 +90,7 @@ export async function POST(request: Request) {
   // came to be stored with no schedule: the operator filled the pickers, the
   // console forwarded them, and this handler dropped them on the floor, so the
   // whole site fell back to the hardcoded date in workshopDetails.
-  const { action, zoomWebinarId, label, sessionId, startsAt, endsAt } =
+  const { action, zoomWebinarId, label, sessionId, startsAt, endsAt, recordingUrl } =
     (body ?? {}) as {
       action?: string;
       zoomWebinarId?: string;
@@ -96,6 +98,7 @@ export async function POST(request: Request) {
       sessionId?: string;
       startsAt?: string;
       endsAt?: string;
+      recordingUrl?: string;
     };
 
   try {
@@ -174,6 +177,21 @@ export async function POST(request: Request) {
       return NextResponse.json({
         session: { id: session.id, registrationsClosed: session.registrationsClosed },
       });
+    }
+
+    if (action === "recording") {
+      if (!sessionId) {
+        return NextResponse.json({ error: "sessionId is required." }, { status: 400 });
+      }
+      const url = (recordingUrl ?? "").trim();
+      if (url && !/^https?:\/\/\S+$/i.test(url)) {
+        return NextResponse.json({ error: "That does not look like a link." }, { status: 400 });
+      }
+      const session = await setRecordingUrl(db, sessionId, url || null);
+      if (!session) {
+        return NextResponse.json({ error: "Session not found." }, { status: 404 });
+      }
+      return NextResponse.json({ session: { id: session.id, recordingUrl: session.recordingUrl } });
     }
 
     if (action === "delete") {

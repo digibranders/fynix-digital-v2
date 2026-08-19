@@ -63,7 +63,8 @@ async function runReminderType(
   db: Db,
   type: ReminderType,
   schedule: WorkshopSchedule,
-  activeSessionId: string
+  activeSessionId: string,
+  recordingUrl?: string
 ) {
   const windowOpensAt = reminderWindowOpensAt(type, schedule);
 
@@ -157,6 +158,7 @@ async function runReminderType(
       ref: reg.ref,
       joinUrl: reg.zoomJoinUrl ?? undefined,
       schedule,
+      recordingUrl,
     };
     // After the event, what someone receives depends on whether they actually
     // turned up: a certificate for attendees, the recording for everyone else.
@@ -326,7 +328,15 @@ export async function GET(request: Request) {
 
   const results = [];
   for (const type of types) {
-    results.push(await runReminderType(db, type, schedule, activeSession.id));
+    results.push(
+      await runReminderType(
+        db,
+        type,
+        schedule,
+        activeSession.id,
+        activeSession.recordingUrl ?? undefined
+      )
+    );
   }
 
   return NextResponse.json({ ran: types, results, backfill, access, attendance, certificatesIssued });

@@ -286,6 +286,20 @@ export const webinarSessions = pgTable("webinar_sessions", {
    * with nowhere to be sent, which is the failure this exists to prevent.
    */
   registrationsClosed: boolean("registrations_closed").notNull().default(false),
+  /**
+   * Zoom's share link for this session's cloud recording, pasted in after the
+   * event.
+   *
+   * Held per session because each cohort has its own recording, and because the
+   * post-event emails promise one: the "we missed you" mail is subject-lined
+   * "here is the workshop recording" and used to contain no recording at all.
+   * Null until published, and the emails omit the section entirely rather than
+   * linking to nothing.
+   *
+   * The 7-day window is a setting on Zoom's own share link, not something this
+   * enforces — see workshopDetails.recordingWindowDays for what buyers are told.
+   */
+  recordingUrl: text("recording_url"),
   activatedAt: timestamp("activated_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });

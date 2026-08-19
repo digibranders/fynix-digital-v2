@@ -13,6 +13,7 @@ import {
 } from "@/lib/email/pavelTemplates";
 import type { PavelRegistrationSubmission } from "@/lib/email/pavelTemplates";
 import { loadSchedule } from "@/lib/pavel/loadSchedule";
+import { getActiveSession } from "@/lib/pavel/webinarSession";
 import { syncAttendance } from "@/lib/pavel/attendanceSync";
 import {
   issueCertificateForRegistration,
@@ -176,7 +177,10 @@ export async function resendCertificate(
     return { ok: false, message: "No certificate found for this seat." };
   }
 
-  const schedule = await loadSchedule();
+  const [schedule, session] = await Promise.all([
+    loadSchedule(),
+    getActiveSession(db),
+  ]);
   const email = buildPavelCertificateEmail({
     name: registration.name,
     email: registration.email,
@@ -185,6 +189,7 @@ export async function resendCertificate(
     ref: registration.ref,
     joinUrl: registration.zoomJoinUrl ?? undefined,
     schedule,
+    recordingUrl: session?.recordingUrl ?? undefined,
     certificateUrl: `${SITE_ORIGIN}/pavel/certificate/${certificate.credentialId}`,
   });
 

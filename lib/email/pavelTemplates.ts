@@ -27,6 +27,14 @@ export interface PavelRegistrationSubmission {
    * new cohort's emails carry its own date and time.
    */
   schedule?: WorkshopSchedule;
+  /**
+   * Zoom's share link for this session's recording, once published.
+   *
+   * Optional on purpose: the recording is not ready the moment the workshop
+   * ends, and an email that promises one and links nowhere is worse than one
+   * that does not mention it. Every block below is omitted when this is absent.
+   */
+  recordingUrl?: string;
 }
 
 /** The session's schedule, or the constant when the caller passed none. */
@@ -57,6 +65,41 @@ export interface PavelAuditSubmission {
  * priority list and will be notified first when the event opens. Styling is
  * matched to the /pavel editorial brand (cream ground, navy ink, serif accent).
  */
+
+/**
+ * Recording section for the post-event emails.
+ *
+ * Returns nothing at all when no recording has been published. The alternative
+ * — a fixed line promising a recording — is how the "we missed you" mail came
+ * to be subject-lined "here is the workshop recording" while containing no
+ * recording, which is worse than staying quiet until there is one to send.
+ *
+ * Notes are deliberately absent: they are shared in the WhatsApp group, and the
+ * notes URL these emails used to carry pointed at a page that does not exist.
+ */
+function recordingBlock(submission: PavelRegistrationSubmission): string {
+  const url = submission.recordingUrl?.trim();
+  if (!url) return "";
+  return `
+    <p style="margin: 0 0 20px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.7; color: #454F58;">
+      The full recording is yours for the next ${WORKSHOP.recordingWindowDays} days.
+    </p>
+    <p style="margin: 0 0 28px 0;">
+      <a href="${url}" style="display: inline-block; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 15px; font-weight: 600; color: #FFFFFF; background-color: #0C1E2E; text-decoration: none; padding: 12px 22px; border-radius: 10px;">Watch the recording &rarr;</a>
+    </p>
+    <p style="margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.7; color: #454F58;">
+      If the button doesn&rsquo;t work, copy this link into your browser:<br>
+      <a href="${url}" style="color: #0C1E2E; text-decoration: underline; word-break: break-all;">${url}</a>
+    </p>`;
+}
+
+/** Plain-text counterpart. Empty when there is no recording to send. */
+function recordingText(submission: PavelRegistrationSubmission): string {
+  const url = submission.recordingUrl?.trim();
+  if (!url) return "";
+  return `\nThe full recording is yours for the next ${WORKSHOP.recordingWindowDays} days:\n${url}\n`;
+}
+
 export function buildPavelConfirmationEmail(submission: PavelRegistrationSubmission) {
   const ticketId = submission.ticketNumber || "TK-042";
   const firstName = submission.name.split(" ")[0] || "there";
@@ -512,15 +555,9 @@ export function buildPavelPostEventEmail(submission: PavelRegistrationSubmission
 
   const bodyHtml = `
     <p style="margin: 0 0 20px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.7; color: #454F58;">
-      It was a pleasure having you at Pavel's live Semantic SEO workshop. As promised, here are Pavel's notes and resources so you can put what you learned into practice.
+      It was a pleasure having you at Pavel's live Semantic SEO workshop.
     </p>
-    <p style="margin: 0 0 28px 0;">
-      <a href="${WORKSHOP.notesUrl}" style="display: inline-block; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 15px; font-weight: 600; color: #FFFFFF; background-color: #0C1E2E; text-decoration: none; padding: 12px 22px; border-radius: 10px;">View Pavel&rsquo;s notes &rarr;</a>
-    </p>
-    <p style="margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.7; color: #454F58;">
-      If the button doesn&rsquo;t work, copy this link into your browser:<br>
-      <a href="${WORKSHOP.notesUrl}" style="color: #0C1E2E; text-decoration: underline; word-break: break-all;">${WORKSHOP.notesUrl}</a>
-    </p>`;
+    ${recordingBlock(submission)}`;
 
   const html = renderPavelEmailShell({
     subject,
@@ -538,7 +575,7 @@ Thank you for joining, ${firstName}.
 It was a pleasure having you at Pavel's live Semantic SEO workshop. As promised,
 here are Pavel's notes and resources so you can put what you learned into practice.
 
-View Pavel's notes: ${WORKSHOP.notesUrl}
+${recordingText(submission)}
 
 Questions? Reply to this email or write to hello@fynix.digital.
 Reference ${ref}`;
@@ -600,9 +637,7 @@ export function buildPavelCertificateEmail(
     <p style="margin: 0 0 18px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 15px; line-height: 1.6; color: #454F58;">
       The link is permanent, so you can share it on LinkedIn or send it to an employer to verify.
     </p>
-    <p style="margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 15px; line-height: 1.6; color: #454F58;">
-      Pavel's notes and resources are here: <a href="${WORKSHOP.notesUrl}" style="color: #0C1E2E;">${WORKSHOP.notesUrl}</a>
-    </p>`;
+    ${recordingBlock(submission)}`;
 
   const html = renderPavelEmailShell({
     subject,
@@ -623,7 +658,7 @@ View your certificate: ${submission.certificateUrl}
 The link is permanent, so you can share it on LinkedIn or send it to an employer
 to verify.
 
-Pavel's notes: ${WORKSHOP.notesUrl}
+${recordingText(submission)}
 Reference ${ref}`;
 
   return { subject, html, text };
@@ -639,17 +674,27 @@ export function buildPavelMissedYouEmail(submission: PavelRegistrationSubmission
   const firstName = submission.name.split(" ")[0] || "there";
   const ref = submission.ref || "PVL-0000";
 
-  const subject = `We missed you. Here is the workshop recording`;
-  const preheader = `Your recording and Pavel's notes from the Semantic SEO workshop.`;
+  // Subject and opening line both depend on whether a recording actually
+  // exists. This mail was subject-lined "here is the workshop recording" and
+  // sent with no recording in it, which is the kind of thing a buyer notices
+  // immediately and an operator never sees.
+  const hasRecording = Boolean(submission.recordingUrl?.trim());
+
+  const subject = hasRecording
+    ? `We missed you. Here is the workshop recording`
+    : `We missed you at the workshop`;
+  const preheader = hasRecording
+    ? `Your recording from the Semantic SEO workshop.`
+    : `Your seat still counts. The recording is on its way.`;
   const heading = `We missed you, <span style="font-style: italic; color: #9A7B4F;">${firstName}.</span>`;
 
   const bodyHtml = `
     <p style="margin: 0 0 18px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.65; color: #454F58;">
-      You booked a seat at Pavel's live Semantic SEO workshop but we did not see you there. Your seat still counts: the full recording is yours for ${WORKSHOP.recordingWindowDays} days.
+      You booked a seat at Pavel's live Semantic SEO workshop but we did not see you there. Your seat still counts${
+        hasRecording ? "" : ": we will send the recording as soon as it is ready"
+      }.
     </p>
-    <p style="margin: 0 0 18px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 15px; line-height: 1.6; color: #454F58;">
-      Pavel's notes and resources: <a href="${WORKSHOP.notesUrl}" style="color: #0C1E2E;">${WORKSHOP.notesUrl}</a>
-    </p>
+    ${recordingBlock(submission)}
     <p style="margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 15px; line-height: 1.6; color: #454F58;">
       The certificate of completion is only issued to people who attended live, so there is not one attached here. If you believe you did attend, reply to this email and we will check the record.
     </p>`;
@@ -666,10 +711,10 @@ export function buildPavelMissedYouEmail(submission: PavelRegistrationSubmission
   const text = `We missed you, ${firstName}.
 
 You booked a seat at Pavel's live Semantic SEO workshop but we did not see you
-there. Your seat still counts: the full recording is yours for
-${WORKSHOP.recordingWindowDays} days.
-
-Pavel's notes: ${WORKSHOP.notesUrl}
+there. Your seat still counts${
+    hasRecording ? "" : ": we will send the recording as soon as it is ready"
+  }.
+${recordingText(submission)}
 
 The certificate of completion is only issued to people who attended live, so
 there is not one attached here. If you believe you did attend, reply to this
