@@ -1,31 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { buildGroups, rowMatchesQuery } from "./grouping";
-import type { AdminRegistrationRow } from "@/lib/admin/registrations";
-
-/** Minimal row factory — only the fields grouping actually reads. */
-function row(overrides: Partial<AdminRegistrationRow>): AdminRegistrationRow {
-  return {
-    ref: "PVL-0000",
-    name: "Guest",
-    email: "guest@example.com",
-    phone: null,
-    country: "IN",
-    countryName: "India",
-    state: "Maharashtra",
-    referralCode: null,
-    discountPercent: null,
-    amountDisplay: null,
-    status: "pending",
-    createdAt: "2026-08-18T00:00:00.000Z",
-    paidAt: null,
-    razorpayPaymentId: null,
-    invoiceNo: null,
-    attendedMinutes: null,
-    hasJoinLink: false,
-    credentialId: null,
-    ...overrides,
-  };
-}
+import { buildGroups } from "./grouping";
+import { testRow as row } from "@/lib/admin/testRow";
 
 describe("buildGroups", () => {
   it("collapses every attempt for one email into a single group", () => {
@@ -111,25 +86,3 @@ describe("buildGroups", () => {
   });
 });
 
-describe("rowMatchesQuery", () => {
-  it("matches across name, email, ref, phone, state, coupon and payment id", () => {
-    const r = row({
-      ref: "PVL-ABC",
-      name: "Gaurav Jadhav",
-      email: "gaurav@fynix.digital",
-      phone: "+91 98765 43210",
-      state: "Karnataka",
-      referralCode: "STEVE10",
-      razorpayPaymentId: "pay_123",
-    });
-
-    expect(rowMatchesQuery(r, "")).toBe(true);
-    expect(rowMatchesQuery(r, "jadhav")).toBe(true);
-    expect(rowMatchesQuery(r, "abc")).toBe(true);
-    expect(rowMatchesQuery(r, "98765")).toBe(true);
-    expect(rowMatchesQuery(r, "karnataka")).toBe(true);
-    expect(rowMatchesQuery(r, "steve10")).toBe(true);
-    expect(rowMatchesQuery(r, "pay_123")).toBe(true);
-    expect(rowMatchesQuery(r, "nomatch")).toBe(false);
-  });
-});
