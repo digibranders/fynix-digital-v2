@@ -128,13 +128,34 @@ export async function dispatchPavelEmail(
   return { status: "mocked" };
 }
 
-/** Postgres unique-violation detection across neon-http / pg-style errors. */
+/**
+ * Postgres unique-violation detection across neon-http / pg-style errors.
+ *
+ * Drizzle wraps the driver error in a `DrizzleQueryError` whose message is
+ * `Failed query: insert into ...` and carries the real Postgres error (with its
+ * `23505` code) on `.cause`. So the check has to walk the cause chain — reading
+ * only the top-level `code` misses the concurrent-claim case entirely and logs a
+ * routine "already sent" as a hard error.
+ */
 function isUniqueViolation(error: unknown): boolean {
-  if (typeof error !== "object" || error === null) return false;
-  const code = (error as { code?: unknown }).code;
-  if (code === "23505") return true;
-  const message = (error as { message?: unknown }).message;
-  return typeof message === "string" && /duplicate key|unique constraint/i.test(message);
+  let current: unknown = error;
+  for (let depth = 0; current && depth < 5; depth += 1) {
+    if (typeof current === "object") {
+      const code = (current as { code?: unknown }).code;
+      if (code === "23505") return true;
+      const message = (current as { message?: unknown }).message;
+      if (
+        typeof message === "string" &&
+        /duplicate key|unique constraint/i.test(message)
+      ) {
+        return true;
+      }
+      current = (current as { cause?: unknown }).cause;
+    } else {
+      break;
+    }
+  }
+  return false;
 }
 
 function logMock(
