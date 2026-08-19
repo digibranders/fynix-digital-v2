@@ -12,6 +12,7 @@ import {
   normalizeWebinarId,
 } from "@/lib/pavel/webinarSession";
 import { parseSessionTimes } from "@/lib/pavel/sessionTimes";
+import { resolveRecordingInput } from "@/lib/pavel/recordingLink";
 import { isUniqueViolation } from "@/lib/admin/dbErrors";
 
 export const runtime = "nodejs";
@@ -193,15 +194,15 @@ export async function POST(request: Request) {
       if (!sessionId) {
         return NextResponse.json({ error: "sessionId is required." }, { status: 400 });
       }
-      const url = (recordingUrl ?? "").trim();
-      if (url && !/^https?:\/\/\S+$/i.test(url)) {
-        return NextResponse.json({ error: "That does not look like a link." }, { status: 400 });
+      const resolved = resolveRecordingInput(recordingUrl ?? "", recordingPasscode ?? "");
+      if (!resolved.ok) {
+        return NextResponse.json({ error: resolved.error }, { status: 400 });
       }
       const session = await setRecordingUrl(
         db,
         sessionId,
-        url || null,
-        (recordingPasscode ?? "").trim() || null
+        resolved.url,
+        resolved.passcode
       );
       if (!session) {
         return NextResponse.json({ error: "Session not found." }, { status: 404 });

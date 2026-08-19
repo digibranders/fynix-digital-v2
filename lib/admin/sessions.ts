@@ -15,6 +15,7 @@ import {
   normalizeWebinarId,
 } from "@/lib/pavel/webinarSession";
 import { parseSessionTimes } from "@/lib/pavel/sessionTimes";
+import { resolveRecordingInput } from "@/lib/pavel/recordingLink";
 import { isUniqueViolation } from "@/lib/admin/dbErrors";
 
 /**
@@ -174,18 +175,20 @@ export async function mutateSession(
         return session ? null : "Session not found.";
       }
       if (action === "recording") {
-        const url = (input.recordingUrl ?? "").trim();
-        // Anything that is not an http(s) URL is refused rather than stored:
-        // this value is emailed to every buyer, so a typo becomes a dead link
-        // in someone's inbox that nobody sees until they complain.
-        if (url && !/^https?:\/\/\S+$/i.test(url)) {
-          return "That does not look like a link. Paste the Zoom share URL, or clear the field to remove it.";
-        }
+        // Splits Zoom's share block into link and passcode, and refuses
+        // anything with no http(s) URL in it rather than storing it: this value
+        // is emailed to every buyer, so a typo becomes a dead link in someone's
+        // inbox that nobody sees until they complain.
+        const resolved = resolveRecordingInput(
+          input.recordingUrl ?? "",
+          input.recordingPasscode ?? ""
+        );
+        if (!resolved.ok) return resolved.error;
         await setRecordingUrl(
           db,
           input.sessionId,
-          url || null,
-          (input.recordingPasscode ?? "").trim() || null
+          resolved.url,
+          resolved.passcode
         );
         return null;
       }

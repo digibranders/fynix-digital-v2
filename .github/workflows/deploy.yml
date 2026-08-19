@@ -106,7 +106,7 @@ jobs:
             "${{ secrets.DROPLET_USER }}@${{ secrets.DROPLET_HOST }}:/opt/fynix/.env.incoming"
           rm -f api.env
 
-      - name: Pull main, build, migrate, restart
+      - name: Pull main, migrate, build, restart
         run: |
           ssh -i ~/.ssh/id_deploy \
             "${{ secrets.DROPLET_USER }}@${{ secrets.DROPLET_HOST }}" 'bash -s' <<'DEPLOY'
@@ -122,7 +122,33 @@ jobs:
           git checkout main
           git reset --hard origin/main
 
-          # Install + build.
+          npm ci --no-audit --no-fund
+          set -a; . ./.env; set +a
+
+          # Migrate BEFORE building, not after.
+          #
+          # `next build` prerenders pages that query the database, so on a
+          # release that adds a column those queries used to run against the old
+          # schema and fail with errorMissingColumn. The pages degraded to their
+          # fallbacks and were baked into the build that way, while the deploy
+          # still went green. ISR papered over it within the revalidate window;
+          # a statically prerendered page would have kept the wrong content
+          # until the next deploy.
+          #
+          # Migrating first also fails more safely. A failed migration now stops
+          # the deploy with the previous build still intact on disk, whereas a
+          # failure after the build leaves a new build running against an old
+          # schema.
+          #
+          # This does leave the schema ahead of the running (old) process for
+          # the length of the build. That is fine as long as migrations stay
+          # additive: a new nullable column is invisible to code that does not
+          # select it. A destructive change (dropping or renaming a column the
+          # running code still reads) must be split across two deploys instead.
+          npm run db:migrate
+          npm run db:seed
+
+          # Build.
           #
           # The heap cap must stay BELOW the droplet's physical memory (961MB).
           # It was 1536MB, which let V8 grow past what the box has: instead of
@@ -135,13 +161,7 @@ jobs:
           # on disk. The running process survives on what it already loaded, but
           # the next restart — a crash, a reboot, a deploy — has nothing to
           # start from. Treat a red deploy as something to fix now, not later.
-          npm ci --no-audit --no-fund
-          set -a; . ./.env; set +a
           NODE_OPTIONS=--max-old-space-size=768 npm run build
-
-          # Apply pending migrations, then the idempotent referral seed.
-          npm run db:migrate
-          npm run db:seed
 
           # Swap the new build in.
           sudo /usr/bin/systemctl restart fynix-api
