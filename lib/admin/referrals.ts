@@ -6,7 +6,7 @@ import {
   adminGatewayFetch,
   hasLocalDb,
 } from "@/lib/admin/gateway";
-import { redemptionTotals } from "@/lib/pavel/referral";
+import { canonicalCode, redemptionTotals } from "@/lib/pavel/referral";
 import { normalizeReferralCode } from "@/components/pavel/pricing";
 import {
   isReferralRow,
@@ -68,13 +68,17 @@ export async function queryReferrals(): Promise<AdminReferralRow[]> {
 
   const revenue = await db
     .select({
-      code: invoices.referralCode,
+      // Canonical form, for the same reason the usage counts use it: an invoice
+      // snapshots whatever the registration held, including codes written
+      // before they were normalised. Those are legal records and are never
+      // rewritten, so the reading side has to do the work.
+      code: canonicalCode(invoices.referralCode),
       currency: invoices.currency,
       net: sum(invoices.taxableValue),
     })
     .from(invoices)
     .where(sql`${invoices.referralCode} is not null`)
-    .groupBy(invoices.referralCode, invoices.currency);
+    .groupBy(canonicalCode(invoices.referralCode), invoices.currency);
 
   const revenueByCode = new Map<string, { inr: number; usd: number }>();
   for (const r of revenue) {
@@ -271,16 +275,18 @@ export function parseReferralInput(
  * conceptually and is the record a payout reconciles against.
  */
 async function countReferences(db: Db, code: string): Promise<number> {
+  const canonical = normalizeReferralCode(code);
+
   const [regs] = await db
     .select({ value: count() })
     .from(registrations)
-    .where(eq(registrations.referralCode, code));
+    .where(eq(canonicalCode(registrations.referralCode), canonical));
   if ((regs?.value ?? 0) > 0) return regs.value;
 
   const [invs] = await db
     .select({ value: count() })
     .from(invoices)
-    .where(eq(invoices.referralCode, code));
+    .where(eq(canonicalCode(invoices.referralCode), canonical));
   return invs?.value ?? 0;
 }
 

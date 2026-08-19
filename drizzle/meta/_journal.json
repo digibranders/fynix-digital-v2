@@ -148,6 +148,13 @@
       "when": 1787146121140,
       "tag": "0020_steady_unicorn",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1787146122140,
+      "tag": "0021_normalise_referral_codes",
+      "breakpoints": true
     }
   ]
 }

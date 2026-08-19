@@ -1,4 +1,5 @@
-import { and, count, eq, gt, sql } from "drizzle-orm";
+import { and, count, eq, gt, sql, type SQL } from "drizzle-orm";
+import type { AnyPgColumn } from "drizzle-orm/pg-core";
 import type { Db } from "@/lib/db/client";
 import { referralCodes, registrations } from "@/lib/db/schema";
 import { normalizeReferralCode } from "@/components/pavel/pricing";
@@ -85,6 +86,25 @@ export function referralRejectionMessage(reason: ReferralRejection): string {
 }
 
 /**
+ * A stored code reduced to its canonical form, for matching.
+ *
+ * Registrations and invoices record the code as free text, and rows written
+ * before the code was validated at registration hold whatever the buyer typed —
+ * production has a paid seat carrying 'steve10' against a code stored as
+ * 'STEVE10'. Matching those exactly meant they never met: the redemption went
+ * uncounted, so the panel reported zero revenue for a real sale, the owner join
+ * missed so no commission was ever calculated, and the cap read the code as
+ * untouched and would have kept selling past its limit.
+ *
+ * Migration 0021 normalises the existing rows. This stays because it costs
+ * nothing and the column is still free text: the guard should not depend on
+ * every writer, past and future, having remembered.
+ */
+export function canonicalCode(column: AnyPgColumn): SQL<string> {
+  return sql<string>`upper(btrim(${column}))`;
+}
+
+/**
  * Count redemptions of a code: PAID seats that actually received a discount.
  *
  * Pending seats are excluded deliberately — a cap limits how many discounted
@@ -98,7 +118,7 @@ export async function countRedemptions(db: Db, code: string): Promise<number> {
     .from(registrations)
     .where(
       and(
-        eq(registrations.referralCode, code),
+        eq(canonicalCode(registrations.referralCode), normalizeReferralCode(code)),
         eq(registrations.status, "paid"),
         gt(registrations.discountPercent, 0)
       )
@@ -162,7 +182,9 @@ export async function redemptionTotals(
 ): Promise<Map<string, { redeemed: number; attributed: number; pending: number }>> {
   const rows = await db
     .select({
-      code: registrations.referralCode,
+      // Grouped on the canonical form so 'steve10' and 'STEVE10' are one code,
+      // and so the key matches referral_codes.code without further massaging.
+      code: canonicalCode(registrations.referralCode),
       redeemed: count(
         sql`case when ${registrations.status} = 'paid' and ${registrations.discountPercent} > 0 then 1 end`
       ),
@@ -171,7 +193,7 @@ export async function redemptionTotals(
     })
     .from(registrations)
     .where(sql`${registrations.referralCode} is not null`)
-    .groupBy(registrations.referralCode);
+    .groupBy(canonicalCode(registrations.referralCode));
 
   return new Map(
     rows.map((r) => [
