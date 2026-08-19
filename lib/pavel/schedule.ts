@@ -16,6 +16,15 @@ import { type WorkshopSchedule } from "@/lib/pavel/workshopSchedule";
  */
 
 const MS_PER_HOUR = 3_600_000;
+
+/**
+ * How long post-event emails wait for a recording link before going without it.
+ *
+ * Zoom's own guarantee is 24 hours, and processing usually finishes well inside
+ * that. Waiting a full day past the outer limit would leave attendees wondering
+ * whether they were forgotten, so this sits at the guarantee itself.
+ */
+export const POST_EVENT_MAX_WAIT_MS = 24 * 3_600_000;
 const MS_PER_DAY = 86_400_000;
 
 /**
@@ -72,7 +81,11 @@ export function isReminderType(value: string): value is ReminderType {
  * email_log unique constraint remains the real guarantee that a type sends once,
  * which is also what makes a missed cron run catch up rather than skip.
  */
-export function dueReminderTypes(now: Date, schedule: WorkshopSchedule): ReminderType[] {
+export function dueReminderTypes(
+  now: Date,
+  schedule: WorkshopSchedule,
+  options: { recordingPublished?: boolean } = {}
+): ReminderType[] {
   const start = new Date(schedule.startUtc).getTime();
   const end = new Date(schedule.endUtc).getTime();
   const t = now.getTime();
@@ -92,8 +105,23 @@ export function dueReminderTypes(now: Date, schedule: WorkshopSchedule): Reminde
   }
   if (tightest) due.push(tightest);
 
-  // After the event has ended.
-  if (t >= end) due.push("post_event");
+  // After the event has ended — but not the instant it does.
+  //
+  // Attendees should get their certificate and the recording in ONE email, and
+  // a no-show should get one mail that actually contains the recording it is
+  // named after. Zoom needs roughly one to two times the session length to
+  // process a cloud recording, so firing at the final minute guarantees both
+  // emails go out without it.
+  //
+  // So this waits for the link to be published. The grace period is the safety
+  // net: if nobody pastes it, the emails still go after POST_EVENT_MAX_WAIT_MS
+  // rather than never — a forgotten link must not cost someone their
+  // certificate, and the templates omit the recording section when there is
+  // none.
+  if (t >= end) {
+    const graceExpired = t >= end + POST_EVENT_MAX_WAIT_MS;
+    if (options.recordingPublished || graceExpired) due.push("post_event");
+  }
 
   return due;
 }

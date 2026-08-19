@@ -319,7 +319,9 @@ export async function GET(request: Request) {
     }
     types = [forced];
   } else {
-    types = dueReminderTypes(new Date(), schedule);
+    types = dueReminderTypes(new Date(), schedule, {
+      recordingPublished: Boolean(activeSession.recordingUrl?.trim()),
+    });
   }
 
   if (types.length === 0) {

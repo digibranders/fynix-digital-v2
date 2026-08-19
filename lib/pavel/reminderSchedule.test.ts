@@ -51,10 +51,13 @@ describe("dueReminderTypes", () => {
     expect(at("2026-09-05T12:00:00Z")).toEqual([]);
   });
 
-  it("switches to post_event only after the end", () => {
-    expect(at("2026-09-05T14:29:00Z")).toEqual([]);
-    expect(at("2026-09-05T14:30:00Z")).toEqual(["post_event"]);
-    expect(at("2026-09-06T09:00:00Z")).toEqual(["post_event"]);
+  it("switches to post_event only after the end, once the recording is up", () => {
+    const withRecording = (iso: string) =>
+      dueReminderTypes(new Date(iso), schedule, { recordingPublished: true });
+
+    expect(withRecording("2026-09-05T14:29:00Z")).toEqual([]);
+    expect(withRecording("2026-09-05T14:30:00Z")).toEqual(["post_event"]);
+    expect(withRecording("2026-09-06T09:00:00Z")).toEqual(["post_event"]);
   });
 
   it("gives an early buyer the full sequence, one at a time", () => {
@@ -93,5 +96,37 @@ describe("reminderWindowOpensAt", () => {
     const oneHourOpened = reminderWindowOpensAt("reminder_1h", schedule)!;
     expect(registeredAt > oneDayOpened).toBe(true);
     expect(registeredAt < oneHourOpened).toBe(true);
+  });
+});
+
+describe("post_event waits for the recording", () => {
+  const end = new Date(schedule.endUtc).getTime();
+  const at = (ms: number, recordingPublished: boolean) =>
+    dueReminderTypes(new Date(end + ms), schedule, { recordingPublished });
+
+  it("holds the emails while the recording is still processing", () => {
+    // Zoom needs roughly the session's own length to process. Sending now would
+    // give attendees a certificate with no recording and no-shows an email
+    // named after one it does not contain.
+    expect(at(60_000, false)).toEqual([]);
+    expect(at(6 * 3_600_000, false)).toEqual([]);
+  });
+
+  it("sends as soon as the recording is published", () => {
+    expect(at(60_000, true)).toEqual(["post_event"]);
+    expect(at(2 * 3_600_000, true)).toEqual(["post_event"]);
+  });
+
+  it("sends anyway after 24 hours, so a forgotten link costs nobody a certificate", () => {
+    expect(at(23 * 3_600_000, false)).toEqual([]);
+    expect(at(24 * 3_600_000, false)).toEqual(["post_event"]);
+    expect(at(48 * 3_600_000, false)).toEqual(["post_event"]);
+  });
+
+  it("sends nothing while the session is still running", () => {
+    // A minute before the END is mid-session: past the start, so no pre-event
+    // reminder applies, and post_event is not due however ready the recording.
+    expect(at(-60_000, true)).toEqual([]);
+    expect(at(-60_000, false)).toEqual([]);
   });
 });
