@@ -4,8 +4,10 @@ import { revalidatePath } from "next/cache";
 import { isAdminAuthenticated } from "@/lib/admin/auth";
 import { loadRegistrations } from "@/lib/admin/registrations";
 import { loadSessions, mutateSession } from "@/lib/admin/sessions";
+import { loadReferrals, mutateReferral } from "@/lib/admin/referrals";
 import PavelDashboard from "@/components/admin/PavelDashboard";
 import { SessionPanel } from "@/components/admin/SessionPanel";
+import { ReferralPanel } from "@/components/admin/ReferralPanel";
 
 export const runtime = "nodejs";
 // Reads cookies + live data on every request; never statically cached.
@@ -48,9 +50,10 @@ export default async function PavelAdminPage() {
     redirect("/admin");
   }
 
-  const [{ rows, error }, sessionsResult] = await Promise.all([
+  const [{ rows, error }, sessionsResult, referralsResult] = await Promise.all([
     loadRegistrations(),
     loadSessions(),
+    loadReferrals(),
   ]);
 
   /**
@@ -91,6 +94,15 @@ export default async function PavelAdminPage() {
     await revalidateLanding();
   }
 
+  async function deleteSessionAction(formData: FormData) {
+    "use server";
+    if (!(await isAdminAuthenticated())) redirect("/admin");
+    await mutateSession("delete", {
+      sessionId: String(formData.get("sessionId") ?? ""),
+    });
+    await revalidateLanding();
+  }
+
   async function setClosedAction(formData: FormData) {
     "use server";
     if (!(await isAdminAuthenticated())) redirect("/admin");
@@ -99,6 +111,61 @@ export default async function PavelAdminPage() {
       { sessionId: String(formData.get("sessionId") ?? "") }
     );
     await revalidateLanding();
+  }
+
+  /**
+   * Referral mutations. Authorised individually, for the same reason the session
+   * actions are: a form action is a POST endpoint in its own right, so
+   * authorising only the page render would leave these callable by anyone who
+   * knows the action id.
+   *
+   * Only `/admin/pavel` is revalidated, not the landing page: a code change
+   * alters nothing that is cached publicly. The page never renders a code, and
+   * checkout re-reads the rules from the database on every attempt.
+   */
+  const referralFields = (formData: FormData) => ({
+    code: String(formData.get("code") ?? ""),
+    discountPercent: String(formData.get("discountPercent") ?? ""),
+    label: String(formData.get("label") ?? ""),
+    ownerName: String(formData.get("ownerName") ?? ""),
+    ownerEmail: String(formData.get("ownerEmail") ?? ""),
+    commissionPercent: String(formData.get("commissionPercent") ?? ""),
+    maxUses: String(formData.get("maxUses") ?? ""),
+    expiresAt: String(formData.get("expiresAt") ?? ""),
+  });
+
+  async function createReferralAction(formData: FormData) {
+    "use server";
+    if (!(await isAdminAuthenticated())) redirect("/admin");
+    await mutateReferral("create", referralFields(formData));
+    revalidatePath("/admin/pavel");
+  }
+
+  async function updateReferralAction(formData: FormData) {
+    "use server";
+    if (!(await isAdminAuthenticated())) redirect("/admin");
+    await mutateReferral("update", {
+      id: String(formData.get("id") ?? ""),
+      ...referralFields(formData),
+    });
+    revalidatePath("/admin/pavel");
+  }
+
+  async function toggleReferralAction(formData: FormData) {
+    "use server";
+    if (!(await isAdminAuthenticated())) redirect("/admin");
+    await mutateReferral("toggle", {
+      id: String(formData.get("id") ?? ""),
+      active: formData.get("active") === "true",
+    });
+    revalidatePath("/admin/pavel");
+  }
+
+  async function deleteReferralAction(formData: FormData) {
+    "use server";
+    if (!(await isAdminAuthenticated())) redirect("/admin");
+    await mutateReferral("delete", { id: String(formData.get("id") ?? "") });
+    revalidatePath("/admin/pavel");
   }
 
   if (error) {
@@ -122,7 +189,16 @@ export default async function PavelAdminPage() {
         createAction={createSessionAction}
         activateAction={activateSessionAction}
         setClosedAction={setClosedAction}
+        deleteAction={deleteSessionAction}
         updateAction={updateSessionAction}
+      />
+      <ReferralPanel
+        codes={referralsResult.codes}
+        error={referralsResult.error}
+        createAction={createReferralAction}
+        updateAction={updateReferralAction}
+        toggleAction={toggleReferralAction}
+        deleteAction={deleteReferralAction}
       />
     </PavelDashboard>
   );
