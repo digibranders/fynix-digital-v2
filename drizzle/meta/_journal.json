@@ -120,6 +120,13 @@
       "when": 1787067637494,
       "tag": "0016_wandering_squirrel_girl",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1787131167180,
+      "tag": "0017_living_zarek",
+      "breakpoints": true
     }
   ]
 }

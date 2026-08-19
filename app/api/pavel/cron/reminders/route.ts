@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, inArray, lte } from "drizzle-orm";
 import { loadSchedule } from "@/lib/pavel/loadSchedule";
 import { getActiveSession } from "@/lib/pavel/webinarSession";
 import {
   REMINDER_TYPES,
   dueReminderTypes,
   isReminderType,
+  reminderWindowOpensAt,
   type ReminderType,
 } from "@/lib/pavel/schedule";
 import type { WorkshopSchedule } from "@/lib/pavel/workshopSchedule";
@@ -64,6 +65,8 @@ async function runReminderType(
   schedule: WorkshopSchedule,
   activeSessionId: string
 ) {
+  const windowOpensAt = reminderWindowOpensAt(type, schedule);
+
   // Paid seats FOR THE ACTIVE SESSION only.
   //
   // This used to be every paid seat ever sold. The reminders are built from the
@@ -102,7 +105,13 @@ async function runReminderType(
       .where(
         and(
           eq(registrations.status, "paid"),
-          eq(registrations.sessionId, activeSessionId)
+          eq(registrations.sessionId, activeSessionId),
+          // Skip anyone who registered AFTER this reminder was due. Every window
+          // stays open until the workshop starts, so without this a buyer who
+          // paid 70 minutes beforehand was immediately sent "1 day to go" — a
+          // countdown that had already run out. They simply receive the next
+          // reminder instead, which is the one that actually applies to them.
+          ...(windowOpensAt ? [lte(registrations.createdAt, windowOpensAt)] : [])
         )
       );
   } catch (regError) {

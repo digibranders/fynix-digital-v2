@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { dueReminderTypes } from "@/lib/pavel/schedule";
+import {
+  dueReminderTypes,
+  reminderWindowOpensAt,
+} from "@/lib/pavel/schedule";
 import type { WorkshopSchedule } from "@/lib/pavel/workshopSchedule";
 
 /**
@@ -61,5 +64,34 @@ describe("dueReminderTypes", () => {
     expect(at("2026-09-03T11:30:00Z")).toEqual(["reminder_3d"]);
     expect(at("2026-09-04T11:30:00Z")).toEqual(["reminder_1d"]);
     expect(at("2026-09-05T11:00:00Z")).toEqual(["reminder_1h"]);
+  });
+});
+
+describe("reminderWindowOpensAt", () => {
+  it("returns the moment each reminder is meant to be sent", () => {
+    expect(reminderWindowOpensAt("reminder_7d", schedule)?.toISOString()).toBe(
+      "2026-08-29T11:30:00.000Z"
+    );
+    expect(reminderWindowOpensAt("reminder_1d", schedule)?.toISOString()).toBe(
+      "2026-09-04T11:30:00.000Z"
+    );
+    expect(reminderWindowOpensAt("reminder_1h", schedule)?.toISOString()).toBe(
+      "2026-09-05T10:30:00.000Z"
+    );
+  });
+
+  it("returns null for post_event", () => {
+    // Not a countdown: it goes to everyone holding a seat, whenever they bought.
+    expect(reminderWindowOpensAt("post_event", schedule)).toBeNull();
+  });
+
+  it("is what stops a late buyer being told '1 day to go' an hour before", () => {
+    // Someone registering at this moment is AFTER the 1-day window opened, so
+    // they are excluded from it and receive the 1-hour reminder instead.
+    const registeredAt = new Date("2026-09-05T10:16:00Z");
+    const oneDayOpened = reminderWindowOpensAt("reminder_1d", schedule)!;
+    const oneHourOpened = reminderWindowOpensAt("reminder_1h", schedule)!;
+    expect(registeredAt > oneDayOpened).toBe(true);
+    expect(registeredAt < oneHourOpened).toBe(true);
   });
 });

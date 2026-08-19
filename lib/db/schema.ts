@@ -56,6 +56,20 @@ export const registrations = pgTable(
     zoomRegistrantId: text("zoom_registrant_id"),
     zoomJoinUrl: text("zoom_join_url"),
     zoomRegisteredAt: timestamp("zoom_registered_at", { withTimezone: true }),
+    /**
+     * How many times we have asked Zoom to register this seat, and when we last
+     * tried.
+     *
+     * Zoom allows only THREE registration attempts per person per webinar per
+     * day. The backfill retries every linkless paid seat on every cron run, so
+     * without a record of what has already been spent it burns that budget in
+     * minutes and locks the buyer out until 00:00 GMT — turning a transient
+     * failure into a whole day without a join link.
+     */
+    zoomAccessAttempts: integer("zoom_access_attempts").notNull().default(0),
+    zoomAccessLastAttemptAt: timestamp("zoom_access_last_attempt_at", {
+      withTimezone: true,
+    }),
 
     // Live attendance, filled from Zoom after the session. `attendedMinutes`
     // stays null until attendance has been synced, which is deliberately

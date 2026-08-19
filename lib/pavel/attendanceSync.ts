@@ -36,6 +36,21 @@ export async function syncAttendance(
       return { status: "skipped", reason: "No active webinar session." };
     }
 
+    // Nothing to sync until the session has finished. Zoom's participant report
+    // does not exist for a webinar that has not happened, and asking for it
+    // answers "Meeting does not exist" — which this reported as an ERROR on
+    // every run. With the cron running every few minutes that is a steady
+    // stream of false alarms, and a real failure is indistinguishable from it.
+    //
+    // Skipping also removes a Zoom API call from every tick in the weeks before
+    // an event, where it could never have returned anything.
+    if (target.endsAt && Date.now() < target.endsAt.getTime()) {
+      return {
+        status: "skipped",
+        reason: "Session has not ended yet; no attendance report to read.",
+      };
+    }
+
     const attendance = await fetchAttendance(target.zoomWebinarId);
 
     // An empty or all-zero report usually means Zoom has not finished

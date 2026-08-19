@@ -98,3 +98,35 @@ export function dueReminderTypes(now: Date, schedule: WorkshopSchedule): Reminde
   return due;
 }
 
+
+
+/**
+ * When a reminder's window opens, i.e. the moment it is meant to be sent.
+ *
+ * Used to decide who should receive it: a reminder is a nudge for someone who
+ * has been waiting, so it is not sent to a buyer who registered after the
+ * moment had already passed. Without that, someone paying 70 minutes before the
+ * workshop was immediately sent "1 day to go", because the day-out window was
+ * still technically open.
+ *
+ * Returns null for post_event, which is not a countdown and goes to everyone
+ * who holds a seat regardless of when they bought it.
+ */
+export function reminderWindowOpensAt(
+  type: ReminderType,
+  schedule: WorkshopSchedule
+): Date | null {
+  const start = new Date(schedule.startUtc).getTime();
+  switch (type) {
+    case "reminder_7d":
+      return new Date(start - 7 * MS_PER_DAY);
+    case "reminder_3d":
+      return new Date(start - 3 * MS_PER_DAY);
+    case "reminder_1d":
+      return new Date(start - MS_PER_DAY);
+    case "reminder_1h":
+      return new Date(start - MS_PER_HOUR);
+    case "post_event":
+      return null;
+  }
+}
