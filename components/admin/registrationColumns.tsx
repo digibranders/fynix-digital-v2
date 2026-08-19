@@ -11,6 +11,7 @@ import {
   type AdminRegistrationRow,
 } from "@/lib/admin/registrationRow";
 import { formatMoney } from "@/lib/admin/registrationTotals";
+import { moneySortKey, type SortKey } from "@/lib/admin/sortRows";
 import { COUNTRIES, flagEmoji } from "@/components/pavel/countries";
 
 /**
@@ -52,6 +53,28 @@ export type RegistrationColumn = {
   numeric?: boolean;
   cell: (row: AdminRegistrationRow) => ReactNode;
   csv: (row: AdminRegistrationRow) => string | number | null;
+  /**
+   * What this column sorts by, when that is not what it exports.
+   *
+   * The CSV accessor is the default sort key and is right for most columns:
+   * money is exported as a number, and timestamps as `YYYY-MM-DD HH:mm IST`,
+   * which sorts lexicographically into chronological order. Three cases need
+   * their own key:
+   *
+   * - **Money.** The export is a bare number, so ₹7,499 and $99 would be
+   *   ordered 99 then 7499 as though they were the same unit. `moneySortKey`
+   *   groups by currency first, which is the only honest ordering across two.
+   * - **Anything read from the clock.** `ageDays` calls `new Date()`, so using
+   *   it as a sort key would let the key change between two comparisons of the
+   *   same row. It sorts by the timestamp it is derived from instead.
+   * - **Decorated labels.** The country export leads with a flag emoji, which
+   *   would sort by codepoint rather than by name.
+   *
+   * `undefined` means "sort by `csv`".
+   */
+  sortKey?: (row: AdminRegistrationRow) => SortKey;
+  /** Off for columns where no ordering is meaningful. */
+  sortable?: boolean;
 };
 
 /* ---------------------------------------------------------------- helpers */
@@ -85,7 +108,7 @@ export function formatIstForCsv(iso: string | null): string {
 
 /** Placeholder for an absent value. */
 function Dash() {
-  return <span className="text-slate-600">—</span>;
+  return <span className="text-text-muted">—</span>;
 }
 
 /** Date over time on a single non-wrapping block, so narrow columns stay tidy. */
@@ -94,8 +117,8 @@ function DateCell({ iso }: { iso: string | null }) {
   if (!date || Number.isNaN(date.getTime())) return <Dash />;
   return (
     <div className="whitespace-nowrap leading-tight">
-      <span className="text-slate-300">{DAY_FORMAT.format(date)}</span>
-      <span className="mt-0.5 block text-xs text-slate-500">
+      <span className="text-foreground">{DAY_FORMAT.format(date)}</span>
+      <span className="mt-0.5 block text-xs text-text-muted">
         {TIME_FORMAT.format(date)}
       </span>
     </div>
@@ -104,23 +127,23 @@ function DateCell({ iso }: { iso: string | null }) {
 
 function Text({ value }: { value: string | null }) {
   if (!value) return <Dash />;
-  return <span className="whitespace-nowrap text-slate-300">{value}</span>;
+  return <span className="whitespace-nowrap text-foreground">{value}</span>;
 }
 
 /** Money in minor units rendered in its own currency, or a dash. */
 function Money({ minor, currency }: { minor: number | null; currency: string | null }) {
   if (minor === null || !currency) return <Dash />;
   return (
-    <span className="whitespace-nowrap tabular-nums text-slate-200">
+    <span className="whitespace-nowrap tabular-nums text-foreground">
       {formatMoney(minor, currency)}
     </span>
   );
 }
 
 function Yes({ value, warn = false }: { value: boolean; warn?: boolean }) {
-  if (!value) return <span className="text-xs text-slate-600">no</span>;
+  if (!value) return <span className="text-xs text-text-muted">no</span>;
   return (
-    <span className={`text-xs font-medium ${warn ? "text-amber-400" : "text-emerald-400"}`}>
+    <span className={`text-xs font-medium ${warn ? "text-warning" : "text-success"}`}>
       yes
     </span>
   );
@@ -150,13 +173,13 @@ function StatusBadge({ status }: { status: string }) {
         aria-hidden="true"
         className={
           isPaid
-            ? "h-2 w-2 shrink-0 rounded-full bg-emerald-400 shadow-[0_0_0_3px_rgba(16,185,129,0.16)]"
-            : "h-2 w-2 shrink-0 rounded-full border-[1.5px] border-amber-400/90"
+            ? "h-2 w-2 shrink-0 rounded-full bg-success ring-[3px] ring-success-surface"
+            : "h-2 w-2 shrink-0 rounded-full border-[1.5px] border-warning"
         }
       />
       <span
         className={`text-sm font-medium tracking-tight ${
-          isPaid ? "text-emerald-300" : "text-amber-200/90"
+          isPaid ? "text-success" : "text-warning"
         }`}
       >
         {isPaid ? "Paid" : "Pending"}
@@ -176,15 +199,15 @@ function CouponCell({ row }: { row: AdminRegistrationRow }) {
   return (
     <div className="whitespace-nowrap leading-tight">
       <span
-        className={`font-mono text-xs ${applied ? "text-emerald-300" : "text-slate-400"}`}
+        className={`font-mono text-xs ${applied ? "text-success" : "text-text-muted"}`}
       >
         {row.referralCode}
       </span>
       <span className="mt-0.5 block text-xs">
         {applied ? (
-          <span className="text-emerald-400/80">−{row.discountPercent}% applied</span>
+          <span className="text-success/80">−{row.discountPercent}% applied</span>
         ) : (
-          <span className="text-slate-600">full price</span>
+          <span className="text-text-muted">full price</span>
         )}
       </span>
     </div>
@@ -205,7 +228,7 @@ function AttendanceCell({ row }: { row: AdminRegistrationRow }) {
   if (band === "not_synced") {
     return (
       <span
-        className="whitespace-nowrap text-xs text-slate-500"
+        className="whitespace-nowrap text-xs text-text-muted"
         title={
           row.hasJoinLink
             ? "Registered with Zoom; attendance not synced yet"
@@ -219,7 +242,7 @@ function AttendanceCell({ row }: { row: AdminRegistrationRow }) {
   if (band === "no_show") {
     return (
       <span
-        className="whitespace-nowrap text-xs font-medium text-amber-400"
+        className="whitespace-nowrap text-xs font-medium text-warning"
         title="Registered but never joined"
       >
         no-show
@@ -227,7 +250,7 @@ function AttendanceCell({ row }: { row: AdminRegistrationRow }) {
     );
   }
   return (
-    <span className="whitespace-nowrap tabular-nums text-slate-300">
+    <span className="whitespace-nowrap tabular-nums text-foreground">
       {row.attendedMinutes} min
     </span>
   );
@@ -254,7 +277,7 @@ export const REGISTRATION_COLUMNS: RegistrationColumn[] = [
     label: "Ref",
     group: "Identity",
     visible: true,
-    cell: (r) => <span className="font-mono text-xs text-slate-400">{r.ref}</span>,
+    cell: (r) => <span className="font-mono text-xs text-text-muted">{r.ref}</span>,
     csv: (r) => r.ref,
   },
   {
@@ -262,7 +285,7 @@ export const REGISTRATION_COLUMNS: RegistrationColumn[] = [
     label: "Name",
     group: "Identity",
     visible: true,
-    cell: (r) => <span className="font-medium text-white">{r.name}</span>,
+    cell: (r) => <span className="font-medium text-primary">{r.name}</span>,
     csv: (r) => r.name,
   },
   {
@@ -270,7 +293,7 @@ export const REGISTRATION_COLUMNS: RegistrationColumn[] = [
     label: "Email",
     group: "Identity",
     visible: true,
-    cell: (r) => <span className="text-slate-300">{r.email}</span>,
+    cell: (r) => <span className="text-foreground">{r.email}</span>,
     csv: (r) => r.email,
   },
   {
@@ -282,7 +305,7 @@ export const REGISTRATION_COLUMNS: RegistrationColumn[] = [
       r.phone ? (
         <a
           href={`tel:${r.phone.replace(/\s+/g, "")}`}
-          className="whitespace-nowrap text-slate-300 transition hover:text-emerald-300"
+          className="whitespace-nowrap text-foreground transition hover:text-success"
         >
           {r.phone}
         </a>
@@ -297,7 +320,7 @@ export const REGISTRATION_COLUMNS: RegistrationColumn[] = [
     group: "Identity",
     visible: true,
     cell: (r) => (
-      <span className="whitespace-nowrap text-slate-300">
+      <span className="whitespace-nowrap text-foreground">
         {countryLabel(r.country, r.countryName)}
       </span>
     ),
@@ -343,7 +366,7 @@ export const REGISTRATION_COLUMNS: RegistrationColumn[] = [
     visible: false,
     cell: (r) =>
       r.gstin ? (
-        <span className="whitespace-nowrap font-mono text-xs text-slate-300">
+        <span className="whitespace-nowrap font-mono text-xs text-foreground">
           {r.gstin}
         </span>
       ) : (
@@ -378,6 +401,7 @@ export const REGISTRATION_COLUMNS: RegistrationColumn[] = [
     cell: (r) => <Money minor={r.amountCharged} currency={r.currency} />,
     // Minor units are divided out so a spreadsheet can sum the column.
     csv: (r) => (r.amountCharged === null ? "" : r.amountCharged / 100),
+    sortKey: (r) => moneySortKey(r.amountCharged, r.currency),
   },
   {
     key: "listValue",
@@ -387,6 +411,7 @@ export const REGISTRATION_COLUMNS: RegistrationColumn[] = [
     numeric: true,
     cell: (r) => <Money minor={r.listValue} currency={r.currency} />,
     csv: (r) => (r.listValue === null ? "" : r.listValue / 100),
+    sortKey: (r) => moneySortKey(r.listValue, r.currency),
   },
   {
     key: "discountAmount",
@@ -396,6 +421,7 @@ export const REGISTRATION_COLUMNS: RegistrationColumn[] = [
     numeric: true,
     cell: (r) => <Money minor={r.discountAmount} currency={r.currency} />,
     csv: (r) => (r.discountAmount === null ? "" : r.discountAmount / 100),
+    sortKey: (r) => moneySortKey(r.discountAmount, r.currency),
   },
   {
     key: "taxableValue",
@@ -405,6 +431,7 @@ export const REGISTRATION_COLUMNS: RegistrationColumn[] = [
     numeric: true,
     cell: (r) => <Money minor={r.taxableValue} currency={r.currency} />,
     csv: (r) => (r.taxableValue === null ? "" : r.taxableValue / 100),
+    sortKey: (r) => moneySortKey(r.taxableValue, r.currency),
   },
   {
     key: "totalTax",
@@ -414,6 +441,7 @@ export const REGISTRATION_COLUMNS: RegistrationColumn[] = [
     numeric: true,
     cell: (r) => <Money minor={r.totalTax} currency={r.currency} />,
     csv: (r) => (r.totalTax === null ? "" : r.totalTax / 100),
+    sortKey: (r) => moneySortKey(r.totalTax, r.currency),
   },
   {
     key: "cgst",
@@ -423,6 +451,7 @@ export const REGISTRATION_COLUMNS: RegistrationColumn[] = [
     numeric: true,
     cell: (r) => <Money minor={r.cgst} currency={r.currency} />,
     csv: (r) => (r.cgst === null ? "" : r.cgst / 100),
+    sortKey: (r) => moneySortKey(r.cgst, r.currency),
   },
   {
     key: "sgst",
@@ -432,6 +461,7 @@ export const REGISTRATION_COLUMNS: RegistrationColumn[] = [
     numeric: true,
     cell: (r) => <Money minor={r.sgst} currency={r.currency} />,
     csv: (r) => (r.sgst === null ? "" : r.sgst / 100),
+    sortKey: (r) => moneySortKey(r.sgst, r.currency),
   },
   {
     key: "igst",
@@ -441,6 +471,7 @@ export const REGISTRATION_COLUMNS: RegistrationColumn[] = [
     numeric: true,
     cell: (r) => <Money minor={r.igst} currency={r.currency} />,
     csv: (r) => (r.igst === null ? "" : r.igst / 100),
+    sortKey: (r) => moneySortKey(r.igst, r.currency),
   },
   {
     key: "taxRatePercent",
@@ -541,6 +572,7 @@ export const REGISTRATION_COLUMNS: RegistrationColumn[] = [
       const owed = rowCommission(r);
       return owed === null ? "" : owed / 100;
     },
+    sortKey: (r) => moneySortKey(rowCommission(r), r.currency),
   },
 
   // ---- Payment
@@ -588,6 +620,9 @@ export const REGISTRATION_COLUMNS: RegistrationColumn[] = [
     numeric: true,
     cell: (r) => <Text value={String(ageInDays(r, new Date()))} />,
     csv: (r) => ageInDays(r, new Date()),
+    // Monotonic in `createdAt`, and unlike the export this cannot change
+    // between two comparisons of the same row.
+    sortKey: (r) => -new Date(r.createdAt).getTime(),
   },
   {
     key: "invoiceNo",
@@ -600,7 +635,7 @@ export const REGISTRATION_COLUMNS: RegistrationColumn[] = [
           href={`/api/admin/invoice/${encodeURIComponent(r.ref)}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="whitespace-nowrap font-mono text-xs text-emerald-400 underline-offset-2 transition hover:text-emerald-300 hover:underline"
+          className="whitespace-nowrap font-mono text-xs text-success underline-offset-2 transition hover:text-success hover:underline"
           title="Open the tax invoice PDF"
         >
           {r.invoiceNo}
@@ -641,7 +676,7 @@ export const REGISTRATION_COLUMNS: RegistrationColumn[] = [
     visible: false,
     cell: (r) =>
       r.razorpayPaymentId ? (
-        <span className="whitespace-nowrap font-mono text-xs text-slate-400">
+        <span className="whitespace-nowrap font-mono text-xs text-text-muted">
           {r.razorpayPaymentId}
         </span>
       ) : (
@@ -656,7 +691,7 @@ export const REGISTRATION_COLUMNS: RegistrationColumn[] = [
     visible: false,
     cell: (r) =>
       r.razorpayOrderId ? (
-        <span className="whitespace-nowrap font-mono text-xs text-slate-400">
+        <span className="whitespace-nowrap font-mono text-xs text-text-muted">
           {r.razorpayOrderId}
         </span>
       ) : (
@@ -726,8 +761,8 @@ export const REGISTRATION_COLUMNS: RegistrationColumn[] = [
       <span
         className={`tabular-nums ${
           r.zoomAccessAttempts >= 3 && !r.hasJoinLink
-            ? "font-medium text-amber-400"
-            : "text-slate-300"
+            ? "font-medium text-warning"
+            : "text-foreground"
         }`}
       >
         {r.zoomAccessAttempts}
@@ -828,7 +863,7 @@ export const REGISTRATION_COLUMNS: RegistrationColumn[] = [
     visible: false,
     numeric: true,
     cell: (r) => (
-      <span className="tabular-nums text-slate-300" title={r.emailTypes.join(", ")}>
+      <span className="tabular-nums text-foreground" title={r.emailTypes.join(", ")}>
         {r.emailTypes.length}
       </span>
     ),
@@ -841,7 +876,7 @@ export const REGISTRATION_COLUMNS: RegistrationColumn[] = [
     visible: false,
     cell: (r) =>
       r.emailTypes.length ? (
-        <span className="text-xs text-slate-400">{r.emailTypes.join(", ")}</span>
+        <span className="text-xs text-text-muted">{r.emailTypes.join(", ")}</span>
       ) : (
         <Dash />
       ),

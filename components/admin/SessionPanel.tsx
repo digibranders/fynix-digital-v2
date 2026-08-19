@@ -1,8 +1,8 @@
-import { ChevronRight } from "lucide-react";
 import type { AdminSessionRow } from "@/lib/admin/sessions";
 import { RecordingLinkFields } from "@/components/admin/RecordingLinkFields";
 import { SessionTimeFields } from "@/components/admin/SessionTimeFields";
 import { SubmitButton } from "@/components/admin/SubmitButton";
+import { Alert, Badge, Card, CardHeader } from "@/components/admin/ui";
 import { toIstWallClock } from "@/lib/pavel/sessionTimes";
 
 /** Session times are shown in IST, which is where the workshop runs. */
@@ -33,7 +33,25 @@ const SESSION_END_TIME = new Intl.DateTimeFormat("en-GB", {
  * it, and new paid registrations go to whichever is active at the time.
  *
  * A server component with form actions, so no client JavaScript is needed.
+ *
+ * Two layout constraints that are not obvious from reading the markup:
+ *
+ * - **Every control keeps its own `<form>`.** `SubmitButton` reads
+ *   `useFormStatus`, which reports the form the button sits in, so one shared
+ *   form would light up every button whenever any of them was pressed. The
+ *   Schedule and Recording groups are therefore forms styled as field groups
+ *   rather than field groups wrapping forms: a `<form>` inside a `<form>` is
+ *   invalid, and browsers resolve it by silently dropping the inner one.
+ * - **No `overflow-hidden` on a session card.** `DateTimeField` opens its
+ *   calendar as an absolutely positioned popover inside its own container, so a
+ *   clipping ancestor would cut it off at the card's edge.
  */
+
+const GROUP =
+  "rounded-lg border border-border bg-console-sunken px-4 py-3";
+const GROUP_LEGEND =
+  "mb-2 font-mono text-[11px] uppercase tracking-widest text-text-muted";
+
 export function SessionPanel({
   sessions,
   error,
@@ -60,264 +78,273 @@ export function SessionPanel({
   const selling = Boolean(active && !active.registrationsClosed);
 
   return (
-    <section className="mb-8 rounded-xl border border-white/10 bg-slate-900/40 p-5">
-      <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
-        <h2 className="text-sm font-semibold text-white">Webinar session</h2>
-        {active && !active.registrationsClosed ? (
-          <p className="text-xs text-slate-400">
-            New registrations join{" "}
-            <span className="font-medium text-emerald-400">{active.label}</span>{" "}
-            <span className="font-mono text-slate-500">{active.zoomWebinarId}</span>
-          </p>
-        ) : active ? (
-          <p className="text-xs text-amber-400">
-            Closed: the landing page shows no price and checkout refuses.
-          </p>
-        ) : (
-          <p className="text-xs text-amber-400">
-            No active session, so nothing can be sold. Activate one to open
-            registrations.
-          </p>
-        )}
-      </div>
+    <Card>
+      <CardHeader
+        eyebrow="Webinar"
+        title="Sessions"
+        description="Exactly one session is active. New paid registrations join whichever one that is, and the times set here drive the landing page copy, the emails and when reminders fire."
+        actions={
+          active && !active.registrationsClosed ? (
+            <p className="text-xs text-text-muted">
+              New registrations join{" "}
+              <span className="font-medium text-primary">{active.label}</span>{" "}
+              <span className="font-mono">{active.zoomWebinarId}</span>
+            </p>
+          ) : null
+        }
+      />
 
-      {/* The single fact an operator needs at a glance: are we selling? */}
-      <div
-        className={`mb-4 flex items-center gap-2 rounded-lg border px-3 py-2 text-xs ${
-          selling
-            ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
-            : "border-amber-500/30 bg-amber-500/10 text-amber-300"
-        }`}
-      >
-        <span
-          className={`h-2 w-2 shrink-0 rounded-full ${
-            selling ? "bg-emerald-400" : "bg-amber-400"
+      <div className="space-y-4 px-5 py-4">
+        {/* The single fact an operator needs at a glance: are we selling? */}
+        <div
+          className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm ${
+            selling
+              ? "border-success/25 bg-success-surface text-success"
+              : "border-warning/25 bg-warning-surface text-warning"
           }`}
-        />
-        <span className="font-medium">
-          {selling ? "Registrations are open" : "Registrations are closed"}
-        </span>
-      </div>
-
-      {error ? (
-        <p className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-300">
-          {error}
-        </p>
-      ) : null}
-
-      {/* Collapsed by default: once a session is active and selling, the banner
-          above is the whole story and the list is just noise on a page whose
-          real subject is the registrations below.
-
-          It opens itself when something needs attention — nothing active, an
-          error, or registrations closed — because those are exactly the states
-          where hiding the controls would be unhelpful. `details` keeps this a
-          server component with no client JavaScript. */}
-      <details open={!selling || Boolean(error)} className="group">
-        <summary className="mb-3 inline-flex cursor-pointer list-none items-center gap-1.5 rounded-lg border border-white/10 px-3 py-1.5 text-xs text-slate-400 transition hover:border-white/25 hover:text-slate-200 [&::-webkit-details-marker]:hidden">
-          <ChevronRight className="h-3.5 w-3.5 transition-transform group-open:rotate-90" />
-          {sessions.length === 1 ? "1 session" : `${sessions.length} sessions`}
-          <span className="text-slate-600">·</span>
-          <span className="group-open:hidden">Manage</span>
-          <span className="hidden group-open:inline">Hide</span>
-        </summary>
-
-
-      {sessions.length > 0 ? (
-        <ul className="mb-4 space-y-2">
-          {sessions.map((session) => (
-            <li
-              key={session.id}
-              className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-white/5 bg-slate-950 px-3 py-2"
-            >
-              <div className="min-w-0">
-                <p className="truncate text-sm text-white">
-                  {session.label}
-                  {session.active ? (
-                    <span className="ml-2 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-emerald-400">
-                      active
-                    </span>
-                  ) : null}
-                  {session.registrationsClosed ? (
-                    <span className="ml-2 rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-amber-400">
-                      closed
-                    </span>
-                  ) : null}
-                </p>
-                <p className="font-mono text-xs text-slate-500">
-                  {session.zoomWebinarId}
-                  {session.startsAt ? (
-                    <span className="ml-2 font-sans text-slate-400">
-                      {SESSION_TIME.format(new Date(session.startsAt))}
-                      {session.endsAt
-                        ? ` - ${SESSION_END_TIME.format(new Date(session.endsAt))}`
-                        : ""}{" "}
-                      IST
-                    </span>
-                  ) : (
-                    <span className="ml-2 font-sans text-amber-500/80">
-                      no time set, using the built-in date
-                    </span>
-                  )}
-                </p>
-              </div>
-              <div className="flex shrink-0 items-center gap-2">
-                {/* Closing is offered only on the active session: closing an
-                    inactive one changes nothing a buyer can see, so the control
-                    would imply an effect it does not have. */}
-                {session.active ? (
-                  <form action={setClosedAction}>
-                    <input type="hidden" name="sessionId" value={session.id} />
-                    <input
-                      type="hidden"
-                      name="closed"
-                      value={session.registrationsClosed ? "false" : "true"}
-                    />
-                    <SubmitButton
-                      pendingLabel={
-                        session.registrationsClosed ? "Reopening…" : "Closing…"
-                      }
-                      className={`rounded-full border px-3 py-1 text-xs ${
-                        session.registrationsClosed
-                          ? "border-emerald-400/40 text-emerald-300 hover:bg-emerald-500/10"
-                          : "border-amber-400/40 text-amber-300 hover:bg-amber-500/10"
-                      }`}
-                    >
-                      {session.registrationsClosed
-                        ? "Reopen registrations"
-                        : "Close registrations"}
-                    </SubmitButton>
-                  </form>
-                ) : (
-                  <form action={activateAction}>
-                    <input type="hidden" name="sessionId" value={session.id} />
-                    <SubmitButton
-                      pendingLabel="Activating…"
-                      className="rounded-full border border-white/15 px-3 py-1 text-xs text-slate-300 hover:border-emerald-400/40 hover:text-emerald-300"
-                    >
-                      Make active
-                    </SubmitButton>
-                  </form>
-                )}
-
-                {/* Delete is offered only where it can actually succeed. A
-                    session that sold seats is a business record: removing it
-                    would leave those registrations, invoices and certificates
-                    with no cohort attached. The seat count is shown instead, so
-                    the reason is visible rather than discovered by pressing a
-                    button that fails. */}
-                {session.active ? null : session.registrationCount > 0 ? (
-                  <span
-                    className="whitespace-nowrap text-[11px] text-slate-500"
-                    title="A session with registrations cannot be deleted."
-                  >
-                    {session.registrationCount} registered
-                  </span>
-                ) : (
-                  <form action={deleteAction}>
-                    <input type="hidden" name="sessionId" value={session.id} />
-                    <SubmitButton
-                      pendingLabel="Deleting…"
-                      title="Delete this session"
-                      className="rounded-full border border-white/10 px-3 py-1 text-xs text-slate-500 hover:border-red-400/40 hover:text-red-300"
-                    >
-                      Delete
-                    </SubmitButton>
-                  </form>
-                )}
-              </div>
-
-              {/*
-                Times are editable after creation, not only at it. A schedule is
-                routinely confirmed after the webinar exists, and a session
-                stored without one silently falls back to the built-in date on
-                the landing page, in the emails and in the reminder windows.
-              */}
-              <form
-                action={updateAction}
-                className="flex w-full flex-wrap items-end gap-2 border-t border-white/5 pt-2"
-              >
-                <input type="hidden" name="sessionId" value={session.id} />
-                <SessionTimeFields
-                  initialStartsAt={toIstWallClock(session.startsAt)}
-                  initialEndsAt={toIstWallClock(session.endsAt)}
-                />
-                <SubmitButton
-                  pendingLabel="Saving…"
-                  className="rounded-lg border border-white/15 px-3 py-2 text-xs text-slate-300 hover:border-emerald-400/40 hover:text-emerald-300"
-                >
-                  {session.startsAt ? "Update times" : "Set times"}
-                </SubmitButton>
-              </form>
-
-              {/* Recording link, pasted in after the event.
-                  Zoom hosts it and its own share settings carry the 7-day
-                  expiry; this is only where buyers are told to find it. Empty
-                  until published, and the post-event emails omit the section
-                  entirely rather than promising a dead link.
-
-                  The passcode is a separate field because Zoom's "invitees can
-                  access without the passcode" exempts people it invited itself,
-                  not people arriving on a link forwarded by email. Without it
-                  the buyer reaches the player and is asked for a code nobody
-                  gave them. Pasting Zoom's share block into the link box fills
-                  both, so the two never have to be separated by hand. */}
-              <form
-                action={recordingAction}
-                className="mt-2 flex w-full flex-wrap items-end gap-2 border-t border-white/5 pt-2"
-              >
-                <input type="hidden" name="sessionId" value={session.id} />
-                <RecordingLinkFields
-                  initialUrl={session.recordingUrl ?? ""}
-                  initialPasscode={session.recordingPasscode ?? ""}
-                />
-                <SubmitButton
-                  pendingLabel="Saving…"
-                  className="rounded-lg border border-white/15 px-3 py-2 text-xs text-slate-300 hover:border-emerald-400/40 hover:text-emerald-300"
-                >
-                  {session.recordingUrl ? "Update link" : "Publish"}
-                </SubmitButton>
-              </form>
-            </li>
-          ))}
-        </ul>
-      ) : null}
-
-      <form action={createAction} className="flex flex-wrap items-end gap-2">
-        <label className="flex-1 min-w-[180px] text-xs text-slate-400">
-          Zoom webinar ID
-          <input
-            name="zoomWebinarId"
-            required
-            placeholder="898 1583 0266"
-            className="mt-1 w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 font-mono text-sm text-white placeholder-slate-600 focus:border-emerald-400/50 focus:outline-none"
-          />
-        </label>
-        <label className="flex-1 min-w-[180px] text-xs text-slate-400">
-          Label
-          <input
-            name="label"
-            required
-            placeholder="Test session"
-            className="mt-1 w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm text-white placeholder-slate-600 focus:border-emerald-400/50 focus:outline-none"
-          />
-        </label>
-        <SessionTimeFields />
-        <SubmitButton
-          pendingLabel="Adding…"
-          className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-medium text-slate-950 hover:bg-emerald-400"
         >
-          Add session
-        </SubmitButton>
-        </form>
+          <span
+            aria-hidden="true"
+            className={`h-2 w-2 shrink-0 rounded-full ${
+              selling ? "bg-success" : "bg-warning"
+            }`}
+          />
+          <span className="font-medium">
+            {selling ? "Registrations are open" : "Registrations are closed"}
+          </span>
+          <span className="text-xs font-normal">
+            {selling
+              ? null
+              : active
+                ? "The landing page shows no price and checkout refuses."
+                : "No active session, so nothing can be sold. Activate one to open registrations."}
+          </span>
+        </div>
 
-        <p className="mt-2 text-[11px] text-slate-500">
-          Set the webinar to approve registrants manually. Paid buyers are then
-          pushed in automatically, and anyone who finds the public registration
-          page stays pending. The times you set here drive the page copy, the
-          emails and when reminders are sent.
-        </p>
-      </details>
-    </section>
+        {error ? (
+          <Alert tone="danger" live={false}>
+            {error}
+          </Alert>
+        ) : null}
+
+        {/*
+          Shown in full, not collapsed.
+
+          This list used to sit above the registrations table and hid itself
+          once a session was selling, because there it was noise on a page whose
+          real subject was the seats below. It now has a view of its own, which
+          an operator reaches by choosing "Sessions": collapsing the only thing
+          on that view would mean two clicks to reach what they already asked
+          for.
+        */}
+        {sessions.length > 0 ? (
+          <ul className="space-y-4">
+            {sessions.map((session) => (
+              <li
+                key={session.id}
+                className="rounded-xl border border-border bg-console-surface"
+              >
+                <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border px-4 py-3">
+                  <div className="min-w-0">
+                    <p className="flex flex-wrap items-center gap-2">
+                      <span className="text-sm font-semibold text-primary">
+                        {session.label}
+                      </span>
+                      {session.active ? (
+                        <Badge tone="success">active</Badge>
+                      ) : null}
+                      {session.registrationsClosed ? (
+                        <Badge tone="warning">closed</Badge>
+                      ) : null}
+                    </p>
+                    <p className="mt-1 text-xs text-text-muted">
+                      <span className="font-mono">{session.zoomWebinarId}</span>
+                      {session.startsAt ? (
+                        <span className="ml-2">
+                          {SESSION_TIME.format(new Date(session.startsAt))}
+                          {session.endsAt
+                            ? ` - ${SESSION_END_TIME.format(
+                                new Date(session.endsAt)
+                              )}`
+                            : ""}{" "}
+                          IST
+                        </span>
+                      ) : (
+                        <span className="ml-2 text-warning">
+                          no time set, using the built-in date
+                        </span>
+                      )}
+                    </p>
+                  </div>
+
+                  <div className="flex shrink-0 flex-wrap items-center gap-2">
+                    {/* Closing is offered only on the active session: closing
+                        an inactive one changes nothing a buyer can see, so the
+                        control would imply an effect it does not have. */}
+                    {session.active ? (
+                      <form action={setClosedAction}>
+                        <input type="hidden" name="sessionId" value={session.id} />
+                        <input
+                          type="hidden"
+                          name="closed"
+                          value={session.registrationsClosed ? "false" : "true"}
+                        />
+                        <SubmitButton
+                          pendingLabel={
+                            session.registrationsClosed
+                              ? "Reopening…"
+                              : "Closing…"
+                          }
+                          className={`console-focus rounded-lg border px-3 py-1.5 text-xs font-medium ${
+                            session.registrationsClosed
+                              ? "border-success/40 text-success hover:bg-success-surface"
+                              : "border-warning/40 text-warning hover:bg-warning-surface"
+                          }`}
+                        >
+                          {session.registrationsClosed
+                            ? "Reopen registrations"
+                            : "Close registrations"}
+                        </SubmitButton>
+                      </form>
+                    ) : (
+                      <form action={activateAction}>
+                        <input type="hidden" name="sessionId" value={session.id} />
+                        <SubmitButton
+                          pendingLabel="Activating…"
+                          className="console-focus rounded-lg border border-console-control px-3 py-1.5 text-xs font-medium text-primary hover:bg-console-sunken"
+                        >
+                          Make active
+                        </SubmitButton>
+                      </form>
+                    )}
+
+                    {/* Delete is offered only where it can actually succeed. A
+                        session that sold seats is a business record: removing
+                        it would leave those registrations, invoices and
+                        certificates with no cohort attached. The seat count is
+                        shown instead, so the reason is visible rather than
+                        discovered by pressing a button that fails. */}
+                    {session.active ? null : session.registrationCount > 0 ? (
+                      <span
+                        className="whitespace-nowrap text-xs text-text-muted"
+                        title="A session with registrations cannot be deleted."
+                      >
+                        {session.registrationCount} registered
+                      </span>
+                    ) : (
+                      <form action={deleteAction}>
+                        <input type="hidden" name="sessionId" value={session.id} />
+                        <SubmitButton
+                          pendingLabel="Deleting…"
+                          title="Delete this session"
+                          className="console-focus rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-text-muted hover:border-danger/40 hover:text-danger"
+                        >
+                          Delete
+                        </SubmitButton>
+                      </form>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid gap-4 px-4 py-4 lg:grid-cols-2">
+                  {/*
+                    Times are editable after creation, not only at it. A
+                    schedule is routinely confirmed after the webinar exists,
+                    and a session stored without one silently falls back to the
+                    built-in date on the landing page, in the emails and in the
+                    reminder windows.
+                  */}
+                  <form action={updateAction} className={GROUP}>
+                    <p className={GROUP_LEGEND}>Schedule</p>
+                    <input type="hidden" name="sessionId" value={session.id} />
+                    <div className="flex flex-wrap items-end gap-2">
+                      <SessionTimeFields
+                        initialStartsAt={toIstWallClock(session.startsAt)}
+                        initialEndsAt={toIstWallClock(session.endsAt)}
+                      />
+                      <SubmitButton
+                        pendingLabel="Saving…"
+                        className="console-focus rounded-lg border border-console-control px-3 py-2 text-xs font-medium text-primary hover:bg-console-surface"
+                      >
+                        {session.startsAt ? "Update times" : "Set times"}
+                      </SubmitButton>
+                    </div>
+                  </form>
+
+                  {/* Recording link, pasted in after the event.
+                      Zoom hosts it and its own share settings carry the 7-day
+                      expiry; this is only where buyers are told to find it.
+                      Empty until published, and the post-event emails omit the
+                      section entirely rather than promising a dead link.
+
+                      The passcode is a separate field because Zoom's "invitees
+                      can access without the passcode" exempts people it
+                      invited itself, not people arriving on a link forwarded
+                      by email. Without it the buyer reaches the player and is
+                      asked for a code nobody gave them. Pasting Zoom's share
+                      block into the link box fills both, so the two never have
+                      to be separated by hand. */}
+                  <form action={recordingAction} className={GROUP}>
+                    <p className={GROUP_LEGEND}>Recording</p>
+                    <input type="hidden" name="sessionId" value={session.id} />
+                    <div className="flex flex-wrap items-end gap-2">
+                      <RecordingLinkFields
+                        initialUrl={session.recordingUrl ?? ""}
+                        initialPasscode={session.recordingPasscode ?? ""}
+                      />
+                      <SubmitButton
+                        pendingLabel="Saving…"
+                        className="console-focus rounded-lg border border-console-control px-3 py-2 text-xs font-medium text-primary hover:bg-console-surface"
+                      >
+                        {session.recordingUrl ? "Update link" : "Publish"}
+                      </SubmitButton>
+                    </div>
+                  </form>
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+
+        <form
+          action={createAction}
+          className="rounded-xl border border-dashed border-console-control px-4 py-4"
+        >
+            <p className={GROUP_LEGEND}>Add a session</p>
+            <div className="flex flex-wrap items-end gap-3">
+              <label className="min-w-[180px] flex-1 text-xs text-text-muted">
+                Zoom webinar ID
+                <input
+                  name="zoomWebinarId"
+                  required
+                  placeholder="898 1583 0266"
+                  className="console-focus mt-1 w-full rounded-lg border border-console-control bg-console-surface px-3 py-2 font-mono text-sm text-foreground placeholder:text-text-muted"
+                />
+              </label>
+              <label className="min-w-[180px] flex-1 text-xs text-text-muted">
+                Label
+                <input
+                  name="label"
+                  required
+                  placeholder="Test session"
+                  className="console-focus mt-1 w-full rounded-lg border border-console-control bg-console-surface px-3 py-2 text-sm text-foreground placeholder:text-text-muted"
+                />
+              </label>
+              <SessionTimeFields />
+              <SubmitButton
+                pendingLabel="Adding…"
+                className="console-focus rounded-lg border border-primary bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-hover"
+              >
+                Add session
+              </SubmitButton>
+            </div>
+            <p className="mt-3 text-xs leading-relaxed text-text-muted">
+              Set the webinar to approve registrants manually. Paid buyers are
+              then pushed in automatically, and anyone who finds the public
+              registration page stays pending.
+            </p>
+        </form>
+      </div>
+    </Card>
   );
 }

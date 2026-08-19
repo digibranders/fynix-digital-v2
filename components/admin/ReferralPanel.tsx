@@ -5,6 +5,15 @@ import { AlertCircle, CheckCircle2, Check, Link2 } from "lucide-react";
 import { buildReferralLink } from "@/lib/pavel/referralLink";
 import { siteConfig } from "@/lib/content";
 import type { OperationState } from "@/components/admin/OperationsPanel";
+import {
+  Alert,
+  Badge,
+  Card,
+  CardHeader,
+  EmptyState,
+  StatTile,
+} from "@/components/admin/ui";
+import { SegmentedTabs } from "@/components/admin/ui/SegmentedTabs";
 import { toIstWallClock } from "@/lib/pavel/sessionTimes";
 // Imported from `referralStats`, not `referrals`: the latter reaches the
 // database, and pulling it in here would bundle the Postgres driver into the
@@ -46,10 +55,10 @@ function money(minor: number, currency: "INR" | "USD"): string {
 }
 
 const STATUS_STYLE: Record<ReferralStatus, string> = {
-  active: "bg-emerald-500/15 text-emerald-400",
-  inactive: "bg-slate-500/15 text-slate-400",
-  expired: "bg-amber-500/15 text-amber-400",
-  exhausted: "bg-amber-500/15 text-amber-400",
+  active: "bg-success-surface text-success",
+  inactive: "bg-console-sunken text-text-muted",
+  expired: "bg-warning-surface text-warning",
+  exhausted: "bg-warning-surface text-warning",
 };
 
 type Filter = "all" | ReferralStatus;
@@ -62,7 +71,7 @@ const TABS: Filter[] = ["all", "active", "inactive", "expired", "exhausted"];
 // than the row above it, and typed a value that then moved again on the server.
 
 const FIELD =
-  "mt-1 w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm text-white placeholder-slate-600 focus:border-emerald-400/50 focus:outline-none";
+  "mt-1 w-full rounded-lg border border-border bg-console-surface px-3 py-2 text-sm text-primary placeholder:text-text-muted focus:border-success/40 focus:outline-none";
 
 /**
  * Outcome of the last mutation. Failures are shown as plainly as successes:
@@ -74,7 +83,7 @@ function Result({ state }: { state: OperationState }) {
   return (
     <p
       className={`flex items-start gap-1.5 text-[11px] leading-snug ${
-        state.ok ? "text-emerald-400" : "text-amber-400"
+        state.ok ? "text-success" : "text-warning"
       }`}
     >
       {state.ok ? (
@@ -115,10 +124,10 @@ function CopyLinkButton({ code }: { code: string }) {
       type="button"
       onClick={() => void copy()}
       title={link}
-      className="inline-flex items-center gap-1.5 rounded-full border border-white/15 px-3 py-1 text-xs text-slate-300 transition hover:border-emerald-400/40 hover:text-emerald-300"
+      className="console-focus inline-flex items-center gap-1.5 rounded-lg border border-console-control px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-console-sunken"
     >
       {copied ? (
-        <Check className="h-3 w-3 text-emerald-400" />
+        <Check className="h-3 w-3 text-success" />
       ) : (
         <Link2 className="h-3 w-3" />
       )}
@@ -131,7 +140,7 @@ function CopyLinkButton({ code }: { code: string }) {
 function CodeFields({ row }: { row?: AdminReferralRow }) {
   return (
     <>
-      <label className="text-xs text-slate-400">
+      <label className="text-xs text-text-muted">
         Code
         <input
           name="code"
@@ -141,7 +150,7 @@ function CodeFields({ row }: { row?: AdminReferralRow }) {
           className={`${FIELD} font-mono uppercase`}
         />
       </label>
-      <label className="text-xs text-slate-400">
+      <label className="text-xs text-text-muted">
         Discount %
         <input
           name="discountPercent"
@@ -153,7 +162,7 @@ function CodeFields({ row }: { row?: AdminReferralRow }) {
           className={FIELD}
         />
       </label>
-      <label className="text-xs text-slate-400">
+      <label className="text-xs text-text-muted">
         Max redemptions
         <input
           name="maxUses"
@@ -164,7 +173,7 @@ function CodeFields({ row }: { row?: AdminReferralRow }) {
           className={FIELD}
         />
       </label>
-      <label className="text-xs text-slate-400">
+      <label className="text-xs text-text-muted">
         Expires (IST)
         <input
           name="expiresAt"
@@ -173,7 +182,7 @@ function CodeFields({ row }: { row?: AdminReferralRow }) {
           className={FIELD}
         />
       </label>
-      <label className="text-xs text-slate-400">
+      <label className="text-xs text-text-muted">
         Label
         <input
           name="label"
@@ -182,7 +191,7 @@ function CodeFields({ row }: { row?: AdminReferralRow }) {
           className={FIELD}
         />
       </label>
-      <label className="text-xs text-slate-400">
+      <label className="text-xs text-text-muted">
         Owner
         <input
           name="ownerName"
@@ -191,7 +200,7 @@ function CodeFields({ row }: { row?: AdminReferralRow }) {
           className={FIELD}
         />
       </label>
-      <label className="text-xs text-slate-400">
+      <label className="text-xs text-text-muted">
         Owner email
         <input
           name="ownerEmail"
@@ -201,7 +210,7 @@ function CodeFields({ row }: { row?: AdminReferralRow }) {
           className={FIELD}
         />
       </label>
-      <label className="text-xs text-slate-400">
+      <label className="text-xs text-text-muted">
         Commission %
         <input
           name="commissionPercent"
@@ -313,55 +322,68 @@ export function ReferralPanel({
   );
 
   return (
-    <section className="mb-8 rounded-xl border border-white/10 bg-slate-900/40 p-5">
-      <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
-        <h2 className="text-sm font-semibold text-white">Referral codes</h2>
-        <p className="text-xs text-slate-400">
-          {totals.redeemed} redemption{totals.redeemed === 1 ? "" : "s"} ·{" "}
-          {money(totals.inr, "INR")}
-          {totals.usd ? ` + ${money(totals.usd, "USD")}` : ""} net
-          {totals.owedInr || totals.owedUsd ? (
-            <span className="text-amber-400">
-              {" · "}
-              {money(totals.owedInr, "INR")}
-              {totals.owedUsd ? ` + ${money(totals.owedUsd, "USD")}` : ""} commission
-            </span>
-          ) : null}
-        </p>
-      </div>
+    <Card>
+      <CardHeader
+        eyebrow="Partners"
+        title="Referral codes"
+        description="A code works only while it is switched on, before its expiry and under its cap. Redemptions count paid seats that received the discount, so an abandoned checkout never uses one up."
+      />
 
+      {/* What the codes in view have actually done. Follows the filter, so a
+          narrowed list reports its own subtotal rather than a number that
+          ignores the filter the operator just set. */}
+      <dl className="grid grid-cols-2 gap-x-6 gap-y-4 border-b border-border px-5 py-4 sm:grid-cols-4">
+        <StatTile label="Codes" value={String(visible.length)} />
+        <StatTile label="Redemptions" value={String(totals.redeemed)} />
+        <StatTile
+          label="Net revenue"
+          value={[
+            money(totals.inr, "INR"),
+            ...(totals.usd ? [money(totals.usd, "USD")] : []),
+          ]}
+          hint="Ex GST, from issued invoices"
+        />
+        <StatTile
+          label="Commission owed"
+          value={[
+            money(totals.owedInr, "INR"),
+            ...(totals.owedUsd ? [money(totals.owedUsd, "USD")] : []),
+          ]}
+          tone={totals.owedInr || totals.owedUsd ? "warning" : "neutral"}
+        />
+      </dl>
+
+      <div className="px-5 py-4">
       {error ? (
-        <p className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-300">
-          {error}
-        </p>
+        <div className="mb-4">
+          <Alert tone="danger" live={false}>
+            {error}
+          </Alert>
+        </div>
       ) : null}
 
       <div className="mb-4 flex flex-wrap items-center gap-2">
-        {TABS.map((tab) => (
-          <button
-            key={tab}
-            type="button"
-            onClick={() => setFilter(tab)}
-            className={`rounded-full border px-3 py-1 text-xs capitalize transition ${
-              filter === tab
-                ? "border-emerald-400/50 bg-emerald-500/10 text-emerald-300"
-                : "border-white/10 text-slate-400 hover:text-slate-200"
-            }`}
-          >
-            {tab} ({counts[tab]})
-          </button>
-        ))}
+        <SegmentedTabs
+          label="Filter codes by status"
+          items={TABS.map((tab) => ({
+            key: tab,
+            label: tab.charAt(0).toUpperCase() + tab.slice(1),
+            count: counts[tab],
+          }))}
+          value={filter}
+          onChange={setFilter}
+        />
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search code, owner or label"
           aria-label="Search referral codes"
-          className="ml-auto min-w-[200px] flex-1 rounded-lg border border-white/10 bg-slate-950 px-3 py-1.5 text-xs text-white placeholder-slate-600 focus:border-emerald-400/50 focus:outline-none"
+          className="console-focus ml-auto min-w-[200px] flex-1 rounded-lg border border-console-control bg-console-surface px-3 py-2 text-sm text-foreground placeholder:text-text-muted"
         />
         <button
           type="button"
           onClick={() => setAdding((v) => !v)}
-          className="rounded-lg bg-emerald-500 px-3 py-1.5 text-xs font-medium text-slate-950 transition hover:bg-emerald-400"
+          className="rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-primary-hover"
         >
           {adding ? "Cancel" : "New code"}
         </button>
@@ -370,13 +392,13 @@ export function ReferralPanel({
       {adding ? (
         <form
           action={createSubmit}
-          className="mb-4 grid gap-3 rounded-lg border border-emerald-400/20 bg-slate-950 p-4 sm:grid-cols-2 lg:grid-cols-4"
+          className="mb-4 grid gap-3 rounded-lg border border-success/25 bg-console-surface p-4 sm:grid-cols-2 lg:grid-cols-4"
         >
           <CodeFields />
           <div className="flex flex-wrap items-center gap-3 sm:col-span-2 lg:col-span-4">
             <button
               type="submit"
-              className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-medium text-slate-950 transition hover:bg-emerald-400"
+              className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-hover"
             >
               Create code
             </button>
@@ -394,11 +416,19 @@ export function ReferralPanel({
       ) : null}
 
       {visible.length === 0 ? (
-        <p className="rounded-lg border border-white/5 bg-slate-950 px-3 py-6 text-center text-xs text-slate-500">
-          {codes.length === 0
-            ? "No referral codes yet. Create one to start tracking partner sales."
-            : "No codes match this view."}
-        </p>
+        <div className="rounded-lg border border-border">
+          {codes.length === 0 ? (
+            <EmptyState
+              title="No referral codes yet"
+              description="Create one to start tracking partner sales, redemptions and the commission they earn."
+            />
+          ) : (
+            <EmptyState
+              title="No codes match this view"
+              description="The status filter or the search box is excluding every code."
+            />
+          )}
+        </div>
       ) : (
         <ul className="space-y-2">
           {visible.map(({ row, status, owed }) => {
@@ -409,31 +439,33 @@ export function ReferralPanel({
             return (
               <li
                 key={row.id}
-                className="rounded-lg border border-white/5 bg-slate-950 px-3 py-2"
+                className="rounded-lg border border-border bg-console-surface px-4 py-3"
               >
-                <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="flex flex-wrap items-center gap-2 text-sm text-white">
-                      <span className="font-mono">{row.code}</span>
-                      <span className="text-emerald-400">−{row.discountPercent}%</span>
+                    <p className="flex flex-wrap items-center gap-2">
+                      <span className="font-mono text-sm font-semibold text-primary">
+                        {row.code}
+                      </span>
+                      <span className="text-sm font-medium text-success">
+                        −{row.discountPercent}%
+                      </span>
                       <span
-                        className={`rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide ${STATUS_STYLE[status]}`}
+                        className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${STATUS_STYLE[status]}`}
                       >
                         {status}
                       </span>
                       {overCap ? (
-                        <span
+                        <Badge
+                          tone="danger"
                           title="Two checkouts claimed the last slot at once. The cap is not a lock."
-                          className="rounded-full bg-red-500/15 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-red-400"
                         >
                           over cap
-                        </span>
+                        </Badge>
                       ) : null}
                     </p>
-                    <p className="text-xs text-slate-500">
-                      {row.ownerName ? (
-                        <span className="text-slate-400">{row.ownerName}</span>
-                      ) : null}
+                    <p className="mt-1 text-xs text-text-muted">
+                      {row.ownerName ? <span>{row.ownerName}</span> : null}
                       {row.ownerName && row.label ? " · " : null}
                       {row.label}
                       {row.expiresAt ? (
@@ -449,7 +481,7 @@ export function ReferralPanel({
                     <button
                       type="button"
                       onClick={() => setEditing(editing === row.id ? null : row.id)}
-                      className="rounded-full border border-white/15 px-3 py-1 text-xs text-slate-300 transition hover:border-emerald-400/40 hover:text-emerald-300"
+                      className="console-focus rounded-lg border border-console-control px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-console-sunken"
                     >
                       {editing === row.id ? "Close" : "Edit"}
                     </button>
@@ -462,10 +494,10 @@ export function ReferralPanel({
                       />
                       <button
                         type="submit"
-                        className={`rounded-full border px-3 py-1 text-xs transition ${
+                        className={`console-focus rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
                           row.active
-                            ? "border-amber-400/40 text-amber-300 hover:bg-amber-500/10"
-                            : "border-emerald-400/40 text-emerald-300 hover:bg-emerald-500/10"
+                            ? "border-warning/40 text-warning hover:bg-warning-surface"
+                            : "border-success/40 text-success hover:bg-success-surface"
                         }`}
                       >
                         {row.active ? "Switch off" : "Switch on"}
@@ -476,7 +508,7 @@ export function ReferralPanel({
                         <input type="hidden" name="id" value={row.id} />
                         <button
                           type="submit"
-                          className="rounded-full border border-white/15 px-3 py-1 text-xs text-slate-400 transition hover:border-red-400/40 hover:text-red-300"
+                          className="console-focus rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-text-muted transition-colors hover:border-danger/40 hover:text-danger"
                         >
                           Delete
                         </button>
@@ -485,63 +517,85 @@ export function ReferralPanel({
                   </div>
                 </div>
 
-                {/* Usage. The numbers this panel exists to answer. */}
-                <dl className="mt-2 flex flex-wrap gap-x-6 gap-y-1 border-t border-white/5 pt-2 text-xs">
+                {/*
+                  Usage: the numbers this panel exists to answer.
+
+                  A fixed grid rather than a wrapping row of inline pairs, so
+                  the same figure lands in the same column on every code and a
+                  payout conversation is a matter of reading down rather than
+                  reading three paragraphs. The commission column holds its
+                  place even when a code earns none, or the columns to its left
+                  would shift row by row.
+                */}
+                <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 border-t border-border pt-3 sm:grid-cols-5">
                   <div>
-                    <dt className="inline text-slate-500">Redeemed </dt>
-                    <dd className="inline font-medium text-white">
+                    <dt className="text-[11px] text-text-muted">Redeemed</dt>
+                    <dd className="text-sm font-medium tabular-nums text-primary">
                       {row.redeemed}
                       {row.maxUses !== null ? (
-                        <span className="text-slate-500"> / {row.maxUses}</span>
+                        <span className="text-text-muted"> / {row.maxUses}</span>
                       ) : null}
                     </dd>
                   </div>
                   <div>
-                    <dt className="inline text-slate-500">Paid seats </dt>
-                    <dd className="inline font-medium text-white">{row.attributed}</dd>
-                  </div>
-                  <div>
-                    <dt className="inline text-slate-500">Pending </dt>
-                    <dd className="inline font-medium text-slate-300">{row.pending}</dd>
-                  </div>
-                  <div>
-                    <dt className="inline text-slate-500">Net revenue </dt>
-                    <dd className="inline font-medium text-white">
-                      {money(row.netRevenueInr, "INR")}
-                      {row.netRevenueUsd ? ` + ${money(row.netRevenueUsd, "USD")}` : ""}
+                    <dt className="text-[11px] text-text-muted">Paid seats</dt>
+                    <dd className="text-sm font-medium tabular-nums text-primary">
+                      {row.attributed}
                     </dd>
                   </div>
-                  {row.commissionPercent ? (
-                    <div>
-                      <dt className="inline text-slate-500">
-                        Commission ({row.commissionPercent}%){" "}
-                      </dt>
-                      <dd className="inline font-medium text-amber-300">
-                        {money(owed.inr, "INR")}
-                        {owed.usd ? ` + ${money(owed.usd, "USD")}` : ""}
-                      </dd>
-                    </div>
-                  ) : null}
+                  <div>
+                    <dt className="text-[11px] text-text-muted">Pending</dt>
+                    <dd className="text-sm font-medium tabular-nums text-foreground">
+                      {row.pending}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-[11px] text-text-muted">Net revenue</dt>
+                    <dd className="text-sm font-medium tabular-nums text-primary">
+                      {money(row.netRevenueInr, "INR")}
+                      {row.netRevenueUsd
+                        ? ` + ${money(row.netRevenueUsd, "USD")}`
+                        : ""}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-[11px] text-text-muted">
+                      {row.commissionPercent
+                        ? `Commission (${row.commissionPercent}%)`
+                        : "Commission"}
+                    </dt>
+                    <dd
+                      className={`text-sm font-medium tabular-nums ${
+                        row.commissionPercent ? "text-warning" : "text-text-muted"
+                      }`}
+                    >
+                      {row.commissionPercent
+                        ? `${money(owed.inr, "INR")}${
+                            owed.usd ? ` + ${money(owed.usd, "USD")}` : ""
+                          }`
+                        : "—"}
+                    </dd>
+                  </div>
                 </dl>
 
                 {editing === row.id ? (
                   <form
                     action={updateSubmit}
-                    className="mt-2 grid gap-3 border-t border-white/5 pt-3 sm:grid-cols-2 lg:grid-cols-4"
+                    className="mt-2 grid gap-3 border-t border-border pt-3 sm:grid-cols-2 lg:grid-cols-4"
                   >
                     <input type="hidden" name="id" value={row.id} />
                     <CodeFields row={row} />
                     <div className="flex flex-wrap items-center gap-3 sm:col-span-2 lg:col-span-4">
                       <button
                         type="submit"
-                        className="rounded-lg border border-emerald-400/40 px-4 py-2 text-xs text-emerald-300 transition hover:bg-emerald-500/10"
+                        className="rounded-lg border border-success/40 px-4 py-2 text-xs text-success transition hover:bg-success-surface"
                       >
                         Save changes
                       </button>
                       <Result state={updateState} />
                     </div>
                     {row.redeemed > 0 || row.attributed > 0 || row.pending > 0 ? (
-                      <p className="text-[11px] text-slate-500 sm:col-span-2 lg:col-span-4">
+                      <p className="text-[11px] text-text-muted sm:col-span-2 lg:col-span-4">
                         This code has been used, so its code cannot be changed —
                         registrations and invoices record it by name. Everything
                         else here is still editable.
@@ -555,12 +609,11 @@ export function ReferralPanel({
         </ul>
       )}
 
-      <p className="mt-3 text-[11px] text-slate-500">
-        A code works only while it is switched on, before its expiry and under
-        its cap. Redemptions count paid seats that received the discount, so an
-        abandoned checkout never uses one up. Revenue is net of GST, taken from
-        issued invoices, and is what commission is calculated on.
+      <p className="mt-4 text-xs leading-relaxed text-text-muted">
+        Revenue is net of GST, taken from issued invoices, and is what
+        commission is calculated on.
       </p>
-    </section>
+      </div>
+    </Card>
   );
 }

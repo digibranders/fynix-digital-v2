@@ -13,6 +13,7 @@ import {
 } from "@/components/admin/OperationsPanel";
 import { runAdminOperation } from "@/lib/admin/operations";
 import { ReferralPanel } from "@/components/admin/ReferralPanel";
+import { ADMIN_EVENTS } from "@/lib/admin/events";
 
 export const runtime = "nodejs";
 // Reads cookies + live data on every request; never statically cached.
@@ -21,6 +22,17 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Semantic SEO Workshop · Fynix Admin",
 };
+
+/** The event this dashboard manages, so its name is not written twice. */
+const EVENT = ADMIN_EVENTS.find((e) => e.slug === "pavel");
+
+/** "How old is this?" in the zone the workshop runs in. */
+const LOADED_AT = new Intl.DateTimeFormat("en-GB", {
+  timeZone: "Asia/Kolkata",
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: false,
+});
 
 /**
  * Clear the landing page from every cache after a session change.
@@ -267,50 +279,65 @@ export default async function PavelAdminPage() {
     return result;
   }
 
-  if (error) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-950 px-4">
-        <div className="max-w-md rounded-xl border border-red-500/30 bg-red-500/10 p-6 text-center">
-          <h1 className="text-lg font-semibold text-white">
-            Unable to load dashboard
-          </h1>
-          <p className="mt-2 text-sm text-red-300">{error}</p>
-        </div>
-      </div>
-    );
-  }
+  /*
+    When the data was read, in IST.
 
+    Formatted on the SERVER and passed down as a string. Formatting it in the
+    browser would render a different value than the server did and mismatch on
+    hydration; fixing the zone to Asia/Kolkata makes it deterministic, and IST
+    is the zone every other time on this page is shown in.
+  */
+  const loadedAtLabel = LOADED_AT.format(new Date());
+
+  /*
+    A failed registrations read is no longer a dead end.
+
+    It used to replace the whole page with a red box, which also took away the
+    session and referral panels — both of which load independently and are
+    usually fine. The error travels into the console instead, where the views
+    that depend on it say so and the ones that do not still work.
+  */
   return (
     <PavelDashboard
       rows={rows}
-      // Per-seat recovery, rendered as the table's Actions column.
+      error={error ?? null}
+      eventName={EVENT?.name ?? "Semantic SEO Workshop"}
+      publicPath={EVENT?.publicPath ?? "/pavel"}
+      loadedAtLabel={loadedAtLabel}
+      // Per-seat recovery, rendered as the table's Actions column and in a
+      // row's detail drawer.
       resendConfirmationAction={resendConfirmationAction}
       resendCertificateAction={resendCertificateAction}
-    >
-      <SessionPanel
-        sessions={sessionsResult.sessions}
-        error={sessionsResult.error}
-        createAction={createSessionAction}
-        activateAction={activateSessionAction}
-        setClosedAction={setClosedAction}
-        deleteAction={deleteSessionAction}
-        recordingAction={setRecordingAction}
-        updateAction={updateSessionAction}
-      />
-      {/* Sits with the session because that is what it acts on: it pulls the
-          active webinar's attendance report. */}
-      <OperationsPanel
-        syncAttendanceAction={syncAttendanceAction}
-        sendRecordingAction={sendRecordingAction}
-      />
-      <ReferralPanel
-        codes={referralsResult.codes}
-        error={referralsResult.error}
-        createAction={createReferralAction}
-        updateAction={updateReferralAction}
-        toggleAction={toggleReferralAction}
-        deleteAction={deleteReferralAction}
-      />
-    </PavelDashboard>
+      sessionsSlot={
+        <div className="space-y-4">
+          <SessionPanel
+            sessions={sessionsResult.sessions}
+            error={sessionsResult.error}
+            createAction={createSessionAction}
+            activateAction={activateSessionAction}
+            setClosedAction={setClosedAction}
+            deleteAction={deleteSessionAction}
+            recordingAction={setRecordingAction}
+            updateAction={updateSessionAction}
+          />
+          {/* Sits with the session because that is what it acts on: it pulls
+              the active webinar's attendance report. */}
+          <OperationsPanel
+            syncAttendanceAction={syncAttendanceAction}
+            sendRecordingAction={sendRecordingAction}
+          />
+        </div>
+      }
+      referralsSlot={
+        <ReferralPanel
+          codes={referralsResult.codes}
+          error={referralsResult.error}
+          createAction={createReferralAction}
+          updateAction={updateReferralAction}
+          toggleAction={toggleReferralAction}
+          deleteAction={deleteReferralAction}
+        />
+      }
+    />
   );
 }
