@@ -1,9 +1,11 @@
 import {
+  amountMismatch,
   attendanceBand,
   certificateEligibleUnissued,
   invoiceMissing,
   joinLinkMissing,
   rowCommission,
+  zoomAccessStuck,
   type AdminRegistrationRow,
 } from "@/lib/admin/registrationRow";
 
@@ -46,6 +48,16 @@ export type RegistrationTotals = {
   invoicesMissing: number;
   joinLinksMissing: number;
   certificatesUnissued: number;
+  /**
+   * Charged and invoiced disagree. The most serious of these: the money taken
+   * and the money on the tax invoice are different numbers.
+   */
+  amountsMismatched: number;
+  /**
+   * Paid seats out of Zoom registration attempts. A subset of
+   * `joinLinksMissing` that will not resolve itself.
+   */
+  zoomAccessStuck: number;
 };
 
 function add(target: MoneyByCurrency, currency: string | null, amount: number | null) {
@@ -80,6 +92,8 @@ export function computeTotals(rows: AdminRegistrationRow[]): RegistrationTotals 
     invoicesMissing: 0,
     joinLinksMissing: 0,
     certificatesUnissued: 0,
+    amountsMismatched: 0,
+    zoomAccessStuck: 0,
   };
 
   const paidByCurrency: Record<string, number> = {};
@@ -114,6 +128,8 @@ export function computeTotals(rows: AdminRegistrationRow[]): RegistrationTotals 
     if (invoiceMissing(row)) totals.invoicesMissing += 1;
     if (joinLinkMissing(row)) totals.joinLinksMissing += 1;
     if (certificateEligibleUnissued(row)) totals.certificatesUnissued += 1;
+    if (amountMismatch(row)) totals.amountsMismatched += 1;
+    if (zoomAccessStuck(row)) totals.zoomAccessStuck += 1;
   }
 
   totals.conversionPercent =

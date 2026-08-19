@@ -252,6 +252,35 @@ export function FiltersDrawer({
           onChange={(v) => onChange({ joinLink: v as RegistrationFilters["joinLink"] })}
           options={YES_NO}
         />
+        {/*
+          Two one-sided checks. Neither offers a "no": almost every row ever
+          taken is neither mismatched nor stuck, so the negative would be a
+          control whose only effect is to hide what is worth seeing.
+        */}
+        <Choice
+          id="f-amount-check"
+          label="Amount check"
+          value={filters.amountCheck}
+          onChange={(v) =>
+            onChange({ amountCheck: v as RegistrationFilters["amountCheck"] })
+          }
+          options={[
+            { value: "any", label: "Any" },
+            { value: "mismatched", label: "Charged ≠ invoiced" },
+          ]}
+        />
+        <Choice
+          id="f-zoom-access"
+          label="Zoom access"
+          value={filters.zoomAccess}
+          onChange={(v) =>
+            onChange({ zoomAccess: v as RegistrationFilters["zoomAccess"] })
+          }
+          options={[
+            { value: "any", label: "Any" },
+            { value: "stuck", label: "Out of attempts" },
+          ]}
+        />
       </div>
 
       <fieldset className="mt-6 rounded-lg border border-border bg-console-sunken p-4">

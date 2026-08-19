@@ -8,6 +8,7 @@ import {
   invoiceMissing,
   minutesToPay,
   rowCommission,
+  zoomAccessStuck,
   type AdminRegistrationRow,
 } from "@/lib/admin/registrationRow";
 import { formatMoney } from "@/lib/admin/registrationTotals";
@@ -755,14 +756,13 @@ export const REGISTRATION_COLUMNS: RegistrationColumn[] = [
     group: "Cohort",
     visible: false,
     numeric: true,
-    // Zoom allows three registration attempts per person per webinar per day,
-    // so a seat sitting at 3 with no link is stuck until the quota resets.
+    // A seat at the attempt limit with no link is stuck until the quota
+    // resets. The rule lives in `zoomAccessStuck` because the summary and the
+    // filter now apply it too.
     cell: (r) => (
       <span
         className={`tabular-nums ${
-          r.zoomAccessAttempts >= 3 && !r.hasJoinLink
-            ? "font-medium text-warning"
-            : "text-foreground"
+          zoomAccessStuck(r) ? "font-medium text-warning" : "text-foreground"
         }`}
       >
         {r.zoomAccessAttempts}
