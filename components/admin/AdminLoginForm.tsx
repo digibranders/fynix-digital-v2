@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { Eye, EyeOff } from "lucide-react";
 import Logo from "@/components/Logo";
 
 /**
@@ -25,6 +26,7 @@ export default function AdminLoginForm({
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [decoys, setDecoys] = useState<Record<string, string>>({});
+  const [showPassword, setShowPassword] = useState(false);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -126,20 +128,58 @@ export default function AdminLoginForm({
               />
             </label>
 
-            <label className="mt-5 block">
-              <span className="font-mono text-[11px] uppercase tracking-widest text-text-muted">
+            {/*
+              The label is tied to the input by `htmlFor` rather than wrapping
+              it, because the reveal button sits alongside. Inside a wrapping
+              label, a click on that button would also be a click on the label
+              and would bounce focus into the field, which is not what pressing
+              it is for.
+            */}
+            <div className="mt-5">
+              <label
+                htmlFor="admin-password"
+                className="font-mono text-[11px] uppercase tracking-widest text-text-muted"
+              >
                 Password
-              </span>
-              <input
-                type="password"
-                required
-                autoComplete="current-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="console-focus mt-1.5 w-full rounded-lg border border-console-control bg-console-surface px-3 py-2.5 text-sm text-foreground transition-colors placeholder:text-text-muted"
-                placeholder="••••••••"
-              />
-            </label>
+              </label>
+              <div className="relative mt-1.5">
+                <input
+                  id="admin-password"
+                  type={showPassword ? "text" : "password"}
+                  required
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="console-focus w-full rounded-lg border border-console-control bg-console-surface py-2.5 pl-3 pr-11 text-sm text-foreground transition-colors placeholder:text-text-muted"
+                  placeholder="••••••••"
+                />
+                {/*
+                  Reveal, for checking a password typed on a phone keyboard or
+                  pasted from a manager. `type="button"` matters: a bare button
+                  inside a form defaults to submit, so pressing this would try
+                  to sign in with whatever had been typed so far.
+
+                  The icon is decorative — the state is carried by the label and
+                  by `aria-pressed`, so a screen reader hears "show password,
+                  pressed" rather than the name of a glyph.
+                */}
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-pressed={showPassword}
+                  aria-controls="admin-password"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  title={showPassword ? "Hide password" : "Show password"}
+                  className="console-focus absolute inset-y-0 right-0 flex w-11 items-center justify-center rounded-r-lg text-text-muted transition-colors hover:text-primary"
+                >
+                  {showPassword ? (
+                    <EyeOff aria-hidden="true" className="h-4 w-4" />
+                  ) : (
+                    <Eye aria-hidden="true" className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
+            </div>
 
             {error && (
               <p
