@@ -66,6 +66,7 @@ interface RazorpayOptions {
   currency: string;
   name: string;
   description?: string;
+  image?: string;
   order_id: string;
   prefill?: { name?: string; email?: string; contact?: string };
   notes?: Record<string, string>;
@@ -88,6 +89,21 @@ declare global {
 }
 
 const RAZORPAY_SDK_URL = "https://checkout.razorpay.com/v1/checkout.js";
+
+/**
+ * Brand mark shown beside "Fynix Digital" in the Razorpay overlay.
+ *
+ * Razorpay renders the overlay from its own origin, so the logo has to be an
+ * absolute URL on the live host: a relative path resolves against
+ * checkout.razorpay.com and renders as a broken image. Passing it per order
+ * also takes precedence over the account logo configured in the Razorpay
+ * Dashboard, which Razorpay caches for hours after a change.
+ *
+ * The file is the brand mark from components/Logo.tsx (the same shape as the
+ * favicon) exported at 512x512 on a transparent background, so it reads on the
+ * overlay's navy panel.
+ */
+const RAZORPAY_LOGO_URL = "https://www.fynix.digital/checkout/fynix-mark.png";
 
 /**
  * How old the form token must be before it is worth posting.
@@ -581,6 +597,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
         currency: checkout.currency ?? "INR",
         name: "Fynix Digital",
         description: "Semantic SEO Workshop with Pavel Klimakov",
+        image: RAZORPAY_LOGO_URL,
         order_id: checkout.orderId,
         prefill: {
           name: checkout.name ?? trimmedName,
