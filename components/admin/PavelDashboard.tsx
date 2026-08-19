@@ -165,10 +165,20 @@ const flagOptions = [ANY, { value: "yes", label: "Yes" }, { value: "no", label: 
 export default function PavelDashboard({
   rows,
   children,
+  footer,
 }: {
   rows: AdminRegistrationRow[];
-  /** Slot above the table, used for the webinar session and referral panels. */
+  /** Slot above the table: the setup panels (session, referral codes). */
   children?: React.ReactNode;
+  /**
+   * Slot below the table: recovery actions.
+   *
+   * Separate from `children` because these are reached for after reading the
+   * table, not before. Sitting above it they pushed the registrations, the
+   * filters and the totals down the page on every visit, to serve the rarest
+   * thing an operator does here.
+   */
+  footer?: React.ReactNode;
 }) {
   const [filters, setFilters] = useState<RegistrationFilters>(EMPTY_FILTERS);
   const [page, setPage] = useState(1);
@@ -867,6 +877,9 @@ export default function PavelDashboard({
             </div>
           )}
         </div>
+
+        {/* Recovery actions, below the table they are used in response to. */}
+        {footer ? <div className="mt-8">{footer}</div> : null}
       </div>
     </div>
   );

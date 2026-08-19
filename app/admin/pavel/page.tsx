@@ -263,12 +263,16 @@ export default async function PavelAdminPage() {
   }
 
   return (
-    <PavelDashboard rows={rows}>
-      <OperationsPanel
-        resendConfirmationAction={resendConfirmationAction}
-        resendCertificateAction={resendCertificateAction}
-        syncAttendanceAction={syncAttendanceAction}
-      />
+    <PavelDashboard
+      rows={rows}
+      footer={
+        <OperationsPanel
+          resendConfirmationAction={resendConfirmationAction}
+          resendCertificateAction={resendCertificateAction}
+          syncAttendanceAction={syncAttendanceAction}
+        />
+      }
+    >
       <SessionPanel
         sessions={sessionsResult.sessions}
         error={sessionsResult.error}
