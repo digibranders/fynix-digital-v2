@@ -3,24 +3,19 @@ import { withSentryConfig } from "@sentry/nextjs";
 
 const nextConfig: NextConfig = {
   /**
-   * Bundle the PDF renderer instead of leaving it external.
+   * Leave the PDF renderer external — do NOT bundle it.
    *
-   * Turbopack externalises node_modules for the server build and rewrites this
-   * package's specifier to a content-hashed name ("@react-pdf/renderer-5f716e9b…"),
-   * which resolves to nothing at runtime. Every invoice download then failed with
-   * ERR_MODULE_NOT_FOUND while the build passed, because the import is only
-   * attempted when someone actually requests a PDF.
+   * transpilePackages was tried here and is wrong: bundling react-pdf resolves
+   * the import but breaks the library at runtime, so every invoice failed with
+   * "Cannot read properties of undefined (reading 'S')" while the build passed.
+   * It keeps internal module identity that survives only as a real require.
    *
-   * transpilePackages forces it through the bundler, so there is no external
-   * specifier left to mangle. serverExternalPackages does NOT fix this — the
-   * hashed name survives it.
-   *
-   * The obvious alternative, building with webpack, is not available here: the
-   * droplet has 961MB of RAM and a webpack build of this app dies with
-   * "Reached heap limit" at around 700MB of heap. Turbopack builds it in that
-   * envelope, so the bundler choice is fixed by the hardware.
+   * Kept external it renders correctly, which is the state this has to stay in.
+   * Any change here must be proven by actually rendering an invoice, not by the
+   * build going green: this module is only loaded when someone requests a PDF,
+   * so every failure mode so far has been invisible at build time.
    */
-  transpilePackages: ["@react-pdf/renderer"],
+  serverExternalPackages: ["@react-pdf/renderer"],
   images: {
     formats: ["image/avif", "image/webp"],
     // Hero art is served at quality 90 and 82; Next 16 requires every quality used to
