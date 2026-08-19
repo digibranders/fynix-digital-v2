@@ -1,7 +1,9 @@
 "use client";
 
 import { useActionState, useMemo, useState } from "react";
-import { AlertCircle, CheckCircle2 } from "lucide-react";
+import { AlertCircle, CheckCircle2, Check, Link2 } from "lucide-react";
+import { buildReferralLink } from "@/lib/pavel/referralLink";
+import { siteConfig } from "@/lib/content";
 import type { OperationState } from "@/components/admin/OperationsPanel";
 import { toIstWallClock } from "@/lib/pavel/sessionTimes";
 // Imported from `referralStats`, not `referrals`: the latter reaches the
@@ -82,6 +84,46 @@ function Result({ state }: { state: OperationState }) {
       )}
       <span>{state.message}</span>
     </p>
+  );
+}
+
+/**
+ * Copy a code's share link.
+ *
+ * Built from `siteConfig.url`, never `window.location.origin`. The console is
+ * reachable on more than one host and the bare apex 307-redirects to www, so
+ * taking the origin from the browser would hand partners a link that costs
+ * every visitor a redirect — or one pointing at localhost.
+ */
+function CopyLinkButton({ code }: { code: string }) {
+  const [copied, setCopied] = useState(false);
+  const link = buildReferralLink(siteConfig.url, code);
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(link);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Clipboard access can be refused; a prompt still gets the link out.
+      window.prompt("Copy this code's share link:", link);
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={() => void copy()}
+      title={link}
+      className="inline-flex items-center gap-1.5 rounded-full border border-white/15 px-3 py-1 text-xs text-slate-300 transition hover:border-emerald-400/40 hover:text-emerald-300"
+    >
+      {copied ? (
+        <Check className="h-3 w-3 text-emerald-400" />
+      ) : (
+        <Link2 className="h-3 w-3" />
+      )}
+      {copied ? "Link copied" : "Copy link"}
+    </button>
   );
 }
 
@@ -403,6 +445,7 @@ export function ReferralPanel({
                   </div>
 
                   <div className="flex shrink-0 items-center gap-2">
+                    <CopyLinkButton code={row.code} />
                     <button
                       type="button"
                       onClick={() => setEditing(editing === row.id ? null : row.id)}

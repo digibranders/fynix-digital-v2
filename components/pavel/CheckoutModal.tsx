@@ -14,6 +14,7 @@ import { COUNTRIES, countPhoneDigits, phoneLengthError } from "@/components/pave
 import { isValidGstin, normalizeGstin } from "@/lib/pavel/gst";
 import { INDIAN_STATES } from "@/lib/pavel/indianStates";
 import { apiUrl } from "@/lib/pavel/apiBase";
+import { clearReferral, currentReferral } from "@/lib/pavel/referralLink";
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -310,51 +311,14 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
     };
   }, [isOpen]);
 
-  if (!isOpen) return null;
-
-  // Reset transient UI state on close so reopening always starts clean.
-  /**
-   * Close the dialog, keeping whatever the buyer typed.
-   *
-   * The backdrop closes on click, so a stray click outside the dialog used to
-   * wipe the whole form: name, email, phone, and for a GST invoice a company
-   * name, a 15-character GSTIN and a billing address. Retyping all of that is
-   * exactly where someone abandons a purchase, so an abandoned form is now
-   * preserved and reopening resumes it.
-   *
-   * A COMPLETED purchase is different: those details belong to a seat that is
-   * already bought, so the form is cleared then and the next one starts fresh.
-   */
-  const handleClose = () => {
-    if (submitted) {
-      setName("");
-      setEmail("");
-      setPhone("");
-      setCountry(detectedCountryName);
-      setIndianState("");
-      setGstRequested(false);
-      setCompanyName("");
-      setGstin("");
-      setCompanyAddress("");
-      setReferralOpen(false);
-      setReferralCode("");
-      setAppliedReferral(null);
-    }
-
-    // Transient UI state always resets, so reopening never lands on a stale
-    // success screen or a stale error.
-    setSubmitted(false);
-    setError("");
-    setReferralChecking(false);
-    setReferralError("");
-    onClose();
-  };
-
   // Validate a referral code so the buyer sees the discount before paying. The
   // charged amount is still re-derived server-side at checkout, so this is
   // presentation only.
-  const applyReferral = async () => {
-    const code = referralCode.trim();
+  //
+  // Takes the code explicitly rather than reading state: the share-link path
+  // applies one in the same tick it sets it, when the state has not updated yet.
+  const applyReferralCode = async (raw: string) => {
+    const code = raw.trim();
     if (!code) {
       setReferralError("Enter a referral code.");
       return;
@@ -387,6 +351,90 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
       setReferralChecking(false);
     }
   };
+
+  /**
+   * Apply a code that arrived on a share link (`/pavel?ref=GAURAV20`).
+   *
+   * Runs when the modal opens rather than on page load: applying validates
+   * against the server, and doing it for everyone who merely visits the landing
+   * page would be a request per visitor for a discount most never asked about.
+   *
+   * Only ever pre-fills. The section is opened so the code is visible rather
+   * than the price quietly changing, and it stays editable and removable —
+   * somebody who arrived on a partner's link but holds a better code has to be
+   * able to swap it. An invalid or expired code surfaces the same inline error
+   * a typed one does, and never blocks the form.
+   */
+  useEffect(() => {
+    if (!isOpen) return;
+    const incoming = currentReferral();
+    if (!incoming) return;
+
+    let active = true;
+    void (async () => {
+      // Re-read inside the callback: between opening and here the buyer may
+      // already be typing, and their code always wins over the link's.
+      if (!active || referralCode.trim() || appliedReferral) {
+        return;
+      }
+      setReferralCode(incoming);
+      setReferralOpen(true);
+      await applyReferralCode(incoming);
+    })();
+
+    return () => {
+      active = false;
+    };
+    // One-shot on open, reading the fields as they were at that moment. That
+    // stale read is the point: reopening an abandoned form must not overwrite a
+    // code the buyer had already typed, and depending on them would re-run this
+    // against its own output.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
+
+  if (!isOpen) return null;
+
+  // Reset transient UI state on close so reopening always starts clean.
+  /**
+   * Close the dialog, keeping whatever the buyer typed.
+   *
+   * The backdrop closes on click, so a stray click outside the dialog used to
+   * wipe the whole form: name, email, phone, and for a GST invoice a company
+   * name, a 15-character GSTIN and a billing address. Retyping all of that is
+   * exactly where someone abandons a purchase, so an abandoned form is now
+   * preserved and reopening resumes it.
+   *
+   * A COMPLETED purchase is different: those details belong to a seat that is
+   * already bought, so the form is cleared then and the next one starts fresh.
+   */
+  const handleClose = () => {
+    if (submitted) {
+      setName("");
+      setEmail("");
+      setPhone("");
+      setCountry(detectedCountryName);
+      setIndianState("");
+      setGstRequested(false);
+      setCompanyName("");
+      setGstin("");
+      setCompanyAddress("");
+      setReferralOpen(false);
+      setReferralCode("");
+      setAppliedReferral(null);
+      // Forget the shared link's code too. Without this the next person to buy
+      // in the same tab silently inherits the last buyer's partner discount.
+      clearReferral();
+    }
+
+    // Transient UI state always resets, so reopening never lands on a stale
+    // success screen or a stale error.
+    setSubmitted(false);
+    setError("");
+    setReferralChecking(false);
+    setReferralError("");
+    onClose();
+  };
+
 
   // A referral discounts the taxable base, and GST is charged on what is left.
   // Both figures are needed because they answer different questions, and showing
@@ -1096,7 +1144,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
                         e.preventDefault();
-                        void applyReferral();
+                        void applyReferralCode(referralCode);
                       }
                     }}
                     maxLength={40}
@@ -1106,7 +1154,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
                   />
                   <button
                     type="button"
-                    onClick={() => void applyReferral()}
+                    onClick={() => void applyReferralCode(referralCode)}
                     disabled={referralChecking || !referralCode.trim() || !!appliedReferral}
                     className="shrink-0 inline-flex items-center justify-center min-w-[84px] px-4 py-3 rounded-xl bg-primary text-white text-sm font-medium hover:bg-primary-hover disabled:opacity-50 disabled:pointer-events-none transition-colors"
                   >
