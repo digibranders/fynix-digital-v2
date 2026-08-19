@@ -1,4 +1,11 @@
 import { NextResponse, type NextRequest } from "next/server";
+import {
+  timeZoneForCountry,
+  validCountryCode,
+  validTimeZone,
+  variantToPath,
+} from "@/lib/pavel/landingVariant";
+import { TIME_ZONE_COOKIE } from "@/lib/pavel/timeZoneCookie";
 
 /**
  * CORS for the public Pavel API (`/api/pavel/*`).
@@ -36,7 +43,39 @@ function corsHeaders(origin: string): Headers {
   return headers;
 }
 
+/**
+ * Route `/pavel` to its prerendered variant.
+ *
+ * This is the whole point of the variant scheme: the decision that used to
+ * force a dynamic render now happens here, at the edge, in about a millisecond
+ * and without touching an origin. The rewrite keeps the visitor's URL as
+ * `/pavel` while the response comes from a page cached beside them.
+ *
+ * `?country=` is left alone deliberately. It is a QA override, and folding it
+ * into the cache key would let a crawler or a stray link cache the wrong
+ * currency against a real visitor's variant.
+ */
+function routeLandingPage(request: NextRequest): NextResponse | null {
+  if (request.nextUrl.pathname !== "/pavel") return null;
+  if (request.nextUrl.searchParams.has("country")) return null;
+
+  const countryCode = validCountryCode(
+    request.headers.get("x-vercel-ip-country")
+  );
+  // The browser's own zone when it has reported one; the country's otherwise.
+  const timeZone =
+    validTimeZone(request.cookies.get(TIME_ZONE_COOKIE)?.value) ||
+    timeZoneForCountry(countryCode);
+
+  const url = request.nextUrl.clone();
+  url.pathname = variantToPath({ countryCode, timeZone });
+  return NextResponse.rewrite(url);
+}
+
 export function middleware(request: NextRequest) {
+  const landing = routeLandingPage(request);
+  if (landing) return landing;
+
   const origin = request.headers.get("origin");
   const isAllowed = origin !== null && ALLOWED_ORIGINS.includes(origin);
 
@@ -60,5 +99,6 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: "/api/pavel/:path*",
+  // Only these two: everything else must not pay for a middleware invocation.
+  matcher: ["/api/pavel/:path*", "/pavel"],
 };

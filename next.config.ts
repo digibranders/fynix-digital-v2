@@ -74,6 +74,26 @@ const nextConfig: NextConfig = {
 
     return [
       {
+        // Long-lived caching for the workshop's own media.
+        //
+        // Vercel serves everything in public/ with `max-age=0,
+        // must-revalidate`, so the 8.2MB talk video and the hero art pay a
+        // revalidation round trip on every visit. These files change only when
+        // the workshop content does.
+        //
+        // Deliberately NOT `immutable`: the filenames carry no content hash, so
+        // a replacement uploaded under the same name must still be able to
+        // reach people. Thirty days removes the per-visit round trip while
+        // keeping a bounded worst case.
+        source: "/pavel/:file*.(mp4|vtt|jpg|jpeg|png|webp|avif)",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=2592000, stale-while-revalidate=86400",
+          },
+        ],
+      },
+      {
         source: "/(.*)",
         headers: [
           {

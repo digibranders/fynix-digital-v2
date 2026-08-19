@@ -47,10 +47,23 @@ export const TalkVideo: React.FC<TalkVideoProps> = ({
     const figure = figureRef.current;
     if (!video || !figure) return;
 
+    // Autoplay is a courtesy, and these are the cases where it stops being one.
+    // The poster and its play button stay in every case, so the video is always
+    // one deliberate tap away — it just never spends someone's data uninvited.
+    //
+    //   reduced motion  an accessibility preference, already honoured
+    //   save-data       the visitor has explicitly asked to be spared
+    //   small screens   phones are usually on cellular, and this clip is 8.2MB:
+    //                   roughly 45 seconds of a 1.5Mbps connection, competing
+    //                   with the images and scripts still loading around it
     const prefersReducedMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     ).matches;
-    if (prefersReducedMotion) return;
+    const savesData =
+      (navigator as Navigator & { connection?: { saveData?: boolean } })
+        .connection?.saveData === true;
+    const isSmallScreen = window.matchMedia("(max-width: 767px)").matches;
+    if (prefersReducedMotion || savesData || isSmallScreen) return;
 
     // Automatic playback is always silent. Browsers allow muted autoplay
     // without a gesture, so this needs no unmuted attempt and no fallback.
