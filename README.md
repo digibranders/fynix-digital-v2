@@ -159,6 +159,32 @@ The masthead uses `public/email/logo.png`, exported from `components/Logo.tsx`. 
 
 `lib/email/templates.test.ts` asserts the invariants that hold across every template (escaping, one masthead and one footer, no 8-digit hex, no SVG images, subject and body agreeing on what they promise). Add a template, and it is covered automatically once it is listed there.
 
+## Opening a new cohort
+
+Buyers must receive our emails and only our emails. Zoom will otherwise send its own, and its registration confirmation carries the join link, which defeats the rule that the link is withheld until the one-hour reminder.
+
+**Create the Zoom webinar from the `Semantic SEO Masterclass (Fynix emails only)` template.** Zoom copies every setting from a template except panelists, alternative host, and time, so a webinar created this way starts silenced. Created from scratch it does not: a new webinar defaults to sending a registration confirmation, and there is no account-level setting that changes that default. It is per webinar, every time.
+
+If a webinar is ever created without the template, open Manage → Email Settings and confirm all five rows read "No ...":
+
+| Row | Required |
+|---|---|
+| Panelist invite | No Invitation Email to Panelists |
+| Confirmation email | No Confirmation Email Sent to Registrants |
+| Reminder email | No reminder email to Attendees and Panelists |
+| Attendee email | No follow-up email to Attendees |
+| Absentee email | No follow-up email to Absentees |
+
+Zoom shows a standing banner urging you to turn the confirmation email back on ("We recommend turning it on or sending your own confirmation email"). We do send our own. Ignore it.
+
+To verify without the UI, read the live settings back:
+
+```bash
+npx tsx scripts/zoom-webinar-emails.ts <webinarId>
+```
+
+Registration must also stay on **Manually Approve**. `registerAttendee` pushes paid buyers in with `auto_approve`, which Zoom only honours on a manually-approved webinar; switching to automatic approval opens the public registration page as a second, unpaid door into the session.
+
 ## Deployment
 
 Hosted on Vercel. `vercel.json` restricts automatic deployments to `main`:
