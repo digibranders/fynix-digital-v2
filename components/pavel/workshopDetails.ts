@@ -52,7 +52,7 @@ export const WORKSHOP = {
    * thank-you page so only confirmed seats can join. ⚠️ PLACEHOLDER — swap for
    * the real group invite link before going live.
    */
-  whatsappGroupUrl: "https://chat.whatsapp.com/ELBzlRLp5DxAjOLKrvgZva?s=cl&p=i&ilr=4",
+  whatsappGroupUrl: "https://chat.whatsapp.com/K0DkNVJwPPLHO1RYxtasgK?s=cl&p=a&ilr=1",
   /**
    * Public pre-sale support line — a direct WhatsApp chat for prospects with
    * questions about the workshop. Surfaced on the landing page (floating button
