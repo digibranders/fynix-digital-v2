@@ -39,7 +39,10 @@ export const BRAND = {
   phone: "+91 789 789 6607",
   phoneHref: "+917897896607",
   instagram: "https://www.instagram.com/fynix_digital/",
-  linkedin: "https://in.linkedin.com/company/fynixofficial",
+  // The canonical `www.` form, not the `in.` regional host a search from India
+  // returns. Both resolve, but these emails go worldwide and the regional
+  // subdomain reads as a mistake outside it.
+  linkedin: "https://www.linkedin.com/company/fynixofficial/",
 } as const;
 
 /**

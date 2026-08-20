@@ -217,6 +217,46 @@ describe("promises match the data", () => {
     expect(email.text.toLowerCase()).not.toContain("notes");
   });
 
+  it("holds the Zoom link back until the one-hour reminder", () => {
+    // The join URL is tokenised per registrant and carries attendance
+    // tracking, so a forwarded copy both gives away a paid seat and attributes
+    // the wrong person's attendance. It goes out once, an hour ahead.
+    const early = [
+      buildPavelPaidConfirmationEmail(REGISTRATION),
+      buildPavelReminderEmail(REGISTRATION, "week"),
+    ];
+
+    for (const email of early) {
+      expect(email.html).not.toContain(REGISTRATION.joinUrl);
+      expect(email.text).not.toContain(REGISTRATION.joinUrl);
+      // Including inside the calendar links, which sync to every device on the
+      // account and are routinely shared.
+      expect(email.html).not.toContain(encodeURIComponent(REGISTRATION.joinUrl));
+      expect(email.subject.toLowerCase()).not.toContain("zoom link inside");
+    }
+
+    const hour = buildPavelReminderEmail(REGISTRATION, "hour");
+    expect(hour.html).toContain(REGISTRATION.joinUrl);
+    expect(hour.text).toContain(REGISTRATION.joinUrl);
+  });
+
+  it("offers LinkedIn before the WhatsApp community", () => {
+    const email = buildPavelPaidConfirmationEmail(REGISTRATION);
+    // First occurrence, which is the body panel: the footer's LinkedIn link
+    // sits below it and matches the same host.
+    const linkedin = email.html.indexOf("linkedin.com/company");
+    const whatsapp = email.html.indexOf("chat.whatsapp.com");
+
+    expect(linkedin).toBeGreaterThan(-1);
+    expect(whatsapp).toBeGreaterThan(-1);
+    expect(linkedin).toBeLessThan(whatsapp);
+
+    const linkedinText = email.text.indexOf("linkedin.com/company");
+    const whatsappText = email.text.indexOf("chat.whatsapp.com");
+    expect(linkedinText).toBeGreaterThan(-1);
+    expect(linkedinText).toBeLessThan(whatsappText);
+  });
+
   it("omits the reference line rather than inventing one", () => {
     // The fallbacks used to be `TK-042` and `PVL-0000`, so an unissued seat
     // still printed a confident id that matched every other unissued seat.
