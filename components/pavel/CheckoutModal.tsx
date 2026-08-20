@@ -6,7 +6,11 @@ import {
   usePricing,
   useViewerSchedule,
 } from "@/components/pavel/PricingProvider";
-import { applyDiscount, formatUnitAmount } from "@/components/pavel/pricing";
+import {
+  applyDiscount,
+  effectiveDiscountPercent,
+  formatUnitAmount,
+} from "@/components/pavel/pricing";
 import { Button } from "@/components/pavel/ui/Button";
 import { PhoneField } from "@/components/pavel/ui/PhoneField";
 import { SearchableSelect } from "@/components/pavel/ui/SearchableSelect";
@@ -465,16 +469,20 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
   //
   // `applyDiscount(base)` is the same rounding computeTax() uses for the taxable
   // value, so the quoted figure equals the invoice's taxable line exactly.
+  //
+  // The percentage is capped the same way the checkout route caps it, so a code
+  // deep enough to fall under Razorpay's minimum charge quotes the discount that
+  // will actually be applied rather than one the order cannot carry.
+  const appliedDiscountPercent = appliedReferral
+    ? effectiveDiscountPercent(price, appliedReferral.discountPercent)
+    : 0;
   const discountedBaseDisplay = appliedReferral
-    ? formatUnitAmount(
-        price,
-        applyDiscount(price.base, appliedReferral.discountPercent)
-      )
+    ? formatUnitAmount(price, applyDiscount(price.base, appliedDiscountPercent))
     : null;
   const discountedPayableDisplay = appliedReferral
     ? formatUnitAmount(
         price,
-        applyDiscount(price.unitAmount, appliedReferral.discountPercent)
+        applyDiscount(price.unitAmount, appliedDiscountPercent)
       )
     : null;
 
@@ -1214,7 +1222,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
                     <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
                     <span>
                       <span className="font-semibold">{appliedReferral.code}</span>{" "}
-                      applied &middot; {appliedReferral.discountPercent}% off. You pay{" "}
+                      applied &middot; {appliedDiscountPercent}% off. You pay{" "}
                       <span className="font-semibold">
                         {discountedPayableDisplay}
                       </span>

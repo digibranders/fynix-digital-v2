@@ -87,6 +87,41 @@ export function applyDiscount(unitAmount: number, discountPercent: number): numb
 }
 
 /**
+ * Smallest order Razorpay will settle, in the currency's minor unit: 100, i.e.
+ * ₹1.00 or $1.00. An order below this is created without complaint but the
+ * Checkout overlay rounds the collection up to one whole unit, and the payment
+ * is then refused with "Your payment amount is different from your order
+ * amount". Deep referral codes are the only way to land under it.
+ */
+export const MIN_CHARGE_UNITS = 100;
+
+/**
+ * Reduce a referral discount until the amount charged clears the gateway
+ * minimum, and return the whole-percent discount that survives.
+ *
+ * Charging a floored amount instead would break the rule the checkout is built
+ * on: the invoice is derived from the discount, so a total that no longer
+ * matches the discount is a tax document that disagrees with the card
+ * statement. Capping the percentage keeps one number driving the quote, the
+ * order and the invoice. Both the modal and the checkout route call this, so
+ * the buyer is quoted the discount that is actually applied.
+ *
+ * Steps down a percent at a time: whole percentages are the only ones the
+ * system stores, and 100 iterations is nothing next to the round-trip that
+ * follows.
+ */
+export function effectiveDiscountPercent(
+  price: PriceInfo,
+  discountPercent: number
+): number {
+  let pct = Math.max(0, Math.min(100, Math.round(discountPercent)));
+  while (pct > 0 && applyDiscount(price.unitAmount, pct) < MIN_CHARGE_UNITS) {
+    pct -= 1;
+  }
+  return pct;
+}
+
+/**
  * Format a smallest-unit amount back to a display string in the price's
  * currency, e.g. 796394 → "₹7,963.94", 8910 → "$89.10". Shows decimals only
  * when the amount isn't whole, so "$99" stays "$99".
