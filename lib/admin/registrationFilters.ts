@@ -8,6 +8,7 @@ import {
   zoomAccessStuck,
   type AdminRegistrationRow,
 } from "@/lib/admin/registrationRow";
+import { istDay } from "@/lib/admin/istDay";
 
 /**
  * Every way the registrations table can be narrowed.
@@ -144,11 +145,25 @@ export function rowMatchesQuery(row: AdminRegistrationRow, query: string): boole
   return haystack.some((v) => v?.toLowerCase().includes(query));
 }
 
-/** Compare an ISO instant against a yyyy-mm-dd bound, inclusive of the whole end day. */
+/**
+ * Compare an ISO instant against a yyyy-mm-dd bound, inclusive of both end days.
+ *
+ * The day is taken in IST, not UTC. Slicing the first ten characters off the
+ * stored string is the UTC day, and the console renders every timestamp in
+ * IST, so for the five and a half hours before midnight UTC the two disagreed:
+ * a seat the table showed as the 19th filtered as the 18th, and "Registered
+ * from 19 Aug" hid it. The bounds come from a picker the operator reads in
+ * IST, so the value they are compared against has to be the same day they can
+ * see on the row.
+ */
 function withinDate(iso: string | null, from: string, to: string): boolean {
   if (!from && !to) return true;
   if (!iso) return false;
-  const day = iso.slice(0, 10); // ISO dates sort lexicographically
+  const day = istDay(iso);
+  // An unparseable timestamp cannot satisfy a bound. Silently keeping it would
+  // put a row in a date range it may not belong to.
+  if (!day) return false;
+  // Both are `YYYY-MM-DD`, which sorts lexicographically.
   if (from && day < from) return false;
   if (to && day > to) return false;
   return true;
