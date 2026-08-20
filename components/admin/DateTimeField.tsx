@@ -9,6 +9,16 @@ import {
   Check,
   X,
 } from "lucide-react";
+// Shared with the filters' date-only picker, so "how long is this month" is
+// not answered in two places. The parse and format below stay local: they
+// carry a time, which the date-only pair deliberately does not.
+import {
+  MONTHS,
+  WEEKDAYS,
+  daysInMonth,
+  firstWeekdayIndex,
+  pad,
+} from "@/lib/admin/calendar";
 
 /**
  * Date and time picker for the session panel.
@@ -29,13 +39,6 @@ import {
  * ends up stored as 11:30.
  */
 
-const WEEKDAYS = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
-const MONTHS = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
-];
-
-const pad = (n: number) => String(n).padStart(2, "0");
 
 const HOURS = Array.from({ length: 24 }, (_, h) => h);
 /** Five-minute steps: finer granularity has never been needed for a session. */
@@ -68,15 +71,6 @@ function formatLabel(p: Parts): string {
   return `${p.day} ${MONTHS[p.month].slice(0, 3)} ${p.year}, ${hour12}:${pad(p.minute)} ${suffix}`;
 }
 
-/** Days in a month, using a UTC date purely as a calendar calculator. */
-function daysInMonth(year: number, month: number): number {
-  return new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
-}
-
-/** Weekday index of the 1st, Monday-first (0 = Monday). */
-function firstWeekdayIndex(year: number, month: number): number {
-  return (new Date(Date.UTC(year, month, 1)).getUTCDay() + 6) % 7;
-}
 
 /**
  * Hour / minute dropdown.

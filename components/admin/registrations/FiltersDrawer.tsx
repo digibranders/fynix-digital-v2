@@ -3,6 +3,7 @@
 import { Drawer } from "@/components/admin/ui/Drawer";
 import { Button } from "@/components/admin/ui";
 import { Select } from "@/components/admin/ui/Select";
+import { DateField } from "@/components/admin/ui/DateField";
 import {
   EMPTY_FILTERS,
   NO_REFERRAL,
@@ -40,17 +41,15 @@ function Label({
   );
 }
 
-function TextInput({
+function NumberInput({
   id,
   label,
-  type,
   value,
   onChange,
   placeholder,
 }: {
   id: string;
   label: string;
-  type: "date" | "number";
   value: string;
   onChange: (v: string) => void;
   placeholder?: string;
@@ -60,8 +59,8 @@ function TextInput({
       <Label htmlFor={id}>{label}</Label>
       <input
         id={id}
-        type={type}
-        min={type === "number" ? 0 : undefined}
+        type="number"
+        min={0}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
@@ -257,33 +256,32 @@ export function FiltersDrawer({
           Dates
         </legend>
         <div className="grid gap-4 sm:grid-cols-2">
-          <TextInput
+          <DateField
             id="f-reg-from"
             label="Registered from"
-            type="date"
             value={filters.registeredFrom}
             onChange={(v) => onChange({ registeredFrom: v })}
           />
-          <TextInput
+          {/* The end of a range opens on the start's month, not on today. */}
+          <DateField
             id="f-reg-to"
             label="Registered to"
-            type="date"
             value={filters.registeredTo}
             onChange={(v) => onChange({ registeredTo: v })}
+            referenceValue={filters.registeredFrom}
           />
-          <TextInput
+          <DateField
             id="f-paid-from"
             label="Paid from"
-            type="date"
             value={filters.paidFrom}
             onChange={(v) => onChange({ paidFrom: v })}
           />
-          <TextInput
+          <DateField
             id="f-paid-to"
             label="Paid to"
-            type="date"
             value={filters.paidTo}
             onChange={(v) => onChange({ paidTo: v })}
+            referenceValue={filters.paidFrom}
           />
         </div>
       </fieldset>
@@ -293,18 +291,16 @@ export function FiltersDrawer({
           Amount
         </legend>
         <div className="grid gap-4 sm:grid-cols-2">
-          <TextInput
+          <NumberInput
             id="f-amount-min"
             label="Minimum"
-            type="number"
             value={filters.amountMin}
             onChange={(v) => onChange({ amountMin: v })}
             placeholder="any"
           />
-          <TextInput
+          <NumberInput
             id="f-amount-max"
             label="Maximum"
-            type="number"
             value={filters.amountMax}
             onChange={(v) => onChange({ amountMax: v })}
             placeholder="any"

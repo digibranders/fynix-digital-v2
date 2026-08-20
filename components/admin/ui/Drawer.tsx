@@ -76,14 +76,14 @@ export function Drawer({
 
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
-        // A dropdown inside the panel gets the first Escape. This listener is
-        // on document in the CAPTURE phase, so it would otherwise always beat
-        // the control the key was actually meant for, and one Escape would
-        // shut the whole drawer while a list was open. Asking the DOM whether
-        // a listbox is open avoids racing it: `Select` renders its list only
-        // while open, so its presence is the answer. It portals to the body
-        // rather than nesting here, hence the document-wide query.
-        if (document.querySelector('[role="listbox"]')) return;
+        // A popover inside the panel gets the first Escape. This listener is on
+        // document in the CAPTURE phase, so it would otherwise always beat the
+        // control the key was actually meant for, and one Escape would shut the
+        // whole drawer while a dropdown or a calendar was open. Asking the DOM
+        // whether one is open avoids racing it: they render only while open, so
+        // the marker's presence is the answer. They portal to the body rather
+        // than nesting here, hence the document-wide query.
+        if (document.querySelector("[data-console-popover]")) return;
         event.stopPropagation();
         onCloseRef.current();
         return;
