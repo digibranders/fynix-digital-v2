@@ -143,13 +143,23 @@ export function computeTotals(rows: AdminRegistrationRow[]): RegistrationTotals 
   return totals;
 }
 
-/** Format minor units for display, e.g. 749900 INR -> "₹7,499". */
+/**
+ * Format minor units for display, e.g. 749900 INR -> "₹7,499.00".
+ *
+ * Every figure carries its paise or cents. These are amounts of money that were
+ * actually taken from someone, and this console is where they are reconciled
+ * against Razorpay and against the tax invoices: a seat sold at 99% off
+ * collected ₹88.49 and showed here as "₹88", which is not a number anyone can
+ * match to a settlement line. Two decimals cost a little width and remove the
+ * question entirely.
+ */
 export function formatMoney(minor: number, currency: string): string {
   try {
     return new Intl.NumberFormat(currency === "INR" ? "en-IN" : "en-US", {
       style: "currency",
       currency,
-      maximumFractionDigits: 0,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
     }).format(minor / 100);
   } catch {
     // An unknown currency code must not take the dashboard down with it.

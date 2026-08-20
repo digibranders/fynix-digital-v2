@@ -15,6 +15,7 @@ import {
   StatTile,
 } from "@/components/admin/ui";
 import { SegmentedTabs } from "@/components/admin/ui/SegmentedTabs";
+import { formatMoney } from "@/lib/admin/registrationTotals";
 import { toIstWallClock } from "@/lib/pavel/sessionTimes";
 // Imported from `referralStats`, not `referrals`: the latter reaches the
 // database, and pulling it in here would bundle the Postgres driver into the
@@ -46,14 +47,14 @@ const DATE = new Intl.DateTimeFormat("en-GB", {
   timeZone: "Asia/Kolkata",
 });
 
-/** Minor units to a readable amount. Both currencies are 100-minor-unit based. */
-function money(minor: number, currency: "INR" | "USD"): string {
-  return new Intl.NumberFormat(currency === "INR" ? "en-IN" : "en-US", {
-    style: "currency",
-    currency,
-    maximumFractionDigits: 0,
-  }).format(minor / 100);
-}
+/**
+ * Minor units to a readable amount. Both currencies are 100-minor-unit based.
+ *
+ * Shared with the registrations table rather than formatted locally: commission
+ * owed is reconciled against the revenue it was computed from, and two panels
+ * rounding money differently is how those two figures stop agreeing.
+ */
+const money = formatMoney;
 
 const STATUS_STYLE: Record<ReferralStatus, string> = {
   active: "bg-success-surface text-success",
