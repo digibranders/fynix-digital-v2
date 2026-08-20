@@ -257,6 +257,56 @@ describe("promises match the data", () => {
     expect(linkedinText).toBeLessThan(whatsappText);
   });
 
+  it("states the session in the buyer's own zone, not their country's", () => {
+    // The whole point of storing a zone. countries.ts maps US to
+    // America/New_York, so deriving from the country would tell this buyer
+    // 7:30 AM for a session that starts at 4:30 AM their time: they would join
+    // a three-hour workshop after it had finished.
+    const email = buildPavelPaidConfirmationEmail({
+      ...REGISTRATION,
+      timeZone: "America/Los_Angeles",
+    });
+
+    expect(email.text).toContain("4:30 AM - 7:30 AM PDT");
+    expect(email.text).not.toContain("7:30 AM - 10:30 AM");
+    // The IST reference stays: the workshop is announced in IST everywhere
+    // else, and the two have to reconcile.
+    expect(email.text).toContain("5:00 PM - 8:00 PM IST (11:30 UTC)");
+  });
+
+  it("falls back to IST and UTC when no zone was captured", () => {
+    // Every registration taken before the column existed.
+    const email = buildPavelPaidConfirmationEmail(REGISTRATION);
+
+    expect(email.text).toContain("5:00 PM - 8:00 PM IST (11:30 UTC)");
+    expect(email.text).not.toContain("your local time");
+  });
+
+  it("does not repeat itself for a buyer already in IST", () => {
+    for (const zone of ["Asia/Kolkata", "Asia/Calcutta"]) {
+      const email = buildPavelPaidConfirmationEmail({
+        ...REGISTRATION,
+        timeZone: zone,
+      });
+      // "Asia/Calcutta" is the alias many browsers still report. Matching only
+      // the canonical name gave Indian buyers a second line restating the first.
+      expect(email.text, zone).not.toContain("your local time");
+      expect(email.text, zone).toContain("5:00 PM - 8:00 PM IST (11:30 UTC)");
+    }
+  });
+
+  it("survives a zone Intl does not recognise", () => {
+    // The column is validated on the way in, but a template that throws here
+    // takes down the send for that recipient rather than losing one line.
+    const email = buildPavelPaidConfirmationEmail({
+      ...REGISTRATION,
+      timeZone: "Mars/Olympus_Mons",
+    });
+
+    expect(email.text).toContain("5:00 PM - 8:00 PM IST (11:30 UTC)");
+    expect(email.text).not.toContain("your local time");
+  });
+
   it("omits the reference line rather than inventing one", () => {
     // The fallbacks used to be `TK-042` and `PVL-0000`, so an unissued seat
     // still printed a confident id that matched every other unissued seat.

@@ -36,6 +36,22 @@ export const registrations = pgTable(
     // invoice must name the country of destination, which 'REST' cannot express.
     countryName: text("country_name"), // e.g. 'United States'
     countryCode: text("country_code"), // ISO 3166-1 alpha-2, e.g. 'US'
+    /**
+     * The buyer's OWN IANA timezone, read from their browser at checkout,
+     * e.g. 'America/Los_Angeles'.
+     *
+     * Stored rather than derived from `countryCode`, because the country-to-zone
+     * table holds one representative zone per country: US maps to
+     * America/New_York, so a buyer in California would be told a 3-hour-wrong
+     * local time and would join a 3-hour workshop after it had finished. A
+     * confidently wrong time is worse than the IST-and-UTC line it replaces,
+     * because nothing prompts the reader to check it.
+     *
+     * Null for every registration taken before this column existed, and for
+     * anyone whose browser reported a zone Intl does not recognise. Callers
+     * fall back to the IST + UTC line, which is correct for everyone.
+     */
+    timeZone: text("time_zone"),
     amountDisplay: text("amount_display"), // '₹7,499' / '$99'
     // Amount actually charged, in the currency's minor unit (paise / cents), and
     // its currency. Stored numerically so invoicing and reconciliation never

@@ -154,6 +154,26 @@ const MIN_TOKEN_AGE_MS = 2_000;
 const TOKEN_REFRESH_AFTER_MS = 90 * 60 * 1_000;
 
 /**
+ * The browser's IANA timezone, e.g. "America/Los_Angeles".
+ *
+ * This is the only moment we can learn it. An email client runs no JavaScript,
+ * so a confirmation cannot work out the reader's zone when it is opened; the
+ * server has to know it at send time, which means capturing it here and storing
+ * it against the registration.
+ *
+ * Returns "" rather than throwing on the rare engine that has no Intl or
+ * reports nothing. A missing zone costs the buyer their local-time line, not
+ * their seat.
+ */
+function browserTimeZone(): string {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || "";
+  } catch {
+    return "";
+  }
+}
+
+/**
  * Lazily inject the Razorpay Checkout SDK. Resolves with the global
  * constructor once it's ready and reuses an in-flight or previously-loaded
  * script tag so reopening the modal never loads it twice.
@@ -609,6 +629,12 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
           phone: fullPhone,
           country,
           amountDisplay: price.display,
+          // The buyer's actual timezone, so their emails can state the session
+          // in their own wall-clock time. The country is not a substitute: it
+          // maps to one representative zone, which is three hours wrong for
+          // half of the United States. Sent best-effort; the server validates
+          // it and every template falls back to IST + UTC without it.
+          timeZone: browserTimeZone(),
           ...(isIndian ? { state: indianState } : {}),
           ...(isIndian && gstRequested
             ? {

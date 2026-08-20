@@ -95,8 +95,10 @@ export const ThankYouContent: React.FC = () => {
    * only ever rendered for a verified-paid seat.
    */
   const [whatsappGroupUrl, setWhatsappGroupUrl] = useState("");
-  // The buyer's country, so the session can be shown in their own time.
+  // The buyer's country, the fallback for showing the session in their time.
   const [countryCode, setCountryCode] = useState("");
+  // The buyer's actual IANA zone, captured from their browser at checkout.
+  const [buyerZone, setBuyerZone] = useState("");
 
   // Verify server-side that this link belongs to a PAID seat before revealing
   // any access details. Query params are never trusted on their own.
@@ -117,6 +119,7 @@ export const ThankYouContent: React.FC = () => {
           setAttendeeRef(typeof data.ref === "string" ? data.ref : ref);
           setZoomUrl(typeof data.joinUrl === "string" ? data.joinUrl : "");
           setCountryCode(typeof data.countryCode === "string" ? data.countryCode : "");
+          setBuyerZone(typeof data.timeZone === "string" ? data.timeZone : "");
           setWhatsappGroupUrl(
             typeof data.whatsappGroupUrl === "string" ? data.whatsappGroupUrl : ""
           );
@@ -211,9 +214,16 @@ export const ThankYouContent: React.FC = () => {
     return `data:text/calendar;charset=utf-8,${encodeURIComponent(lines.join("\r\n"))}`;
   };
 
-  // The buyer's timezone comes from the country they chose at checkout.
+  // The buyer's own zone first, the country's representative zone only as a
+  // fallback for seats taken before that was captured.
+  //
+  // The country is a poor stand-in and was the only source here: the table
+  // holds ONE zone per country, so `US` resolves to America/New_York and a
+  // buyer in California was shown 7:30 AM for a session starting 4:30 AM their
+  // time. They would have opened the page, noted the time, and joined a
+  // three-hour workshop after it had finished.
   const buyerTimeZone =
-    COUNTRIES.find((c) => c.code === countryCode)?.tz ?? "";
+    buyerZone || COUNTRIES.find((c) => c.code === countryCode)?.tz || "";
   const localTime = localTimeLabel(schedule, buyerTimeZone);
 
   const firstName = attendeeName ? attendeeName.split(" ")[0] : "there";

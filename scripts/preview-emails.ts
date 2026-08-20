@@ -77,6 +77,18 @@ const WITH_RECORDING: PavelRegistrationSubmission = {
 };
 
 /**
+ * A buyer outside India, to exercise the localised "when" block. The IST-only
+ * fixtures above render the fallback, which is what every registration taken
+ * before the timezone column existed still gets.
+ */
+const OVERSEAS: PavelRegistrationSubmission = {
+  ...REGISTRATION,
+  name: "Daniel Okafor",
+  country: "REST",
+  timeZone: "America/Los_Angeles",
+};
+
+/**
  * The "starting soon" reminder is cron-fired an hour before the session, so
  * previewing it against the default schedule renders "We go live in 16 days",
  * which is not the email anyone will receive. The countdown is baked at send
@@ -112,6 +124,7 @@ function collect(): Rendered[] {
 
   const priority = buildPavelConfirmationEmail(REGISTRATION);
   const paid = buildPavelPaidConfirmationEmail(REGISTRATION);
+  const paidOverseas = buildPavelPaidConfirmationEmail(OVERSEAS);
   const paidAdmin = buildPavelPaidRegistrationAdminEmail(REGISTRATION);
   const duplicatePayment = buildPavelDuplicatePaymentAdminEmail({
     name: "Asha Menon",
@@ -147,6 +160,7 @@ function collect(): Rendered[] {
     { slug: "audit-admin", name: "SEO audit notification", group: "Website forms", audience: "Internal", email: auditAdmin },
     { slug: "pavel-priority", name: "Priority list confirmation", group: "Workshop", audience: "Customer", email: priority },
     { slug: "pavel-paid", name: "Paid seat confirmation", group: "Workshop", audience: "Customer", email: paid },
+    { slug: "pavel-paid-overseas", name: "Paid confirmation (US buyer)", group: "Workshop", audience: "Customer", email: paidOverseas },
     { slug: "pavel-paid-admin", name: "New paid seat notification", group: "Workshop", audience: "Internal", email: paidAdmin },
     { slug: "pavel-duplicate-payment", name: "Double payment alert", group: "Workshop", audience: "Internal", email: duplicatePayment },
     { slug: "pavel-reminder-week", name: "Reminder: one week out", group: "Workshop", audience: "Customer", email: reminderWeek },

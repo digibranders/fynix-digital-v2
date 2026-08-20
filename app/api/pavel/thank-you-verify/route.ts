@@ -54,6 +54,7 @@ export async function GET(request: Request) {
         razorpayOrderId: string | null;
         zoomJoinUrl: string | null;
         countryCode: string | null;
+        timeZone: string | null;
         whatsappGroupUrl: string | null;
       }
     | undefined;
@@ -66,6 +67,7 @@ export async function GET(request: Request) {
         razorpayOrderId: registrations.razorpayOrderId,
         zoomJoinUrl: registrations.zoomJoinUrl,
         countryCode: registrations.countryCode,
+        timeZone: registrations.timeZone,
         // The community belongs to the cohort this seat was sold into, so it is
         // read through the seat rather than from whichever session is active
         // now — the next cohort is activated as soon as a workshop ends.
@@ -95,8 +97,14 @@ export async function GET(request: Request) {
       // not landed yet, in which case the page says so rather than showing a
       // shared link that would not admit them.
       joinUrl: registration.zoomJoinUrl,
-      // Lets the page show the session in the buyer's own time rather than a
-      // UTC offset they have to convert themselves.
+      // The buyer's own zone, captured from their browser at checkout, so the
+      // page can state the session in their wall-clock time.
+      //
+      // `countryCode` is still returned as the fallback for seats taken before
+      // the zone was captured, but it is only ever a fallback: it maps to one
+      // representative zone per country, which is three hours out for half of
+      // the United States.
+      timeZone: registration.timeZone,
       countryCode: registration.countryCode,
       // The attendees-only community. Returned here rather than compiled into
       // the page so it can be changed per cohort without a deploy, and so a

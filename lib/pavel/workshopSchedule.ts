@@ -106,7 +106,10 @@ export function localTimeLabel(
   schedule: WorkshopSchedule,
   timeZone: string | null | undefined
 ): { range: string; dateLabel: string; zoneLabel: string } | null {
-  if (!timeZone || timeZone === IST) return null;
+  // The whole alias set, not just the canonical name. "Asia/Calcutta" is what
+  // many browsers still report, and matching only "Asia/Kolkata" showed Indian
+  // readers a second line repeating the first in different words.
+  if (!timeZone || IST_ZONES.has(timeZone)) return null;
 
   const start = new Date(schedule.startUtc);
   const end = new Date(schedule.endUtc);

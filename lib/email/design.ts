@@ -677,13 +677,22 @@ export function calendarLinks(event: {
   endUtc: string;
   details: string;
   location: string;
+  /**
+   * The reader's IANA zone, when known. Google renders the draft entry in this
+   * zone, so passing it means the buyer sees their own wall-clock time on the
+   * confirmation screen rather than having to trust that the UTC instants
+   * resolve correctly. The instants are authoritative either way; this only
+   * changes what they are shown while confirming.
+   */
+  timeZone?: string;
 }): { google: string; outlook: string } {
   const start = toCalendarStamp(event.startUtc);
   const end = toCalendarStamp(event.endUtc);
+  const ctz = event.timeZone ? `&ctz=${encodeURIComponent(event.timeZone)}` : "";
 
   const google = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(
     event.title
-  )}&dates=${start}/${end}&details=${encodeURIComponent(event.details)}&location=${encodeURIComponent(event.location)}`;
+  )}&dates=${start}/${end}${ctz}&details=${encodeURIComponent(event.details)}&location=${encodeURIComponent(event.location)}`;
 
   const outlook = `https://outlook.live.com/calendar/0/action/compose?rru=addevent&subject=${encodeURIComponent(
     event.title

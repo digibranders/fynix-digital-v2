@@ -90,6 +90,7 @@ async function runReminderType(
     name: string;
     email: string;
     country: string;
+    timeZone: string | null;
     amountDisplay: string | null;
     zoomJoinUrl: string | null;
     attendedMinutes: number | null;
@@ -104,6 +105,7 @@ async function runReminderType(
         name: registrations.name,
         email: registrations.email,
         country: registrations.country,
+        timeZone: registrations.timeZone,
         amountDisplay: registrations.amountDisplay,
         zoomJoinUrl: registrations.zoomJoinUrl,
         attendedMinutes: registrations.attendedMinutes,
@@ -163,6 +165,10 @@ async function runReminderType(
       name: reg.name,
       email: reg.email,
       country: reg.country,
+      // Each reminder is rendered per recipient at send time, which is the only
+      // reason a per-buyer timezone can work at all: an email client runs no
+      // JavaScript and cannot localise anything when it is opened.
+      timeZone: reg.timeZone ?? undefined,
       amountDisplay: reg.amountDisplay ?? undefined,
       ref: reg.ref,
       joinUrl: reg.zoomJoinUrl ?? undefined,
