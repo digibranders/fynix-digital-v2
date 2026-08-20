@@ -5,7 +5,20 @@ import { CheckCircle2, AlertCircle, RefreshCw } from "lucide-react";
 import { SubmitButton } from "@/components/admin/SubmitButton";
 import { Alert, Card, CardHeader } from "@/components/admin/ui";
 
-export type OperationState = { ok: boolean; message: string } | null;
+export type OperationState = {
+  ok: boolean;
+  message: string;
+  /**
+   * The fields as they were submitted, echoed back by a REJECTED form.
+   *
+   * React resets an uncontrolled form once its action resolves, and it cannot
+   * know whether the action succeeded, so it resets on failure too. Without
+   * this, being told "That code already exists" came with every other field
+   * wiped, and the operator retyped the owner, the commission and the expiry
+   * to fix one word. Only failures set it; a success closes its form anyway.
+   */
+  values?: Record<string, string>;
+} | null;
 
 /**
  * Manual recovery actions that apply to the whole cohort.
