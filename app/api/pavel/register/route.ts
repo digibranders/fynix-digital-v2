@@ -10,6 +10,7 @@ import {
   countPhoneDigits,
   phoneLengthError,
 } from "@/components/pavel/countries";
+import { validTimeZone } from "@/lib/pavel/landingVariant";
 import { isValidGstin, normalizeGstin } from "@/lib/pavel/gst";
 import { isValidIndianState } from "@/lib/pavel/indianStates";
 import { getActiveSession } from "@/lib/pavel/webinarSession";
@@ -122,6 +123,7 @@ export async function POST(request: Request) {
     companyAddress,
     state,
     referralCode,
+    timeZone,
   } = body as Record<string, string>;
 
   // Name and email are required and validated, never defaulted. The old
@@ -258,6 +260,11 @@ export async function POST(request: Request) {
       country: resolvedCountry,
       countryName: buyerCountry?.name ?? null,
       countryCode: buyerCountry?.code ?? null,
+      // Validated, never trusted: this string is fed to Intl.DateTimeFormat at
+      // send time, and an unrecognised zone there throws inside the mail
+      // pipeline. `validTimeZone` answers "" for anything Intl rejects, which
+      // stores null and puts the emails back on the IST + UTC line.
+      timeZone: validTimeZone(timeZone) || null,
       // The list price for the resolved region — derived here, never read from
       // the client, so a tampered request can't plant its own text in the admin
       // table. Checkout overwrites it with the real charged amount (discount

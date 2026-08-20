@@ -46,6 +46,7 @@ export async function confirmRegistrationPaid(
         name: string;
         email: string;
         country: string;
+        timeZone: string | null;
         amountDisplay: string | null;
         status: string;
         sessionId: string | null;
@@ -58,6 +59,7 @@ export async function confirmRegistrationPaid(
     name: registrations.name,
     email: registrations.email,
     country: registrations.country,
+    timeZone: registrations.timeZone,
     amountDisplay: registrations.amountDisplay,
     status: registrations.status,
     sessionId: registrations.sessionId,
@@ -232,6 +234,10 @@ export async function confirmRegistrationPaid(
     name: registration.name,
     email: registration.email,
     country: registration.country,
+    // The buyer's own zone, so the confirmation states the session in their
+    // wall-clock time. Null on every seat taken before the column existed, and
+    // the templates fall back to IST + UTC for those.
+    timeZone: registration.timeZone ?? undefined,
     amountDisplay: registration.amountDisplay ?? undefined,
     ref: registration.ref,
     joinUrl,

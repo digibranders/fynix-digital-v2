@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { PRICING, applyDiscount } from "@/components/pavel/pricing";
+import {
+  MIN_CHARGE_UNITS,
+  PRICING,
+  applyDiscount,
+  effectiveDiscountPercent,
+} from "@/components/pavel/pricing";
 import { computeTax } from "@/lib/pavel/tax";
 
 /**
@@ -59,6 +64,39 @@ describe("checkout quote matches the invoice", () => {
       expect(tax.total).toBe(tax.taxable);
       expect(price.taxNote).toBe("");
     });
+  });
+
+  describe("the charge clears Razorpay's minimum", () => {
+    it("caps a USD discount that would charge less than $1.00", () => {
+      const price = PRICING.REST;
+      // 99% off $99 is $0.99. Razorpay creates that order and then refuses the
+      // payment, so the discount steps down to the deepest one that still
+      // collects a whole dollar.
+      expect(applyDiscount(price.unitAmount, 99)).toBeLessThan(MIN_CHARGE_UNITS);
+      expect(effectiveDiscountPercent(price, 99)).toBe(98);
+      expect(effectiveDiscountPercent(price, 100)).toBe(98);
+      expect(applyDiscount(price.unitAmount, 98)).toBe(198);
+    });
+
+    it("leaves discounts that already clear the minimum alone", () => {
+      expect(effectiveDiscountPercent(PRICING.REST, 90)).toBe(90);
+      // ₹8,848.82 is deep enough that even 99% off collects ₹88.49.
+      expect(effectiveDiscountPercent(PRICING.IN, 99)).toBe(99);
+      expect(effectiveDiscountPercent(PRICING.IN, 100)).toBe(99);
+    });
+
+    it.each([PRICING.IN, PRICING.REST])(
+      "never quotes a sub-minimum charge for $currencyCode",
+      (price) => {
+        for (const discountPercent of DISCOUNTS) {
+          const charged = applyDiscount(
+            price.unitAmount,
+            effectiveDiscountPercent(price, discountPercent)
+          );
+          expect(charged).toBeGreaterThanOrEqual(MIN_CHARGE_UNITS);
+        }
+      }
+    );
   });
 
   it("quotes the pre-tax base, not the tax-inclusive total", () => {

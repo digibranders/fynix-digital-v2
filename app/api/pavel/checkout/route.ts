@@ -6,7 +6,9 @@ import { registrations } from "@/lib/db/schema";
 import { screenSubmission } from "@/lib/security/honeypot";
 import { clientKey, rateLimit } from "@/lib/security/rateLimit";
 import {
+  MIN_CHARGE_UNITS,
   PRICING,
+  effectiveDiscountPercent,
   formatUnitAmount,
   type Country,
 } from "@/components/pavel/pricing";
@@ -224,7 +226,21 @@ export async function POST(request: Request) {
         );
         const result = await evaluateReferral(tx, registration.referralCode);
         if (!result.ok) return { ok: false as const, reason: result.reason };
-        txReferral = { code: result.code, discountPercent: result.discountPercent };
+        // Cap the discount at whatever still clears Razorpay's minimum charge,
+        // and store the capped figure: the invoice is rebuilt from this column,
+        // so the stored percent has to be the one the order was priced with.
+        const discountPercent = effectiveDiscountPercent(
+          price,
+          result.discountPercent
+        );
+        if (discountPercent !== result.discountPercent) {
+          console.warn(
+            "[pavel/checkout] discount capped to clear the gateway minimum",
+            result.code,
+            `${result.discountPercent}% -> ${discountPercent}%`
+          );
+        }
+        txReferral = { code: result.code, discountPercent };
       }
       await tx
         .update(registrations)
@@ -271,6 +287,24 @@ export async function POST(request: Request) {
     discountPercent: referral?.discountPercent ?? 0,
   });
   const chargeAmount = tax.total;
+
+  // Backstop for the cap above. Razorpay accepts an order under one whole
+  // currency unit and then refuses the payment against it, so the failure has
+  // to surface here, where it can be logged and explained, rather than as an
+  // "amount is different from your order amount" overlay the buyer cannot act
+  // on.
+  if (chargeAmount < MIN_CHARGE_UNITS) {
+    console.error(
+      "[pavel/checkout] refused: charge below the gateway minimum",
+      chargeAmount,
+      price.currencyCode
+    );
+    return NextResponse.json(
+      { error: "Checkout is temporarily unavailable." },
+      { status: 503 }
+    );
+  }
+
   const chargeDisplay = referral
     ? formatUnitAmount(price, chargeAmount)
     : price.display;

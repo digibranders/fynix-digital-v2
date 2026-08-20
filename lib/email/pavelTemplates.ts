@@ -22,6 +22,7 @@
 import { WORKSHOP } from "@/components/pavel/workshopDetails";
 import {
   FALLBACK_SCHEDULE,
+  localTimeLabel,
   type WorkshopSchedule,
 } from "@/lib/pavel/workshopSchedule";
 import { countdownLabel, eventTimeLabel } from "@/lib/pavel/schedule";
@@ -95,6 +96,20 @@ export interface PavelRegistrationSubmission {
    * pointing at a group that is one cohort old.
    */
   whatsappGroupUrl?: string;
+  /**
+   * The buyer's own IANA timezone, captured from their browser at checkout.
+   *
+   * When present, every "when" block leads with the session in their local
+   * wall-clock time and keeps IST + UTC underneath as the reference. Absent,
+   * which covers every registration taken before the column existed, the blocks
+   * render exactly as before.
+   *
+   * Not derived from `country`: that maps to one representative zone per
+   * country, which is three hours wrong for half of the United States. Telling
+   * a buyer in California 7:30 AM for a session that starts at 4:30 AM their
+   * time would have them join a three-hour workshop after it ended.
+   */
+  timeZone?: string;
 }
 
 export interface PavelAuditSubmission {
@@ -207,6 +222,53 @@ function renderWorkshopEmail(options: ShellOptions): string {
  * visual weight at all. The raw URL still appears beneath it, because a
  * registrant whose client strips the button still has to be able to join.
  */
+/**
+ * The date and time, in the reader's own zone when we know it.
+ *
+ * Leads with their wall-clock time because that is the only number they act on,
+ * and keeps IST + UTC underneath rather than replacing it: the workshop is
+ * announced everywhere else in IST, and a reader comparing this email against
+ * the landing page or a WhatsApp message needs the two to reconcile.
+ *
+ * Their calendar DATE is theirs too, not the workshop's. 5:00 PM IST is still
+ * the previous day across much of the Americas, so printing the IST date beside
+ * a local time would send a Californian looking on the wrong morning.
+ *
+ * Falls back to the original single line whenever the zone is missing, invalid,
+ * or Indian, which is exactly when a second line would add nothing.
+ */
+function whenLines(submission: PavelRegistrationSubmission): string {
+  const schedule = scheduleFor(submission);
+  const local = localTimeLabel(schedule, submission.timeZone);
+
+  if (!local) {
+    return `${escapeHtml(schedule.dateLabel)} &nbsp;&middot;&nbsp; ${escapeHtml(
+      eventTimeLabel(schedule)
+    )}<br />`;
+  }
+
+  const zone = local.zoneLabel ? ` ${local.zoneLabel}` : "";
+  return `${escapeHtml(local.dateLabel)} &nbsp;&middot;&nbsp; ${escapeHtml(
+    `${local.range}${zone}`
+  )}<br /><span class="fx-muted" style="font-size:13px;color:#565D64;">Your local time. The session runs ${escapeHtml(
+    eventTimeLabel(schedule)
+  )}.</span><br />`;
+}
+
+/** Plain-text counterpart of `whenLines`. */
+function whenText(submission: PavelRegistrationSubmission): string {
+  const schedule = scheduleFor(submission);
+  const local = localTimeLabel(schedule, submission.timeZone);
+
+  if (!local) {
+    return `${schedule.dateLabel} · ${eventTimeLabel(schedule)}`;
+  }
+
+  const zone = local.zoneLabel ? ` ${local.zoneLabel}` : "";
+  return `${local.dateLabel} · ${local.range}${zone} (your local time)
+The session runs ${eventTimeLabel(schedule)}`;
+}
+
 interface SessionPanelOptions {
   /**
    * Whether this email hands out the Zoom link.
@@ -245,6 +307,7 @@ function sessionPanel(
           ? `Your Zoom link: ${joinUrl}`
           : "Fynix will email your personal Zoom link one hour before the session starts.",
         location: options.showJoinLink ? joinUrl : "Zoom",
+        timeZone: submission.timeZone,
       })}`
     : "";
 
@@ -267,9 +330,7 @@ function sessionPanel(
     [
       panelLabel("When"),
       panelValue(
-        `${escapeHtml(schedule.dateLabel)} &nbsp;&middot;&nbsp; ${escapeHtml(
-          eventTimeLabel(schedule)
-        )}<br /><span class="fx-accent-text" style="font-size:13px;font-weight:600;color:#8A6634;">Starts ${escapeHtml(
+        `${whenLines(submission)}<span class="fx-accent-text" style="font-size:13px;font-weight:600;color:#8A6634;">Starts ${escapeHtml(
           countdown
         )}</span>`,
         18
@@ -290,7 +351,7 @@ function sessionText(
     : `YOUR ZOOM LINK\nArrives by email one hour before we start. It is personal to your seat, so\nit is not shared any earlier.`;
 
   return `WHEN
-${schedule.dateLabel} · ${eventTimeLabel(schedule)}
+${whenText(submission)}
 Starts ${countdownLabel(schedule.startUtc)}
 
 ${access}${
