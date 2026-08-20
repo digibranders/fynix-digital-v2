@@ -48,11 +48,33 @@ export const WORKSHOP = {
    */
   recordingWindowDays: 7,
   /**
-   * Private attendees-only WhatsApp community. Surfaced on the verified-paid
-   * thank-you page so only confirmed seats can join. ⚠️ PLACEHOLDER — swap for
-   * the real group invite link before going live.
+   * Private attendees-only WhatsApp community. Sent in the paid confirmation
+   * email and shown on the verified-paid thank-you page, so only confirmed
+   * seats can join.
+   *
+   * The FALLBACK, not the live value. Each cohort carries its own invite on its
+   * webinar session, set from the admin console, and this is what a session
+   * with no link of its own falls back to. Editing here needs a deploy and
+   * changes every such session at once; the console does neither, so a new
+   * group belongs there rather than in this file.
+   *
+   * See `whatsappGroupUrlFor` in lib/pavel/whatsappGroupLink.ts, which is the
+   * one place the choice between the two is made.
    */
   whatsappGroupUrl: "https://chat.whatsapp.com/K0DkNVJwPPLHO1RYxtasgK?s=cl&p=a&ilr=1",
+  /**
+   * The official Fynix Digital LinkedIn page, offered in the paid confirmation
+   * ahead of the WhatsApp invite.
+   *
+   * Unlike `whatsappGroupUrl` this is deliberately NOT per-cohort. A WhatsApp
+   * group is spun up per session and set on the session row; the LinkedIn page
+   * is one standing account every cohort follows, so it belongs here.
+   *
+   * The canonical `www.` form rather than the `in.` regional host, which is
+   * what a search from India returns. Both resolve, but the regional one reads
+   * as a mistake to the rest of a worldwide cohort.
+   */
+  linkedinPageUrl: "https://www.linkedin.com/company/fynixofficial/",
   /**
    * Public pre-sale support line — a direct WhatsApp chat for prospects with
    * questions about the workshop. Surfaced on the landing page (floating button

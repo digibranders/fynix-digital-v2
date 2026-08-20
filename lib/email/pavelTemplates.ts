@@ -207,9 +207,26 @@ function renderWorkshopEmail(options: ShellOptions): string {
  * visual weight at all. The raw URL still appears beneath it, because a
  * registrant whose client strips the button still has to be able to join.
  */
+interface SessionPanelOptions {
+  /**
+   * Whether this email hands out the Zoom link.
+   *
+   * True only for the one-hour reminder. Every earlier email names the date and
+   * the time and says when the link arrives.
+   *
+   * The link is a tokenised, single-registrant URL that also carries attendance
+   * tracking, so the longer it sits in an inbox the more chances it has to be
+   * forwarded, and a forwarded link both gives away a paid seat and attributes
+   * the wrong person's attendance. Sending it once, an hour ahead, is the point
+   * at which a buyer needs it and the shortest window in which it can leak.
+   */
+  showJoinLink: boolean;
+  showCalendar: boolean;
+}
+
 function sessionPanel(
   submission: PavelRegistrationSubmission,
-  options: { showCalendar: boolean }
+  options: SessionPanelOptions
 ): string {
   const schedule = scheduleFor(submission);
   const joinUrl = joinLinkFor(submission);
@@ -220,10 +237,31 @@ function sessionPanel(
         title: "Semantic SEO Workshop with Pavel Klimakov",
         startUtc: schedule.startUtc,
         endUtc: schedule.endUtc,
-        details: `Your Zoom link: ${joinUrl}`,
-        location: joinUrl,
+        // The calendar entry must not carry the link either. A calendar is a
+        // second copy of this email that syncs to every device on the account
+        // and is routinely shared, so putting the join URL in `details` or
+        // `location` would undo the whole point of withholding it.
+        details: options.showJoinLink
+          ? `Your Zoom link: ${joinUrl}`
+          : "Fynix will email your personal Zoom link one hour before the session starts.",
+        location: options.showJoinLink ? joinUrl : "Zoom",
       })}`
     : "";
+
+  const access = options.showJoinLink
+    ? [
+        panelLabel("Join on Zoom"),
+        `<div style="height:10px;line-height:10px;font-size:0;">&nbsp;</div>`,
+        button(joinUrl, "Join the workshop"),
+        fallbackLink(joinUrl, "Or copy this link into your browser:"),
+      ].join("")
+    : [
+        panelLabel("Your Zoom link"),
+        panelValue(
+          "Arrives by email one hour before we start. It is personal to your seat, so it is not shared any earlier.",
+          options.showCalendar ? 16 : 0
+        ),
+      ].join("");
 
   return panel(
     [
@@ -236,10 +274,7 @@ function sessionPanel(
         )}</span>`,
         18
       ),
-      panelLabel("Join on Zoom"),
-      `<div style="height:10px;line-height:10px;font-size:0;">&nbsp;</div>`,
-      button(joinUrl, "Join the workshop"),
-      fallbackLink(joinUrl, "Or copy this link into your browser:"),
+      access,
       calendar,
     ].join("")
   );
@@ -247,19 +282,85 @@ function sessionPanel(
 
 function sessionText(
   submission: PavelRegistrationSubmission,
-  options: { showCalendar: boolean }
+  options: SessionPanelOptions
 ): string {
   const schedule = scheduleFor(submission);
+  const access = options.showJoinLink
+    ? `JOIN ON ZOOM\n${joinLinkFor(submission)}`
+    : `YOUR ZOOM LINK\nArrives by email one hour before we start. It is personal to your seat, so\nit is not shared any earlier.`;
+
   return `WHEN
 ${schedule.dateLabel} · ${eventTimeLabel(schedule)}
 Starts ${countdownLabel(schedule.startUtc)}
 
-JOIN ON ZOOM
-${joinLinkFor(submission)}${
+${access}${
     options.showCalendar
       ? "\n\nThe email version of this message has one-tap links to add the session to Google Calendar or Outlook."
       : ""
   }`;
+}
+
+/**
+ * The two places a confirmed seat is invited to gather, LinkedIn first.
+ *
+ * They are separate panels rather than one, because they are not alternatives:
+ * LinkedIn is the standing company account that outlives the cohort, and
+ * WhatsApp is where this cohort's logistics land. A reader deciding what to do
+ * with each needs to see that difference, and a single panel with two buttons
+ * reads as "pick one".
+ *
+ * The tints keep them apart without inventing a colour: LinkedIn takes the
+ * brand's accent wash, WhatsApp keeps the green it already had. Neither uses
+ * its own brand colour, which at this size would be two loud boxes competing
+ * with the CTA above them.
+ */
+function communityPanels(submission: PavelRegistrationSubmission): string {
+  const linkedin = panel(
+    [
+      panelLabel("Follow us on LinkedIn"),
+      // Not "announcements are shared exclusively here". This same email tells
+      // the reader their Zoom link arrives by email, and the reminders that
+      // follow are email too, so "exclusively" would be contradicted by the
+      // paragraph above it and by the next message they receive.
+      paragraph(
+        "Announcements and updates are posted on the official Fynix Digital page. Follow it so you see them as they go out.",
+        16
+      ),
+      button(WORKSHOP.linkedinPageUrl, "Follow Fynix on LinkedIn"),
+    ].join(""),
+    "accent"
+  );
+
+  const whatsapp = panel(
+    [
+      positiveLabel("Attendees only"),
+      // Says nothing about the Zoom link. That arrives by email an hour before
+      // the session, and the panel above this one says so, so naming WhatsApp
+      // as a second source for it would send someone to the wrong place at the
+      // one moment they cannot afford to look in the wrong place.
+      paragraph(
+        "Our private WhatsApp community carries the reminders, resources and day-of updates for this cohort. Reserved for confirmed seats.",
+        16
+      ),
+      button(whatsappGroupFor(submission), "Join the WhatsApp community", "positive"),
+    ].join(""),
+    "positive"
+  );
+
+  return `${linkedin}${whatsapp}`;
+}
+
+/** Plain-text counterpart, in the same order. */
+function communityText(submission: PavelRegistrationSubmission): string {
+  return `FOLLOW US ON LINKEDIN
+Announcements and updates are posted on the official Fynix Digital page. Follow
+it so you see them as they go out.
+${WORKSHOP.linkedinPageUrl}
+
+ATTENDEES-ONLY WHATSAPP COMMUNITY
+Our private WhatsApp community carries the reminders, resources and day-of
+updates for this cohort. Reserved for confirmed seats.
+${whatsappGroupFor(submission)}`;
 }
 
 /**
@@ -385,39 +486,27 @@ export function buildPavelPaidConfirmationEmail(
   submission: PavelRegistrationSubmission
 ): PavelEmail {
   const firstName = firstNameOf(submission.name);
-  const subject = "Your seat is confirmed: Zoom link inside";
-
-  const whatsapp = panel(
-    [
-      positiveLabel("Attendees only"),
-      paragraph(
-        "Our private WhatsApp community carries the reminders, resources and updates for this cohort. Reserved for confirmed seats.",
-        16
-      ),
-      button(whatsappGroupFor(submission), "Join the community", "positive"),
-    ].join(""),
-    "positive"
-  );
+  // Not "Zoom link inside" any more. The link now goes out an hour before the
+  // session, and a subject naming something the body does not contain is the
+  // exact failure this file keeps rediscovering.
+  const subject = "Your seat is confirmed for the Semantic SEO Workshop";
 
   const bodyHtml = [
     lede(
-      "Payment received. You are registered for the live three-hour Semantic SEO workshop. Everything you need to join is below, so keep this email."
+      "Payment received. You are registered for the live three-hour Semantic SEO workshop. Here is the date, and the two places the cohort gathers before it."
     ),
-    sessionPanel(submission, { showCalendar: true }),
-    whatsapp,
+    sessionPanel(submission, { showJoinLink: false, showCalendar: true }),
+    communityPanels(submission),
   ].join("");
 
   const text = `Your seat is confirmed, ${firstName}.
 
 Payment received. You are registered for the live three-hour Semantic SEO
-workshop. Everything you need to join is below, so keep this email.
+workshop. Here is the date, and the two places the cohort gathers before it.
 
-${sessionText(submission, { showCalendar: true })}
+${sessionText(submission, { showJoinLink: false, showCalendar: true })}
 
-ATTENDEES-ONLY WHATSAPP COMMUNITY
-Our private WhatsApp community carries the reminders, resources and updates for
-this cohort. Reserved for confirmed seats.
-${whatsappGroupFor(submission)}
+${communityText(submission)}
 
 See you there,
 The ${BRAND.name} Team
@@ -428,7 +517,7 @@ Questions? Reply to this email or write to ${BRAND.email}.${referenceText(submis
     subject,
     html: renderWorkshopEmail({
       subject,
-      preheader: "Your Zoom link, the date and time, and the attendees-only community.",
+      preheader: "The date and time, plus the LinkedIn group and WhatsApp community for your cohort.",
       headingText: "Your seat is confirmed,",
       headingEmphasis: `${firstName}.`,
       bodyHtml,
@@ -615,22 +704,22 @@ export function buildPavelReminderEmail(
   // was the thing that was wrong, not the body.
   const preheader = isHour
     ? "We go live shortly. Your Zoom link is inside."
-    : "Your workshop is a week away. Save the date and your Zoom link.";
+    : "Your workshop is coming up. Here is the date, and when your link arrives.";
 
   const lead = isHour
-    ? `The workshop begins ${countdown}. Join a few minutes early so you are settled before Pavel starts.`
-    : `Pavel's live Semantic SEO workshop is ${countdown}. Here is everything you need to have it ready and on your calendar.`;
+    ? `The workshop begins ${countdown}, and your personal Zoom link is below. Join a few minutes early so you are settled before Pavel starts.`
+    : `Pavel's live Semantic SEO workshop is ${countdown}. Your Zoom link follows an hour before we start, so there is nothing to do until then except put it in your calendar.`;
 
   const bodyHtml = [
     lede(escapeHtml(lead)),
-    sessionPanel(submission, { showCalendar: !isHour }),
+    sessionPanel(submission, { showJoinLink: isHour, showCalendar: !isHour }),
   ].join("");
 
   const text = `${isHour ? "Starting soon" : "One week to go"}, ${firstName}.
 
 ${lead}
 
-${sessionText(submission, { showCalendar: !isHour })}
+${sessionText(submission, { showJoinLink: isHour, showCalendar: !isHour })}
 
 See you there,
 The ${BRAND.name} Team
