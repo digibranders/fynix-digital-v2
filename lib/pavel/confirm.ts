@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq, ne } from "drizzle-orm";
 import type { Db } from "@/lib/db/client";
 import { registrations } from "@/lib/db/schema";
 import { dispatchPavelEmail } from "@/lib/email/dispatch";
@@ -8,6 +8,7 @@ import { renderInvoicePdf, invoiceFileName } from "@/lib/pavel/invoicePdf";
 import { grantWebinarAccess } from "@/lib/pavel/webinarAccess";
 import { loadSchedule } from "@/lib/pavel/loadSchedule";
 import {
+  buildPavelDuplicatePaymentAdminEmail,
   buildPavelPaidConfirmationEmail,
   buildPavelPaidRegistrationAdminEmail,
   type PavelRegistrationSubmission,
@@ -46,6 +47,7 @@ export async function confirmRegistrationPaid(
         country: string;
         amountDisplay: string | null;
         status: string;
+        sessionId: string | null;
       }
     | undefined;
 
@@ -57,6 +59,7 @@ export async function confirmRegistrationPaid(
     country: registrations.country,
     amountDisplay: registrations.amountDisplay,
     status: registrations.status,
+    sessionId: registrations.sessionId,
   };
 
   try {
@@ -103,6 +106,60 @@ export async function confirmRegistrationPaid(
         status: "error",
         reason: updateError instanceof Error ? updateError.message : "update failed",
       };
+    }
+
+    // Double-payment watch. Razorpay captures before we hear about it, so a
+    // buyer who opened two checkouts and paid both CANNOT be refused here —
+    // the only wrong response would be silence. If this email already holds
+    // another paid seat in the same session, alert the operator to refund the
+    // duplicate. Deduped per registration in email_log like every other send,
+    // so a webhook retry never re-alerts; non-fatal, so a failed alert can
+    // never cost the buyer their confirmation.
+    if (registration.sessionId) {
+      try {
+        const [duplicate] = await db
+          .select({ ref: registrations.ref })
+          .from(registrations)
+          .where(
+            and(
+              eq(registrations.email, registration.email),
+              eq(registrations.sessionId, registration.sessionId),
+              eq(registrations.status, "paid"),
+              ne(registrations.id, registration.id)
+            )
+          )
+          .limit(1);
+
+        if (duplicate) {
+          const alert = buildPavelDuplicatePaymentAdminEmail({
+            name: registration.name,
+            email: registration.email,
+            ref: registration.ref,
+            existingRef: duplicate.ref,
+            amountDisplay: registration.amountDisplay ?? undefined,
+          });
+          const alertResult = await dispatchPavelEmail({
+            registrationId: registration.id,
+            type: "duplicate_payment",
+            to: [ADMIN_RECIPIENT],
+            subject: alert.subject,
+            htmlContent: alert.html,
+            textContent: alert.text,
+            sender: SENDER,
+          });
+          if (alertResult.status === "error") {
+            console.error(
+              "[pavel/confirm] duplicate-payment alert failed",
+              alertResult.reason
+            );
+          }
+        }
+      } catch (duplicateError) {
+        console.error(
+          "[pavel/confirm] duplicate-payment check failed",
+          duplicateError
+        );
+      }
     }
   }
 

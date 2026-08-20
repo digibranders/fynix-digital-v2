@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { getRazorpay, getRazorpayKeyId } from "@/lib/razorpay/client";
 import { getDb } from "@/lib/db/client";
 import { registrations } from "@/lib/db/schema";
@@ -177,32 +177,87 @@ export async function POST(request: Request) {
   const resolvedCountry: Country = registration.country === "IN" ? "IN" : "REST";
   const price = PRICING[resolvedCountry];
 
-  // Re-validate the stored code and derive the discount here — never trust a
-  // discount from the client.
+  // Without keys no order can be created. Checked BEFORE the reservation below
+  // so a misconfigured host fails without holding a cap slot. Hard-fail,
+  // exactly as an unreachable database does above: this is a misconfiguration,
+  // not a "payments off" mode.
+  const razorpay = getRazorpay();
+  const keyId = getRazorpayKeyId();
+  if (!razorpay || !keyId) {
+    console.error("[pavel/checkout] Razorpay is not configured.");
+    return NextResponse.json(
+      { error: "Checkout is temporarily unavailable." },
+      { status: 503 }
+    );
+  }
+
+  // Re-validate the stored code and RESERVE this checkout, in one transaction.
   //
   // A code can go stale between reserving a seat and paying for it: it may
   // expire, be switched off, or have its last slot taken by someone else. The
   // sale is refused rather than quietly repriced. Charging the list price to
   // someone who got this far expecting a discount is the one outcome worse than
   // an error message.
+  //
+  // Two things make the cap race-proof where a bare re-check was not:
+  //
+  //   - The advisory lock serialises checkouts per code, so two concurrent
+  //     requests cannot both read the same redemption count and both pass.
+  //   - Stamping `checkout_started_at` (with the discount) makes this checkout
+  //     a RESERVATION that `countRedemptions` counts for the next half hour, so
+  //     checkouts that are open but unpaid hold their slot instead of letting
+  //     the cap re-sell it. See lib/pavel/referral.ts.
+  //
+  // The session id is stamped here too: the row is sold into THIS session from
+  // the moment money can move, not only once Zoom registration succeeds — which
+  // is what lets the paid-confirmation flag a duplicate payment for the same
+  // cohort (see lib/pavel/confirm.ts).
   let referral: { code: string; discountPercent: number } | null = null;
-  if (registration.referralCode) {
-    const result = await evaluateReferral(db, registration.referralCode);
-    if (!result.ok) {
+  try {
+    const reservation = await db.transaction(async (tx) => {
+      let txReferral: { code: string; discountPercent: number } | null = null;
+      if (registration.referralCode) {
+        await tx.execute(
+          sql`select pg_advisory_xact_lock(hashtextextended(${
+            "pavel-referral:" + registration.referralCode
+          }, 0))`
+        );
+        const result = await evaluateReferral(tx, registration.referralCode);
+        if (!result.ok) return { ok: false as const, reason: result.reason };
+        txReferral = { code: result.code, discountPercent: result.discountPercent };
+      }
+      await tx
+        .update(registrations)
+        .set({
+          sessionId: activeSession.id,
+          discountPercent: txReferral?.discountPercent ?? null,
+          checkoutStartedAt: new Date(),
+        })
+        .where(eq(registrations.id, registration.id));
+      return { ok: true as const, referral: txReferral };
+    });
+
+    if (!reservation.ok) {
       console.warn(
         "[pavel/checkout] refused: referral no longer redeemable",
         registration.referralCode,
-        result.reason
+        reservation.reason
       );
       return NextResponse.json(
         {
-          error: `${referralRejectionMessage(result.reason)} Please remove it and try again.`,
+          error: `${referralRejectionMessage(reservation.reason)} Please remove it and try again.`,
           referralRejected: true,
         },
-        { status: result.reason === "unavailable" ? 503 : 409 }
+        { status: reservation.reason === "unavailable" ? 503 : 409 }
       );
     }
-    referral = { code: result.code, discountPercent: result.discountPercent };
+    referral = reservation.referral;
+  } catch (reservationError) {
+    console.error("[pavel/checkout] reservation failed", reservationError);
+    return NextResponse.json(
+      { error: "Checkout is temporarily unavailable." },
+      { status: 503 }
+    );
   }
 
   // Derive the charge from the taxable base: discount, then GST, then total.
@@ -219,21 +274,6 @@ export async function POST(request: Request) {
   const chargeDisplay = referral
     ? formatUnitAmount(price, chargeAmount)
     : price.display;
-
-  // Without keys no order can be created. Hard-fail, exactly as an unreachable
-  // database does above: this is a misconfiguration, not a "payments off" mode.
-  // Reporting it to the client used to send the buyer to a no-charge holding
-  // confirmation, which reads as a purchased seat and hides the outage from
-  // everyone until someone tries to attend.
-  const razorpay = getRazorpay();
-  const keyId = getRazorpayKeyId();
-  if (!razorpay || !keyId) {
-    console.error("[pavel/checkout] Razorpay is not configured.");
-    return NextResponse.json(
-      { error: "Checkout is temporarily unavailable." },
-      { status: 503 }
-    );
-  }
 
   try {
     const order = await razorpay.orders.create({
@@ -263,15 +303,14 @@ export async function POST(request: Request) {
       },
     });
 
-    // Record the order id (and the applied discount + charged amount) so the
-    // webhook + verify can map payment → registration and emails show the real
-    // amount paid.
+    // Record the order id (and the charged amount) so the webhook + verify can
+    // map payment → registration and emails show the real amount paid. The
+    // discount and session were already stamped by the reservation above.
     try {
       await db
         .update(registrations)
         .set({
           razorpayOrderId: order.id,
-          discountPercent: referral?.discountPercent ?? null,
           amountDisplay: chargeDisplay,
           amountCharged: chargeAmount,
           currency: price.currencyCode,
@@ -293,6 +332,17 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     console.error("[pavel/checkout] failed to create Razorpay order", error);
+    // No order exists, so the reservation is holding a cap slot for nothing.
+    // Release it best-effort; if this also fails, the slot simply ages out of
+    // the reservation window on its own.
+    try {
+      await db
+        .update(registrations)
+        .set({ checkoutStartedAt: null, discountPercent: null })
+        .where(eq(registrations.id, registration.id));
+    } catch (releaseError) {
+      console.error("[pavel/checkout] failed to release reservation", releaseError);
+    }
     return NextResponse.json(
       { error: "Could not start checkout. Please try again." },
       { status: 502 }

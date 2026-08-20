@@ -35,7 +35,11 @@ export type PavelEmailType =
   // recording for those who paid but did not. Separate types so each is
   // deduped independently and a buyer can never receive both.
   | "certificate"
-  | "missed_you";
+  | "missed_you"
+  // Operator alert: this seat's payment landed when the same buyer already
+  // held a paid seat for the same session — a probable double charge needing
+  // a refund. Keyed to the LATER registration, so the alert fires once.
+  | "duplicate_payment";
 
 export interface DispatchPavelEmailParams {
   /** Registration this email belongs to — used as the idempotency key. */

@@ -497,6 +497,45 @@ Reference: ${ref}`;
 }
 
 /**
+ * Operator alert for a probable double charge: a payment was captured for a
+ * buyer who already holds a paid seat in the same session. The money has
+ * already moved — Razorpay captures before we hear about it — so the fix is a
+ * refund, and the operator needs to know NOW, not at reconciliation time.
+ */
+export function buildPavelDuplicatePaymentAdminEmail(input: {
+  name: string;
+  email: string;
+  ref: string;
+  existingRef: string;
+  amountDisplay?: string;
+}) {
+  const subject = `⚠️ [Double payment?] ${input.name} paid twice for Pavel Workshop [${input.ref}]`;
+  const html = `
+    <h2>Probable double payment — refund needed</h2>
+    <p>A payment was just captured for a buyer who already holds a paid seat in the same session.</p>
+    <p><strong>Name:</strong> ${escapeHtml(input.name)}</p>
+    <p><strong>Email:</strong> ${escapeHtml(input.email)}</p>
+    <p><strong>This payment:</strong> ${escapeHtml(input.ref)} (${escapeHtml(input.amountDisplay || "amount unknown")})</p>
+    <p><strong>Already-paid seat:</strong> ${escapeHtml(input.existingRef)}</p>
+    <p>Check both registrations in the admin console and refund the duplicate from the Razorpay dashboard.</p>
+  `;
+  const text = `Probable double payment — refund needed
+
+A payment was just captured for a buyer who already holds a paid seat in the
+same session.
+
+Name: ${input.name}
+Email: ${input.email}
+This payment: ${input.ref} (${input.amountDisplay || "amount unknown"})
+Already-paid seat: ${input.existingRef}
+
+Check both registrations in the admin console and refund the duplicate from
+the Razorpay dashboard.`;
+
+  return { subject, html, text };
+}
+
+/**
  * Shared brand-styled email shell so the reminder + post-event mails stay
  * visually consistent with the confirmation without duplicating boilerplate.
  */

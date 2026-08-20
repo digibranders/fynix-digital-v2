@@ -44,6 +44,12 @@ export const registrations = pgTable(
     currency: text("currency"), // 'INR' | 'USD'
     razorpayOrderId: text("razorpay_order_id").unique(), // 'order_...' created at checkout
     razorpayPaymentId: text("razorpay_payment_id"), // 'pay_...' captured on success
+    // When the latest checkout attempt reserved this seat, stamped just before
+    // the Razorpay order is created. A recent value marks an ACTIVE checkout:
+    // referral caps count it as a reservation so a capped code cannot be
+    // oversold by checkouts that are open but not yet paid (see
+    // lib/pavel/referral.ts). Stale values simply age out of the window.
+    checkoutStartedAt: timestamp("checkout_started_at", { withTimezone: true }),
     status: text("status").notNull().default("pending"), // 'pending' | 'paid'
 
     // Zoom webinar this seat was sold into, and the buyer's place in it. The
