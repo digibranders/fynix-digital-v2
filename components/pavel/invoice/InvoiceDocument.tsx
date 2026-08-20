@@ -424,10 +424,12 @@ export const InvoiceDocument: React.FC<InvoiceDocumentProps> = ({
                   <Text style={styles.muted}>Subtotal</Text>
                   <Text>{money(invoice.listValue, currency)}</Text>
                 </View>
+                {/* The rate and the amount, not the code that earned it: the
+                    referral code is an internal attribution, and printing it on
+                    the buyer's invoice invites them to pass it on. */}
                 <View style={styles.totalsRow}>
                   <Text style={styles.muted}>
-                    Discount ({invoice.discountPercent}%
-                    {invoice.referralCode ? `, ${invoice.referralCode}` : ""})
+                    Discount ({invoice.discountPercent}%)
                   </Text>
                   <Text>-{money(invoice.discountAmount, currency)}</Text>
                 </View>
