@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import { getDb } from "@/lib/db/client";
-import { registrations } from "@/lib/db/schema";
+import { registrations, webinarSessions } from "@/lib/db/schema";
 import { getRazorpay } from "@/lib/razorpay/client";
 import { clientKey, rateLimit } from "@/lib/security/rateLimit";
+import { whatsappGroupUrlFor } from "@/lib/pavel/whatsappGroupLink";
 
 export const runtime = "nodejs";
 
@@ -53,6 +54,7 @@ export async function GET(request: Request) {
         razorpayOrderId: string | null;
         zoomJoinUrl: string | null;
         countryCode: string | null;
+        whatsappGroupUrl: string | null;
       }
     | undefined;
   try {
@@ -64,8 +66,16 @@ export async function GET(request: Request) {
         razorpayOrderId: registrations.razorpayOrderId,
         zoomJoinUrl: registrations.zoomJoinUrl,
         countryCode: registrations.countryCode,
+        // The community belongs to the cohort this seat was sold into, so it is
+        // read through the seat rather than from whichever session is active
+        // now — the next cohort is activated as soon as a workshop ends.
+        whatsappGroupUrl: webinarSessions.whatsappGroupUrl,
       })
       .from(registrations)
+      // Left, not inner: a seat with no session must still be able to verify.
+      // An inner join would report a paid buyer as not found and leave them
+      // staring at a page that will not show their Zoom link.
+      .leftJoin(webinarSessions, eq(registrations.sessionId, webinarSessions.id))
       .where(eq(registrations.ref, ref))
       .limit(1);
   } catch {
@@ -88,6 +98,10 @@ export async function GET(request: Request) {
       // Lets the page show the session in the buyer's own time rather than a
       // UTC offset they have to convert themselves.
       countryCode: registration.countryCode,
+      // The attendees-only community. Returned here rather than compiled into
+      // the page so it can be changed per cohort without a deploy, and so a
+      // private invite is not sitting in a public JavaScript bundle.
+      whatsappGroupUrl: whatsappGroupUrlFor(registration.whatsappGroupUrl),
     });
   }
 
@@ -109,6 +123,7 @@ export async function GET(request: Request) {
           ref: registration.ref,
           joinUrl: registration.zoomJoinUrl,
           countryCode: registration.countryCode,
+          whatsappGroupUrl: whatsappGroupUrlFor(registration.whatsappGroupUrl),
         });
       }
     } catch (err) {

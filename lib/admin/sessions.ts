@@ -10,12 +10,15 @@ import {
   activateSession,
   deleteSession,
   setRegistrationsClosed,
+  setRegistrationsCloseAt,
   setRecordingUrl,
+  setWhatsappGroupUrl,
   updateSessionTimes,
   normalizeWebinarId,
 } from "@/lib/pavel/webinarSession";
-import { parseSessionTimes } from "@/lib/pavel/sessionTimes";
+import { parseSessionCloseAt, parseSessionTimes } from "@/lib/pavel/sessionTimes";
 import { resolveRecordingInput } from "@/lib/pavel/recordingLink";
+import { resolveWhatsappGroupInput } from "@/lib/pavel/whatsappGroupLink";
 import { isUniqueViolation } from "@/lib/admin/dbErrors";
 
 /**
@@ -33,6 +36,17 @@ export type AdminSessionRow = {
   active: boolean;
   /** Whether this session is refusing new registrations. */
   registrationsClosed: boolean;
+  /**
+   * When this session stops taking registrations on its own, if a cutoff is
+   * set. The console derives the live open/closed state from it rather than
+   * trusting `registrationsClosed` alone, exactly as the checkout route does.
+   */
+  registrationsCloseAt: string | null;
+  /**
+   * This cohort's WhatsApp community invite. Null means the session falls back
+   * to the built-in link, which is what the panel says in place of a value.
+   */
+  whatsappGroupUrl: string | null;
   /** Zoom share link for this session's recording, once published. */
   recordingUrl: string | null;
   /** Passcode Zoom asks for on that link, when one is set. */
@@ -79,6 +93,10 @@ export async function loadSessions(): Promise<LoadSessionsResult> {
           label: s.label,
           active: s.active,
           registrationsClosed: s.registrationsClosed,
+          registrationsCloseAt: s.registrationsCloseAt
+            ? s.registrationsCloseAt.toISOString()
+            : null,
+          whatsappGroupUrl: s.whatsappGroupUrl,
           recordingUrl: s.recordingUrl,
           recordingPasscode: s.recordingPasscode,
           startsAt: s.startsAt ? s.startsAt.toISOString() : null,
@@ -111,7 +129,24 @@ export async function loadSessions(): Promise<LoadSessionsResult> {
     if (!Array.isArray(sessions) || !sessions.every(isSessionRow)) {
       return { sessions: [], error: "The sessions service returned unexpected data." };
     }
-    return { sessions, error: null };
+    return {
+      // The console and the droplet are deployed separately, so the droplet can
+      // be a build behind and answer without a field this one expects. Pinning
+      // the cutoff to null in that case keeps the row honest about its own type
+      // rather than leaving an `undefined` the panel has been told is a string.
+      sessions: sessions.map((session) => ({
+        ...session,
+        registrationsCloseAt:
+          typeof session.registrationsCloseAt === "string"
+            ? session.registrationsCloseAt
+            : null,
+        whatsappGroupUrl:
+          typeof session.whatsappGroupUrl === "string"
+            ? session.whatsappGroupUrl
+            : null,
+      })),
+      error: null,
+    };
   } catch (error) {
     if (error instanceof AdminGatewayError) {
       return {
@@ -131,15 +166,19 @@ export async function mutateSession(
     | "activate"
     | "close"
     | "reopen"
+    | "scheduleClose"
     | "update"
     | "delete"
-    | "recording",
+    | "recording"
+    | "whatsapp",
   input: {
     zoomWebinarId?: string;
     label?: string;
     sessionId?: string;
     startsAt?: string;
     endsAt?: string;
+    closeAt?: string;
+    whatsappGroupUrl?: string;
     recordingUrl?: string;
     recordingPasscode?: string;
   }
@@ -172,6 +211,25 @@ export async function mutateSession(
           startsAt: times.startsAt,
           endsAt: times.endsAt,
         });
+        return session ? null : "Session not found.";
+      }
+      if (action === "scheduleClose") {
+        const parsed = parseSessionCloseAt(input.closeAt);
+        if (parsed.error) return parsed.error;
+        const session = await setRegistrationsCloseAt(
+          db,
+          input.sessionId,
+          parsed.closeAt
+        );
+        return session ? null : "Session not found.";
+      }
+      if (action === "whatsapp") {
+        // Refuses anything that is not a chat.whatsapp.com invite: this link is
+        // mailed to every buyer, and the likely mistake is the public support
+        // number, which would put the whole cohort in a one-to-one chat.
+        const resolved = resolveWhatsappGroupInput(input.whatsappGroupUrl ?? "");
+        if (!resolved.ok) return resolved.error;
+        const session = await setWhatsappGroupUrl(db, input.sessionId, resolved.url);
         return session ? null : "Session not found.";
       }
       if (action === "recording") {

@@ -1,0 +1,1 @@
+ALTER TABLE "webinar_sessions" ADD COLUMN "whatsapp_group_url" text;

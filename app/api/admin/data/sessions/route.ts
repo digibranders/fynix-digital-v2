@@ -7,12 +7,15 @@ import {
   activateSession,
   deleteSession,
   setRegistrationsClosed,
+  setRegistrationsCloseAt,
   setRecordingUrl,
+  setWhatsappGroupUrl,
   updateSessionTimes,
   normalizeWebinarId,
 } from "@/lib/pavel/webinarSession";
-import { parseSessionTimes } from "@/lib/pavel/sessionTimes";
+import { parseSessionCloseAt, parseSessionTimes } from "@/lib/pavel/sessionTimes";
 import { resolveRecordingInput } from "@/lib/pavel/recordingLink";
+import { resolveWhatsappGroupInput } from "@/lib/pavel/whatsappGroupLink";
 import { isUniqueViolation } from "@/lib/admin/dbErrors";
 
 export const runtime = "nodejs";
@@ -56,6 +59,10 @@ export async function GET(request: Request) {
         label: session.label,
         active: session.active,
         registrationsClosed: session.registrationsClosed,
+        registrationsCloseAt: session.registrationsCloseAt
+          ? session.registrationsCloseAt.toISOString()
+          : null,
+        whatsappGroupUrl: session.whatsappGroupUrl,
         recordingUrl: session.recordingUrl,
         recordingPasscode: session.recordingPasscode,
         startsAt: session.startsAt ? session.startsAt.toISOString() : null,
@@ -99,6 +106,8 @@ export async function POST(request: Request) {
     sessionId,
     startsAt,
     endsAt,
+    closeAt,
+    whatsappGroupUrl,
     recordingUrl,
     recordingPasscode,
   } = (body ?? {}) as {
@@ -108,6 +117,8 @@ export async function POST(request: Request) {
       sessionId?: string;
       startsAt?: string;
       endsAt?: string;
+      closeAt?: string;
+      whatsappGroupUrl?: string;
       recordingUrl?: string;
       recordingPasscode?: string;
     };
@@ -187,6 +198,45 @@ export async function POST(request: Request) {
       }
       return NextResponse.json({
         session: { id: session.id, registrationsClosed: session.registrationsClosed },
+      });
+    }
+
+    if (action === "scheduleClose") {
+      if (!sessionId) {
+        return NextResponse.json({ error: "sessionId is required." }, { status: 400 });
+      }
+      const parsed = parseSessionCloseAt(closeAt);
+      if (parsed.error) {
+        return NextResponse.json({ error: parsed.error }, { status: 400 });
+      }
+      const session = await setRegistrationsCloseAt(db, sessionId, parsed.closeAt);
+      if (!session) {
+        return NextResponse.json({ error: "Session not found." }, { status: 404 });
+      }
+      return NextResponse.json({
+        session: {
+          id: session.id,
+          registrationsCloseAt: session.registrationsCloseAt
+            ? session.registrationsCloseAt.toISOString()
+            : null,
+        },
+      });
+    }
+
+    if (action === "whatsapp") {
+      if (!sessionId) {
+        return NextResponse.json({ error: "sessionId is required." }, { status: 400 });
+      }
+      const resolved = resolveWhatsappGroupInput(whatsappGroupUrl ?? "");
+      if (!resolved.ok) {
+        return NextResponse.json({ error: resolved.error }, { status: 400 });
+      }
+      const session = await setWhatsappGroupUrl(db, sessionId, resolved.url);
+      if (!session) {
+        return NextResponse.json({ error: "Session not found." }, { status: 404 });
+      }
+      return NextResponse.json({
+        session: { id: session.id, whatsappGroupUrl: session.whatsappGroupUrl },
       });
     }
 

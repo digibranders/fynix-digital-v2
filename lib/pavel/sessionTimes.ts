@@ -78,6 +78,41 @@ export function parseSessionTimes(
   return { startsAt: parsedStart, endsAt: parsedEnd };
 }
 
+export type ParsedCloseAt = {
+  closeAt: Date | null;
+  error?: string;
+};
+
+/**
+ * Read the moment an operator wants registrations to stop.
+ *
+ * Empty means no cutoff, which is how a scheduled close is cancelled, so it is
+ * a valid value rather than an error.
+ *
+ * A time already in the past is refused. It would be honoured — the window is
+ * derived, so the session would close the instant it was saved — but that is
+ * indistinguishable from the "Close registrations" button next to it, and it is
+ * far more likely to be a mistyped year than a deliberate choice. Refusing says
+ * so; closing silently would leave the operator hunting for what they broke.
+ */
+export function parseSessionCloseAt(
+  value?: string | null,
+  now: Date = new Date()
+): ParsedCloseAt {
+  const raw = typeof value === "string" ? value.trim() : "";
+  if (!raw) return { closeAt: null };
+
+  const parsed = parseIstWallClock(raw);
+  if (!parsed) return { closeAt: null, error: "That date or time is not valid." };
+  if (parsed.getTime() <= now.getTime()) {
+    return {
+      closeAt: null,
+      error: "That time has already passed. Close registrations now instead.",
+    };
+  }
+  return { closeAt: parsed };
+}
+
 /**
  * Render a stored instant as the IST wall-clock string the picker expects
  * (`YYYY-MM-DDTHH:mm`), so an existing schedule can be edited rather than

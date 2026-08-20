@@ -5,6 +5,7 @@ import {
   NO_REFERRAL,
   type RegistrationFilters,
 } from "@/lib/admin/registrationFilters";
+import { formatDateLabel, parseIsoDate } from "@/lib/admin/calendar";
 
 /**
  * What is currently narrowing the table, as removable chips.
@@ -20,6 +21,12 @@ import {
 type Chip = { key: string; label: string; clear: Partial<RegistrationFilters> };
 
 const FLAG_LABEL: Record<string, string> = { yes: "yes", no: "no" };
+
+/** A stored `YYYY-MM-DD` as the pickers show it. Unparseable values pass through. */
+function day(value: string): string {
+  const parsed = parseIsoDate(value);
+  return parsed ? formatDateLabel(parsed) : value;
+}
 
 /** Every active advanced filter, in the order the drawer presents them. */
 export function activeChips(f: RegistrationFilters): Chip[] {
@@ -101,10 +108,13 @@ export function activeChips(f: RegistrationFilters): Chip[] {
       clear: { zoomAccess: "any" },
     });
 
-  add("registeredFrom", `Registered from ${f.registeredFrom}`, "");
-  add("registeredTo", `Registered to ${f.registeredTo}`, "");
-  add("paidFrom", `Paid from ${f.paidFrom}`, "");
-  add("paidTo", `Paid to ${f.paidTo}`, "");
+  // Dates read as the pickers write them ("25 Aug 2026"), not as they are
+  // stored. A chip showing 2026-08-25 beside a field showing 25 Aug 2026 reads
+  // as two different values.
+  add("registeredFrom", `Registered from ${day(f.registeredFrom)}`, "");
+  add("registeredTo", `Registered to ${day(f.registeredTo)}`, "");
+  add("paidFrom", `Paid from ${day(f.paidFrom)}`, "");
+  add("paidTo", `Paid to ${day(f.paidTo)}`, "");
   add("amountMin", `Amount from ${f.amountMin}`, "");
   add("amountMax", `Amount to ${f.amountMax}`, "");
 

@@ -2,6 +2,8 @@
 
 import { Drawer } from "@/components/admin/ui/Drawer";
 import { Button } from "@/components/admin/ui";
+import { Select } from "@/components/admin/ui/Select";
+import { DateField } from "@/components/admin/ui/DateField";
 import {
   EMPTY_FILTERS,
   NO_REFERRAL,
@@ -39,49 +41,15 @@ function Label({
   );
 }
 
-function Choice({
+function NumberInput({
   id,
   label,
-  value,
-  onChange,
-  options,
-}: {
-  id: string;
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  options: { value: string; label: string }[];
-}) {
-  return (
-    <div>
-      <Label htmlFor={id}>{label}</Label>
-      <select
-        id={id}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className={CONTROL}
-      >
-        {options.map((o) => (
-          <option key={o.value} value={o.value}>
-            {o.label}
-          </option>
-        ))}
-      </select>
-    </div>
-  );
-}
-
-function TextInput({
-  id,
-  label,
-  type,
   value,
   onChange,
   placeholder,
 }: {
   id: string;
   label: string;
-  type: "date" | "number";
   value: string;
   onChange: (v: string) => void;
   placeholder?: string;
@@ -91,8 +59,8 @@ function TextInput({
       <Label htmlFor={id}>{label}</Label>
       <input
         id={id}
-        type={type}
-        min={type === "number" ? 0 : undefined}
+        type="number"
+        min={0}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
@@ -150,35 +118,35 @@ export function FiltersDrawer({
       }
     >
       <div className="grid gap-4 sm:grid-cols-2">
-        <Choice
+        <Select
           id="f-session"
           label="Cohort"
           value={filters.session}
           onChange={(v) => onChange({ session: v })}
           options={[ANY, ...options.sessions.map((s) => ({ value: s, label: s }))]}
         />
-        <Choice
+        <Select
           id="f-currency"
           label="Currency"
           value={filters.currency}
           onChange={(v) => onChange({ currency: v })}
           options={[ANY, ...options.currencies.map((c) => ({ value: c, label: c }))]}
         />
-        <Choice
+        <Select
           id="f-country"
           label="Country"
           value={filters.country}
           onChange={(v) => onChange({ country: v })}
           options={[ANY, ...options.countries.map((c) => ({ value: c, label: c }))]}
         />
-        <Choice
+        <Select
           id="f-state"
           label="State"
           value={filters.state}
           onChange={(v) => onChange({ state: v })}
           options={[ANY, ...options.states.map((s) => ({ value: s, label: s }))]}
         />
-        <Choice
+        <Select
           id="f-code"
           label="Referral code"
           value={filters.referralCode}
@@ -189,7 +157,7 @@ export function FiltersDrawer({
             ...options.codes.map((c) => ({ value: c, label: c })),
           ]}
         />
-        <Choice
+        <Select
           id="f-discount"
           label="Discount applied"
           value={filters.discountApplied}
@@ -198,7 +166,7 @@ export function FiltersDrawer({
           }
           options={YES_NO}
         />
-        <Choice
+        <Select
           id="f-attendance"
           label="Attendance"
           value={filters.attendance}
@@ -213,7 +181,7 @@ export function FiltersDrawer({
             { value: "not_synced", label: "Not synced" },
           ]}
         />
-        <Choice
+        <Select
           id="f-certificate"
           label="Certificate"
           value={filters.certificate}
@@ -227,7 +195,7 @@ export function FiltersDrawer({
             { value: "none", label: "None" },
           ]}
         />
-        <Choice
+        <Select
           id="f-invoice"
           label="Invoice"
           value={filters.invoice}
@@ -238,14 +206,14 @@ export function FiltersDrawer({
             { value: "missing", label: "Missing" },
           ]}
         />
-        <Choice
+        <Select
           id="f-gstin"
           label="Has GSTIN"
           value={filters.hasGstin}
           onChange={(v) => onChange({ hasGstin: v as RegistrationFilters["hasGstin"] })}
           options={YES_NO}
         />
-        <Choice
+        <Select
           id="f-joinlink"
           label="Join link"
           value={filters.joinLink}
@@ -257,7 +225,7 @@ export function FiltersDrawer({
           taken is neither mismatched nor stuck, so the negative would be a
           control whose only effect is to hide what is worth seeing.
         */}
-        <Choice
+        <Select
           id="f-amount-check"
           label="Amount check"
           value={filters.amountCheck}
@@ -269,7 +237,7 @@ export function FiltersDrawer({
             { value: "mismatched", label: "Charged ≠ invoiced" },
           ]}
         />
-        <Choice
+        <Select
           id="f-zoom-access"
           label="Zoom access"
           value={filters.zoomAccess}
@@ -288,33 +256,32 @@ export function FiltersDrawer({
           Dates
         </legend>
         <div className="grid gap-4 sm:grid-cols-2">
-          <TextInput
+          <DateField
             id="f-reg-from"
             label="Registered from"
-            type="date"
             value={filters.registeredFrom}
             onChange={(v) => onChange({ registeredFrom: v })}
           />
-          <TextInput
+          {/* The end of a range opens on the start's month, not on today. */}
+          <DateField
             id="f-reg-to"
             label="Registered to"
-            type="date"
             value={filters.registeredTo}
             onChange={(v) => onChange({ registeredTo: v })}
+            referenceValue={filters.registeredFrom}
           />
-          <TextInput
+          <DateField
             id="f-paid-from"
             label="Paid from"
-            type="date"
             value={filters.paidFrom}
             onChange={(v) => onChange({ paidFrom: v })}
           />
-          <TextInput
+          <DateField
             id="f-paid-to"
             label="Paid to"
-            type="date"
             value={filters.paidTo}
             onChange={(v) => onChange({ paidTo: v })}
+            referenceValue={filters.paidFrom}
           />
         </div>
       </fieldset>
@@ -324,18 +291,16 @@ export function FiltersDrawer({
           Amount
         </legend>
         <div className="grid gap-4 sm:grid-cols-2">
-          <TextInput
+          <NumberInput
             id="f-amount-min"
             label="Minimum"
-            type="number"
             value={filters.amountMin}
             onChange={(v) => onChange({ amountMin: v })}
             placeholder="any"
           />
-          <TextInput
+          <NumberInput
             id="f-amount-max"
             label="Maximum"
-            type="number"
             value={filters.amountMax}
             onChange={(v) => onChange({ amountMax: v })}
             placeholder="any"

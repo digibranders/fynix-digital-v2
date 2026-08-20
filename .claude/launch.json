@@ -20,6 +20,19 @@
       ],
       "port": 3100,
       "autoPort": true
+    },
+    {
+      "name": "email-preview",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "4321",
+        "--directory",
+        ".email-preview"
+      ],
+      "port": 4321,
+      "autoPort": true
     }
   ]
 }

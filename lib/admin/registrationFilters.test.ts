@@ -144,11 +144,46 @@ describe("rowMatchesFilters", () => {
   });
 
   it("filters by registration date, inclusive of both end days", () => {
-    const r = row({ createdAt: "2026-08-15T23:30:00Z" });
+    // 11:30 IST, comfortably inside the 15th in either zone.
+    const r = row({ createdAt: "2026-08-15T06:00:00Z" });
     expect(rowMatchesFilters(r, f({ registeredFrom: "2026-08-15" }), NOW)).toBe(true);
     expect(rowMatchesFilters(r, f({ registeredTo: "2026-08-15" }), NOW)).toBe(true);
     expect(rowMatchesFilters(r, f({ registeredFrom: "2026-08-16" }), NOW)).toBe(false);
     expect(rowMatchesFilters(r, f({ registeredTo: "2026-08-14" }), NOW)).toBe(false);
+  });
+
+  /*
+    The day is taken in IST, not UTC.
+
+    This used to slice the UTC day off the stored string while the table
+    rendered the row in IST, so for the five and a half hours before midnight
+    UTC the filter and the screen disagreed: a seat shown as the 16th was
+    filed under the 15th, and a range starting on the 16th hid it.
+
+    These assertions are the inverse of what the suite asserted before the fix,
+    which is the point: the old expectations described the bug.
+  */
+  it("takes the registration day in IST, the day the table shows", () => {
+    // 23:30 UTC on the 15th is 05:00 IST on the 16th.
+    const late = row({ createdAt: "2026-08-15T23:30:00Z" });
+    expect(rowMatchesFilters(late, f({ registeredFrom: "2026-08-16" }), NOW)).toBe(true);
+    expect(rowMatchesFilters(late, f({ registeredTo: "2026-08-16" }), NOW)).toBe(true);
+    expect(rowMatchesFilters(late, f({ registeredTo: "2026-08-15" }), NOW)).toBe(false);
+  });
+
+  it("puts the IST midnight boundary in the right place", () => {
+    // 18:29 UTC is 23:59 IST, still the 15th. One minute later is the 16th.
+    const before = row({ createdAt: "2026-08-15T18:29:00Z" });
+    const after = row({ createdAt: "2026-08-15T18:30:00Z" });
+    expect(rowMatchesFilters(before, f({ registeredTo: "2026-08-15" }), NOW)).toBe(true);
+    expect(rowMatchesFilters(after, f({ registeredTo: "2026-08-15" }), NOW)).toBe(false);
+    expect(rowMatchesFilters(after, f({ registeredFrom: "2026-08-16" }), NOW)).toBe(true);
+  });
+
+  it("takes the paid day in IST too", () => {
+    const late = row({ status: "paid", paidAt: "2026-08-15T20:00:00Z" }); // 01:30 IST, 16th
+    expect(rowMatchesFilters(late, f({ paidFrom: "2026-08-16" }), NOW)).toBe(true);
+    expect(rowMatchesFilters(late, f({ paidTo: "2026-08-15" }), NOW)).toBe(false);
   });
 
   it("excludes an unpaid row when a paid-date range is set", () => {

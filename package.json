@@ -11,6 +11,7 @@
     "db:push": "drizzle-kit push",
     "db:migrate": "drizzle-kit migrate",
     "db:seed": "tsx scripts/seed-referrals.ts",
+    "email:preview": "tsx scripts/preview-emails.ts .email-preview",
     "test": "vitest run",
     "test:watch": "vitest"
   },

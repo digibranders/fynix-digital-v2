@@ -5,6 +5,7 @@ import { AlertCircle, CheckCircle2, Check, Link2 } from "lucide-react";
 import { buildReferralLink } from "@/lib/pavel/referralLink";
 import { siteConfig } from "@/lib/content";
 import type { OperationState } from "@/components/admin/OperationsPanel";
+import { SubmitButton } from "@/components/admin/SubmitButton";
 import {
   Alert,
   Badge,
@@ -77,22 +78,27 @@ const FIELD =
  * Outcome of the last mutation. Failures are shown as plainly as successes:
  * every message here is one an operator can act on, and the panel used to
  * discard them, so a refused create looked exactly like a completed one.
+ *
+ * The shared `Alert` rather than a styled paragraph, because it carries
+ * `role="status"` with a polite live region. These report what a button the
+ * operator just pressed actually did, and a result nobody is told about is
+ * indistinguishable from the click having done nothing.
  */
 function Result({ state }: { state: OperationState }) {
   if (!state) return null;
   return (
-    <p
-      className={`flex items-start gap-1.5 text-[11px] leading-snug ${
-        state.ok ? "text-success" : "text-warning"
-      }`}
+    <Alert
+      tone={state.ok ? "success" : "warning"}
+      icon={
+        state.ok ? (
+          <CheckCircle2 aria-hidden="true" className="h-3.5 w-3.5" />
+        ) : (
+          <AlertCircle aria-hidden="true" className="h-3.5 w-3.5" />
+        )
+      }
     >
-      {state.ok ? (
-        <CheckCircle2 className="mt-0.5 h-3 w-3 shrink-0" />
-      ) : (
-        <AlertCircle className="mt-0.5 h-3 w-3 shrink-0" />
-      )}
-      <span>{state.message}</span>
-    </p>
+      {state.message}
+    </Alert>
   );
 }
 
@@ -136,8 +142,25 @@ function CopyLinkButton({ code }: { code: string }) {
   );
 }
 
-/** The create and edit forms take the same fields, so they share one body. */
-function CodeFields({ row }: { row?: AdminReferralRow }) {
+/**
+ * The create and edit forms take the same fields, so they share one body.
+ *
+ * `values` is what a rejected submission sent, and it wins over `row`: after a
+ * refusal the operator should be looking at what they typed, not at what is
+ * still stored. It reaches the inputs through `defaultValue`, which React only
+ * reads at mount, so the caller remounts this with a `key` per attempt.
+ */
+function CodeFields({
+  row,
+  values,
+}: {
+  row?: AdminReferralRow;
+  values?: Record<string, string>;
+}) {
+  /** A rejected value, else what is stored, else the field's own default. */
+  const seed = (key: string, stored: string | number | null | undefined) =>
+    values?.[key] ?? (stored === null || stored === undefined ? "" : String(stored));
+
   return (
     <>
       <label className="text-xs text-text-muted">
@@ -146,7 +169,7 @@ function CodeFields({ row }: { row?: AdminReferralRow }) {
           name="code"
           required
           placeholder="PAVEL20"
-          defaultValue={row?.code ?? ""}
+          defaultValue={seed("code", row?.code)}
           className={`${FIELD} font-mono uppercase`}
         />
       </label>
@@ -158,7 +181,7 @@ function CodeFields({ row }: { row?: AdminReferralRow }) {
           min={1}
           max={100}
           required
-          defaultValue={row?.discountPercent ?? 10}
+          defaultValue={seed("discountPercent", row?.discountPercent ?? 10)}
           className={FIELD}
         />
       </label>
@@ -169,7 +192,7 @@ function CodeFields({ row }: { row?: AdminReferralRow }) {
           type="number"
           min={1}
           placeholder="unlimited"
-          defaultValue={row?.maxUses ?? ""}
+          defaultValue={seed("maxUses", row?.maxUses)}
           className={FIELD}
         />
       </label>
@@ -178,7 +201,7 @@ function CodeFields({ row }: { row?: AdminReferralRow }) {
         <input
           name="expiresAt"
           type="datetime-local"
-          defaultValue={toIstWallClock(row?.expiresAt ?? null)}
+          defaultValue={values?.expiresAt ?? toIstWallClock(row?.expiresAt ?? null)}
           className={FIELD}
         />
       </label>
@@ -187,7 +210,7 @@ function CodeFields({ row }: { row?: AdminReferralRow }) {
         <input
           name="label"
           placeholder="Launch campaign"
-          defaultValue={row?.label ?? ""}
+          defaultValue={seed("label", row?.label)}
           className={FIELD}
         />
       </label>
@@ -196,7 +219,7 @@ function CodeFields({ row }: { row?: AdminReferralRow }) {
         <input
           name="ownerName"
           placeholder="Steve"
-          defaultValue={row?.ownerName ?? ""}
+          defaultValue={seed("ownerName", row?.ownerName)}
           className={FIELD}
         />
       </label>
@@ -206,7 +229,7 @@ function CodeFields({ row }: { row?: AdminReferralRow }) {
           name="ownerEmail"
           type="email"
           placeholder="steve@example.com"
-          defaultValue={row?.ownerEmail ?? ""}
+          defaultValue={seed("ownerEmail", row?.ownerEmail)}
           className={FIELD}
         />
       </label>
@@ -218,7 +241,7 @@ function CodeFields({ row }: { row?: AdminReferralRow }) {
           min={0}
           max={100}
           placeholder="none"
-          defaultValue={row?.commissionPercent ?? ""}
+          defaultValue={seed("commissionPercent", row?.commissionPercent)}
           className={FIELD}
         />
       </label>
@@ -260,8 +283,55 @@ export function ReferralPanel({
 
   // One state per action rather than per row: only one mutation is in flight at
   // a time, and the message names the code it concerns.
-  const [createState, createSubmit] = useActionState(createAction, null);
-  const [updateState, updateSubmit] = useActionState(updateAction, null);
+  //
+  // Pending, on the other hand, has to be per FORM, not per action. Every row
+  // shares one `toggleSubmit`, so a shared flag would spin every row's button
+  // when one of them was pressed. `SubmitButton` reads `useFormStatus`, which
+  // is scoped to the form the button sits in, so each row reports only itself.
+  /*
+    Both actions put their form away once it has done its job.
+
+    Leaving them open was most of why a completed save felt like nothing had
+    happened: the fields still held what had just been submitted, so the only
+    evidence of success was one line of small text under the button. Closing
+    the form is the acknowledgement, and the row appearing or changing in the
+    list behind it is the confirmation.
+
+    A FAILED action deliberately leaves the form open. The operator has to
+    correct something, and closing it would throw away what they typed.
+
+    Done by wrapping the action rather than in an effect: this runs once per
+    submission, in the transition that already owns the update, instead of
+    reacting to a state change after the fact.
+  */
+  /*
+    Counts submissions, purely to remount the fields.
+
+    React reads `defaultValue` only when an input mounts, so echoing a rejected
+    submission back would otherwise change nothing on screen. Bumping this and
+    keying the fields on it gives them a fresh mount per attempt, which is what
+    lets the restored values actually appear.
+  */
+  const [attempt, setAttempt] = useState(0);
+
+  const [createState, createSubmit] = useActionState(
+    async (state: OperationState, formData: FormData) => {
+      const result = await createAction(state, formData);
+      setAttempt((n) => n + 1);
+      if (result?.ok) setAdding(false);
+      return result;
+    },
+    null
+  );
+  const [updateState, updateSubmit] = useActionState(
+    async (state: OperationState, formData: FormData) => {
+      const result = await updateAction(state, formData);
+      setAttempt((n) => n + 1);
+      if (result?.ok) setEditing(null);
+      return result;
+    },
+    null
+  );
   const [toggleState, toggleSubmit] = useActionState(toggleAction, null);
   const [deleteState, deleteSubmit] = useActionState(deleteAction, null);
 
@@ -394,22 +464,38 @@ export function ReferralPanel({
           action={createSubmit}
           className="mb-4 grid gap-3 rounded-lg border border-success/25 bg-console-surface p-4 sm:grid-cols-2 lg:grid-cols-4"
         >
-          <CodeFields />
+          <CodeFields key={attempt} values={createState?.values} />
           <div className="flex flex-wrap items-center gap-3 sm:col-span-2 lg:col-span-4">
-            <button
-              type="submit"
-              className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-hover"
+            <SubmitButton
+              pendingLabel="Creating…"
+              className="console-focus rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-hover"
             >
               Create code
-            </button>
-            <Result state={createState} />
+            </SubmitButton>
+            {/* Only failures stay here, beside the fields that caused them. A
+                success closes the form, and its message moves to the shared
+                area above so it survives the close. */}
+            {createState && !createState.ok ? (
+              <Result state={createState} />
+            ) : null}
           </div>
         </form>
       ) : null}
 
-      {/* Results for the row-level actions, which have no room of their own. */}
-      {!adding && (toggleState || deleteState) ? (
-        <div className="mb-3 space-y-1">
+      {/*
+        What the last mutation did.
+
+        Successes from create and update land here rather than inside their
+        forms, because those forms close on success and would take the message
+        with them. Toggle and delete have nowhere else to report at all.
+      */}
+      {(createState?.ok ? createState : null) ||
+      (updateState?.ok ? updateState : null) ||
+      toggleState ||
+      deleteState ? (
+        <div className="mb-3 space-y-1.5">
+          {createState?.ok ? <Result state={createState} /> : null}
+          {updateState?.ok ? <Result state={updateState} /> : null}
           <Result state={toggleState} />
           <Result state={deleteState} />
         </div>
@@ -492,8 +578,10 @@ export function ReferralPanel({
                         name="active"
                         value={row.active ? "false" : "true"}
                       />
-                      <button
-                        type="submit"
+                      <SubmitButton
+                        pendingLabel={
+                          row.active ? "Switching off…" : "Switching on…"
+                        }
                         className={`console-focus rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
                           row.active
                             ? "border-warning/40 text-warning hover:bg-warning-surface"
@@ -501,17 +589,17 @@ export function ReferralPanel({
                         }`}
                       >
                         {row.active ? "Switch off" : "Switch on"}
-                      </button>
+                      </SubmitButton>
                     </form>
                     {removable ? (
                       <form action={deleteSubmit}>
                         <input type="hidden" name="id" value={row.id} />
-                        <button
-                          type="submit"
+                        <SubmitButton
+                          pendingLabel="Deleting…"
                           className="console-focus rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-text-muted transition-colors hover:border-danger/40 hover:text-danger"
                         >
                           Delete
-                        </button>
+                        </SubmitButton>
                       </form>
                     ) : null}
                   </div>
@@ -584,15 +672,23 @@ export function ReferralPanel({
                     className="mt-2 grid gap-3 border-t border-border pt-3 sm:grid-cols-2 lg:grid-cols-4"
                   >
                     <input type="hidden" name="id" value={row.id} />
-                    <CodeFields row={row} />
+                    <CodeFields
+                      key={attempt}
+                      row={row}
+                      values={updateState?.values}
+                    />
                     <div className="flex flex-wrap items-center gap-3 sm:col-span-2 lg:col-span-4">
-                      <button
-                        type="submit"
-                        className="rounded-lg border border-success/40 px-4 py-2 text-xs text-success transition hover:bg-success-surface"
+                      <SubmitButton
+                        pendingLabel="Saving…"
+                        className="console-focus rounded-lg border border-success/40 px-4 py-2 text-xs font-medium text-success transition-colors hover:bg-success-surface"
                       >
                         Save changes
-                      </button>
-                      <Result state={updateState} />
+                      </SubmitButton>
+                      {/* As with create: failures stay next to the fields, a
+                          success closes the editor and reports above. */}
+                      {updateState && !updateState.ok ? (
+                        <Result state={updateState} />
+                      ) : null}
                     </div>
                     {row.redeemed > 0 || row.attributed > 0 || row.pending > 0 ? (
                       <p className="text-[11px] text-text-muted sm:col-span-2 lg:col-span-4">
