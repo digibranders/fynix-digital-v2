@@ -1,7 +1,9 @@
 import type { AdminSessionRow } from "@/lib/admin/sessions";
 import { RecordingLinkFields } from "@/components/admin/RecordingLinkFields";
+import { SendRecordingButton } from "@/components/admin/SendRecordingButton";
 import { SessionTimeFields } from "@/components/admin/SessionTimeFields";
 import { SubmitButton } from "@/components/admin/SubmitButton";
+import type { OperationState } from "@/components/admin/OperationsPanel";
 import { Alert, Badge, Card, CardHeader } from "@/components/admin/ui";
 import { toIstWallClock } from "@/lib/pavel/sessionTimes";
 
@@ -60,6 +62,7 @@ export function SessionPanel({
   setClosedAction,
   deleteAction,
   recordingAction,
+  sendRecordingAction,
   updateAction,
 }: {
   sessions: AdminSessionRow[];
@@ -69,6 +72,14 @@ export function SessionPanel({
   setClosedAction: (formData: FormData) => Promise<void>;
   deleteAction: (formData: FormData) => Promise<void>;
   recordingAction: (formData: FormData) => Promise<void>;
+  /**
+   * Reports its outcome, unlike the other actions here. "Sent to 0 seats" is
+   * indistinguishable from success unless it is said out loud.
+   */
+  sendRecordingAction: (
+    state: OperationState,
+    formData: FormData
+  ) => Promise<OperationState>;
   updateAction: (formData: FormData) => Promise<void>;
 }) {
   const active = sessions.find((s) => s.active);
@@ -283,23 +294,42 @@ export function SessionPanel({
                       by email. Without it the buyer reaches the player and is
                       asked for a code nobody gave them. Pasting Zoom's share
                       block into the link box fills both, so the two never have
-                      to be separated by hand. */}
-                  <form action={recordingAction} className={GROUP}>
+                      to be separated by hand.
+
+                      Sending is on this card rather than in the global manual
+                      actions row: a recording belongs to one cohort, and the
+                      global button had none attached, so it fell back to
+                      whichever session was active. That is never the cohort
+                      holding the recording, because the next one is activated
+                      as soon as a workshop ends.
+
+                      A div wraps the two forms rather than one form wrapping
+                      both controls, for the reason in the header note: each
+                      SubmitButton reads the pending state of its own form. */}
+                  <div className={GROUP}>
                     <p className={GROUP_LEGEND}>Recording</p>
-                    <input type="hidden" name="sessionId" value={session.id} />
-                    <div className="flex flex-wrap items-end gap-2">
-                      <RecordingLinkFields
-                        initialUrl={session.recordingUrl ?? ""}
-                        initialPasscode={session.recordingPasscode ?? ""}
-                      />
-                      <SubmitButton
-                        pendingLabel="Saving…"
-                        className="console-focus rounded-lg border border-console-control px-3 py-2 text-xs font-medium text-primary hover:bg-console-surface"
-                      >
-                        {session.recordingUrl ? "Update link" : "Publish"}
-                      </SubmitButton>
-                    </div>
-                  </form>
+                    <form action={recordingAction}>
+                      <input type="hidden" name="sessionId" value={session.id} />
+                      <div className="flex flex-wrap items-end gap-2">
+                        <RecordingLinkFields
+                          initialUrl={session.recordingUrl ?? ""}
+                          initialPasscode={session.recordingPasscode ?? ""}
+                        />
+                        <SubmitButton
+                          pendingLabel="Saving…"
+                          className="console-focus rounded-lg border border-console-control px-3 py-2 text-xs font-medium text-primary hover:bg-console-surface"
+                        >
+                          {session.recordingUrl ? "Update link" : "Publish"}
+                        </SubmitButton>
+                      </div>
+                    </form>
+
+                    <SendRecordingButton
+                      sessionId={session.id}
+                      disabled={!session.recordingUrl}
+                      action={sendRecordingAction}
+                    />
+                  </div>
                 </div>
               </li>
             ))}

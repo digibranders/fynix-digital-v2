@@ -265,10 +265,23 @@ export default async function PavelAdminPage() {
     });
   }
 
-  async function sendRecordingAction(): Promise<OperationState> {
+  /**
+   * Send one cohort's recording to that cohort.
+   *
+   * The session id comes from the card the button was pressed on. It used to
+   * take no argument at all and resolve to the active session, which is never
+   * the cohort holding a recording: the next cohort is activated the moment a
+   * workshop ends, hours before Zoom finishes processing.
+   */
+  async function sendRecordingAction(
+    _state: OperationState,
+    formData: FormData
+  ): Promise<OperationState> {
     "use server";
     if (!(await isAdminAuthenticated())) redirect("/admin");
-    return runAdminOperation("send_recording");
+    return runAdminOperation("send_recording", {
+      sessionId: String(formData.get("sessionId") ?? ""),
+    });
   }
 
   async function syncAttendanceAction(): Promise<OperationState> {
@@ -318,14 +331,12 @@ export default async function PavelAdminPage() {
             setClosedAction={setClosedAction}
             deleteAction={deleteSessionAction}
             recordingAction={setRecordingAction}
+            sendRecordingAction={sendRecordingAction}
             updateAction={updateSessionAction}
           />
           {/* Sits with the session because that is what it acts on: it pulls
               the active webinar's attendance report. */}
-          <OperationsPanel
-            syncAttendanceAction={syncAttendanceAction}
-            sendRecordingAction={sendRecordingAction}
-          />
+          <OperationsPanel syncAttendanceAction={syncAttendanceAction} />
         </div>
       }
       referralsSlot={

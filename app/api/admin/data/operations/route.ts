@@ -36,7 +36,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: "Invalid JSON." }, { status: 400 });
   }
 
-  const { action, ref } = (body ?? {}) as { action?: string; ref?: string };
+  const { action, ref, sessionId } = (body ?? {}) as {
+    action?: string;
+    ref?: string;
+    sessionId?: string;
+  };
 
   try {
     switch (action) {
@@ -49,7 +53,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ message: result.message }, { status: result.ok ? 200 : 409 });
       }
       case "send_recording": {
-        const result = await sendRecordingToAll(db);
+        const result = await sendRecordingToAll(db, sessionId);
         return NextResponse.json({ message: result.message }, { status: result.ok ? 200 : 409 });
       }
       case "sync_attendance": {

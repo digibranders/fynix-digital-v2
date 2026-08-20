@@ -20,19 +20,26 @@ export function SubmitButton({
   pendingLabel,
   className = "",
   title,
+  disabled = false,
 }: {
   children: React.ReactNode;
   /** Shown while in flight. Falls back to the normal label. */
   pendingLabel?: string;
   className?: string;
   title?: string;
+  /**
+   * Blocked for a reason of the caller's own, separate from being in flight.
+   * A control with nothing to act on yet should say so by being unpressable
+   * rather than by failing once pressed.
+   */
+  disabled?: boolean;
 }) {
   const { pending } = useFormStatus();
 
   return (
     <button
       type="submit"
-      disabled={pending}
+      disabled={pending || disabled}
       title={title}
       aria-busy={pending}
       className={`inline-flex items-center gap-1.5 transition disabled:cursor-not-allowed disabled:opacity-60 ${className}`}

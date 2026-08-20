@@ -1,4 +1,4 @@
-import { desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, isNotNull, ne, sql } from "drizzle-orm";
 import type { Db } from "@/lib/db/client";
 import {
   registrations,
@@ -24,6 +24,50 @@ export async function getActiveSession(
     .orderBy(desc(webinarSessions.activatedAt))
     .limit(1);
   return session;
+}
+
+/**
+ * One session by id, active or not.
+ *
+ * Everything that happens after a workshop ends belongs to a cohort that is no
+ * longer the active one: the operator activates the next cohort as soon as the
+ * last finishes, and Zoom's recording only appears hours later. Work that runs
+ * in that window has to name the session it means rather than ask which one is
+ * selling.
+ */
+export async function getSessionById(
+  db: Db,
+  sessionId: string
+): Promise<WebinarSession | undefined> {
+  const [session] = await db
+    .select()
+    .from(webinarSessions)
+    .where(eq(webinarSessions.id, sessionId))
+    .limit(1);
+  return session;
+}
+
+/**
+ * Sessions holding a published recording.
+ *
+ * Drives the cron's recording sweep. Not scoped to the active session on
+ * purpose: a cohort that has been superseded is exactly the one whose recording
+ * still needs delivering, and scoping to the active session is what left those
+ * buyers with nothing.
+ */
+export async function listSessionsWithRecording(
+  db: Db
+): Promise<WebinarSession[]> {
+  return db
+    .select()
+    .from(webinarSessions)
+    .where(
+      and(
+        isNotNull(webinarSessions.recordingUrl),
+        ne(webinarSessions.recordingUrl, "")
+      )
+    )
+    .orderBy(desc(webinarSessions.createdAt));
 }
 
 /**

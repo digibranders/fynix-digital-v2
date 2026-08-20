@@ -45,3 +45,8 @@ next-env.d.ts
 GEMINI.md
 # local DB dumps / exports (contain personal data)
 .local-backups/
+
+# Agent worktrees. Each is a checkout of this repo, so `git add -A` stages one
+# as an embedded git repository: a commit that carries a bare gitlink and none
+# of the files it points at.
+.claude/worktrees/
