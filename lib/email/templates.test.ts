@@ -240,6 +240,27 @@ describe("promises match the data", () => {
     expect(hour.text).toContain(REGISTRATION.joinUrl);
   });
 
+  it("never sends a placeholder link when Zoom issued none", () => {
+    // The one-hour reminder is the only email carrying the join link. It used
+    // to fall back to a shared constant that pointed nowhere, so a seat whose
+    // Zoom registration had failed got a dead link an hour before the workshop
+    // and nobody on our side knew.
+    const email = buildPavelReminderEmail(
+      { ...REGISTRATION, joinUrl: undefined },
+      "hour"
+    );
+
+    expect(email.html).not.toContain("zoom.us/j/");
+    expect(email.text).not.toContain("zoom.us/j/");
+    expect(email.html).not.toMatch(/href="[^"]*undefined/);
+    expect(email.text).not.toContain("undefined");
+    expect(email.text).not.toContain("null");
+
+    // Says so plainly, and points at a channel that is staffed.
+    expect(email.text).toContain("still issuing the link");
+    expect(email.text).toContain("chat.whatsapp.com");
+  });
+
   it("offers LinkedIn before the WhatsApp community", () => {
     const email = buildPavelPaidConfirmationEmail(REGISTRATION);
     // First occurrence, which is the body panel: the footer's LinkedIn link
