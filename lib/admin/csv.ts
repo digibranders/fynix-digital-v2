@@ -15,9 +15,25 @@ export type CsvColumn = {
   csv: (row: AdminRegistrationRow) => string | number | null;
 };
 
+/**
+ * Guard against spreadsheet formula injection.
+ *
+ * Registrant-typed values (names, emails, company names) land in this file,
+ * and the operator opens it in Excel or Sheets — which execute any cell that
+ * starts with a formula trigger. A leading apostrophe makes the cell inert
+ * text. Purely numeric strings are left alone so negative numbers still sort
+ * and sum as numbers.
+ */
+function neutralizeFormula(text: string): string {
+  if (!/^[=+\-@\t\r]/.test(text)) return text;
+  if (/^-?\d+(\.\d+)?$/.test(text)) return text;
+  return `'${text}`;
+}
+
 /** RFC-4180 cell: wrap in quotes only when the value contains a delimiter. */
 export function csvCell(value: string | number | null): string {
-  const text = value === null || value === undefined ? "" : String(value);
+  const raw = value === null || value === undefined ? "" : String(value);
+  const text = typeof value === "string" ? neutralizeFormula(raw) : raw;
   return /[",\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
 }
 

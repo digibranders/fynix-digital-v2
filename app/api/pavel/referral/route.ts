@@ -1,9 +1,15 @@
 import { NextResponse } from "next/server";
 import { getDb } from "@/lib/db/client";
+import { clientKey, rateLimit } from "@/lib/security/rateLimit";
 import { evaluateReferral, referralRejectionMessage } from "@/lib/pavel/referral";
 import { normalizeReferralCode } from "@/components/pavel/pricing";
 
 export const runtime = "nodejs";
+
+/** Validation attempts per client per window — enough for typos, far too few
+ *  for brute-forcing the code space. */
+const LIMIT = 10;
+const WINDOW_MS = 60_000;
 
 /**
  * Validate a referral code for the checkout modal so the buyer sees the
@@ -13,6 +19,14 @@ export const runtime = "nodejs";
  * actually charged.
  */
 export async function POST(request: Request) {
+  const limit = rateLimit(`pavel-referral:${clientKey(request)}`, LIMIT, WINDOW_MS);
+  if (!limit.allowed) {
+    return NextResponse.json(
+      { valid: false, error: "Too many attempts. Please wait a moment and try again." },
+      { status: 429, headers: { "Retry-After": String(limit.retryAfter) } }
+    );
+  }
+
   let body: unknown;
   try {
     body = await request.json();

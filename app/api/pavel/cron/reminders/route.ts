@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { timingSafeEqual } from "node:crypto";
 import { and, eq, inArray, lte } from "drizzle-orm";
 import { loadSchedule } from "@/lib/pavel/loadSchedule";
 import { getActiveSession } from "@/lib/pavel/webinarSession";
@@ -254,11 +255,20 @@ async function runReminderType(
  * Only the cron scheduler (or an authorised manual trigger) may run this. Vercel
  * Cron sends `Authorization: Bearer <CRON_SECRET>`; locally, curl the same
  * header. If no secret is configured the route stays closed rather than open.
+ * Compared in constant time, like every other secret check in this system.
  */
 function isAuthorized(request: Request): boolean {
   const secret = process.env.CRON_SECRET || process.env.PAVEL_CRON_SECRET;
   if (!secret) return false;
-  return request.headers.get("authorization") === `Bearer ${secret}`;
+  const provided = request.headers.get("authorization");
+  if (!provided) return false;
+  const a = Buffer.from(provided);
+  const b = Buffer.from(`Bearer ${secret}`);
+  if (a.length !== b.length) {
+    timingSafeEqual(a, a);
+    return false;
+  }
+  return timingSafeEqual(a, b);
 }
 
 /**

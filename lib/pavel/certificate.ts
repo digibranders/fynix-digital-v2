@@ -60,14 +60,16 @@ export function hasEarnedCertificate(registration: {
 }
 
 /**
- * Generate an unguessable credential id, e.g. "FYX-SS26-7A3F9C21".
+ * Generate an unguessable credential id, e.g. "FYX-SS26-7A3F9C21B4D6E8F0".
  *
  * Certificates are meant to be shared, so the id is not a secret. It is random
  * rather than sequential so the set cannot be enumerated, which would expose
- * other attendees' names.
+ * other attendees' names. 8 random bytes (64 bits) puts the space far beyond
+ * online enumeration; earlier, shorter ids stay valid — this only widens new
+ * ones.
  */
 function generateCredentialId(): string {
-  return `${CREDENTIAL_PREFIX}-${randomBytes(4).toString("hex").toUpperCase()}`;
+  return `${CREDENTIAL_PREFIX}-${randomBytes(8).toString("hex").toUpperCase()}`;
 }
 
 export type IssueCertificateResult =

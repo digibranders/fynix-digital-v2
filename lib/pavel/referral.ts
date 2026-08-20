@@ -1,4 +1,4 @@
-import { and, count, eq, gt, sql, type SQL } from "drizzle-orm";
+import { and, count, eq, gt, gte, or, sql, type SQL } from "drizzle-orm";
 import type { AnyPgColumn } from "drizzle-orm/pg-core";
 import type { Db } from "@/lib/db/client";
 import { referralCodes, registrations } from "@/lib/db/schema";
@@ -105,22 +105,47 @@ export function canonicalCode(column: AnyPgColumn): SQL<string> {
 }
 
 /**
- * Count redemptions of a code: PAID seats that actually received a discount.
- *
- * Pending seats are excluded deliberately — a cap limits how many discounted
- * seats are SOLD, not how many people started a checkout. Testing
- * `discountPercent > 0` rather than merely matching the code means a full-price
- * seat carrying the code as attribution does not consume a slot.
+ * How long an unpaid checkout holds a cap slot. Comfortably longer than a
+ * Razorpay Checkout session stays payable, so a reservation cannot expire
+ * while its buyer could still complete the payment; short enough that an
+ * abandoned checkout frees the slot the same half hour.
  */
-export async function countRedemptions(db: Db, code: string): Promise<number> {
+export const CHECKOUT_RESERVATION_MS = 30 * 60 * 1000;
+
+/**
+ * Count redemptions of a code: PAID discounted seats, plus ACTIVE checkout
+ * reservations — pending seats whose checkout stamped `checkout_started_at`
+ * within the reservation window.
+ *
+ * Reservations exist because payment is deferred: the cap used to be checked
+ * only against paid seats at order-creation time, so any number of checkouts
+ * opened before the first one paid all passed it, and a capped code could be
+ * oversold without any concurrency at all. Counting open checkouts closes
+ * that window; an abandoned one ages out and frees the slot.
+ *
+ * Testing `discountPercent > 0` rather than merely matching the code means a
+ * full-price seat carrying the code as attribution does not consume a slot.
+ */
+export async function countRedemptions(
+  db: Db,
+  code: string,
+  now: Date = new Date()
+): Promise<number> {
+  const reservedSince = new Date(now.getTime() - CHECKOUT_RESERVATION_MS);
   const [row] = await db
     .select({ value: count() })
     .from(registrations)
     .where(
       and(
         eq(canonicalCode(registrations.referralCode), normalizeReferralCode(code)),
-        eq(registrations.status, "paid"),
-        gt(registrations.discountPercent, 0)
+        gt(registrations.discountPercent, 0),
+        or(
+          eq(registrations.status, "paid"),
+          and(
+            eq(registrations.status, "pending"),
+            gte(registrations.checkoutStartedAt, reservedSince)
+          )
+        )
       )
     );
   return row?.value ?? 0;
@@ -161,7 +186,7 @@ export async function evaluateReferral(
     if (!row) return { ok: false, reason: "unknown" };
 
     const redemptions =
-      row.maxUses === null ? 0 : await countRedemptions(db, row.code);
+      row.maxUses === null ? 0 : await countRedemptions(db, row.code, now);
     return decideReferral(row, redemptions, now);
   } catch (error) {
     console.error("[pavel/referral] lookup failed", error);
