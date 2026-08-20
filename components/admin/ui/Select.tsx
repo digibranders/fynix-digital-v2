@@ -33,9 +33,9 @@ import { Check, ChevronDown } from "lucide-react";
  *    trigger's rect, flipping above it when there is no room below.
  * 2. **The drawer closes on Escape, from a capture-phase document listener.**
  *    It would therefore win over anything this component listened for. Rather
- *    than race it, the drawer asks whether an open listbox is inside it and
- *    stands down if so, so the first Escape closes the dropdown and the second
- *    closes the drawer.
+ *    than race it, the list carries `data-console-popover`; the drawer stands
+ *    down while any such popover is open, so the first Escape closes the
+ *    dropdown and the second closes the drawer.
  *
  * Focus stays on the trigger throughout and the active option is tracked with
  * `aria-activedescendant`. That is the standard listbox pattern, and it also
@@ -234,6 +234,8 @@ export function Select({
               role="listbox"
               aria-labelledby={labelId}
               tabIndex={-1}
+              // Marks this as a popover the drawer should defer its Escape to.
+              data-console-popover=""
               className="custom-select-scroll fixed z-[60] max-h-56 overflow-y-auto rounded-lg border border-border bg-console-surface py-1 shadow-lg"
               style={{
                 left: rect.left,
