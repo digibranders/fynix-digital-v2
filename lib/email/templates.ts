@@ -1,3 +1,37 @@
+/**
+ * Emails triggered by the public website forms: the contact form and the free
+ * Technical SEO Audit request. Each produces a customer-facing reply and an
+ * internal notification.
+ *
+ * Layout, colour and client shims all live in `./design.ts`. Nothing in this
+ * file should reach for a raw hex value or open a `<table>`: if a shape is
+ * missing, it belongs in the design module where the workshop templates can use
+ * it too.
+ */
+
+import {
+  BRAND,
+  bulletList,
+  button,
+  detailList,
+  divider,
+  escapeHtml,
+  escapeMultiline,
+  eyebrow,
+  firstNameOf,
+  heading,
+  lede,
+  link,
+  panel,
+  panelLabel,
+  paragraph,
+  renderEmailDocument,
+  row,
+  safeUrl,
+  signOff,
+  tags,
+} from "./design";
+
 export type ContactSubmission = {
   name: string;
   email: string;
@@ -20,394 +54,281 @@ export type EmailTemplate = {
   text: string;
 };
 
-const BRAND = {
-  name: "Fynix Digital",
-  url: "https://fynix.digital",
-  email: "hello@fynix.digital",
-  phone: "+91 789 789 6607",
-  phoneHref: "+917897896607",
-  primary: "#0C1E2E",
-  primaryHover: "#13293D",
-  accent: "#E9AF88",
-  background: "#FCFCFB",
-  backgroundSoft: "#F5F4F1",
-  border: "#E8E7E3",
-  textMuted: "#565D64",
-  // White wordmark exported from components/Logo.tsx via
-  // scripts/generate-email-logo.tsx, hosted at public/email/logo.svg.
-  // Outlook desktop can't render SVG <img> sources, so the header below
-  // falls back to a styled text wordmark for mso clients.
-  logoUrl: "https://fynix.digital/email/logo.svg",
-} as const;
+/** Vertical rhythm, shared by every template so the shells stay identical. */
+const PAD_HEAD = "34px 40px 0 40px";
+const PAD_BODY = "22px 40px 4px 40px";
+const PAD_TAIL = "24px 40px 36px 40px";
 
-const SOCIAL_LINKS = [
-  {
-    name: "Instagram",
-    href: "https://www.instagram.com/fynix_digital/",
-    iconUrl: "https://fynix.digital/email/icons/instagram.svg",
-  },
-  {
-    name: "LinkedIn",
-    href: "https://in.linkedin.com/company/fynixofficial",
-    iconUrl: "https://fynix.digital/email/icons/linkedin.svg",
-  },
-] as const;
-
-function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
-
-function header(): string {
-  return `<tr>
-    <td style="background-color:${BRAND.primary};padding:32px 40px;">
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-        <tr>
-          <td>
-            <!--[if !mso]><!-->
-            <img
-              src="${BRAND.logoUrl}"
-              alt="${escapeHtml(BRAND.name)}"
-              height="28"
-              style="display:block;height:28px;width:auto;max-width:160px;border:0;outline:none;text-decoration:none;font-family:Georgia,'Times New Roman',serif;font-size:22px;font-weight:600;letter-spacing:0.02em;color:#FFFFFF;"
-            />
-            <!--<![endif]-->
-            <!--[if mso]>
-            <span style="font-family:Georgia,'Times New Roman',serif;font-size:22px;font-weight:600;letter-spacing:0.02em;color:#FFFFFF;">${escapeHtml(BRAND.name)}</span>
-            <![endif]-->
-          </td>
-        </tr>
-      </table>
-    </td>
-  </tr>`;
-}
-
-function footer(): string {
-  const socialIconsHtml = SOCIAL_LINKS.map(
-    (social) => `
-      <td style="padding:0 6px;">
-        <a href="${social.href}" style="display:inline-block;width:32px;height:32px;line-height:32px;border-radius:999px;background-color:#FFFFFF;border:1px solid ${BRAND.border};text-align:center;">
-          <img src="${social.iconUrl}" alt="${escapeHtml(social.name)}" width="16" height="16" style="display:inline-block;vertical-align:middle;border:0;" />
-        </a>
-      </td>`
-  ).join("");
-
-  return `<tr>
-    <td align="center" style="padding:28px 40px;background-color:${BRAND.backgroundSoft};border-top:1px solid ${BRAND.border};">
-      <p style="margin:0 0 14px;font-size:12px;line-height:1.6;color:${BRAND.textMuted};text-align:center;">
-        ${escapeHtml(BRAND.name)} &middot;
-        <a href="tel:${BRAND.phoneHref}" style="color:${BRAND.textMuted};text-decoration:underline;">${escapeHtml(BRAND.phone)}</a> &middot;
-        <a href="mailto:${BRAND.email}" style="color:${BRAND.textMuted};text-decoration:underline;">${escapeHtml(BRAND.email)}</a>
-      </p>
-      <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto;">
-        <tr>${socialIconsHtml}</tr>
-      </table>
-    </td>
-  </tr>`;
-}
-
-function emailShell(bodyHtml: string, preheader: string): string {
-  return `<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="color-scheme" content="light" />
-    <title>${escapeHtml(BRAND.name)}</title>
-  </head>
-  <body style="margin:0;padding:0;background-color:${BRAND.backgroundSoft};font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;">
-    <div style="display:none;max-height:0;overflow:hidden;opacity:0;">${escapeHtml(preheader)}</div>
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:${BRAND.backgroundSoft};padding:32px 16px;">
-      <tr>
-        <td align="center">
-          <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:100%;max-width:600px;background-color:#FFFFFF;border:1px solid ${BRAND.border};border-radius:14px;overflow:hidden;">
-            ${header()}
-            <tr>
-              <td style="padding:40px;">
-                ${bodyHtml}
-              </td>
-            </tr>
-            ${footer()}
-          </table>
-        </td>
-      </tr>
-    </table>
-  </body>
-</html>`;
-}
-
-function detailRow(label: string, value: string): string {
-  return `<tr>
-    <td style="padding:12px 0;border-bottom:1px solid ${BRAND.border};font-size:12px;text-transform:uppercase;letter-spacing:0.06em;color:${BRAND.textMuted};width:120px;vertical-align:top;">${escapeHtml(label)}</td>
-    <td style="padding:12px 0;border-bottom:1px solid ${BRAND.border};font-size:14px;color:${BRAND.primary};vertical-align:top;">${value}</td>
-  </tr>`;
-}
-
-function servicePills(services: string[]): string {
-  if (services.length === 0) {
-    return `<span style="font-size:14px;color:${BRAND.primary};">Not specified</span>`;
-  }
-
-  return services
-    .map(
-      (service) =>
-        `<span style="display:inline-block;margin:0 6px 6px 0;padding:5px 14px;font-size:12px;font-weight:600;color:${BRAND.primary};background-color:${BRAND.accent}26;border:1px solid ${BRAND.accent}55;border-radius:999px;">${escapeHtml(service)}</span>`
-    )
-    .join("");
-}
-
-function sectionCard(innerHtml: string): string {
-  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:24px 0;background-color:${BRAND.backgroundSoft};border:1px solid ${BRAND.border};border-radius:10px;">
-    <tr><td style="padding:8px 24px;">${innerHtml}</td></tr>
-  </table>`;
-}
-
-function ctaButton(href: string, label: string): string {
-  return `<table role="presentation" cellpadding="0" cellspacing="0">
-    <tr>
-      <td style="border-radius:999px;background-color:${BRAND.primary};">
-        <a href="${escapeHtml(href)}" style="display:inline-block;padding:13px 30px;font-size:14px;font-weight:600;color:#FFFFFF;text-decoration:none;border-radius:999px;">
-          ${escapeHtml(label)}
-        </a>
-      </td>
-    </tr>
-  </table>`;
-}
+/* -------------------------------------------------------------------------- */
+/* Contact form                                                               */
+/* -------------------------------------------------------------------------- */
 
 export function buildUserAutoReplyEmail(submission: ContactSubmission): EmailTemplate {
-  const firstName = submission.name.trim().split(/\s+/)[0] || submission.name.trim();
+  const firstName = firstNameOf(submission.name, submission.name.trim() || "there");
   const servicesLine = submission.services.join(", ");
 
-  const bodyHtml = `
-    <span style="display:inline-block;padding:4px 12px;margin-bottom:16px;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:${BRAND.primary};background-color:${BRAND.accent}33;border-radius:999px;">
-      Brief received
-    </span>
-    <h1 style="margin:0 0 16px;font-family:Georgia,'Times New Roman',serif;font-size:24px;line-height:1.35;color:${BRAND.primary};font-weight:600;">
-      Thank you, ${escapeHtml(firstName)}.
-    </h1>
-    <p style="margin:0 0 8px;font-size:15px;line-height:1.7;color:${BRAND.primary};">
-      We've received your brief and a growth architect from our team is already reviewing it.
-      You can expect to hear back from us within <strong>24 hours</strong>.
-    </p>
-    ${sectionCard(`
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-        <tr>
-          <td style="padding:16px 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;color:${BRAND.textMuted};">Services you're interested in</td>
-        </tr>
-        <tr>
-          <td style="padding:0 0 16px;">${servicePills(submission.services)}</td>
-        </tr>
-        ${
-          submission.message
-            ? `<tr><td style="padding:0 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;color:${BRAND.textMuted};border-top:1px solid ${BRAND.border};padding-top:16px;">Your message</td></tr>
-               <tr><td style="padding:0 0 16px;font-size:14px;line-height:1.6;color:${BRAND.primary};">${escapeHtml(submission.message).replace(/\n/g, "<br />")}</td></tr>`
-            : ""
-        }
-      </table>
-    `)}
-    <p style="margin:0 0 28px;font-size:15px;line-height:1.7;color:${BRAND.primary};">
-      In the meantime, if there's anything urgent, feel free to reply directly to this email or call us at
-      <a href="tel:${BRAND.phoneHref}" style="color:${BRAND.primary};font-weight:600;">${BRAND.phone}</a>.
-    </p>
-    ${ctaButton(BRAND.url, "Visit our website")}
-    <p style="margin:32px 0 0;font-size:14px;line-height:1.7;color:${BRAND.textMuted};">
-      Best regards,<br />
-      <span style="color:${BRAND.primary};font-weight:600;">The ${escapeHtml(BRAND.name)} Team</span>
-    </p>
-  `;
+  const recap = [
+    panelLabel("What you asked about"),
+    `<div style="margin:0 0 4px;">${tags(submission.services)}</div>`,
+    submission.message
+      ? `${divider(18)}${panelLabel("In your words")}${paragraph(
+          escapeMultiline(submission.message),
+          0
+        )}`
+      : "",
+  ].join("");
+
+  const bodyRows = [
+    row(`${eyebrow("Brief received")}${heading("Thank you,", firstName)}`, PAD_HEAD),
+    row(
+      [
+        lede(
+          "Your brief is with us and a growth architect is reading it now. You will hear back within one business day."
+        ),
+        panel(recap),
+        paragraph(
+          `If something is urgent before then, reply to this email or call ${link(
+            `tel:${BRAND.phoneHref}`,
+            BRAND.phone
+          )}.`,
+          22
+        ),
+        button(BRAND.url, "See our work"),
+      ].join(""),
+      PAD_BODY
+    ),
+    row(`${divider(0)}<div style="height:24px;line-height:24px;font-size:0;">&nbsp;</div>${signOff("Speak soon,")}`, PAD_TAIL),
+  ].join("");
 
   const text = `Thank you, ${firstName}.
 
-We've received your brief and a growth architect from our team is already reviewing it. You can expect to hear back from us within 24 hours.
+Your brief is with us and a growth architect is reading it now. You will hear
+back within one business day.
 
-Services: ${servicesLine || "Not specified"}
-${submission.message ? `Your message: ${submission.message}\n` : ""}
-If there's anything urgent, reply to this email or call us at ${BRAND.phone}.
+WHAT YOU ASKED ABOUT
+${servicesLine || "Not specified"}
+${submission.message ? `\nIN YOUR WORDS\n${submission.message}\n` : ""}
+If something is urgent before then, reply to this email or call ${BRAND.phone}.
 
-Best regards,
+Speak soon,
 The ${BRAND.name} Team
 ${BRAND.url}`;
 
   return {
-    subject: `We've received your brief, ${firstName} — ${BRAND.name}`,
-    html: emailShell(bodyHtml, "Thanks for reaching out — our team will be in touch within 24 hours."),
+    subject: `We have your brief, ${firstName}`,
+    html: renderEmailDocument({
+      title: `We have your brief, ${firstName}`,
+      preheader: "A growth architect is reading it now. You will hear back within one business day.",
+      bodyRows,
+    }),
     text,
   };
 }
 
 export function buildAdminNotificationEmail(submission: ContactSubmission): EmailTemplate {
   const servicesLine = submission.services.join(", ");
+  const firstName = firstNameOf(submission.name, "the lead");
 
-  const bodyHtml = `
-    <span style="display:inline-block;padding:4px 12px;margin-bottom:16px;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:${BRAND.primary};background-color:${BRAND.accent}33;border-radius:999px;">
-      New lead
-    </span>
-    <h1 style="margin:0 0 8px;font-family:Georgia,'Times New Roman',serif;font-size:22px;line-height:1.35;color:${BRAND.primary};font-weight:600;">
-      New contact form submission
-    </h1>
-    <p style="margin:0 0 20px;font-size:14px;line-height:1.6;color:${BRAND.textMuted};">
-      A new lead just submitted the contact form on ${escapeHtml(BRAND.url.replace("https://", ""))}.
-    </p>
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 8px;">
-      ${detailRow("Name", escapeHtml(submission.name))}
-      ${detailRow("Email", `<a href="mailto:${escapeHtml(submission.email)}" style="color:${BRAND.primary};">${escapeHtml(submission.email)}</a>`)}
-      ${detailRow("Phone", `<a href="tel:${escapeHtml(submission.phone.replace(/\s+/g, ""))}" style="color:${BRAND.primary};">${escapeHtml(submission.phone)}</a>`)}
-      ${detailRow("Services", servicePills(submission.services))}
-      ${detailRow("Message", submission.message ? escapeHtml(submission.message).replace(/\n/g, "<br />") : `<em style="color:${BRAND.textMuted};">No message provided</em>`)}
-    </table>
-    <p style="margin:24px 0;">
-      ${ctaButton(`mailto:${encodeURIComponent(submission.email)}`, `Reply to ${submission.name.split(/\s+/)[0] || "lead"}`)}
-    </p>
-  `;
+  const bodyRows = [
+    row(`${eyebrow("New lead &nbsp;&middot;&nbsp; Contact form")}${heading("New contact form submission")}`, PAD_HEAD),
+    row(
+      [
+        paragraph(`Submitted on ${escapeHtml(BRAND.domain)}.`, 22),
+        detailList([
+          { label: "Name", value: escapeHtml(submission.name) },
+          {
+            label: "Email",
+            value: `<a class="fx-ink" href="mailto:${escapeHtml(submission.email)}" style="color:#0C1E2E;text-decoration:underline;">${escapeHtml(submission.email)}</a>`,
+          },
+          {
+            label: "Phone",
+            value: `<a class="fx-ink" href="tel:${escapeHtml(submission.phone.replace(/[^\d+]/g, ""))}" style="color:#0C1E2E;text-decoration:underline;">${escapeHtml(submission.phone)}</a>`,
+          },
+          { label: "Services", value: tags(submission.services) },
+          {
+            label: "Message",
+            value: submission.message
+              ? escapeMultiline(submission.message)
+              : `<span class="fx-muted" style="color:#565D64;">No message provided</span>`,
+          },
+        ]),
+        `<div style="height:20px;line-height:20px;font-size:0;">&nbsp;</div>`,
+        button(`mailto:${submission.email}`, `Reply to ${firstName}`),
+      ].join(""),
+      PAD_BODY
+    ),
+    row("", "0 40px 20px 40px"),
+  ].join("");
 
-  const text = `New contact form submission
+  const text = `NEW CONTACT FORM SUBMISSION
+Submitted on ${BRAND.domain}
 
-Name: ${submission.name}
-Email: ${submission.email}
-Phone: ${submission.phone}
+Name:     ${submission.name}
+Email:    ${submission.email}
+Phone:    ${submission.phone}
 Services: ${servicesLine || "Not specified"}
-Message: ${submission.message || "No message provided"}`;
+
+Message:
+${submission.message || "No message provided"}`;
 
   return {
     subject: `New lead: ${submission.name} (${servicesLine || "General enquiry"})`,
-    html: emailShell(bodyHtml, `New contact form submission from ${submission.name}`),
+    html: renderEmailDocument({
+      title: `New lead: ${submission.name}`,
+      preheader: `${submission.name} submitted the contact form. ${servicesLine || "General enquiry"}.`,
+      bodyRows,
+      footerMeta: "Internal notification",
+    }),
     text,
   };
 }
 
+/* -------------------------------------------------------------------------- */
+/* Technical SEO audit                                                        */
+/* -------------------------------------------------------------------------- */
+
 const AUDIT_DELIVERABLES = [
-  "A comprehensive Technical SEO Audit report",
-  "A prioritised list of issues based on business impact",
-  "Clear recommendations to improve your organic visibility",
-  "Actionable fixes your team can implement immediately",
+  "A full technical SEO audit of the site",
+  "Issues ranked by business impact, not by severity score",
+  "Clear recommendations for organic visibility",
+  "Fixes your team can implement immediately",
 ] as const;
 
-function deliverableList(): string {
-  return AUDIT_DELIVERABLES.map(
-    (item) =>
-      `<tr>
-        <td style="padding:6px 0;font-size:14px;line-height:1.6;color:${BRAND.primary};">
-          <span style="color:${BRAND.accent};font-weight:700;">&bull;</span>&nbsp;&nbsp;${escapeHtml(item)}
-        </td>
-      </tr>`
-  ).join("");
-}
-
 export function buildAuditUserAutoReplyEmail(submission: AuditSubmission): EmailTemplate {
-  const firstName = submission.name.trim().split(/\s+/)[0] || submission.name.trim();
+  const firstName = firstNameOf(submission.name, submission.name.trim() || "there");
 
-  const bodyHtml = `
-    <span style="display:inline-block;padding:4px 12px;margin-bottom:16px;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:${BRAND.primary};background-color:${BRAND.accent}33;border-radius:999px;">
-      Audit requested
-    </span>
-    <h1 style="margin:0 0 16px;font-family:Georgia,'Times New Roman',serif;font-size:24px;line-height:1.35;color:${BRAND.primary};font-weight:600;">
-      Thank you, ${escapeHtml(firstName)}.
-    </h1>
-    <p style="margin:0 0 8px;font-size:15px;line-height:1.7;color:${BRAND.primary};">
-      We've received your request for a free Technical SEO Audit of
-      <strong>${escapeHtml(submission.website)}</strong>. Our SEO specialists will review your site and
-      share the report within <strong>3&ndash;5 business days</strong>.
-    </p>
-    ${sectionCard(`
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-        <tr>
-          <td style="padding:16px 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;color:${BRAND.textMuted};">One quick next step</td>
-        </tr>
-        <tr>
-          <td style="padding:0 0 16px;font-size:14px;line-height:1.7;color:${BRAND.primary};">
-            To begin, please grant our team <strong>read-only</strong> access to your
-            Google Search Console property. Reply to this email once done, and we'll get started right away.
-          </td>
-        </tr>
-        <tr>
-          <td style="padding:0 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;color:${BRAND.textMuted};border-top:1px solid ${BRAND.border};padding-top:16px;">What you'll get</td>
-        </tr>
-        <tr>
-          <td style="padding:0 0 8px;">
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">${deliverableList()}</table>
-          </td>
-        </tr>
-      </table>
-    `)}
-    <p style="margin:0 0 28px;font-size:15px;line-height:1.7;color:${BRAND.primary};">
-      This audit is completely free and comes with no obligation. If anything is urgent, reply directly to this
-      email or call us at
-      <a href="tel:${BRAND.phoneHref}" style="color:${BRAND.primary};font-weight:600;">${BRAND.phone}</a>.
-    </p>
-    ${ctaButton(BRAND.url, "Visit our website")}
-    <p style="margin:32px 0 0;font-size:14px;line-height:1.7;color:${BRAND.textMuted};">
-      Best regards,<br />
-      <span style="color:${BRAND.primary};font-weight:600;">The ${escapeHtml(BRAND.name)} SEO Team</span>
-    </p>
-  `;
+  const nextStep = [
+    panelLabel("One thing we need from you"),
+    paragraph(
+      `Grant ${escapeHtml(
+        BRAND.email
+      )} <strong>read-only</strong> access to your Google Search Console property, then reply to this email. We start the moment it lands.`,
+      0
+    ),
+  ].join("");
+
+  const bodyRows = [
+    row(`${eyebrow("Audit requested")}${heading("Thank you,", firstName)}`, PAD_HEAD),
+    row(
+      [
+        lede(
+          `We have your request for a technical SEO audit of <strong>${escapeHtml(
+            submission.website
+          )}</strong>. Our specialists will review the site and send the report within three to five business days.`
+        ),
+        panel(nextStep, "accent"),
+        panelLabel("What you will get"),
+        `<div style="height:8px;line-height:8px;font-size:0;">&nbsp;</div>`,
+        bulletList(AUDIT_DELIVERABLES),
+        `<div style="height:14px;line-height:14px;font-size:0;">&nbsp;</div>`,
+        paragraph(
+          `The audit is free and carries no obligation. If anything is urgent, reply here or call ${link(
+            `tel:${BRAND.phoneHref}`,
+            BRAND.phone
+          )}.`,
+          22
+        ),
+        button(BRAND.url, "See our work"),
+      ].join(""),
+      PAD_BODY
+    ),
+    row(
+      `${divider(0)}<div style="height:24px;line-height:24px;font-size:0;">&nbsp;</div>${signOff(
+        "Speak soon,",
+        `The ${BRAND.name} SEO Team`
+      )}`,
+      PAD_TAIL
+    ),
+  ].join("");
 
   const text = `Thank you, ${firstName}.
 
-We've received your request for a free Technical SEO Audit of ${submission.website}. Our SEO specialists will review your site and share the report within 3-5 business days.
+We have your request for a technical SEO audit of ${submission.website}. Our
+specialists will review the site and send the report within three to five
+business days.
 
-One quick next step: please grant our team read-only access to your Google Search Console property, then reply to this email so we can get started.
+ONE THING WE NEED FROM YOU
+Grant ${BRAND.email} read-only access to your Google Search Console property,
+then reply to this email. We start the moment it lands.
 
-What you'll get:
+WHAT YOU WILL GET
 ${AUDIT_DELIVERABLES.map((item) => `- ${item}`).join("\n")}
 
-This audit is completely free and comes with no obligation. If anything is urgent, reply to this email or call us at ${BRAND.phone}.
+The audit is free and carries no obligation. If anything is urgent, reply here
+or call ${BRAND.phone}.
 
-Best regards,
+Speak soon,
 The ${BRAND.name} SEO Team
 ${BRAND.url}`;
 
   return {
-    subject: `Your free Technical SEO Audit is on the way, ${firstName} — ${BRAND.name}`,
-    html: emailShell(
-      bodyHtml,
-      "Thanks for requesting your Technical SEO Audit — here's the one next step to get started."
-    ),
+    subject: `Your Technical SEO Audit, ${firstName}: one quick next step`,
+    html: renderEmailDocument({
+      title: `Your Technical SEO Audit, ${firstName}`,
+      preheader: "Grant read-only Search Console access and we will start straight away.",
+      bodyRows,
+    }),
     text,
   };
 }
 
 export function buildAuditAdminEmail(submission: AuditSubmission): EmailTemplate {
-  const websiteHref = /^https?:\/\//i.test(submission.website)
-    ? submission.website
-    : `https://${submission.website}`;
+  const firstName = firstNameOf(submission.name, "the lead");
+  const websiteHref = safeUrl(submission.website);
 
-  const bodyHtml = `
-    <span style="display:inline-block;padding:4px 12px;margin-bottom:16px;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:${BRAND.primary};background-color:${BRAND.accent}33;border-radius:999px;">
-      Audit request
-    </span>
-    <h1 style="margin:0 0 8px;font-family:Georgia,'Times New Roman',serif;font-size:22px;line-height:1.35;color:${BRAND.primary};font-weight:600;">
-      New Technical SEO Audit request
-    </h1>
-    <p style="margin:0 0 20px;font-size:14px;line-height:1.6;color:${BRAND.textMuted};">
-      A new lead just requested a free Technical SEO Audit on ${escapeHtml(BRAND.url.replace("https://", ""))}.
-    </p>
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 8px;">
-      ${detailRow("Name", escapeHtml(submission.name))}
-      ${detailRow("Email", `<a href="mailto:${escapeHtml(submission.email)}" style="color:${BRAND.primary};">${escapeHtml(submission.email)}</a>`)}
-      ${detailRow("Company", escapeHtml(submission.company))}
-      ${detailRow("Website", `<a href="${escapeHtml(websiteHref)}" style="color:${BRAND.primary};">${escapeHtml(submission.website)}</a>`)}
-      ${detailRow("Message", submission.message ? escapeHtml(submission.message).replace(/\n/g, "<br />") : `<em style="color:${BRAND.textMuted};">No message provided</em>`)}
-    </table>
-    <p style="margin:24px 0;">
-      ${ctaButton(`mailto:${encodeURIComponent(submission.email)}`, `Reply to ${submission.name.split(/\s+/)[0] || "lead"}`)}
-    </p>
-  `;
+  const bodyRows = [
+    row(
+      `${eyebrow("New lead &nbsp;&middot;&nbsp; SEO audit")}${heading("New Technical SEO Audit request")}`,
+      PAD_HEAD
+    ),
+    row(
+      [
+        paragraph(`Submitted on ${escapeHtml(BRAND.domain)}.`, 22),
+        detailList([
+          { label: "Name", value: escapeHtml(submission.name) },
+          {
+            label: "Email",
+            value: `<a class="fx-ink" href="mailto:${escapeHtml(submission.email)}" style="color:#0C1E2E;text-decoration:underline;">${escapeHtml(submission.email)}</a>`,
+          },
+          { label: "Company", value: escapeHtml(submission.company) },
+          {
+            label: "Website",
+            value: `<a class="fx-ink" href="${websiteHref}" style="color:#0C1E2E;text-decoration:underline;word-wrap:break-word;word-break:break-all;">${escapeHtml(submission.website)}</a>`,
+          },
+          {
+            label: "Message",
+            value: submission.message
+              ? escapeMultiline(submission.message)
+              : `<span class="fx-muted" style="color:#565D64;">No message provided</span>`,
+          },
+        ]),
+        `<div style="height:20px;line-height:20px;font-size:0;">&nbsp;</div>`,
+        button(`mailto:${submission.email}`, `Reply to ${firstName}`),
+      ].join(""),
+      PAD_BODY
+    ),
+    row("", "0 40px 20px 40px"),
+  ].join("");
 
-  const text = `New Technical SEO Audit request
+  const text = `NEW TECHNICAL SEO AUDIT REQUEST
+Submitted on ${BRAND.domain}
 
-Name: ${submission.name}
-Email: ${submission.email}
+Name:    ${submission.name}
+Email:   ${submission.email}
 Company: ${submission.company}
 Website: ${submission.website}
-Message: ${submission.message || "No message provided"}`;
+
+Message:
+${submission.message || "No message provided"}`;
 
   return {
     subject: `Audit request: ${submission.name} (${submission.website})`,
-    html: emailShell(bodyHtml, `New Technical SEO Audit request from ${submission.name}`),
+    html: renderEmailDocument({
+      title: `Audit request: ${submission.name}`,
+      preheader: `${submission.name} at ${submission.company} requested an audit of ${submission.website}.`,
+      bodyRows,
+      footerMeta: "Internal notification",
+    }),
     text,
   };
 }

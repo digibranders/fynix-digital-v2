@@ -1,9 +1,54 @@
+/**
+ * Every email in the Pavel Klimakov Semantic SEO workshop lifecycle: the
+ * priority-list holding note, the paid confirmation, the reminders, and the
+ * post-event split into certificate / recording / missed-you.
+ *
+ * Presentation comes from `./design.ts`, the same module the website form
+ * emails use. These templates previously carried three separate copies of a
+ * full HTML document and their own palette, so the workshop mails and the
+ * contact-form mails looked like they came from two different companies.
+ *
+ * Two rules this file exists to keep:
+ *
+ *  1. Every interpolated value is escaped. A registrant types their own name,
+ *     website and free-text answers, and those land in a message our domain
+ *     signs. Unescaped, a name field is a phishing link with our DKIM on it.
+ *  2. Nothing is promised that the data does not contain. The subject line,
+ *     the preheader, the HTML and the plain text all have to agree; a mail
+ *     subject-lined "here is the recording" that carries no recording is the
+ *     failure mode these templates keep rediscovering.
+ */
+
 import { WORKSHOP } from "@/components/pavel/workshopDetails";
 import {
   FALLBACK_SCHEDULE,
   type WorkshopSchedule,
 } from "@/lib/pavel/workshopSchedule";
 import { countdownLabel, eventTimeLabel } from "@/lib/pavel/schedule";
+import {
+  BRAND,
+  button,
+  calendarRow,
+  code,
+  detailList,
+  divider,
+  escapeHtml,
+  escapeMultiline,
+  eyebrow,
+  fallbackLink,
+  firstNameOf,
+  heading,
+  lede,
+  panel,
+  panelLabel,
+  panelValue,
+  paragraph,
+  positiveLabel,
+  renderEmailDocument,
+  row,
+  safeUrl,
+  signOff,
+} from "./design";
 
 export interface PavelRegistrationSubmission {
   name: string;
@@ -42,21 +87,26 @@ export interface PavelRegistrationSubmission {
   recordingPasscode?: string;
 }
 
-/**
- * Escape a value for interpolation into email HTML — element text and
- * double-quoted attributes alike. Names, emails and the audit-form fields are
- * typed by the registrant, so they must never reach the markup unescaped: a
- * name containing markup would otherwise render as HTML in the admin inbox.
- * The plain-text bodies interpolate the raw values, which is correct there.
- */
-function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
+export interface PavelAuditSubmission {
+  name: string;
+  email: string;
+  websiteUrl: string;
+  targetKeyword: string;
+  biggestChallenge?: string;
 }
+
+export interface PavelEmail {
+  subject: string;
+  html: string;
+  text: string;
+}
+
+const WORKSHOP_EYEBROW = `Pavel Klimakov &nbsp;&middot;&nbsp; Semantic SEO Workshop`;
+
+/** Vertical rhythm, matched to the website form templates. */
+const PAD_HEAD = "34px 40px 0 40px";
+const PAD_BODY = "22px 40px 4px 40px";
+const PAD_TAIL = "24px 40px 36px 40px";
 
 /** The session's schedule, or the constant when the caller passed none. */
 function scheduleFor(submission: PavelRegistrationSubmission): WorkshopSchedule {
@@ -68,32 +118,142 @@ function joinLinkFor(submission: PavelRegistrationSubmission): string {
   return submission.joinUrl || WORKSHOP.zoomUrl;
 }
 
-export interface PavelAuditSubmission {
-  name: string;
-  email: string;
-  websiteUrl: string;
-  targetKeyword: string;
-  biggestChallenge?: string;
+/**
+ * Footer reference line, or nothing.
+ *
+ * The old confirmation defaulted to `TK-042` and the rest to `PVL-0000`, so a
+ * registration that had not been issued an id yet still printed a confident,
+ * fabricated one. A support reply quoting `PVL-0000` matches every other seat
+ * with the same problem. Absent is better than invented.
+ */
+function referenceMeta(ref: string | undefined): string | undefined {
+  const trimmed = ref?.trim();
+  return trimmed ? `Reference ${escapeHtml(trimmed)}` : undefined;
+}
+
+function referenceText(ref: string | undefined): string {
+  const trimmed = ref?.trim();
+  return trimmed ? `\nReference ${trimmed}` : "";
+}
+
+interface ShellOptions {
+  subject: string;
+  preheader: string;
+  eyebrowText?: string;
+  headingText: string;
+  /** Set in italic accent at the end of the headline. Usually the first name. */
+  headingEmphasis?: string;
+  bodyHtml: string;
+  closing?: string;
+  team?: string;
+  ref?: string;
+}
+
+/** One shell for every workshop email, customer-facing or internal. */
+function renderWorkshopEmail(options: ShellOptions): string {
+  const tail = options.closing
+    ? row(
+        `${divider(0)}<div style="height:24px;line-height:24px;font-size:0;">&nbsp;</div>${signOff(
+          options.closing,
+          options.team
+        )}`,
+        PAD_TAIL
+      )
+    : row("", "0 40px 20px 40px");
+
+  return renderEmailDocument({
+    title: options.subject,
+    preheader: options.preheader,
+    bodyRows: [
+      row(
+        `${eyebrow(options.eyebrowText ?? WORKSHOP_EYEBROW)}${heading(
+          options.headingText,
+          options.headingEmphasis
+        )}`,
+        PAD_HEAD
+      ),
+      row(options.bodyHtml, PAD_BODY),
+      tail,
+    ].join(""),
+    footerMeta: referenceMeta(options.ref),
+  });
+}
+
+/* -------------------------------------------------------------------------- */
+/* Shared blocks                                                              */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * When / where panel for the confirmation and reminder emails.
+ *
+ * The Zoom link gets a real button. It used to be a bare underlined URL, and a
+ * tokenised registrant link runs past 120 characters, so on a phone the single
+ * most important element in the email was three lines of broken-up text with no
+ * visual weight at all. The raw URL still appears beneath it, because a
+ * registrant whose client strips the button still has to be able to join.
+ */
+function sessionPanel(
+  submission: PavelRegistrationSubmission,
+  options: { showCalendar: boolean }
+): string {
+  const schedule = scheduleFor(submission);
+  const joinUrl = joinLinkFor(submission);
+  const countdown = countdownLabel(schedule.startUtc);
+
+  const calendar = options.showCalendar
+    ? `<div style="height:4px;line-height:4px;font-size:0;">&nbsp;</div>${calendarRow({
+        title: "Semantic SEO Workshop with Pavel Klimakov",
+        startUtc: schedule.startUtc,
+        endUtc: schedule.endUtc,
+        details: `Your Zoom link: ${joinUrl}`,
+        location: joinUrl,
+      })}`
+    : "";
+
+  return panel(
+    [
+      panelLabel("When"),
+      panelValue(
+        `${escapeHtml(schedule.dateLabel)} &nbsp;&middot;&nbsp; ${escapeHtml(
+          eventTimeLabel(schedule)
+        )}<br /><span class="fx-accent-text" style="font-size:13px;font-weight:600;color:#8A6634;">Starts ${escapeHtml(
+          countdown
+        )}</span>`,
+        18
+      ),
+      panelLabel("Join on Zoom"),
+      `<div style="height:10px;line-height:10px;font-size:0;">&nbsp;</div>`,
+      button(joinUrl, "Join the workshop"),
+      fallbackLink(joinUrl, "Or copy this link into your browser:"),
+      calendar,
+    ].join("")
+  );
+}
+
+function sessionText(
+  submission: PavelRegistrationSubmission,
+  options: { showCalendar: boolean }
+): string {
+  const schedule = scheduleFor(submission);
+  return `WHEN
+${schedule.dateLabel} · ${eventTimeLabel(schedule)}
+Starts ${countdownLabel(schedule.startUtc)}
+
+JOIN ON ZOOM
+${joinLinkFor(submission)}${
+    options.showCalendar
+      ? "\n\nThe email version of this message has one-tap links to add the session to Google Calendar or Outlook."
+      : ""
+  }`;
 }
 
 /**
- * Builds the HTML & Plaintext "priority list" confirmation email sent to
- * attendees right after they register.
+ * Recording block for the post-event emails.
  *
- * TEMPORARY: while paid checkout is paused and the event is being finalised,
- * this is a warm holding note. It does NOT hand out the Zoom link, a passcode,
- * a date, or claim a payment was taken. It only confirms the person is on the
- * priority list and will be notified first when the event opens. Styling is
- * matched to the /pavel editorial brand (cream ground, navy ink, serif accent).
- */
-
-/**
- * Recording section for the post-event emails.
- *
- * Returns nothing at all when no recording has been published. The alternative
- * — a fixed line promising a recording — is how the "we missed you" mail came
- * to be subject-lined "here is the workshop recording" while containing no
- * recording, which is worse than staying quiet until there is one to send.
+ * Returns nothing at all when no recording has been published. The alternative,
+ * a fixed line promising a recording, is how the "we missed you" mail came to be
+ * subject-lined "here is the workshop recording" while containing no recording,
+ * which is worse than staying quiet until there is one to send.
  *
  * Notes are deliberately absent: they are shared in the WhatsApp group, and the
  * notes URL these emails used to carry pointed at a page that does not exist.
@@ -105,26 +265,24 @@ function recordingBlock(submission: PavelRegistrationSubmission): string {
 
   // The passcode is not optional dressing. Zoom's share link asks for it, and
   // its "allow invitees without the passcode" setting exempts people invited
-  // through Zoom — not people arriving on the link, which is everyone here.
+  // through Zoom, not people arriving on the link, which is everyone here.
   // Without this line every buyer meets a prompt they cannot answer.
-  const passcodeLine = passcode
-    ? `
-    <p style="margin: 0 0 28px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.7; color: #454F58;">
-      Passcode: <strong style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: 0.02em;">${escapeHtml(passcode)}</strong>
-    </p>`
+  const passcodeBlock = passcode
+    ? `${panelLabel("Passcode", 18)}${panelValue(code(passcode), 0)}`
     : "";
 
-  return `
-    <p style="margin: 0 0 20px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.7; color: #454F58;">
-      The full recording is yours for the next ${WORKSHOP.recordingWindowDays} days.
-    </p>
-    <p style="margin: 0 0 ${passcode ? "16px" : "28px"} 0;">
-      <a href="${escapeHtml(url)}" style="display: inline-block; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 15px; font-weight: 600; color: #FFFFFF; background-color: #0C1E2E; text-decoration: none; padding: 12px 22px; border-radius: 10px;">Watch the recording &rarr;</a>
-    </p>${passcodeLine}
-    <p style="margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.7; color: #454F58;">
-      If the button doesn&rsquo;t work, copy this link into your browser:<br>
-      <a href="${escapeHtml(url)}" style="color: #0C1E2E; text-decoration: underline; word-break: break-all;">${escapeHtml(url)}</a>
-    </p>`;
+  return panel(
+    [
+      panelLabel("Watch the recording"),
+      panelValue(
+        `Yours for the next ${WORKSHOP.recordingWindowDays} days.`,
+        14
+      ),
+      button(url, "Watch the recording"),
+      fallbackLink(url, "Or copy this link into your browser:"),
+      passcodeBlock,
+    ].join("")
+  );
 }
 
 /** Plain-text counterpart. Empty when there is no recording to send. */
@@ -133,374 +291,208 @@ function recordingText(submission: PavelRegistrationSubmission): string {
   if (!url) return "";
   const passcode = submission.recordingPasscode?.trim();
   return (
-    `\nThe full recording is yours for the next ${WORKSHOP.recordingWindowDays} days:\n${url}\n` +
+    `\nWATCH THE RECORDING\nYours for the next ${WORKSHOP.recordingWindowDays} days.\n${url}\n` +
     (passcode ? `Passcode: ${passcode}\n` : "")
   );
 }
 
+/* -------------------------------------------------------------------------- */
+/* Registration                                                               */
+/* -------------------------------------------------------------------------- */
 
 /**
- * "Your recording is ready" — the follow-up when the recording was not
- * available at the time the post-event email went out.
+ * The priority-list confirmation, sent while paid checkout is paused and the
+ * event is being finalised.
  *
- * Goes to attendees and no-shows alike. The FAQ promises the recording to
- * everyone who paid, and for a no-show it is the only thing they receive.
- *
- * Returns null when there is no recording, so a caller cannot accidentally send
- * an email whose entire subject is a link it does not have.
+ * A warm holding note and nothing more: it hands out no Zoom link, no passcode,
+ * no date, and claims no payment was taken.
  */
-export function buildPavelRecordingReadyEmail(
+export function buildPavelConfirmationEmail(
   submission: PavelRegistrationSubmission
-): { subject: string; html: string; text: string } | null {
-  if (!submission.recordingUrl?.trim()) return null;
+): PavelEmail {
+  const firstName = firstNameOf(submission.name);
+  const subject = "You are on the priority list for Pavel's Semantic SEO Workshop";
 
-  const firstName = submission.name?.split(" ")[0] || "there";
-  const ref = submission.ref ?? "";
-  const subject = `Your Semantic SEO workshop recording is ready`;
-  const preheader = `Watch it any time in the next ${WORKSHOP.recordingWindowDays} days.`;
-  const heading = `The recording is <span style="font-style: italic; color: #9A7B4F;">ready</span>, ${escapeHtml(firstName)}.`;
+  const bodyHtml = [
+    lede(
+      "Thank you for registering. Your place is saved and you are on the priority list for the live Semantic SEO workshop."
+    ),
+    paragraph(
+      "We will write the moment the event opens. Priority members hear first, ahead of the public announcement."
+    ),
+    paragraph(
+      "There is nothing for you to do right now. Keep an eye on your inbox and we will take care of the rest.",
+      4
+    ),
+  ].join("");
 
-  const bodyHtml = `
-    <p style="margin: 0 0 18px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.65; color: #454F58;">
-      Pavel&rsquo;s full Semantic SEO workshop is now available to watch back.
-    </p>
-    ${recordingBlock(submission)}`;
+  const text = `You are first in line, ${firstName}.
 
-  const html = renderPavelEmailShell({
-    subject,
-    preheader,
-    eyebrow: "Workshop recording",
-    heading,
-    bodyHtml,
-    ref,
-  });
+Thank you for registering. Your place is saved and you are on the priority list
+for the live Semantic SEO workshop.
 
-  const text = `The recording is ready, ${firstName}.
+We will write the moment the event opens. Priority members hear first, ahead of
+the public announcement.
 
-Pavel's full Semantic SEO workshop is now available to watch back.
-${recordingText(submission)}
-Reference ${ref}`;
-
-  return { subject, html, text };
-}
-
-export function buildPavelConfirmationEmail(submission: PavelRegistrationSubmission) {
-  const ticketId = submission.ticketNumber || "TK-042";
-  const firstName = submission.name.split(" ")[0] || "there";
-
-  const subject = `You're on the priority list for Pavel's Semantic SEO Workshop`;
-  const preheader = `Your spot is saved. The moment the workshop opens, you'll be the first to know.`;
-
-  const html = `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="color-scheme" content="light">
-  <title>${subject}</title>
-</head>
-<body style="margin: 0; padding: 0; background-color: #FBFAF8; -webkit-font-smoothing: antialiased; -webkit-text-size-adjust: 100%;">
-  <span style="display: none !important; visibility: hidden; opacity: 0; color: transparent; height: 0; width: 0; overflow: hidden; mso-hide: all;">${preheader}</span>
-
-  <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #FBFAF8;">
-    <tr>
-      <td align="center" style="padding: 44px 16px;">
-
-        <table role="presentation" width="560" border="0" cellspacing="0" cellpadding="0" style="width: 560px; max-width: 560px; background-color: #FFFFFF; border: 1px solid #E8E7E3; border-radius: 16px; overflow: hidden; box-shadow: 0 1px 2px rgba(12,30,46,0.04), 0 18px 40px rgba(12,30,46,0.07);">
-
-          <!-- Masthead rule -->
-          <tr>
-            <td style="height: 4px; line-height: 4px; font-size: 0; background-color: #0C1E2E;">&nbsp;</td>
-          </tr>
-
-          <!-- Header -->
-          <tr>
-            <td style="padding: 44px 48px 0 48px;">
-              <p style="margin: 0 0 26px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: #565D64;">
-                Pavel Klimakov &nbsp;&middot;&nbsp; Semantic SEO Workshop
-              </p>
-
-              <h1 style="margin: 0; font-family: Georgia, 'Times New Roman', serif; font-size: 34px; line-height: 1.18; font-weight: 500; letter-spacing: -0.01em; color: #0C1E2E;">
-                You&rsquo;re <span style="font-style: italic; color: #9A7B4F;">first in line,</span> ${escapeHtml(firstName)}.
-              </h1>
-            </td>
-          </tr>
-
-          <!-- Body -->
-          <tr>
-            <td style="padding: 24px 48px 4px 48px;">
-              <p style="margin: 0 0 20px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.7; color: #454F58;">
-                Thank you for registering. Your spot is saved, and you&rsquo;re now on our priority list for the live Semantic SEO workshop.
-              </p>
-              <p style="margin: 0 0 20px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.7; color: #454F58;">
-                We&rsquo;ll notify you the moment the event goes live. As one of our priority members, you&rsquo;ll be among the very first to hear, ahead of everyone else.
-              </p>
-              <p style="margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.7; color: #454F58;">
-                There&rsquo;s nothing you need to do right now. Simply keep an eye on your inbox, and we&rsquo;ll take care of the rest.
-              </p>
-            </td>
-          </tr>
-
-          <!-- Divider -->
-          <tr>
-            <td style="padding: 32px 48px 0 48px;">
-              <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0">
-                <tr><td style="height: 1px; line-height: 1px; font-size: 0; background-color: #EFEEEA;">&nbsp;</td></tr>
-              </table>
-            </td>
-          </tr>
-
-          <!-- Sign-off -->
-          <tr>
-            <td style="padding: 26px 48px 44px 48px;">
-              <p style="margin: 0 0 4px 0; font-family: Georgia, 'Times New Roman', serif; font-style: italic; font-size: 17px; line-height: 1.5; color: #0C1E2E;">
-                Glad to have you with us,
-              </p>
-              <p style="margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.04em; color: #0C1E2E;">
-                The Fynix Digital Team
-              </p>
-            </td>
-          </tr>
-
-          <!-- Footer -->
-          <tr>
-            <td style="padding: 22px 48px 26px 48px; background-color: #FBFAF8; border-top: 1px solid #E8E7E3;">
-              <p style="margin: 0 0 6px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 12px; line-height: 1.6; color: #565D64;">
-                Questions? Reply to this email or write to
-                <a href="mailto:hello@fynix.digital" style="color: #0C1E2E; text-decoration: underline;">hello@fynix.digital</a>.
-              </p>
-              <p style="margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 11px; line-height: 1.6; color: #9AA0A6;">
-                Registration ref ${escapeHtml(ticketId)} &nbsp;&middot;&nbsp; &copy; ${new Date().getFullYear()} Fynix Digital
-              </p>
-            </td>
-          </tr>
-
-        </table>
-
-      </td>
-    </tr>
-  </table>
-</body>
-</html>
-  `;
-
-  const text = `PRIORITY LIST
-
-You're first in line, ${firstName}.
-
-Thank you for registering. Your spot is saved, and you're now on our priority
-list for the live Semantic SEO workshop.
-
-We'll notify you the moment the event goes live. As one of our priority members,
-you'll be among the very first to hear, ahead of everyone else.
-
-There's nothing you need to do right now. Simply keep an eye on your inbox, and
-we'll take care of the rest.
+There is nothing for you to do right now. Keep an eye on your inbox and we will
+take care of the rest.
 
 Glad to have you with us,
-The Fynix Digital Team
+The ${BRAND.name} Team
 
-Questions? Reply to this email or write to hello@fynix.digital.
-Registration ref ${ticketId}`;
+Questions? Reply to this email or write to ${BRAND.email}.${referenceText(
+    submission.ticketNumber
+  )}`;
 
-  return { subject, html, text };
+  return {
+    subject,
+    html: renderWorkshopEmail({
+      subject,
+      preheader: "Your place is saved. You will be the first to hear when the workshop opens.",
+      headingText: "You are first in line,",
+      headingEmphasis: `${firstName}.`,
+      bodyHtml,
+      closing: "Glad to have you with us,",
+      ref: submission.ticketNumber,
+    }),
+    text,
+  };
 }
 
 /**
- * The REAL post-payment confirmation email, sent once the Razorpay payment is
- * captured and the seat is paid. Unlike `buildPavelConfirmationEmail` (a holding
- * note), this one
- * hands out the Zoom access, the date/time in dual zones for a worldwide
- * audience, a static "starts in N days" countdown, and the paid reference id.
+ * The post-payment confirmation, sent once Razorpay captures the payment.
+ *
+ * Unlike the holding note above, this hands out the Zoom access, the date and
+ * time in dual zones for a worldwide audience, a countdown baked at send time,
+ * calendar links, and the paid reference id.
  */
 export function buildPavelPaidConfirmationEmail(
   submission: PavelRegistrationSubmission
-) {
-  const firstName = submission.name.split(" ")[0] || "there";
-  const ref = submission.ref || "PVL-0000";
-  // Both must be derived from the SESSION, not the constant. Calling these bare
-  // let the email print the fallback time and count down to the fallback date
-  // while the date line beside them came from the real session — so a buyer was
-  // told the right day and the wrong hour, in the same sentence.
-  const emailSchedule = scheduleFor(submission);
-  const countdown = countdownLabel(emailSchedule.startUtc);
-  const timeLabel = eventTimeLabel(emailSchedule);
+): PavelEmail {
+  const firstName = firstNameOf(submission.name);
+  const subject = "Your seat is confirmed: Zoom link inside";
 
-  const subject = `You're in: your Zoom link for Pavel's Semantic SEO Workshop`;
-  const preheader = `Seat confirmed. Your Zoom access, the date, and everything you need are inside.`;
+  const whatsapp = panel(
+    [
+      positiveLabel("Attendees only"),
+      paragraph(
+        "Our private WhatsApp community carries the reminders, resources and updates for this cohort. Reserved for confirmed seats.",
+        16
+      ),
+      button(WORKSHOP.whatsappGroupUrl, "Join the community", "positive"),
+    ].join(""),
+    "positive"
+  );
 
-  const html = `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="color-scheme" content="light">
-  <title>${subject}</title>
-</head>
-<body style="margin: 0; padding: 0; background-color: #FBFAF8; -webkit-font-smoothing: antialiased; -webkit-text-size-adjust: 100%;">
-  <span style="display: none !important; visibility: hidden; opacity: 0; color: transparent; height: 0; width: 0; overflow: hidden; mso-hide: all;">${preheader}</span>
+  const bodyHtml = [
+    lede(
+      "Payment received. You are registered for the live three-hour Semantic SEO workshop. Everything you need to join is below, so keep this email."
+    ),
+    sessionPanel(submission, { showCalendar: true }),
+    whatsapp,
+  ].join("");
 
-  <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #FBFAF8;">
-    <tr>
-      <td align="center" style="padding: 44px 16px;">
+  const text = `Your seat is confirmed, ${firstName}.
 
-        <table role="presentation" width="560" border="0" cellspacing="0" cellpadding="0" style="width: 560px; max-width: 560px; background-color: #FFFFFF; border: 1px solid #E8E7E3; border-radius: 16px; overflow: hidden; box-shadow: 0 1px 2px rgba(12,30,46,0.04), 0 18px 40px rgba(12,30,46,0.07);">
+Payment received. You are registered for the live three-hour Semantic SEO
+workshop. Everything you need to join is below, so keep this email.
 
-          <tr>
-            <td style="height: 4px; line-height: 4px; font-size: 0; background-color: #0C1E2E;">&nbsp;</td>
-          </tr>
-
-          <tr>
-            <td style="padding: 44px 48px 0 48px;">
-              <p style="margin: 0 0 26px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: #565D64;">
-                Pavel Klimakov &nbsp;&middot;&nbsp; Semantic SEO Workshop
-              </p>
-              <h1 style="margin: 0; font-family: Georgia, 'Times New Roman', serif; font-size: 34px; line-height: 1.18; font-weight: 500; letter-spacing: -0.01em; color: #0C1E2E;">
-                Your seat is <span style="font-style: italic; color: #9A7B4F;">confirmed,</span> ${escapeHtml(firstName)}.
-              </h1>
-            </td>
-          </tr>
-
-          <tr>
-            <td style="padding: 24px 48px 4px 48px;">
-              <p style="margin: 0 0 20px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.7; color: #454F58;">
-                Payment received. You&rsquo;re officially registered for the live 3-hour Semantic SEO workshop. Everything you need to join is below. Save this email.
-              </p>
-            </td>
-          </tr>
-
-          <!-- Details card -->
-          <tr>
-            <td style="padding: 12px 48px 0 48px;">
-              <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #FBFAF8; border: 1px solid #E8E7E3; border-radius: 12px;">
-                <tr>
-                  <td style="padding: 22px 24px;">
-                    <p style="margin: 0 0 4px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #565D64;">When</p>
-                    <p style="margin: 0 0 16px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.5; color: #0C1E2E;">
-                      ${scheduleFor(submission).dateLabel} &middot; ${timeLabel}<br>
-                      <span style="font-size: 13px; color: #9A7B4F; font-weight: 600;">Starts ${countdown}</span>
-                    </p>
-                    <p style="margin: 0 0 4px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #565D64;">Join on Zoom</p>
-                    <p style="margin: 0 0 6px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 15px; line-height: 1.5;">
-                      <a href="${escapeHtml(joinLinkFor(submission))}" style="color: #0C1E2E; text-decoration: underline; word-break: break-all;">${escapeHtml(joinLinkFor(submission))}</a>
-                    </p>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-
-          <!-- WhatsApp community (paid attendees only) -->
-          <tr>
-            <td style="padding: 16px 48px 0 48px;">
-              <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #F0F7F1; border: 1px solid #CDE6D3; border-radius: 12px;">
-                <tr>
-                  <td style="padding: 22px 24px;">
-                    <p style="margin: 0 0 6px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #1F7A3D;">Attendees-only community</p>
-                    <p style="margin: 0 0 16px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 15px; line-height: 1.6; color: #454F58;">
-                      Join our private WhatsApp community to get the latest updates about the workshop, reminders, and resources. Reserved for confirmed seats.
-                    </p>
-                    <a href="${WORKSHOP.whatsappGroupUrl}" style="display: inline-block; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 600; color: #FFFFFF; background-color: #1F7A3D; text-decoration: none; padding: 11px 22px; border-radius: 8px;">Join the WhatsApp community</a>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-
-          <tr>
-            <td style="padding: 26px 48px 44px 48px;">
-              <p style="margin: 0 0 4px 0; font-family: Georgia, 'Times New Roman', serif; font-style: italic; font-size: 17px; line-height: 1.5; color: #0C1E2E;">
-                See you there,
-              </p>
-              <p style="margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.04em; color: #0C1E2E;">
-                The Fynix Digital Team
-              </p>
-            </td>
-          </tr>
-
-          <tr>
-            <td style="padding: 22px 48px 26px 48px; background-color: #FBFAF8; border-top: 1px solid #E8E7E3;">
-              <p style="margin: 0 0 6px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 12px; line-height: 1.6; color: #565D64;">
-                Questions? Reply to this email or write to
-                <a href="mailto:hello@fynix.digital" style="color: #0C1E2E; text-decoration: underline;">hello@fynix.digital</a>.
-              </p>
-              <p style="margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 11px; line-height: 1.6; color: #9AA0A6;">
-                Reference ${escapeHtml(ref)} &nbsp;&middot;&nbsp; &copy; ${new Date().getFullYear()} Fynix Digital
-              </p>
-            </td>
-          </tr>
-
-        </table>
-
-      </td>
-    </tr>
-  </table>
-</body>
-</html>
-  `;
-
-  const text = `YOUR SEAT IS CONFIRMED
-
-Your seat is confirmed, ${firstName}.
-
-Payment received. You're officially registered for the live 3-hour Semantic
-SEO workshop. Everything you need to join is below. Save this email.
-
-WHEN
-${scheduleFor(submission).dateLabel} · ${timeLabel}
-Starts ${countdown}
-
-JOIN ON ZOOM
-${joinLinkFor(submission)}
+${sessionText(submission, { showCalendar: true })}
 
 ATTENDEES-ONLY WHATSAPP COMMUNITY
-Join our private WhatsApp community to get the latest updates about the
-workshop, reminders, and resources. Reserved for confirmed seats.
+Our private WhatsApp community carries the reminders, resources and updates for
+this cohort. Reserved for confirmed seats.
 ${WORKSHOP.whatsappGroupUrl}
 
 See you there,
-The Fynix Digital Team
+The ${BRAND.name} Team
 
-Questions? Reply to this email or write to hello@fynix.digital.
-Reference ${ref}`;
+Questions? Reply to this email or write to ${BRAND.email}.${referenceText(submission.ref)}`;
 
-  return { subject, html, text };
+  return {
+    subject,
+    html: renderWorkshopEmail({
+      subject,
+      preheader: "Your Zoom link, the date and time, and the attendees-only community.",
+      headingText: "Your seat is confirmed,",
+      headingEmphasis: `${firstName}.`,
+      bodyHtml,
+      closing: "See you there,",
+      ref: submission.ref,
+    }),
+    text,
+  };
 }
 
 /**
- * Internal admin notification fired alongside the paid confirmation, so the
- * team sees each new paid seat land.
+ * Internal notification fired alongside the paid confirmation, so the team sees
+ * each new paid seat land.
  */
 export function buildPavelPaidRegistrationAdminEmail(
   submission: PavelRegistrationSubmission
-) {
-  const ref = submission.ref || "PVL-0000";
-  const subject = `✅ [Paid] ${submission.name} registered for Pavel Workshop [${ref}]`;
-  const html = `
-    <h2>New Paid Registration: Pavel Semantic SEO Workshop</h2>
-    <p><strong>Name:</strong> ${escapeHtml(submission.name)}</p>
-    <p><strong>Email:</strong> ${escapeHtml(submission.email)}</p>
-    <p><strong>Country:</strong> ${escapeHtml(submission.country || "REST")}</p>
-    <p><strong>Amount:</strong> ${escapeHtml(submission.amountDisplay || "N/A")}</p>
-    <p><strong>Reference:</strong> ${escapeHtml(ref)}</p>
-  `;
-  const text = `New Paid Registration: Pavel Semantic SEO Workshop
-Name: ${submission.name}
-Email: ${submission.email}
-Country: ${submission.country || "REST"}
-Amount: ${submission.amountDisplay || "N/A"}
-Reference: ${ref}`;
+): PavelEmail {
+  const ref = submission.ref?.trim();
+  // No emoji in the subject. They render as tofu in some clients, break
+  // subject-line search, and read as noise in a queue of operational mail.
+  const subject = `Paid seat: ${submission.name}${ref ? ` (${ref})` : ""}`;
 
-  return { subject, html, text };
+  const bodyHtml = [
+    paragraph("A seat was paid for and confirmed.", 22),
+    detailList([
+      { label: "Name", value: escapeHtml(submission.name) },
+      {
+        label: "Email",
+        value: `<a class="fx-ink" href="mailto:${escapeHtml(submission.email)}" style="color:#0C1E2E;text-decoration:underline;">${escapeHtml(submission.email)}</a>`,
+      },
+      { label: "Country", value: escapeHtml(submission.country || "REST") },
+      { label: "Amount", value: escapeHtml(submission.amountDisplay || "Not recorded") },
+      {
+        label: "Reference",
+        value: ref
+          ? code(ref)
+          : `<span class="fx-muted" style="color:#565D64;">Not issued</span>`,
+      },
+    ]),
+  ].join("");
+
+  const text = `PAID SEAT: PAVEL SEMANTIC SEO WORKSHOP
+
+Name:      ${submission.name}
+Email:     ${submission.email}
+Country:   ${submission.country || "REST"}
+Amount:    ${submission.amountDisplay || "Not recorded"}
+Reference: ${ref || "Not issued"}`;
+
+  return {
+    subject,
+    html: renderEmailDocument({
+      title: subject,
+      preheader: `${submission.name} paid ${submission.amountDisplay || "an unrecorded amount"} for a workshop seat.`,
+      bodyRows: [
+        row(
+          `${eyebrow("Workshop &nbsp;&middot;&nbsp; Paid registration")}${heading(
+            "New paid seat"
+          )}`,
+          PAD_HEAD
+        ),
+        row(bodyHtml, PAD_BODY),
+        row("", "0 40px 20px 40px"),
+      ].join(""),
+      footerMeta: "Internal notification",
+    }),
+    text,
+  };
 }
 
 /**
  * Operator alert for a probable double charge: a payment was captured for a
  * buyer who already holds a paid seat in the same session. The money has
- * already moved — Razorpay captures before we hear about it — so the fix is a
- * refund, and the operator needs to know NOW, not at reconciliation time.
+ * already moved, because Razorpay captures before we hear about it, so the fix
+ * is a refund and the operator needs to know now rather than at reconciliation.
+ *
+ * Toned `accent` rather than dressed up with a warning colour. This lands in an
+ * operator's inbox beside routine paid-seat notifications, and the thing that
+ * has to be unmistakable is the instruction, not the decoration.
  */
 export function buildPavelDuplicatePaymentAdminEmail(input: {
   name: string;
@@ -508,86 +500,77 @@ export function buildPavelDuplicatePaymentAdminEmail(input: {
   ref: string;
   existingRef: string;
   amountDisplay?: string;
-}) {
-  const subject = `⚠️ [Double payment?] ${input.name} paid twice for Pavel Workshop [${input.ref}]`;
-  const html = `
-    <h2>Probable double payment — refund needed</h2>
-    <p>A payment was just captured for a buyer who already holds a paid seat in the same session.</p>
-    <p><strong>Name:</strong> ${escapeHtml(input.name)}</p>
-    <p><strong>Email:</strong> ${escapeHtml(input.email)}</p>
-    <p><strong>This payment:</strong> ${escapeHtml(input.ref)} (${escapeHtml(input.amountDisplay || "amount unknown")})</p>
-    <p><strong>Already-paid seat:</strong> ${escapeHtml(input.existingRef)}</p>
-    <p>Check both registrations in the admin console and refund the duplicate from the Razorpay dashboard.</p>
-  `;
-  const text = `Probable double payment — refund needed
+}): PavelEmail {
+  const subject = `Double payment: ${input.name} paid twice for the Pavel Workshop (${input.ref})`;
 
-A payment was just captured for a buyer who already holds a paid seat in the
-same session.
+  const bodyHtml = [
+    lede(
+      "A payment was captured for a buyer who already holds a paid seat in the same session."
+    ),
+    detailList([
+      { label: "Name", value: escapeHtml(input.name) },
+      {
+        label: "Email",
+        value: `<a class="fx-ink" href="mailto:${escapeHtml(input.email)}" style="color:#0C1E2E;text-decoration:underline;">${escapeHtml(input.email)}</a>`,
+      },
+      {
+        label: "This payment",
+        value: `${code(input.ref)} &nbsp;&middot;&nbsp; ${escapeHtml(
+          input.amountDisplay || "amount unknown"
+        )}`,
+      },
+      { label: "Already-paid seat", value: code(input.existingRef) },
+    ]),
+    `<div style="height:20px;line-height:20px;font-size:0;">&nbsp;</div>`,
+    panel(
+      [
+        panelLabel("What to do"),
+        paragraph(
+          "Check both registrations in the admin console, then refund the duplicate from the Razorpay dashboard.",
+          0
+        ),
+      ].join(""),
+      "accent"
+    ),
+  ].join("");
 
-Name: ${input.name}
-Email: ${input.email}
-This payment: ${input.ref} (${input.amountDisplay || "amount unknown"})
+  const text = `DOUBLE PAYMENT: REFUND NEEDED
+
+A payment was captured for a buyer who already holds a paid seat in the same
+session.
+
+Name:              ${input.name}
+Email:             ${input.email}
+This payment:      ${input.ref} (${input.amountDisplay || "amount unknown"})
 Already-paid seat: ${input.existingRef}
 
-Check both registrations in the admin console and refund the duplicate from
+Check both registrations in the admin console, then refund the duplicate from
 the Razorpay dashboard.`;
 
-  return { subject, html, text };
+  return {
+    subject,
+    html: renderEmailDocument({
+      title: subject,
+      preheader: `${input.name} already holds paid seat ${input.existingRef}. Refund needed.`,
+      bodyRows: [
+        row(
+          `${eyebrow("Workshop &nbsp;&middot;&nbsp; Payment alert")}${heading(
+            "Probable double payment"
+          )}`,
+          PAD_HEAD
+        ),
+        row(bodyHtml, PAD_BODY),
+        row("", "0 40px 20px 40px"),
+      ].join(""),
+      footerMeta: "Internal notification",
+    }),
+    text,
+  };
 }
 
-/**
- * Shared brand-styled email shell so the reminder + post-event mails stay
- * visually consistent with the confirmation without duplicating boilerplate.
- */
-function renderPavelEmailShell(opts: {
-  subject: string;
-  preheader: string;
-  eyebrow: string;
-  heading: string;
-  bodyHtml: string;
-  ref: string;
-}): string {
-  return `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="color-scheme" content="light">
-  <title>${opts.subject}</title>
-</head>
-<body style="margin: 0; padding: 0; background-color: #FBFAF8; -webkit-font-smoothing: antialiased; -webkit-text-size-adjust: 100%;">
-  <span style="display: none !important; visibility: hidden; opacity: 0; color: transparent; height: 0; width: 0; overflow: hidden; mso-hide: all;">${opts.preheader}</span>
-  <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #FBFAF8;">
-    <tr>
-      <td align="center" style="padding: 44px 16px;">
-        <table role="presentation" width="560" border="0" cellspacing="0" cellpadding="0" style="width: 560px; max-width: 560px; background-color: #FFFFFF; border: 1px solid #E8E7E3; border-radius: 16px; overflow: hidden; box-shadow: 0 1px 2px rgba(12,30,46,0.04), 0 18px 40px rgba(12,30,46,0.07);">
-          <tr><td style="height: 4px; line-height: 4px; font-size: 0; background-color: #0C1E2E;">&nbsp;</td></tr>
-          <tr>
-            <td style="padding: 44px 48px 0 48px;">
-              <p style="margin: 0 0 26px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: #565D64;">${opts.eyebrow}</p>
-              <h1 style="margin: 0; font-family: Georgia, 'Times New Roman', serif; font-size: 32px; line-height: 1.2; font-weight: 500; letter-spacing: -0.01em; color: #0C1E2E;">${opts.heading}</h1>
-            </td>
-          </tr>
-          <tr><td style="padding: 22px 48px 8px 48px;">${opts.bodyHtml}</td></tr>
-          <tr>
-            <td style="padding: 22px 48px 26px 48px; background-color: #FBFAF8; border-top: 1px solid #E8E7E3;">
-              <p style="margin: 0 0 6px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 12px; line-height: 1.6; color: #565D64;">
-                Questions? Reply to this email or write to
-                <a href="mailto:hello@fynix.digital" style="color: #0C1E2E; text-decoration: underline;">hello@fynix.digital</a>.
-              </p>
-              <p style="margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 11px; line-height: 1.6; color: #9AA0A6;">
-                Reference ${escapeHtml(opts.ref)} &nbsp;&middot;&nbsp; &copy; ${new Date().getFullYear()} Fynix Digital
-              </p>
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>`;
-}
+/* -------------------------------------------------------------------------- */
+/* Reminders                                                                  */
+/* -------------------------------------------------------------------------- */
 
 /**
  * Reminder email, sent by the cron ahead of the workshop. `variant` shifts the
@@ -597,138 +580,174 @@ function renderPavelEmailShell(opts: {
 export function buildPavelReminderEmail(
   submission: PavelRegistrationSubmission,
   variant: "week" | "hour"
-) {
-  const firstName = submission.name.split(" ")[0] || "there";
-  const ref = submission.ref || "PVL-0000";
+): PavelEmail {
+  const firstName = firstNameOf(submission.name);
   // Both must be derived from the SESSION, not the constant. Calling these bare
   // let the email print the fallback time and count down to the fallback date
-  // while the date line beside them came from the real session — so a buyer was
-  // told the right day and the wrong hour, in the same sentence.
-  const emailSchedule = scheduleFor(submission);
-  const countdown = countdownLabel(emailSchedule.startUtc);
-  const timeLabel = eventTimeLabel(emailSchedule);
+  // while the date line beside them came from the real session, so a buyer was
+  // told the right day and the wrong hour in the same sentence.
+  const schedule = scheduleFor(submission);
+  const countdown = countdownLabel(schedule.startUtc);
 
-  const subject =
-    variant === "hour"
-      ? `Starting soon: your Zoom link for Pavel's Semantic SEO Workshop`
-      : `One week to go for Pavel's Semantic SEO Workshop`;
-  const preheader =
-    variant === "hour"
-      ? `We go live shortly. Here's your Zoom link and passcode.`
-      : `Your workshop is a week away. Save your Zoom access.`;
-  const heading =
-    variant === "hour"
-      ? `We go live <span style="font-style: italic; color: #9A7B4F;">${countdown}</span>, ${escapeHtml(firstName)}.`
-      : `One week to go, <span style="font-style: italic; color: #9A7B4F;">${escapeHtml(firstName)}.</span>`;
-  const lead =
-    variant === "hour"
-      ? `The workshop begins ${countdown}. Join a few minutes early so you're settled before Pavel starts.`
-      : `Pavel's live Semantic SEO workshop is ${countdown}. Here's everything you need so it's on your calendar and ready to go.`;
+  const isHour = variant === "hour";
 
-  const bodyHtml = `
-    <p style="margin: 0 0 20px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.7; color: #454F58;">${lead}</p>
-    <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #FBFAF8; border: 1px solid #E8E7E3; border-radius: 12px;">
-      <tr>
-        <td style="padding: 22px 24px;">
-          <p style="margin: 0 0 4px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #565D64;">When</p>
-          <p style="margin: 0 0 16px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.5; color: #0C1E2E;">${scheduleFor(submission).dateLabel} &middot; ${timeLabel}<br><span style="font-size: 13px; color: #9A7B4F; font-weight: 600;">Starts ${countdown}</span></p>
-          <p style="margin: 0 0 4px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #565D64;">Join on Zoom</p>
-          <p style="margin: 0 0 6px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 15px; line-height: 1.5;"><a href="${escapeHtml(joinLinkFor(submission))}" style="color: #0C1E2E; text-decoration: underline; word-break: break-all;">${escapeHtml(joinLinkFor(submission))}</a></p>
-        </td>
-      </tr>
-    </table>`;
+  const subject = isHour
+    ? "Starting soon: your Zoom link for the Semantic SEO Workshop"
+    : "One week to go: Pavel's Semantic SEO Workshop";
 
-  const html = renderPavelEmailShell({
-    subject,
-    preheader,
-    eyebrow: "Pavel Klimakov &nbsp;&middot;&nbsp; Semantic SEO Workshop",
-    heading,
-    bodyHtml,
-    ref,
-  });
+  // The preheader promised "your Zoom link and passcode" while the body carried
+  // only a link. The tokenised registrant URL needs no passcode, so the promise
+  // was the thing that was wrong, not the body.
+  const preheader = isHour
+    ? "We go live shortly. Your Zoom link is inside."
+    : "Your workshop is a week away. Save the date and your Zoom link.";
 
-  const text = `${variant === "hour" ? "STARTING SOON" : "ONE WEEK TO GO"}
+  const lead = isHour
+    ? `The workshop begins ${countdown}. Join a few minutes early so you are settled before Pavel starts.`
+    : `Pavel's live Semantic SEO workshop is ${countdown}. Here is everything you need to have it ready and on your calendar.`;
+
+  const bodyHtml = [
+    lede(escapeHtml(lead)),
+    sessionPanel(submission, { showCalendar: !isHour }),
+  ].join("");
+
+  const text = `${isHour ? "Starting soon" : "One week to go"}, ${firstName}.
 
 ${lead}
 
-WHEN
-${scheduleFor(submission).dateLabel} · ${timeLabel}
-Starts ${countdown}
+${sessionText(submission, { showCalendar: !isHour })}
 
-JOIN ON ZOOM
-${joinLinkFor(submission)}
+See you there,
+The ${BRAND.name} Team
 
-Questions? Reply to this email or write to hello@fynix.digital.
-Reference ${ref}`;
+Questions? Reply to this email or write to ${BRAND.email}.${referenceText(submission.ref)}`;
 
-  return { subject, html, text };
-}
-
-/**
- * Post-event thank-you, sent by the cron after the workshop ends. Carries the
- * link to Pavel's notes/resources.
- */
-export function buildPavelPostEventEmail(submission: PavelRegistrationSubmission) {
-  const firstName = submission.name.split(" ")[0] || "there";
-  const ref = submission.ref || "PVL-0000";
-
-  const subject = `Thank you for joining. Pavel's workshop notes inside`;
-  const preheader = `A recap and Pavel's notes from the Semantic SEO workshop.`;
-  const heading = `Thank you for joining, <span style="font-style: italic; color: #9A7B4F;">${escapeHtml(firstName)}.</span>`;
-
-  const bodyHtml = `
-    <p style="margin: 0 0 20px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.7; color: #454F58;">
-      It was a pleasure having you at Pavel's live Semantic SEO workshop.
-    </p>
-    ${recordingBlock(submission)}`;
-
-  const html = renderPavelEmailShell({
+  return {
     subject,
-    preheader,
-    eyebrow: "Pavel Klimakov &nbsp;&middot;&nbsp; Semantic SEO Workshop",
-    heading,
-    bodyHtml,
-    ref,
-  });
+    html: renderWorkshopEmail({
+      subject,
+      preheader,
+      headingText: isHour ? `We go live ${countdown},` : "One week to go,",
+      headingEmphasis: `${firstName}.`,
+      bodyHtml,
+      closing: "See you there,",
+      ref: submission.ref,
+    }),
+    text,
+  };
+}
 
-  const text = `THANK YOU FOR JOINING
+/* -------------------------------------------------------------------------- */
+/* Post-event                                                                 */
+/* -------------------------------------------------------------------------- */
 
-Thank you for joining, ${firstName}.
+/**
+ * Post-event thank-you, sent by the cron after the workshop ends.
+ *
+ * The subject and the plain text used to promise "Pavel's notes inside" and
+ * describe notes and resources that were never in the HTML: the notes URL
+ * pointed at a page that does not exist and the block was removed, but only
+ * from the HTML. Both halves now say the same thing, and the recording is
+ * mentioned only when there is one.
+ */
+export function buildPavelPostEventEmail(
+  submission: PavelRegistrationSubmission
+): PavelEmail {
+  const firstName = firstNameOf(submission.name);
+  const hasRecording = Boolean(submission.recordingUrl?.trim());
 
-It was a pleasure having you at Pavel's live Semantic SEO workshop. As promised,
-here are Pavel's notes and resources so you can put what you learned into practice.
+  const subject = hasRecording
+    ? "Thank you for joining: your workshop recording is inside"
+    : "Thank you for joining the Semantic SEO Workshop";
+  const preheader = hasRecording
+    ? `Watch it back any time in the next ${WORKSHOP.recordingWindowDays} days.`
+    : "A note from the team, and what happens next.";
 
-${recordingText(submission)}
+  const bodyHtml = [
+    lede("It was a pleasure having you at Pavel's live Semantic SEO workshop."),
+    recordingBlock(submission),
+    hasRecording
+      ? ""
+      : paragraph(
+          "The recording is still processing. We will send it as soon as it is ready.",
+          4
+        ),
+  ].join("");
 
-Questions? Reply to this email or write to hello@fynix.digital.
-Reference ${ref}`;
+  const text = `Thank you for joining, ${firstName}.
 
-  return { subject, html, text };
+It was a pleasure having you at Pavel's live Semantic SEO workshop.
+${
+  hasRecording
+    ? recordingText(submission)
+    : "\nThe recording is still processing. We will send it as soon as it is ready.\n"
+}
+Until the next one,
+The ${BRAND.name} Team
+
+Questions? Reply to this email or write to ${BRAND.email}.${referenceText(submission.ref)}`;
+
+  return {
+    subject,
+    html: renderWorkshopEmail({
+      subject,
+      preheader,
+      headingText: "Thank you for joining,",
+      headingEmphasis: `${firstName}.`,
+      bodyHtml,
+      closing: "Until the next one,",
+      ref: submission.ref,
+    }),
+    text,
+  };
 }
 
 /**
- * Admin Notification Email when an attendee submits a site for Perk 2 (Live Site Audit)
+ * "Your recording is ready", the follow-up when the recording was not available
+ * at the time the post-event email went out.
+ *
+ * Goes to attendees and no-shows alike. The FAQ promises the recording to
+ * everyone who paid, and for a no-show it is the only thing they receive.
+ *
+ * Returns null when there is no recording, so a caller cannot accidentally send
+ * an email whose entire subject is a link it does not have.
  */
-export function buildAuditSubmissionAdminEmail(submission: PavelAuditSubmission) {
-  const subject = `🔍 [Live Audit Request] ${submission.name} submitted ${submission.websiteUrl}`;
-  const html = `
-    <h2>New Live Audit Request for Pavel's Workshop</h2>
-    <p><strong>Name:</strong> ${escapeHtml(submission.name)}</p>
-    <p><strong>Email:</strong> ${escapeHtml(submission.email)}</p>
-    <p><strong>Website URL:</strong> <a href="${escapeHtml(submission.websiteUrl)}">${escapeHtml(submission.websiteUrl)}</a></p>
-    <p><strong>Target Keyword / Niche:</strong> ${escapeHtml(submission.targetKeyword)}</p>
-    <p><strong>Biggest Challenge:</strong> ${escapeHtml(submission.biggestChallenge || "N/A")}</p>
-  `;
-  const text = `
-New Live Audit Request:
-Name: ${submission.name}
-Email: ${submission.email}
-Website: ${submission.websiteUrl}
-Target Keyword: ${submission.targetKeyword}
-Challenge: ${submission.biggestChallenge || "N/A"}
-  `.trim();
+export function buildPavelRecordingReadyEmail(
+  submission: PavelRegistrationSubmission
+): PavelEmail | null {
+  if (!submission.recordingUrl?.trim()) return null;
 
-  return { subject, html, text };
+  const firstName = firstNameOf(submission.name);
+  const subject = "Your Semantic SEO workshop recording is ready";
+
+  const bodyHtml = [
+    lede("Pavel's full Semantic SEO workshop is now available to watch back."),
+    recordingBlock(submission),
+  ].join("");
+
+  const text = `Your recording is ready, ${firstName}.
+
+Pavel's full Semantic SEO workshop is now available to watch back.
+${recordingText(submission)}
+Enjoy the replay,
+The ${BRAND.name} Team
+
+Questions? Reply to this email or write to ${BRAND.email}.${referenceText(submission.ref)}`;
+
+  return {
+    subject,
+    html: renderWorkshopEmail({
+      subject,
+      preheader: `Watch it any time in the next ${WORKSHOP.recordingWindowDays} days.`,
+      eyebrowText: "Workshop recording",
+      headingText: "Your recording is ready,",
+      headingEmphasis: `${firstName}.`,
+      bodyHtml,
+      closing: "Enjoy the replay,",
+      ref: submission.ref,
+    }),
+    text,
+  };
 }
 
 /**
@@ -738,53 +757,48 @@ Challenge: ${submission.biggestChallenge || "N/A"}
  */
 export function buildPavelCertificateEmail(
   submission: PavelRegistrationSubmission & { certificateUrl: string }
-) {
-  const firstName = submission.name.split(" ")[0] || "there";
-  const ref = submission.ref || "PVL-0000";
+): PavelEmail {
+  const firstName = firstNameOf(submission.name);
+  const subject = "Your Semantic SEO certificate is ready";
 
-  const subject = `Your Semantic SEO certificate is ready`;
-  const preheader = `Your certificate of completion, plus Pavel's workshop notes.`;
-  const heading = `You earned it, <span style="font-style: italic; color: #9A7B4F;">${escapeHtml(firstName)}.</span>`;
-
-  const bodyHtml = `
-    <p style="margin: 0 0 18px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.65; color: #454F58;">
-      You attended Pavel's live Semantic SEO workshop from start to finish, so your certificate of completion is ready.
-    </p>
-    <table role="presentation" border="0" cellspacing="0" cellpadding="0" style="margin: 0 0 22px 0;">
-      <tr>
-        <td style="background-color: #0C1E2E; border-radius: 999px;">
-          <a href="${escapeHtml(submission.certificateUrl)}" style="display: inline-block; padding: 13px 26px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 15px; font-weight: 600; color: #FFFFFF; text-decoration: none;">View your certificate</a>
-        </td>
-      </tr>
-    </table>
-    <p style="margin: 0 0 18px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 15px; line-height: 1.6; color: #454F58;">
-      The link is permanent, so you can share it on LinkedIn or send it to an employer to verify.
-    </p>
-    ${recordingBlock(submission)}`;
-
-  const html = renderPavelEmailShell({
-    subject,
-    preheader,
-    eyebrow: "Certificate of completion",
-    heading,
-    bodyHtml,
-    ref,
-  });
+  const bodyHtml = [
+    lede(
+      "You attended Pavel's live Semantic SEO workshop from start to finish, so your certificate of completion is ready."
+    ),
+    button(submission.certificateUrl, "View your certificate"),
+    paragraph(
+      "The link is permanent. Share it on LinkedIn or send it to an employer to verify.",
+      22
+    ),
+    recordingBlock(submission),
+  ].join("");
 
   const text = `You earned it, ${firstName}.
 
 You attended Pavel's live Semantic SEO workshop from start to finish, so your
 certificate of completion is ready.
 
-View your certificate: ${submission.certificateUrl}
+View your certificate:
+${submission.certificateUrl}
 
-The link is permanent, so you can share it on LinkedIn or send it to an employer
-to verify.
-
+The link is permanent. Share it on LinkedIn or send it to an employer to verify.
 ${recordingText(submission)}
-Reference ${ref}`;
+Questions? Reply to this email or write to ${BRAND.email}.${referenceText(submission.ref)}`;
 
-  return { subject, html, text };
+  return {
+    subject,
+    html: renderWorkshopEmail({
+      subject,
+      preheader: "Your certificate of completion, ready to share.",
+      eyebrowText: "Certificate of completion",
+      headingText: "You earned it,",
+      headingEmphasis: `${firstName}.`,
+      bodyHtml,
+      closing: "Well done,",
+      ref: submission.ref,
+    }),
+    text,
+  };
 }
 
 /**
@@ -793,9 +807,10 @@ Reference ${ref}`;
  * "completion", so issuing it to someone who did not attend would make every
  * other attendee's credential worthless.
  */
-export function buildPavelMissedYouEmail(submission: PavelRegistrationSubmission) {
-  const firstName = submission.name.split(" ")[0] || "there";
-  const ref = submission.ref || "PVL-0000";
+export function buildPavelMissedYouEmail(
+  submission: PavelRegistrationSubmission
+): PavelEmail {
+  const firstName = firstNameOf(submission.name);
 
   // Subject and opening line both depend on whether a recording actually
   // exists. This mail was subject-lined "here is the workshop recording" and
@@ -804,46 +819,120 @@ export function buildPavelMissedYouEmail(submission: PavelRegistrationSubmission
   const hasRecording = Boolean(submission.recordingUrl?.trim());
 
   const subject = hasRecording
-    ? `We missed you. Here is the workshop recording`
-    : `We missed you at the workshop`;
+    ? "We missed you: here is the workshop recording"
+    : "We missed you at the workshop";
   const preheader = hasRecording
-    ? `Your recording from the Semantic SEO workshop.`
-    : `Your seat still counts. The recording is on its way.`;
-  const heading = `We missed you, <span style="font-style: italic; color: #9A7B4F;">${escapeHtml(firstName)}.</span>`;
+    ? "Your recording from the Semantic SEO workshop."
+    : "Your seat still counts. The recording is on its way.";
 
-  const bodyHtml = `
-    <p style="margin: 0 0 18px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.65; color: #454F58;">
-      You booked a seat at Pavel's live Semantic SEO workshop but we did not see you there. Your seat still counts${
-        hasRecording ? "" : ": we will send the recording as soon as it is ready"
-      }.
-    </p>
-    ${recordingBlock(submission)}
-    <p style="margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 15px; line-height: 1.6; color: #454F58;">
-      The certificate of completion is only issued to people who attended live, so there is not one attached here. If you believe you did attend, reply to this email and we will check the record.
-    </p>`;
-
-  const html = renderPavelEmailShell({
-    subject,
-    preheader,
-    eyebrow: "Workshop recording",
-    heading,
-    bodyHtml,
-    ref,
-  });
+  const bodyHtml = [
+    lede(
+      `You booked a seat at Pavel's live Semantic SEO workshop but we did not see you there. Your seat still counts${
+        hasRecording ? "" : ", and we will send the recording as soon as it is ready"
+      }.`
+    ),
+    recordingBlock(submission),
+    paragraph(
+      "The certificate of completion is only issued to people who attended live, so there is not one here. If you believe you did attend, reply and we will check the record.",
+      4
+    ),
+  ].join("");
 
   const text = `We missed you, ${firstName}.
 
 You booked a seat at Pavel's live Semantic SEO workshop but we did not see you
 there. Your seat still counts${
-    hasRecording ? "" : ": we will send the recording as soon as it is ready"
+    hasRecording ? "" : ", and we will send the recording as soon as it is ready"
   }.
 ${recordingText(submission)}
-
 The certificate of completion is only issued to people who attended live, so
-there is not one attached here. If you believe you did attend, reply to this
-email and we will check the record.
+there is not one here. If you believe you did attend, reply and we will check
+the record.
 
-Reference ${ref}`;
+Speak soon,
+The ${BRAND.name} Team
 
-  return { subject, html, text };
+Questions? Reply to this email or write to ${BRAND.email}.${referenceText(submission.ref)}`;
+
+  return {
+    subject,
+    html: renderWorkshopEmail({
+      subject,
+      preheader,
+      eyebrowText: hasRecording ? "Workshop recording" : WORKSHOP_EYEBROW,
+      headingText: "We missed you,",
+      headingEmphasis: `${firstName}.`,
+      bodyHtml,
+      closing: "Speak soon,",
+      ref: submission.ref,
+    }),
+    text,
+  };
+}
+
+/* -------------------------------------------------------------------------- */
+/* Internal                                                                   */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Internal notification when an attendee submits a site for Perk 2, the live
+ * site audit.
+ *
+ * Every field here is attendee-typed and lands in an anchor or a body, so all
+ * of it is escaped and the URL is scheme-checked.
+ */
+export function buildAuditSubmissionAdminEmail(
+  submission: PavelAuditSubmission
+): PavelEmail {
+  const subject = `Live audit request: ${submission.name} (${submission.websiteUrl})`;
+
+  const bodyHtml = [
+    paragraph("An attendee submitted a site for the live audit segment.", 22),
+    detailList([
+      { label: "Name", value: escapeHtml(submission.name) },
+      {
+        label: "Email",
+        value: `<a class="fx-ink" href="mailto:${escapeHtml(submission.email)}" style="color:#0C1E2E;text-decoration:underline;">${escapeHtml(submission.email)}</a>`,
+      },
+      {
+        label: "Website",
+        value: `<a class="fx-ink" href="${safeUrl(submission.websiteUrl)}" style="color:#0C1E2E;text-decoration:underline;word-wrap:break-word;word-break:break-all;">${escapeHtml(submission.websiteUrl)}</a>`,
+      },
+      { label: "Target keyword", value: escapeHtml(submission.targetKeyword) },
+      {
+        label: "Biggest challenge",
+        value: submission.biggestChallenge
+          ? escapeMultiline(submission.biggestChallenge)
+          : `<span class="fx-muted" style="color:#565D64;">Not answered</span>`,
+      },
+    ]),
+  ].join("");
+
+  const text = `LIVE AUDIT REQUEST
+
+Name:              ${submission.name}
+Email:             ${submission.email}
+Website:           ${submission.websiteUrl}
+Target keyword:    ${submission.targetKeyword}
+Biggest challenge: ${submission.biggestChallenge || "Not answered"}`;
+
+  return {
+    subject,
+    html: renderEmailDocument({
+      title: subject,
+      preheader: `${submission.name} submitted ${submission.websiteUrl} for the live audit.`,
+      bodyRows: [
+        row(
+          `${eyebrow("Workshop &nbsp;&middot;&nbsp; Live audit")}${heading(
+            "New live audit request"
+          )}`,
+          PAD_HEAD
+        ),
+        row(bodyHtml, PAD_BODY),
+        row("", "0 40px 20px 40px"),
+      ].join(""),
+      footerMeta: "Internal notification",
+    }),
+    text,
+  };
 }

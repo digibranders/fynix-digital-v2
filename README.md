@@ -137,7 +137,27 @@ Replay and profiling are deliberately disabled. **Sentry bills quotas per organi
 
 ## Email
 
-`/api/contact` validates the submission (required name, email, phone and at least one service; 2000-character field cap) then sends two transactional emails through Brevo — an admin notification and a user auto-reply. Templates live in `lib/email/templates.ts`, with rendered HTML previews in `lib/email/previews/`.
+`/api/contact` validates the submission (required name, email, phone and at least one service; 2000-character field cap) then sends two transactional emails through Brevo: an admin notification and a user auto-reply.
+
+All 15 outbound emails share one design system.
+
+| File | Holds |
+|---|---|
+| `lib/email/design.ts` | Palette, type scale, document shell, and the primitives every template composes. The only file that touches raw colour or opens a `<table>`. |
+| `lib/email/templates.ts` | Contact form and Technical SEO Audit, customer reply plus internal notification. |
+| `lib/email/pavelTemplates.ts` | The workshop lifecycle: priority list, paid confirmation, reminders, certificate, recording, missed-you. |
+
+To see them, render the gallery and open it:
+
+```bash
+npm run email:preview
+```
+
+That writes `.email-preview/` (gitignored). Serve it with the `email-preview` entry in `.claude/launch.json`, or open `.email-preview/index.html` directly. Every template is rendered from source with sample data, alongside its plain-text alternative.
+
+The masthead uses `public/email/logo.png`, exported from `components/Logo.tsx`. Re-run `npx tsx scripts/generate-email-logo.tsx` after any change to the logo component. It has to be a raster image: no mainstream mail client renders an SVG `<img>`.
+
+`lib/email/templates.test.ts` asserts the invariants that hold across every template (escaping, one masthead and one footer, no 8-digit hex, no SVG images, subject and body agreeing on what they promise). Add a template, and it is covered automatically once it is listed there.
 
 ## Deployment
 
