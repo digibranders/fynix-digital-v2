@@ -2,6 +2,7 @@
 
 import React, {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -76,6 +77,7 @@ export function PricingProvider({
   children: React.ReactNode;
 }) {
   const [country, setCountry] = useState<Country>(initialCountry);
+  const liveRegistration = useLiveRegistrationWindow(registration);
 
   const value = useMemo<PricingContextValue>(
     () => ({
@@ -85,15 +87,85 @@ export function PricingProvider({
       detectedCountryName,
       detectedTimeZone,
       schedule,
-      registration,
+      registration: liveRegistration,
     }),
-    [country, detectedCountryName, detectedTimeZone, schedule, registration],
+    [country, detectedCountryName, detectedTimeZone, schedule, liveRegistration],
   );
 
   return (
     <PricingContext.Provider value={value}>{children}</PricingContext.Provider>
   );
 }
+
+/**
+ * Honour a scheduled close without waiting for the page to be rebuilt.
+ *
+ * `/pavel` is prerendered per country and timezone and revalidates on a five
+ * minute timer, so a visitor whose tab was served at 4:58 would keep seeing a
+ * price and a "reserve your seat" button after a 5:00 cutoff. Nothing would be
+ * wrongly charged — the checkout route re-derives the window from the database
+ * on every attempt — but the page would be inviting people into a refusal.
+ *
+ * The clock is read through `useSyncExternalStore` for the same reason the
+ * timezone above is: the server cannot know what time it will be when this page
+ * is finally looked at, so the server snapshot is "not yet" and the client
+ * snapshot is the real answer. The hydration render therefore matches the HTML,
+ * and the page corrects itself immediately afterwards for a cutoff that passed
+ * while it sat in a cache or an open tab.
+ */
+function useLiveRegistrationWindow(
+  serverWindow: RegistrationWindow
+): RegistrationWindow {
+  const closesAt = serverWindow.open ? serverWindow.closesAt : null;
+
+  const deadline = useMemo(() => {
+    if (!closesAt) return null;
+    const at = new Date(closesAt).getTime();
+    return Number.isNaN(at) ? null : at;
+  }, [closesAt]);
+
+  const subscribe = useCallback(
+    (onCutoffPassed: () => void) => {
+      if (deadline === null) return () => {};
+      const delay = deadline - Date.now();
+      // Already gone: the snapshot below reports it, so there is nothing to
+      // wait for. Beyond ~24 days a timeout overflows its signed 32-bit delay
+      // and fires at once, and a deadline that far out will be picked up by a
+      // later page load long before it matters.
+      if (delay <= 0 || delay > MAX_TIMEOUT_MS) return () => {};
+
+      // Woken a moment AFTER the deadline, not on it. The snapshot re-reads the
+      // clock, and browsers that coarsen `Date.now()` for fingerprinting
+      // resistance can round it back below the deadline; the snapshot would
+      // then report "still open" with the subscription already spent and
+      // nothing left to check again, leaving the page selling until a reload.
+      // A quarter of a second is well under anything a visitor notices.
+      const timer = setTimeout(onCutoffPassed, delay + CLOCK_GRACE_MS);
+      return () => clearTimeout(timer);
+    },
+    [deadline]
+  );
+
+  const cutoffPassed = useSyncExternalStore(
+    subscribe,
+    useCallback(() => deadline !== null && Date.now() >= deadline, [deadline]),
+    () => false
+  );
+
+  return useMemo(
+    () =>
+      cutoffPassed
+        ? { open: false, reason: "closed_on_schedule" }
+        : serverWindow,
+    [cutoffPassed, serverWindow]
+  );
+}
+
+/** The largest delay `setTimeout` can hold without overflowing. */
+const MAX_TIMEOUT_MS = 2_147_483_647;
+
+/** How long after the cutoff to wake, so a coarsened clock has passed it too. */
+const CLOCK_GRACE_MS = 250;
 
 export function usePricing(): PricingContextValue {
   const ctx = useContext(PricingContext);

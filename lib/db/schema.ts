@@ -293,6 +293,32 @@ export const webinarSessions = pgTable("webinar_sessions", {
    */
   registrationsClosed: boolean("registrations_closed").notNull().default(false),
   /**
+   * When this session stops taking registrations on its own, if a cutoff was
+   * set. Null means it only ever closes when an operator says so.
+   *
+   * Held as an instant and compared at read time rather than flipped by a job:
+   * the deadline is then enforced by whoever asks, so a cron that did not run,
+   * a droplet that was restarting or a page cached a moment before the cutoff
+   * cannot leave a closed workshop selling seats. `deriveRegistrationWindow` is
+   * the single place that comparison is made.
+   */
+  registrationsCloseAt: timestamp("registrations_close_at", {
+    withTimezone: true,
+  }),
+  /**
+   * Invite link for this cohort's private WhatsApp community.
+   *
+   * Per session because each cohort gets its own group: one shared link would
+   * put a finished cohort's members in the next one's group, and the
+   * confirmation email describes it as "for this cohort".
+   *
+   * Null falls back to the constant in workshopDetails, which is where this
+   * lived before it was data. Handing out a stale invite is better than handing
+   * out none, and the fallback is what keeps a session created before this
+   * field existed from mailing buyers a community they cannot join.
+   */
+  whatsappGroupUrl: text("whatsapp_group_url"),
+  /**
    * Zoom's share link for this session's cloud recording, pasted in after the
    * event.
    *

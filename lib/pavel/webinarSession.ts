@@ -76,15 +76,80 @@ export async function listSessionsWithRecording(
  * Scoped to one session rather than global so closing a finished cohort cannot
  * accidentally suppress the next one: activating a fresh session opens sales
  * again on its own, because the flag travels with the session it describes.
+ *
+ * Reopening also drops a cutoff that has already fired. The window is derived
+ * from the cutoff rather than stored, so leaving a passed deadline in place
+ * would make the reopen a no-op: the operator would press the button, watch
+ * nothing change and have no way to tell why. A cutoff still in the future is
+ * left alone, because reopening early and closing again on time is a coherent
+ * thing to want.
+ *
+ * "Fired" is judged against this process's clock rather than the database's,
+ * because that is the clock `deriveRegistrationWindow` reads. Asking Postgres
+ * instead would let a second of drift between the two decide that a cutoff the
+ * page is already enforcing has not happened yet, and the reopen would save
+ * while changing nothing anyone can see.
  */
 export async function setRegistrationsClosed(
   db: Db,
   sessionId: string,
   closed: boolean
 ): Promise<WebinarSession | undefined> {
+  const changes: Partial<typeof webinarSessions.$inferInsert> = {
+    registrationsClosed: closed,
+  };
+
+  if (!closed) {
+    const existing = await getSessionById(db, sessionId);
+    const closeAt = existing?.registrationsCloseAt;
+    if (closeAt && closeAt.getTime() <= Date.now()) {
+      changes.registrationsCloseAt = null;
+    }
+  }
+
   const [session] = await db
     .update(webinarSessions)
-    .set({ registrationsClosed: closed })
+    .set(changes)
+    .where(eq(webinarSessions.id, sessionId))
+    .returning();
+  return session;
+}
+
+/**
+ * Set (or clear) this cohort's WhatsApp community invite.
+ *
+ * Null puts the session back on the constant in workshopDetails rather than
+ * leaving buyers with no community at all; see the column's note.
+ */
+export async function setWhatsappGroupUrl(
+  db: Db,
+  sessionId: string,
+  url: string | null
+): Promise<WebinarSession | undefined> {
+  const [session] = await db
+    .update(webinarSessions)
+    .set({ whatsappGroupUrl: url })
+    .where(eq(webinarSessions.id, sessionId))
+    .returning();
+  return session;
+}
+
+/**
+ * Schedule, move or cancel the moment a session stops taking registrations.
+ *
+ * Null cancels it, which is how an operator undoes a deadline without having to
+ * close and reopen. Setting a cutoff never changes `registrationsClosed`: the
+ * two are separate answers, and overwriting a deliberate manual close with a
+ * future deadline would put a closed cohort back on sale.
+ */
+export async function setRegistrationsCloseAt(
+  db: Db,
+  sessionId: string,
+  closeAt: Date | null
+): Promise<WebinarSession | undefined> {
+  const [session] = await db
+    .update(webinarSessions)
+    .set({ registrationsCloseAt: closeAt })
     .where(eq(webinarSessions.id, sessionId))
     .returning();
   return session;

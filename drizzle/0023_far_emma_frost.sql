@@ -1,0 +1,1 @@
+ALTER TABLE "webinar_sessions" ADD COLUMN "registrations_close_at" timestamp with time zone;

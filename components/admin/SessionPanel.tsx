@@ -1,11 +1,14 @@
 import type { AdminSessionRow } from "@/lib/admin/sessions";
 import { RecordingLinkFields } from "@/components/admin/RecordingLinkFields";
+import { ScheduleCloseFields } from "@/components/admin/ScheduleCloseFields";
 import { SendRecordingButton } from "@/components/admin/SendRecordingButton";
 import { SessionTimeFields } from "@/components/admin/SessionTimeFields";
 import { SubmitButton } from "@/components/admin/SubmitButton";
+import { WhatsappGroupFields } from "@/components/admin/WhatsappGroupFields";
 import type { OperationState } from "@/components/admin/OperationsPanel";
 import { Alert, Badge, Card, CardHeader } from "@/components/admin/ui";
 import { toIstWallClock } from "@/lib/pavel/sessionTimes";
+import { deriveRegistrationWindow } from "@/lib/pavel/registrationWindow";
 
 /** Session times are shown in IST, which is where the workshop runs. */
 const SESSION_TIME = new Intl.DateTimeFormat("en-GB", {
@@ -54,14 +57,42 @@ const GROUP =
 const GROUP_LEGEND =
   "mb-2 font-mono text-[11px] uppercase tracking-widest text-text-muted";
 
+/**
+ * Full date and time, for a cutoff that is not necessarily the session's day.
+ *
+ * Returns nothing for an instant it cannot read. `Intl.format` throws on an
+ * Invalid Date, and this renders a value the console received from another
+ * host: a single unreadable timestamp would take down the whole page, while
+ * `deriveRegistrationWindow` shrugs the same value off. Losing one line is the
+ * proportionate answer.
+ */
+function formatIst(iso: string | null | undefined): string | null {
+  if (!iso) return null;
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return null;
+  return `${SESSION_TIME.format(date)} IST`;
+}
+
+/**
+ * Whether a stored instant has already gone. Unreadable values are treated as
+ * "not yet", matching what `deriveRegistrationWindow` does with the same value.
+ */
+function hasPassed(iso: string | null | undefined): boolean {
+  if (!iso) return false;
+  const at = new Date(iso).getTime();
+  return !Number.isNaN(at) && at <= Date.now();
+}
+
 export function SessionPanel({
   sessions,
   error,
   createAction,
   activateAction,
   setClosedAction,
+  scheduleCloseAction,
   deleteAction,
   recordingAction,
+  whatsappAction,
   sendRecordingAction,
   updateAction,
 }: {
@@ -70,8 +101,24 @@ export function SessionPanel({
   createAction: (formData: FormData) => Promise<void>;
   activateAction: (formData: FormData) => Promise<void>;
   setClosedAction: (formData: FormData) => Promise<void>;
+  /**
+   * Reports its outcome. A cutoff in the past is refused, and a form that
+   * re-rendered with the old time would look like it had saved.
+   */
+  scheduleCloseAction: (
+    state: OperationState,
+    formData: FormData
+  ) => Promise<OperationState>;
   deleteAction: (formData: FormData) => Promise<void>;
   recordingAction: (formData: FormData) => Promise<void>;
+  /**
+   * Reports its outcome. The link is refused unless it is a WhatsApp group
+   * invite, and this is the only place that refusal can be shown.
+   */
+  whatsappAction: (
+    state: OperationState,
+    formData: FormData
+  ) => Promise<OperationState>;
   /**
    * Reports its outcome, unlike the other actions here. "Sent to 0 seats" is
    * indistinguishable from success unless it is said out loud.
@@ -83,10 +130,13 @@ export function SessionPanel({
   updateAction: (formData: FormData) => Promise<void>;
 }) {
   const active = sessions.find((s) => s.active);
-  // What a visitor to the landing page can do right now. Closed with no active
-  // session is not an error state, but it is the one an operator forgets, so it
-  // is stated as plainly as a deliberate close.
-  const selling = Boolean(active && !active.registrationsClosed);
+  // What a visitor to the landing page can do right now, derived exactly as the
+  // checkout route derives it, so the banner cannot claim seats are on sale
+  // while payments are being refused. Closed with no active session is not an
+  // error state, but it is the one an operator forgets, so it is stated as
+  // plainly as a deliberate close.
+  const registrationWindow = deriveRegistrationWindow(active);
+  const selling = registrationWindow.open;
 
   return (
     <Card>
@@ -95,7 +145,7 @@ export function SessionPanel({
         title="Sessions"
         description="Exactly one session is active. New paid registrations join whichever one that is, and the times set here drive the landing page copy, the emails and when reminders fire."
         actions={
-          active && !active.registrationsClosed ? (
+          active && selling ? (
             <p className="text-xs text-text-muted">
               New registrations join{" "}
               <span className="font-medium text-primary">{active.label}</span>{" "}
@@ -124,11 +174,18 @@ export function SessionPanel({
             {selling ? "Registrations are open" : "Registrations are closed"}
           </span>
           <span className="text-xs font-normal">
-            {selling
-              ? null
-              : active
-                ? "The landing page shows no price and checkout refuses."
-                : "No active session, so nothing can be sold. Activate one to open registrations."}
+            {registrationWindow.open
+              ? // A scheduled close is the one thing about an open window worth
+                // saying here: it is the only way sales can stop with nobody
+                // touching the console.
+                formatIst(registrationWindow.closesAt)
+                ? `Closing automatically on ${formatIst(registrationWindow.closesAt)}.`
+                : null
+              : registrationWindow.reason === "no_active_session"
+                ? "No active session, so nothing can be sold. Activate one to open registrations."
+                : registrationWindow.reason === "closed_on_schedule"
+                  ? "The scheduled close has passed. The landing page shows no price and checkout refuses."
+                  : "The landing page shows no price and checkout refuses."}
           </span>
         </div>
 
@@ -150,7 +207,21 @@ export function SessionPanel({
         */}
         {sessions.length > 0 ? (
           <ul className="space-y-4">
-            {sessions.map((session) => (
+            {sessions.map((session) => {
+              // Whether this session is refusing registrations right now, which
+              // a passed cutoff decides just as much as the operator's switch.
+              // Both the badge and the toggle read from it, so the card cannot
+              // offer "Close registrations" on something already closed.
+              const closed = !deriveRegistrationWindow(session).open;
+              // The tense of the cutoff line below follows the cutoff itself,
+              // not the reason the session is shut: one that fired last night
+              // on a session the operator has since closed by hand is still a
+              // deadline that has passed, and calling it "closes" would report
+              // a pending close that cannot happen.
+              const cutoff = formatIst(session.registrationsCloseAt);
+              const cutoffPassed = hasPassed(session.registrationsCloseAt);
+
+              return (
               <li
                 key={session.id}
                 className="rounded-xl border border-border bg-console-surface"
@@ -164,9 +235,7 @@ export function SessionPanel({
                       {session.active ? (
                         <Badge tone="success">active</Badge>
                       ) : null}
-                      {session.registrationsClosed ? (
-                        <Badge tone="warning">closed</Badge>
-                      ) : null}
+                      {closed ? <Badge tone="warning">closed</Badge> : null}
                     </p>
                     <p className="mt-1 text-xs text-text-muted">
                       <span className="font-mono">{session.zoomWebinarId}</span>
@@ -186,6 +255,18 @@ export function SessionPanel({
                         </span>
                       )}
                     </p>
+                    {/* The deadline, spelled out where the schedule is read
+                        rather than only inside the field that sets it: an
+                        operator scanning the card should see that this cohort
+                        stops selling on its own. */}
+                    {cutoff ? (
+                      <p className="mt-1 text-xs text-text-muted">
+                        {cutoffPassed
+                          ? "Closed to registrations on "
+                          : "Closes to registrations "}
+                        {cutoff}
+                      </p>
+                    ) : null}
                   </div>
 
                   <div className="flex shrink-0 flex-wrap items-center gap-2">
@@ -198,21 +279,25 @@ export function SessionPanel({
                         <input
                           type="hidden"
                           name="closed"
-                          value={session.registrationsClosed ? "false" : "true"}
+                          value={closed ? "false" : "true"}
                         />
                         <SubmitButton
-                          pendingLabel={
-                            session.registrationsClosed
-                              ? "Reopening…"
-                              : "Closing…"
+                          pendingLabel={closed ? "Reopening…" : "Closing…"}
+                          // Reopening after a cutoff has fired also clears that
+                          // cutoff, otherwise the deadline would close the
+                          // session again the moment the page re-rendered.
+                          title={
+                            closed && !session.registrationsClosed
+                              ? "Reopens sales and cancels the scheduled close, which has already passed."
+                              : undefined
                           }
                           className={`console-focus rounded-lg border px-3 py-1.5 text-xs font-medium ${
-                            session.registrationsClosed
+                            closed
                               ? "border-success/40 text-success hover:bg-success-surface"
                               : "border-warning/40 text-warning hover:bg-warning-surface"
                           }`}
                         >
-                          {session.registrationsClosed
+                          {closed
                             ? "Reopen registrations"
                             : "Close registrations"}
                         </SubmitButton>
@@ -265,22 +350,38 @@ export function SessionPanel({
                     built-in date on the landing page, in the emails and in the
                     reminder windows.
                   */}
-                  <form action={updateAction} className={GROUP}>
+                  <div className={GROUP}>
                     <p className={GROUP_LEGEND}>Schedule</p>
-                    <input type="hidden" name="sessionId" value={session.id} />
-                    <div className="flex flex-wrap items-end gap-2">
-                      <SessionTimeFields
-                        initialStartsAt={toIstWallClock(session.startsAt)}
-                        initialEndsAt={toIstWallClock(session.endsAt)}
-                      />
-                      <SubmitButton
-                        pendingLabel="Saving…"
-                        className="console-focus rounded-lg border border-console-control px-3 py-2 text-xs font-medium text-primary hover:bg-console-surface"
-                      >
-                        {session.startsAt ? "Update times" : "Set times"}
-                      </SubmitButton>
-                    </div>
-                  </form>
+                    <form action={updateAction}>
+                      <input type="hidden" name="sessionId" value={session.id} />
+                      <div className="flex flex-wrap items-end gap-2">
+                        <SessionTimeFields
+                          initialStartsAt={toIstWallClock(session.startsAt)}
+                          initialEndsAt={toIstWallClock(session.endsAt)}
+                        />
+                        <SubmitButton
+                          pendingLabel="Saving…"
+                          className="console-focus rounded-lg border border-console-control px-3 py-2 text-xs font-medium text-primary hover:bg-console-surface"
+                        >
+                          {session.startsAt ? "Update times" : "Set times"}
+                        </SubmitButton>
+                      </div>
+                    </form>
+
+                    {/*
+                      The registration deadline sits with the schedule because
+                      that is what it is: another time on the same session. It
+                      is a sibling form rather than a second button inside the
+                      one above, for the reason in the header note — each
+                      SubmitButton reads the pending state of its own form, and
+                      a nested form would be dropped by the browser.
+                    */}
+                    <ScheduleCloseFields
+                      sessionId={session.id}
+                      initialCloseAt={toIstWallClock(session.registrationsCloseAt)}
+                      action={scheduleCloseAction}
+                    />
+                  </div>
 
                   {/* Recording link, pasted in after the event.
                       Zoom hosts it and its own share settings carry the 7-day
@@ -330,9 +431,28 @@ export function SessionPanel({
                       action={sendRecordingAction}
                     />
                   </div>
+
+                  {/* The cohort's private WhatsApp community.
+                      Held per session for the same reason the recording is:
+                      each cohort has its own, and the confirmation email calls
+                      it "this cohort's". It was a constant in the code until
+                      now, so changing groups meant a deploy.
+
+                      Full width because the link is long enough that a
+                      half-width field shows the middle of it and nothing
+                      either side. */}
+                  <div className={`${GROUP} lg:col-span-2`}>
+                    <p className={GROUP_LEGEND}>WhatsApp community</p>
+                    <WhatsappGroupFields
+                      sessionId={session.id}
+                      initialUrl={session.whatsappGroupUrl ?? ""}
+                      action={whatsappAction}
+                    />
+                  </div>
                 </div>
               </li>
-            ))}
+              );
+            })}
           </ul>
         ) : null}
 

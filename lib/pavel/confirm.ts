@@ -6,6 +6,7 @@ import type { EmailAttachment } from "@/lib/email/brevo";
 import { issueInvoiceForRegistration } from "@/lib/pavel/invoice";
 import { renderInvoicePdf, invoiceFileName } from "@/lib/pavel/invoicePdf";
 import { grantWebinarAccess } from "@/lib/pavel/webinarAccess";
+import { getSessionById } from "@/lib/pavel/webinarSession";
 import { loadSchedule } from "@/lib/pavel/loadSchedule";
 import {
   buildPavelDuplicatePaymentAdminEmail,
@@ -208,6 +209,23 @@ export async function confirmRegistrationPaid(
     }
   }
 
+  // The community invite belongs to the cohort this seat was sold into, not to
+  // whichever session happens to be active when the webhook lands: the next
+  // cohort is activated the moment a workshop ends, and a payment retried after
+  // that would otherwise send a buyer into the wrong group. Absent (or a
+  // session with no link of its own) falls back to the built-in one.
+  let whatsappGroupUrl: string | undefined;
+  if (registration.sessionId) {
+    try {
+      const session = await getSessionById(db, registration.sessionId);
+      whatsappGroupUrl = session?.whatsappGroupUrl ?? undefined;
+    } catch (sessionError) {
+      // Non-fatal, like everything else between the payment and the send: the
+      // template falls back to the constant rather than losing the panel.
+      console.error("[pavel/confirm] session lookup failed", sessionError);
+    }
+  }
+
   // Fire confirmation + admin emails. Deduped per (registration, type) in
   // email_log, so a webhook retry or an overlapping verify never double-sends.
   const submission: PavelRegistrationSubmission = {
@@ -219,6 +237,7 @@ export async function confirmRegistrationPaid(
     joinUrl,
     // Emails carry THIS session's date and time, not a hardcoded one.
     schedule: await loadSchedule(),
+    whatsappGroupUrl,
   };
 
   const confirmation = buildPavelPaidConfirmationEmail(submission);

@@ -158,6 +158,34 @@ export default async function PavelAdminPage() {
     await revalidateLanding();
   }
 
+  /**
+   * Set or clear this cohort's WhatsApp community invite.
+   *
+   * Reports its outcome: the link is refused unless it is a WhatsApp group
+   * invite, and a silent re-render would leave the operator believing a
+   * rejected paste had saved.
+   */
+  async function setWhatsappGroupAction(
+    _state: OperationState,
+    formData: FormData
+  ): Promise<OperationState> {
+    "use server";
+    if (!(await isAdminAuthenticated())) redirect("/admin");
+    const whatsappGroupUrl = String(formData.get("whatsappGroupUrl") ?? "").trim();
+    const error = await mutateSession("whatsapp", {
+      sessionId: String(formData.get("sessionId") ?? ""),
+      whatsappGroupUrl,
+    });
+    await revalidateLanding();
+    if (error) return { ok: false, message: error };
+    return {
+      ok: true,
+      message: whatsappGroupUrl
+        ? "Buyers of this cohort will be sent this group."
+        : "Cleared. This cohort falls back to the default group.",
+    };
+  }
+
   async function deleteSessionAction(formData: FormData) {
     "use server";
     if (!(await isAdminAuthenticated())) redirect("/admin");
@@ -175,6 +203,34 @@ export default async function PavelAdminPage() {
       { sessionId: String(formData.get("sessionId") ?? "") }
     );
     await revalidateLanding();
+  }
+
+  /**
+   * Schedule, move or cancel the automatic close. An empty value cancels it.
+   *
+   * Reports its outcome, unlike the other session actions: a cutoff in the past
+   * is refused, and a form that simply re-rendered with the old time would look
+   * like it had saved.
+   */
+  async function scheduleCloseAction(
+    _state: OperationState,
+    formData: FormData
+  ): Promise<OperationState> {
+    "use server";
+    if (!(await isAdminAuthenticated())) redirect("/admin");
+    const closeAt = String(formData.get("closeAt") ?? "").trim();
+    const error = await mutateSession("scheduleClose", {
+      sessionId: String(formData.get("sessionId") ?? ""),
+      closeAt,
+    });
+    await revalidateLanding();
+    if (error) return { ok: false, message: error };
+    return {
+      ok: true,
+      message: closeAt
+        ? "Registrations will close automatically at that time."
+        : "The scheduled close has been cancelled.",
+    };
   }
 
   /**
@@ -349,6 +405,8 @@ export default async function PavelAdminPage() {
             createAction={createSessionAction}
             activateAction={activateSessionAction}
             setClosedAction={setClosedAction}
+            scheduleCloseAction={scheduleCloseAction}
+            whatsappAction={setWhatsappGroupAction}
             deleteAction={deleteSessionAction}
             recordingAction={setRecordingAction}
             sendRecordingAction={sendRecordingAction}

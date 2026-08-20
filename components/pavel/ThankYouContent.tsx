@@ -85,6 +85,16 @@ export const ThankYouContent: React.FC = () => {
   const [attendeeRef, setAttendeeRef] = useState("");
   const [copiedZoom, setCopiedZoom] = useState(false);
   const [zoomUrl, setZoomUrl] = useState("");
+  /**
+   * This cohort's WhatsApp community, returned by the verify call alongside the
+   * Zoom link.
+   *
+   * Not read from the constant any more: the group is set per session in admin,
+   * and shipping a private invite in the page bundle handed it to anyone who
+   * opened the JavaScript. Empty until the seat verifies, and the card below is
+   * only ever rendered for a verified-paid seat.
+   */
+  const [whatsappGroupUrl, setWhatsappGroupUrl] = useState("");
   // The buyer's country, so the session can be shown in their own time.
   const [countryCode, setCountryCode] = useState("");
 
@@ -107,6 +117,9 @@ export const ThankYouContent: React.FC = () => {
           setAttendeeRef(typeof data.ref === "string" ? data.ref : ref);
           setZoomUrl(typeof data.joinUrl === "string" ? data.joinUrl : "");
           setCountryCode(typeof data.countryCode === "string" ? data.countryCode : "");
+          setWhatsappGroupUrl(
+            typeof data.whatsappGroupUrl === "string" ? data.whatsappGroupUrl : ""
+          );
         } else {
           setStatus("unverified");
         }
@@ -379,7 +392,10 @@ export const ThankYouContent: React.FC = () => {
           )}
         </div>
 
-        {/* Card 2: Attendees-only WhatsApp community */}
+        {/* Card 2: Attendees-only WhatsApp community.
+            The invite arrives with the verification, so the card is omitted
+            rather than rendered around a button that goes nowhere. */}
+        {whatsappGroupUrl && (
         <div className="bg-white border border-border rounded-2xl p-6 sm:p-9 shadow-sm pv-seam">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
             <div className="flex items-start gap-4">
@@ -401,7 +417,7 @@ export const ThankYouContent: React.FC = () => {
             </div>
 
             <a
-              href={WORKSHOP.whatsappGroupUrl}
+              href={whatsappGroupUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex shrink-0"
@@ -413,6 +429,7 @@ export const ThankYouContent: React.FC = () => {
             </a>
           </div>
         </div>
+        )}
 
         {/* Footer Support Note */}
         <div className="p-4 rounded-xl bg-white border border-border text-center text-xs text-text-muted">

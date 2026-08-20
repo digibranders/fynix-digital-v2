@@ -25,6 +25,7 @@ import {
   type WorkshopSchedule,
 } from "@/lib/pavel/workshopSchedule";
 import { countdownLabel, eventTimeLabel } from "@/lib/pavel/schedule";
+import { whatsappGroupUrlFor } from "@/lib/pavel/whatsappGroupLink";
 import {
   BRAND,
   button,
@@ -85,6 +86,15 @@ export interface PavelRegistrationSubmission {
    * link; omitted entirely when the recording has no passcode.
    */
   recordingPasscode?: string;
+  /**
+   * This cohort's WhatsApp community invite.
+   *
+   * Passed in rather than read from the constant so each cohort's buyers are
+   * sent their own group. Absent falls back to the built-in link: a
+   * confirmation that promises a community and links nowhere is worse than one
+   * pointing at a group that is one cohort old.
+   */
+  whatsappGroupUrl?: string;
 }
 
 export interface PavelAuditSubmission {
@@ -116,6 +126,11 @@ function scheduleFor(submission: PavelRegistrationSubmission): WorkshopSchedule 
 /** The buyer's own link when Zoom has issued one, else the shared fallback. */
 function joinLinkFor(submission: PavelRegistrationSubmission): string {
   return submission.joinUrl || WORKSHOP.zoomUrl;
+}
+
+/** This cohort's community, or the built-in one when the session names none. */
+function whatsappGroupFor(submission: PavelRegistrationSubmission): string {
+  return whatsappGroupUrlFor(submission.whatsappGroupUrl);
 }
 
 /**
@@ -379,7 +394,7 @@ export function buildPavelPaidConfirmationEmail(
         "Our private WhatsApp community carries the reminders, resources and updates for this cohort. Reserved for confirmed seats.",
         16
       ),
-      button(WORKSHOP.whatsappGroupUrl, "Join the community", "positive"),
+      button(whatsappGroupFor(submission), "Join the community", "positive"),
     ].join(""),
     "positive"
   );
@@ -402,7 +417,7 @@ ${sessionText(submission, { showCalendar: true })}
 ATTENDEES-ONLY WHATSAPP COMMUNITY
 Our private WhatsApp community carries the reminders, resources and updates for
 this cohort. Reserved for confirmed seats.
-${WORKSHOP.whatsappGroupUrl}
+${whatsappGroupFor(submission)}
 
 See you there,
 The ${BRAND.name} Team
