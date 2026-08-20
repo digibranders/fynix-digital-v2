@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { testRow as row } from "@/lib/admin/testRow";
 import {
   computeTotals,
+  formatMoney,
   formatMoneyByCurrency,
 } from "@/lib/admin/registrationTotals";
 import {
@@ -114,11 +115,27 @@ describe("computeTotals", () => {
 
 describe("formatMoneyByCurrency", () => {
   it("joins currencies with a plus so they read as separate units", () => {
-    // Summary figures are shown in whole units, so ₹6,637.50 rounds to ₹6,638.
     const text = formatMoneyByCurrency({ INR: 663750, USD: 9900 });
     expect(text).toContain("+");
-    expect(text).toMatch(/6,638/);
-    expect(text).toMatch(/99/);
+    expect(text).toMatch(/6,637\.50/);
+    expect(text).toMatch(/99\.00/);
+  });
+
+  it("keeps the paise and cents that were actually collected", () => {
+    // A seat sold at 99% off collects ₹88.49, and at 98% off $1.98. Rounded to
+    // whole units these read as ₹88 and $2, which reconcile against nothing.
+    expect(formatMoney(8849, "INR")).toMatch(/88\.49/);
+    expect(formatMoney(198, "USD")).toMatch(/1\.98/);
+    expect(formatMoneyByCurrency({ INR: 8849, USD: 198 })).toMatch(/88\.49/);
+  });
+
+  it("keeps the decimals for a currency it has never seen", () => {
+    // Intl renders an unrecognised-but-well-formed code as "ZZZ 88.49"; a
+    // malformed one throws and takes the hand-rolled fallback. Either way the
+    // amount must survive intact rather than the console rendering a dash or a
+    // rounded figure for a currency that was added later.
+    expect(formatMoney(8849, "ZZZ")).toContain("88.49");
+    expect(formatMoney(8849, "not-a-currency")).toBe("88.49 not-a-currency");
   });
 
   it("shows a dash when there is nothing", () => {

@@ -41,6 +41,7 @@ import {
   firstNameOf,
   heading,
   lede,
+  link,
   panel,
   panelLabel,
   panelValue,
@@ -65,8 +66,10 @@ export interface PavelRegistrationSubmission {
    *
    * Each registrant gets a distinct tokenised URL, and attendance is matched on
    * the registrant id carried in it, so sending the generic webinar link would
-   * both give away a seat and break attendance tracking. Falls back to the
-   * shared link only when Zoom has not yet issued one.
+   * both give away a seat and break attendance tracking.
+   *
+   * Absent when Zoom has not issued one. There is no fallback: see
+   * `joinLinkFor`.
    */
   joinUrl?: string;
   /**
@@ -138,9 +141,21 @@ function scheduleFor(submission: PavelRegistrationSubmission): WorkshopSchedule 
   return submission.schedule ?? FALLBACK_SCHEDULE;
 }
 
-/** The buyer's own link when Zoom has issued one, else the shared fallback. */
-function joinLinkFor(submission: PavelRegistrationSubmission): string {
-  return submission.joinUrl || WORKSHOP.zoomUrl;
+/**
+ * The buyer's own tokenised link, or null when Zoom has not issued one.
+ *
+ * Deliberately has no fallback. It used to return `WORKSHOP.zoomUrl`, a
+ * placeholder constant that pointed nowhere, so a seat whose Zoom registration
+ * had failed received a dead link in the one email that carries it, an hour
+ * before the workshop. That failure was invisible from our side and arrived at
+ * the exact moment the buyer could do least about it.
+ *
+ * Null instead, and the templates say plainly that the link is coming and how
+ * to reach us. A missing link is worth admitting; a broken one is not worth
+ * sending.
+ */
+function joinLinkFor(submission: PavelRegistrationSubmission): string | null {
+  return submission.joinUrl?.trim() || null;
 }
 
 /** This cohort's community, or the built-in one when the session names none. */
@@ -293,6 +308,8 @@ function sessionPanel(
   const schedule = scheduleFor(submission);
   const joinUrl = joinLinkFor(submission);
   const countdown = countdownLabel(schedule.startUtc);
+  /** This email carries the link AND we actually have one to carry. */
+  const shareLink = options.showJoinLink && joinUrl !== null;
 
   const calendar = options.showCalendar
     ? `<div style="height:4px;line-height:4px;font-size:0;">&nbsp;</div>${calendarRow({
@@ -303,28 +320,42 @@ function sessionPanel(
         // second copy of this email that syncs to every device on the account
         // and is routinely shared, so putting the join URL in `details` or
         // `location` would undo the whole point of withholding it.
-        details: options.showJoinLink
+        details: shareLink
           ? `Your Zoom link: ${joinUrl}`
           : "Fynix will email your personal Zoom link one hour before the session starts.",
-        location: options.showJoinLink ? joinUrl : "Zoom",
+        location: shareLink ? joinUrl : "Zoom",
         timeZone: submission.timeZone,
       })}`
     : "";
 
-  const access = options.showJoinLink
+  const access = shareLink
     ? [
         panelLabel("Join on Zoom"),
         `<div style="height:10px;line-height:10px;font-size:0;">&nbsp;</div>`,
         button(joinUrl, "Join the workshop"),
         fallbackLink(joinUrl, "Or copy this link into your browser:"),
       ].join("")
-    : [
-        panelLabel("Your Zoom link"),
-        panelValue(
-          "Arrives by email one hour before we start. It is personal to your seat, so it is not shared any earlier.",
-          options.showCalendar ? 16 : 0
-        ),
-      ].join("");
+    : options.showJoinLink
+      ? // Meant to carry the link, but Zoom never issued one for this seat.
+        // Says so, rather than sending a placeholder that goes nowhere, and
+        // offers the two channels that are staffed at this point in the day.
+        [
+          panelLabel("Your Zoom link"),
+          panelValue(
+            `We are still issuing the link for your seat. Reply to this email and we will send it straight away, or reach us in the ${link(
+              whatsappGroupFor(submission),
+              "attendees' WhatsApp community"
+            )}.`,
+            options.showCalendar ? 16 : 0
+          ),
+        ].join("")
+      : [
+          panelLabel("Your Zoom link"),
+          panelValue(
+            "Arrives by email one hour before we start. It is personal to your seat, so it is not shared any earlier.",
+            options.showCalendar ? 16 : 0
+          ),
+        ].join("");
 
   return panel(
     [
@@ -346,9 +377,13 @@ function sessionText(
   options: SessionPanelOptions
 ): string {
   const schedule = scheduleFor(submission);
-  const access = options.showJoinLink
-    ? `JOIN ON ZOOM\n${joinLinkFor(submission)}`
-    : `YOUR ZOOM LINK\nArrives by email one hour before we start. It is personal to your seat, so\nit is not shared any earlier.`;
+  const joinUrl = joinLinkFor(submission);
+  const access =
+    options.showJoinLink && joinUrl
+      ? `JOIN ON ZOOM\n${joinUrl}`
+      : options.showJoinLink
+        ? `YOUR ZOOM LINK\nWe are still issuing the link for your seat. Reply to this email and we will\nsend it straight away, or reach us in the attendees' WhatsApp community:\n${whatsappGroupFor(submission)}`
+        : `YOUR ZOOM LINK\nArrives by email one hour before we start. It is personal to your seat, so\nit is not shared any earlier.`;
 
   return `WHEN
 ${whenText(submission)}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useMemo, useState } from "react";
-import { AlertCircle, CheckCircle2, Check, Link2 } from "lucide-react";
+import { Check, Link2 } from "lucide-react";
 import { buildReferralLink } from "@/lib/pavel/referralLink";
 import { siteConfig } from "@/lib/content";
 import type { OperationState } from "@/components/admin/OperationsPanel";
@@ -15,6 +15,7 @@ import {
   StatTile,
 } from "@/components/admin/ui";
 import { SegmentedTabs } from "@/components/admin/ui/SegmentedTabs";
+import { formatMoney } from "@/lib/admin/registrationTotals";
 import { toIstWallClock } from "@/lib/pavel/sessionTimes";
 // Imported from `referralStats`, not `referrals`: the latter reaches the
 // database, and pulling it in here would bundle the Postgres driver into the
@@ -25,6 +26,7 @@ import {
   type AdminReferralRow,
   type ReferralStatus,
 } from "@/lib/admin/referralStats";
+import { ResultAlert } from "@/components/admin/ResultAlert";
 
 /**
  * Referral codes panel.
@@ -46,14 +48,14 @@ const DATE = new Intl.DateTimeFormat("en-GB", {
   timeZone: "Asia/Kolkata",
 });
 
-/** Minor units to a readable amount. Both currencies are 100-minor-unit based. */
-function money(minor: number, currency: "INR" | "USD"): string {
-  return new Intl.NumberFormat(currency === "INR" ? "en-IN" : "en-US", {
-    style: "currency",
-    currency,
-    maximumFractionDigits: 0,
-  }).format(minor / 100);
-}
+/**
+ * Minor units to a readable amount. Both currencies are 100-minor-unit based.
+ *
+ * Shared with the registrations table rather than formatted locally: commission
+ * owed is reconciled against the revenue it was computed from, and two panels
+ * rounding money differently is how those two figures stop agreeing.
+ */
+const money = formatMoney;
 
 const STATUS_STYLE: Record<ReferralStatus, string> = {
   active: "bg-success-surface text-success",
@@ -87,18 +89,7 @@ const FIELD =
 function Result({ state }: { state: OperationState }) {
   if (!state) return null;
   return (
-    <Alert
-      tone={state.ok ? "success" : "warning"}
-      icon={
-        state.ok ? (
-          <CheckCircle2 aria-hidden="true" className="h-3.5 w-3.5" />
-        ) : (
-          <AlertCircle aria-hidden="true" className="h-3.5 w-3.5" />
-        )
-      }
-    >
-      {state.message}
-    </Alert>
+    <ResultAlert state={state} />
   );
 }
 

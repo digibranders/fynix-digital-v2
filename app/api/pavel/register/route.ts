@@ -197,18 +197,26 @@ export async function POST(request: Request) {
       typeof companyName === "string" ? companyName.trim().slice(0, 200) : "";
     if (!companyTrimmed) {
       return NextResponse.json(
-        { error: "Please enter the company name registered under the GSTIN." },
+        { error: "Please enter the legal business name registered under GST." },
+        { status: 400 }
+      );
+    }
+    // Rule 46(b) of the CGST Rules requires the recipient's address on a B2B
+    // tax invoice, so the address is mandatory here. Capped so a stray paste
+    // can't bloat the row.
+    const addressTrimmed =
+      typeof companyAddress === "string"
+        ? companyAddress.trim().slice(0, 300)
+        : "";
+    if (!addressTrimmed) {
+      return NextResponse.json(
+        { error: "Please enter the billing address registered under GST." },
         { status: 400 }
       );
     }
     attendeeCompany = companyTrimmed;
     attendeeGstin = normalizeGstin(gstin);
-    // Optional billing address for the tax invoice — capped so a stray paste
-    // can't bloat the row.
-    attendeeCompanyAddress =
-      typeof companyAddress === "string" && companyAddress.trim()
-        ? companyAddress.trim().slice(0, 300)
-        : null;
+    attendeeCompanyAddress = addressTrimmed;
   }
 
   // State is captured for Indian registrations only (place of supply). Required

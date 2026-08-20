@@ -154,6 +154,16 @@ async function runReminderType(
   let sent = 0;
   let skipped = 0;
   let failed = 0;
+  /**
+   * Paid seats the one-hour reminder had to go out to without a Zoom link,
+   * because Zoom never issued one.
+   *
+   * Surfaced in the run summary AND logged per seat. This is the last email
+   * that can carry the link, so a silent count in a response body nobody reads
+   * is not enough: someone has to be able to find the ref and fix it inside
+   * the hour.
+   */
+  const missingJoinUrl: string[] = [];
 
   for (const reg of paid) {
     if (alreadySent.has(reg.id)) {
@@ -219,6 +229,14 @@ async function runReminderType(
       continue;
     }
 
+    if (type === "reminder_1h" && !reg.zoomJoinUrl?.trim()) {
+      missingJoinUrl.push(reg.ref);
+      console.error(
+        `[pavel:cron] reminder_1h has NO Zoom link for paid seat ${reg.ref} (${reg.email}). ` +
+          `The email tells them it is coming; issue it manually now.`
+      );
+    }
+
     const result = await dispatchPavelEmail({
       registrationId: reg.id,
       type: emailType,
@@ -254,7 +272,15 @@ async function runReminderType(
     }
   }
 
-  return { type, sent, skipped, failed };
+  return {
+    type,
+    sent,
+    skipped,
+    failed,
+    // Only present when it is non-empty, so a healthy run stays quiet and this
+    // key appearing at all is the signal.
+    ...(missingJoinUrl.length ? { missingJoinUrl } : {}),
+  };
 }
 
 /**

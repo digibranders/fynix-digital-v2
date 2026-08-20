@@ -33,14 +33,17 @@ export const WORKSHOP = {
    * their own zone. Keep in sync with `startUtc`.
    */
   timeUtcLabel: "11:30 UTC",
-  /**
-   * Live Zoom access. ⚠️ PLACEHOLDERS — swap for the real meeting link,
-   * passcode, and post-event notes URL before enabling emails. Surfaced in the
-   * confirmation + reminder emails and on the thank-you page (single source).
+  /*
+   * `zoomUrl`, `zoomPasscode` and `notesUrl` used to live here and are gone on
+   * purpose. All three were placeholders pointing nowhere.
+   *
+   * A buyer's Zoom access is their own tokenised `zoomJoinUrl`, issued per
+   * registrant and stored on the registration; there is no shared link to fall
+   * back to, because falling back meant mailing a dead one in the single email
+   * that carries it. `notesUrl` pointed at a page that was never built.
+   *
+   * If a shared constant ever looks like the answer here again, it is not.
    */
-  zoomUrl: "https://zoom.us/j/pavel-semantic-seo-workshop",
-  zoomPasscode: "SEMANTIC2026",
-  notesUrl: "https://fynix.digital/pavel/notes",
   /**
    * Post-event replay. Confirmed attendees get access to the full workshop
    * recording for `recordingWindowDays` days after the session, delivered by

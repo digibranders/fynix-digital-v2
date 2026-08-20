@@ -1,10 +1,10 @@
 "use client";
 
 import { useActionState } from "react";
-import { AlertCircle, CheckCircle2, Video } from "lucide-react";
+import { Video } from "lucide-react";
 import { SubmitButton } from "@/components/admin/SubmitButton";
-import { Alert } from "@/components/admin/ui";
 import type { OperationState } from "@/components/admin/OperationsPanel";
+import { ResultAlert } from "@/components/admin/ResultAlert";
 
 /**
  * Send one cohort's recording to that cohort.
@@ -54,18 +54,7 @@ export function SendRecordingButton({
       </form>
 
       {state ? (
-        <Alert
-          tone={state.ok ? "success" : "warning"}
-          icon={
-            state.ok ? (
-              <CheckCircle2 aria-hidden="true" className="h-3.5 w-3.5" />
-            ) : (
-              <AlertCircle aria-hidden="true" className="h-3.5 w-3.5" />
-            )
-          }
-        >
-          {state.message}
-        </Alert>
+        <ResultAlert state={state} />
       ) : null}
     </div>
   );
