@@ -199,10 +199,13 @@ export default async function PavelAdminPage() {
   ): Promise<OperationState> {
     "use server";
     if (!(await isAdminAuthenticated())) redirect("/admin");
-    const error = await mutateReferral("create", referralFields(formData));
+    const fields = referralFields(formData);
+    const error = await mutateReferral("create", fields);
     revalidatePath("/admin/pavel");
+    // A rejection carries the submitted fields back, so the form can restore
+    // what was typed instead of handing back an error beside empty inputs.
     return error
-      ? { ok: false, message: error }
+      ? { ok: false, message: error, values: fields }
       : { ok: true, message: "Code created." };
   }
 
@@ -212,12 +215,15 @@ export default async function PavelAdminPage() {
   ): Promise<OperationState> {
     "use server";
     if (!(await isAdminAuthenticated())) redirect("/admin");
+    const fields = referralFields(formData);
     const error = await mutateReferral("update", {
       id: String(formData.get("id") ?? ""),
-      ...referralFields(formData),
+      ...fields,
     });
     revalidatePath("/admin/pavel");
-    return error ? { ok: false, message: error } : { ok: true, message: "Saved." };
+    return error
+      ? { ok: false, message: error, values: fields }
+      : { ok: true, message: "Saved." };
   }
 
   async function toggleReferralAction(

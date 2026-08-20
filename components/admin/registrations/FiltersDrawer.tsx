@@ -2,6 +2,7 @@
 
 import { Drawer } from "@/components/admin/ui/Drawer";
 import { Button } from "@/components/admin/ui";
+import { Select } from "@/components/admin/ui/Select";
 import {
   EMPTY_FILTERS,
   NO_REFERRAL,
@@ -36,38 +37,6 @@ function Label({
     >
       {children}
     </label>
-  );
-}
-
-function Choice({
-  id,
-  label,
-  value,
-  onChange,
-  options,
-}: {
-  id: string;
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  options: { value: string; label: string }[];
-}) {
-  return (
-    <div>
-      <Label htmlFor={id}>{label}</Label>
-      <select
-        id={id}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className={CONTROL}
-      >
-        {options.map((o) => (
-          <option key={o.value} value={o.value}>
-            {o.label}
-          </option>
-        ))}
-      </select>
-    </div>
   );
 }
 
@@ -150,35 +119,35 @@ export function FiltersDrawer({
       }
     >
       <div className="grid gap-4 sm:grid-cols-2">
-        <Choice
+        <Select
           id="f-session"
           label="Cohort"
           value={filters.session}
           onChange={(v) => onChange({ session: v })}
           options={[ANY, ...options.sessions.map((s) => ({ value: s, label: s }))]}
         />
-        <Choice
+        <Select
           id="f-currency"
           label="Currency"
           value={filters.currency}
           onChange={(v) => onChange({ currency: v })}
           options={[ANY, ...options.currencies.map((c) => ({ value: c, label: c }))]}
         />
-        <Choice
+        <Select
           id="f-country"
           label="Country"
           value={filters.country}
           onChange={(v) => onChange({ country: v })}
           options={[ANY, ...options.countries.map((c) => ({ value: c, label: c }))]}
         />
-        <Choice
+        <Select
           id="f-state"
           label="State"
           value={filters.state}
           onChange={(v) => onChange({ state: v })}
           options={[ANY, ...options.states.map((s) => ({ value: s, label: s }))]}
         />
-        <Choice
+        <Select
           id="f-code"
           label="Referral code"
           value={filters.referralCode}
@@ -189,7 +158,7 @@ export function FiltersDrawer({
             ...options.codes.map((c) => ({ value: c, label: c })),
           ]}
         />
-        <Choice
+        <Select
           id="f-discount"
           label="Discount applied"
           value={filters.discountApplied}
@@ -198,7 +167,7 @@ export function FiltersDrawer({
           }
           options={YES_NO}
         />
-        <Choice
+        <Select
           id="f-attendance"
           label="Attendance"
           value={filters.attendance}
@@ -213,7 +182,7 @@ export function FiltersDrawer({
             { value: "not_synced", label: "Not synced" },
           ]}
         />
-        <Choice
+        <Select
           id="f-certificate"
           label="Certificate"
           value={filters.certificate}
@@ -227,7 +196,7 @@ export function FiltersDrawer({
             { value: "none", label: "None" },
           ]}
         />
-        <Choice
+        <Select
           id="f-invoice"
           label="Invoice"
           value={filters.invoice}
@@ -238,14 +207,14 @@ export function FiltersDrawer({
             { value: "missing", label: "Missing" },
           ]}
         />
-        <Choice
+        <Select
           id="f-gstin"
           label="Has GSTIN"
           value={filters.hasGstin}
           onChange={(v) => onChange({ hasGstin: v as RegistrationFilters["hasGstin"] })}
           options={YES_NO}
         />
-        <Choice
+        <Select
           id="f-joinlink"
           label="Join link"
           value={filters.joinLink}
@@ -257,7 +226,7 @@ export function FiltersDrawer({
           taken is neither mismatched nor stuck, so the negative would be a
           control whose only effect is to hide what is worth seeing.
         */}
-        <Choice
+        <Select
           id="f-amount-check"
           label="Amount check"
           value={filters.amountCheck}
@@ -269,7 +238,7 @@ export function FiltersDrawer({
             { value: "mismatched", label: "Charged ≠ invoiced" },
           ]}
         />
-        <Choice
+        <Select
           id="f-zoom-access"
           label="Zoom access"
           value={filters.zoomAccess}
