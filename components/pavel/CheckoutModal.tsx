@@ -579,15 +579,20 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
       return;
     }
 
-    // GST is optional, but if an Indian buyer opts in both fields must be valid
-    // so the tax invoice is usable. The server re-checks this.
+    // GST is opt-in, but a B2B tax invoice has to carry the recipient's GSTIN,
+    // legal name and address, so all three are required once the buyer opts in.
+    // The server re-checks this.
     if (isIndian && gstRequested) {
-      if (!companyName.trim()) {
-        setError("Please enter your company name for the GST invoice.");
-        return;
-      }
       if (!isValidGstin(gstin)) {
         setError("Please enter a valid 15-character GSTIN.");
+        return;
+      }
+      if (!companyName.trim()) {
+        setError("Please enter the legal business name registered under GST.");
+        return;
+      }
+      if (!companyAddress.trim()) {
+        setError("Please enter the billing address registered under GST.");
         return;
       }
     }
@@ -798,12 +803,12 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
   return (
     <div
       data-lenis-prevent
-      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-4 sm:items-center sm:p-6 bg-primary/40 backdrop-blur-sm animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-3 sm:items-center sm:p-6 bg-primary/40 backdrop-blur-sm animate-in fade-in duration-200"
       onClick={handleClose}
     >
       <div
         data-lenis-prevent
-        className={`relative my-auto w-full max-w-md p-6 sm:p-8 rounded-2xl bg-white border border-border text-primary shadow-2xl space-y-4 sm:space-y-6 pv-seam lg:transition-transform lg:duration-300 lg:ease-out ${
+        className={`relative my-auto w-full max-w-md p-5 sm:p-7 rounded-2xl bg-white border border-border text-primary shadow-2xl space-y-3.5 sm:space-y-5 pv-seam lg:transition-transform lg:duration-300 lg:ease-out ${
           gstRequested && !submitted ? "lg:-translate-x-40" : ""
         }`}
         onClick={(e) => e.stopPropagation()}
@@ -843,11 +848,15 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
           <>
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-1">
-            <h2 className="font-serif text-2xl sm:text-3xl font-medium tracking-tight text-primary">
+            {/* One line on a phone: at text-2xl the title wrapped, costing a
+                whole line of height above the fold. */}
+            <h2 className="font-serif text-xl sm:text-3xl font-medium tracking-tight text-primary">
               Reserve Your Workshop Seat
             </h2>
+            {/* The price stays on the submit button, so the header only names
+                the workshop. */}
             <p className="text-xs text-text-muted">
-              Semantic SEO 3-Hour Live Intensive with Pavel Klimakov &middot; {price.display}
+              Semantic SEO 3-Hour Live Intensive with Pavel Klimakov
             </p>
           </div>
           <button
@@ -860,7 +869,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
           </button>
         </div>
 
-        <div className="border-t border-border pt-3 sm:pt-4">
+        <div className="border-t border-border pt-2.5 sm:pt-3">
           <div className="flex items-baseline justify-between gap-4">
             <span className="font-serif text-lg sm:text-xl text-primary tracking-tight">
               {dateLabel}
@@ -874,7 +883,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-3">
+        <form onSubmit={handleSubmit} className="space-y-2 sm:space-y-2.5">
           {/*
             Honeypot decoy fields — visually removed, off the tab order, and
             hidden from assistive tech, so a real user never fills them. Bots
@@ -939,7 +948,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
             </div>
           )}
 
-          <div className="space-y-1.5">
+          <div className="space-y-1">
             <label htmlFor="pv-name" className="text-xs font-medium text-primary">
               Your Full Name <span className="text-red-500">*</span>{" "}
               <span className="font-normal text-text-muted">
@@ -959,7 +968,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
             />
           </div>
 
-          <div className="space-y-1.5">
+          <div className="space-y-1">
             <label htmlFor="pv-email" className="text-xs font-medium text-primary">
               Your Email Address <span className="text-red-500">*</span>
             </label>
@@ -976,7 +985,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
             />
           </div>
 
-          <div className="space-y-1.5">
+          <div className="space-y-1">
             <label htmlFor="pv-phone" className="text-xs font-medium text-primary">
               Your Phone Number <span className="text-red-500">*</span>
             </label>
@@ -994,7 +1003,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
 
           {/* State — India only, required (place of supply for the invoice). */}
           {isIndian && (
-            <div className="space-y-1.5">
+            <div className="space-y-1">
               <label htmlFor="pv-state" className="text-xs font-medium text-primary">
                 Your State <span className="text-red-500">*</span>
               </label>
@@ -1028,10 +1037,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
                   className="mt-0.5 h-4 w-4 shrink-0 rounded border-border accent-primary focus:outline-none"
                 />
                 <span className="text-xs text-primary leading-relaxed">
-                  I have a GST number{" "}
-                  <span className="text-text-muted">
-                    (optional, add it for a GST invoice)
-                  </span>
+                  GST registered
                 </span>
               </label>
 
@@ -1040,12 +1046,12 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
               <div
                 className={`overflow-hidden transition-all duration-300 ease-out lg:absolute lg:top-0 lg:left-full lg:ml-4 lg:w-[300px] lg:overflow-visible ${
                   gstRequested
-                    ? "mt-3 max-h-[560px] opacity-100 lg:mt-0 lg:max-h-none lg:translate-x-0 lg:pointer-events-auto"
+                    ? "mt-2.5 max-h-[560px] opacity-100 lg:mt-0 lg:max-h-none lg:translate-x-0 lg:pointer-events-auto"
                     : "mt-0 max-h-0 opacity-0 lg:mt-0 lg:max-h-none lg:translate-x-3 lg:pointer-events-none"
                 }`}
               >
                 {gstRequested && (
-                  <div className="space-y-3 sm:space-y-4 rounded-xl border border-border bg-background-soft/60 p-4 lg:bg-white lg:p-6 lg:shadow-2xl lg:rounded-2xl">
+                  <div className="space-y-2.5 sm:space-y-4 rounded-xl border border-border bg-background-soft/60 p-3.5 lg:bg-white lg:p-6 lg:shadow-2xl lg:rounded-2xl">
                     <div className="flex items-center justify-between">
                       <p className="font-serif italic text-base text-primary">
                         GST details
@@ -1059,26 +1065,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
                         <X className="w-4 h-4" />
                       </button>
                     </div>
-                    <div className="space-y-1.5">
-                      <label
-                        htmlFor="pv-company"
-                        className="text-xs font-medium text-primary"
-                      >
-                        Company Name <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        id="pv-company"
-                        type="text"
-                        placeholder="As registered under GSTIN"
-                        value={companyName}
-                        onChange={(e) => setCompanyName(e.target.value)}
-                        required
-                        aria-required="true"
-                        autoComplete="organization"
-                        className="w-full px-4 py-3 rounded-xl bg-white border border-border text-primary placeholder-text-muted/60 text-sm focus:outline-none focus:border-primary transition-all"
-                      />
-                    </div>
-                    <div className="space-y-1.5">
+                    <div className="space-y-1">
                       <label
                         htmlFor="pv-gstin"
                         className="text-xs font-medium text-primary"
@@ -1089,7 +1076,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
                         id="pv-gstin"
                         type="text"
                         inputMode="text"
-                        placeholder="e.g. 22AAAAA0000A1Z5"
+                        placeholder="15-digit GST Identification Number"
                         value={gstin}
                         onChange={(e) => setGstin(e.target.value.toUpperCase())}
                         required
@@ -1099,22 +1086,44 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
                         className="w-full px-4 py-3 rounded-xl bg-white border border-border text-primary placeholder-text-muted/60 text-sm tracking-wide focus:outline-none focus:border-primary transition-all"
                       />
                     </div>
-                    <div className="space-y-1.5">
+                    <div className="space-y-1">
+                      <label
+                        htmlFor="pv-company"
+                        className="text-xs font-medium text-primary"
+                      >
+                        Legal Business Name{" "}
+                        <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        id="pv-company"
+                        type="text"
+                        placeholder="Name as registered under GST"
+                        value={companyName}
+                        onChange={(e) => setCompanyName(e.target.value)}
+                        required
+                        aria-required="true"
+                        autoComplete="organization"
+                        className="w-full px-4 py-3 rounded-xl bg-white border border-border text-primary placeholder-text-muted/60 text-sm focus:outline-none focus:border-primary transition-all"
+                      />
+                    </div>
+                    {/* Rule 46(b) of the CGST Rules puts the recipient's
+                        address on every B2B tax invoice, so this is required
+                        once the buyer opts into a GST invoice. */}
+                    <div className="space-y-1">
                       <label
                         htmlFor="pv-gst-address"
                         className="text-xs font-medium text-primary"
                       >
-                        Billing Address{" "}
-                        <span className="font-normal text-text-muted">
-                          (optional)
-                        </span>
+                        Billing Address <span className="text-red-500">*</span>
                       </label>
                       <textarea
                         id="pv-gst-address"
                         rows={2}
-                        placeholder="Registered business address"
+                        placeholder="Principal place of business as registered under GST"
                         value={companyAddress}
                         onChange={(e) => setCompanyAddress(e.target.value)}
+                        required
+                        aria-required="true"
                         autoComplete="street-address"
                         className="w-full resize-none px-4 py-3 rounded-xl bg-white border border-border text-primary placeholder-text-muted/60 text-sm focus:outline-none focus:border-primary transition-all"
                       />
@@ -1125,7 +1134,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
             </div>
           )}
 
-          <div className="pt-2">
+          <div className="pt-1">
             <Button
               type="submit"
               variant="primary"
@@ -1148,7 +1157,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
           </div>
 
           {/* Optional referral code — collapsed to a link, expands inline. */}
-          <div className="pt-1">
+          <div className="pt-0.5">
             {!referralOpen ? (
               <div className="text-center">
                 <button
@@ -1161,7 +1170,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
                 </button>
               </div>
             ) : (
-              <div className="space-y-1.5">
+              <div className="space-y-1">
                 <label
                   htmlFor="pv-referral"
                   className="flex items-center gap-1.5 text-xs font-medium text-primary"

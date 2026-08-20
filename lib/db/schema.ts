@@ -27,7 +27,7 @@ export const registrations = pgTable(
     phone: text("phone"), // '+91 98765 43210' — dial code + number from checkout
     companyName: text("company_name"), // GST invoice: registered business name (India only, optional)
     gstin: text("gstin"), // 15-char GSTIN for the tax invoice (India only, optional)
-    companyAddress: text("company_address"), // GST invoice billing address (India only, optional)
+    companyAddress: text("company_address"), // GST invoice billing address (India only; set whenever gstin is)
     state: text("state"), // Indian state / UT (place of supply), captured for India only
     referralCode: text("referral_code"), // optional attribution code entered at checkout
     discountPercent: integer("discount_percent"), // referral discount applied at checkout (null = none)
