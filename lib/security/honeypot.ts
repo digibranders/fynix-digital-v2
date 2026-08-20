@@ -23,11 +23,25 @@ import crypto from "crypto";
  *
  * A token must be issued and verified by the SAME host, since each host signs
  * with its own copy of this value.
+ *
+ * When unset, a random per-process secret stands in rather than any well-known
+ * constant a bot author could sign with. Single-process hosts (the droplet,
+ * local dev) keep working unchanged; serverless hosts, where issue and verify
+ * can land on different instances, need the env var set — which production
+ * must do anyway.
  */
 const SECRET =
   process.env.FORM_SECRET ||
   process.env.PAVEL_FORM_SECRET ||
-  "dev-insecure-pavel-form-secret-change-me";
+  ephemeralFormSecret();
+
+function ephemeralFormSecret(): string {
+  console.warn(
+    "[security/honeypot] FORM_SECRET is not set; using a random per-process secret. " +
+      "Tokens will not verify across instances or restarts — set it in production."
+  );
+  return crypto.randomBytes(32).toString("base64url");
+}
 
 /**
  * Minimum time between the form loading and submitting. Faster ⇒ bot. Kept low

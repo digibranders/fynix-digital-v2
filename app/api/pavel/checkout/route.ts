@@ -4,6 +4,7 @@ import { getRazorpay, getRazorpayKeyId } from "@/lib/razorpay/client";
 import { getDb } from "@/lib/db/client";
 import { registrations } from "@/lib/db/schema";
 import { screenSubmission } from "@/lib/security/honeypot";
+import { clientKey, rateLimit } from "@/lib/security/rateLimit";
 import {
   PRICING,
   formatUnitAmount,
@@ -32,7 +33,21 @@ const WORKSHOP_NAME = "Semantic SEO Workshop with Pavel Klimakov";
  * payment is later confirmed by the signed handler (/api/pavel/verify) and the
  * webhook (/api/pavel/webhook).
  */
+/** Order-creation attempts allowed per client per window. Every call below
+ *  costs a Razorpay API round-trip, so a replayed form token must not be able
+ *  to mint orders in bulk. Generous enough for genuine retries. */
+const LIMIT = 10;
+const WINDOW_MS = 60_000;
+
 export async function POST(request: Request) {
+  const limit = rateLimit(`pavel-checkout:${clientKey(request)}`, LIMIT, WINDOW_MS);
+  if (!limit.allowed) {
+    return NextResponse.json(
+      { error: "Too many attempts. Please wait a moment and try again." },
+      { status: 429, headers: { "Retry-After": String(limit.retryAfter) } }
+    );
+  }
+
   let body: unknown;
   try {
     body = await request.json();

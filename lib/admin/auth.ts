@@ -23,27 +23,37 @@ import { cookies } from "next/headers";
  * host having to change in the same instant. Drop the fallbacks once no
  * deployment sets the old names.
  *
- * Defaults match the values the operator was given; override in every deployed
- * environment.
+ * NO defaults, deliberately. A credential in source code is a credential in
+ * every clone of the repository, so with either value unset the console fails
+ * closed: no login can succeed until the environment provides both.
  */
-const ADMIN_EMAIL = (
-  process.env.ADMIN_EMAIL ||
-  process.env.PAVEL_ADMIN_EMAIL ||
-  "admin@fynix.digital"
-)
+const ADMIN_EMAIL = (process.env.ADMIN_EMAIL || process.env.PAVEL_ADMIN_EMAIL || "")
   .trim()
   .toLowerCase();
 const ADMIN_PASSWORD =
-  process.env.ADMIN_PASSWORD || process.env.PAVEL_ADMIN_PASSWORD || "1234567q";
+  process.env.ADMIN_PASSWORD || process.env.PAVEL_ADMIN_PASSWORD || "";
 
-/** Secret that signs the session cookie. Falls back to the form secret, then an
- *  insecure dev default — set a dedicated value in production. */
+/**
+ * Secret that signs the session cookie.
+ *
+ * When unset, a random per-process secret is used instead of any well-known
+ * constant: sessions still work within one process, cannot be forged from
+ * outside, and simply expire on restart. The form-token secret is deliberately
+ * NOT reused here — the bot screen and the admin session must never share a
+ * key, or compromising the low-value one forges the high-value one.
+ */
 const SESSION_SECRET =
   process.env.ADMIN_SESSION_SECRET ||
   process.env.PAVEL_ADMIN_SESSION_SECRET ||
-  process.env.FORM_SECRET ||
-  process.env.PAVEL_FORM_SECRET ||
-  "dev-insecure-pavel-admin-secret-change-me";
+  ephemeralSessionSecret();
+
+function ephemeralSessionSecret(): string {
+  console.warn(
+    "[admin/auth] ADMIN_SESSION_SECRET is not set; using a random per-process secret. " +
+      "Sessions will not survive restarts or span instances — set it in production."
+  );
+  return crypto.randomBytes(32).toString("base64url");
+}
 
 /** Cookie name + lifetime for the signed admin session. */
 export const ADMIN_SESSION_COOKIE = "pavel_admin_session";
@@ -75,9 +85,17 @@ function safeEqual(a: string, b: string): boolean {
 /** Validate a submitted email + password against the configured admin credential. */
 export function verifyCredentials(email: unknown, password: unknown): boolean {
   if (typeof email !== "string" || typeof password !== "string") return false;
+  // Fail closed when the environment provides no credential: nothing can match.
+  if (!ADMIN_EMAIL || !ADMIN_PASSWORD) {
+    console.error(
+      "[admin/auth] ADMIN_EMAIL / ADMIN_PASSWORD are not configured; refusing all logins."
+    );
+    return false;
+  }
+  // Both comparisons are evaluated before combining, so the credential check
+  // costs the same time whichever half is wrong.
   const emailOk = safeEqual(email.trim().toLowerCase(), ADMIN_EMAIL);
   const passwordOk = safeEqual(password, ADMIN_PASSWORD);
-  // Bitwise AND (not &&) so both comparisons always run — no early-exit timing leak.
   return emailOk && passwordOk;
 }
 

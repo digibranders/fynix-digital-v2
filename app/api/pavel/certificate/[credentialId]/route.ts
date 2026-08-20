@@ -1,9 +1,15 @@
 import { NextResponse } from "next/server";
 import { getDb } from "@/lib/db/client";
 import { getCertificateByCredentialId } from "@/lib/pavel/certificate";
+import { clientKey, rateLimit } from "@/lib/security/rateLimit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+/** Reads per client per window. The credential id is the capability, so bulk
+ *  enumeration must stay impractical; a shared certificate page reads once. */
+const LIMIT = 30;
+const WINDOW_MS = 60_000;
 
 /**
  * Public read for an issued certificate.
@@ -18,9 +24,17 @@ export const dynamic = "force-dynamic";
  * buyer's payment, email or attendance leaks through a shareable link.
  */
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ credentialId: string }> }
 ) {
+  const limit = rateLimit(`pavel-cert:${clientKey(request)}`, LIMIT, WINDOW_MS);
+  if (!limit.allowed) {
+    return NextResponse.json(
+      { error: "Too many requests." },
+      { status: 429, headers: { "Retry-After": String(limit.retryAfter) } }
+    );
+  }
+
   const { credentialId } = await params;
 
   const db = getDb();

@@ -42,6 +42,22 @@ export interface PavelRegistrationSubmission {
   recordingPasscode?: string;
 }
 
+/**
+ * Escape a value for interpolation into email HTML — element text and
+ * double-quoted attributes alike. Names, emails and the audit-form fields are
+ * typed by the registrant, so they must never reach the markup unescaped: a
+ * name containing markup would otherwise render as HTML in the admin inbox.
+ * The plain-text bodies interpolate the raw values, which is correct there.
+ */
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 /** The session's schedule, or the constant when the caller passed none. */
 function scheduleFor(submission: PavelRegistrationSubmission): WorkshopSchedule {
   return submission.schedule ?? FALLBACK_SCHEDULE;
@@ -94,7 +110,7 @@ function recordingBlock(submission: PavelRegistrationSubmission): string {
   const passcodeLine = passcode
     ? `
     <p style="margin: 0 0 28px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.7; color: #454F58;">
-      Passcode: <strong style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: 0.02em;">${passcode}</strong>
+      Passcode: <strong style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: 0.02em;">${escapeHtml(passcode)}</strong>
     </p>`
     : "";
 
@@ -103,11 +119,11 @@ function recordingBlock(submission: PavelRegistrationSubmission): string {
       The full recording is yours for the next ${WORKSHOP.recordingWindowDays} days.
     </p>
     <p style="margin: 0 0 ${passcode ? "16px" : "28px"} 0;">
-      <a href="${url}" style="display: inline-block; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 15px; font-weight: 600; color: #FFFFFF; background-color: #0C1E2E; text-decoration: none; padding: 12px 22px; border-radius: 10px;">Watch the recording &rarr;</a>
+      <a href="${escapeHtml(url)}" style="display: inline-block; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 15px; font-weight: 600; color: #FFFFFF; background-color: #0C1E2E; text-decoration: none; padding: 12px 22px; border-radius: 10px;">Watch the recording &rarr;</a>
     </p>${passcodeLine}
     <p style="margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.7; color: #454F58;">
       If the button doesn&rsquo;t work, copy this link into your browser:<br>
-      <a href="${url}" style="color: #0C1E2E; text-decoration: underline; word-break: break-all;">${url}</a>
+      <a href="${escapeHtml(url)}" style="color: #0C1E2E; text-decoration: underline; word-break: break-all;">${escapeHtml(url)}</a>
     </p>`;
 }
 
@@ -142,7 +158,7 @@ export function buildPavelRecordingReadyEmail(
   const ref = submission.ref ?? "";
   const subject = `Your Semantic SEO workshop recording is ready`;
   const preheader = `Watch it any time in the next ${WORKSHOP.recordingWindowDays} days.`;
-  const heading = `The recording is <span style="font-style: italic; color: #9A7B4F;">ready</span>, ${firstName}.`;
+  const heading = `The recording is <span style="font-style: italic; color: #9A7B4F;">ready</span>, ${escapeHtml(firstName)}.`;
 
   const bodyHtml = `
     <p style="margin: 0 0 18px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.65; color: #454F58;">
@@ -206,7 +222,7 @@ export function buildPavelConfirmationEmail(submission: PavelRegistrationSubmiss
               </p>
 
               <h1 style="margin: 0; font-family: Georgia, 'Times New Roman', serif; font-size: 34px; line-height: 1.18; font-weight: 500; letter-spacing: -0.01em; color: #0C1E2E;">
-                You&rsquo;re <span style="font-style: italic; color: #9A7B4F;">first in line,</span> ${firstName}.
+                You&rsquo;re <span style="font-style: italic; color: #9A7B4F;">first in line,</span> ${escapeHtml(firstName)}.
               </h1>
             </td>
           </tr>
@@ -255,7 +271,7 @@ export function buildPavelConfirmationEmail(submission: PavelRegistrationSubmiss
                 <a href="mailto:hello@fynix.digital" style="color: #0C1E2E; text-decoration: underline;">hello@fynix.digital</a>.
               </p>
               <p style="margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 11px; line-height: 1.6; color: #9AA0A6;">
-                Registration ref ${ticketId} &nbsp;&middot;&nbsp; &copy; ${new Date().getFullYear()} Fynix Digital
+                Registration ref ${escapeHtml(ticketId)} &nbsp;&middot;&nbsp; &copy; ${new Date().getFullYear()} Fynix Digital
               </p>
             </td>
           </tr>
@@ -342,7 +358,7 @@ export function buildPavelPaidConfirmationEmail(
                 Pavel Klimakov &nbsp;&middot;&nbsp; Semantic SEO Workshop
               </p>
               <h1 style="margin: 0; font-family: Georgia, 'Times New Roman', serif; font-size: 34px; line-height: 1.18; font-weight: 500; letter-spacing: -0.01em; color: #0C1E2E;">
-                Your seat is <span style="font-style: italic; color: #9A7B4F;">confirmed,</span> ${firstName}.
+                Your seat is <span style="font-style: italic; color: #9A7B4F;">confirmed,</span> ${escapeHtml(firstName)}.
               </h1>
             </td>
           </tr>
@@ -368,7 +384,7 @@ export function buildPavelPaidConfirmationEmail(
                     </p>
                     <p style="margin: 0 0 4px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #565D64;">Join on Zoom</p>
                     <p style="margin: 0 0 6px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 15px; line-height: 1.5;">
-                      <a href="${joinLinkFor(submission)}" style="color: #0C1E2E; text-decoration: underline; word-break: break-all;">${joinLinkFor(submission)}</a>
+                      <a href="${escapeHtml(joinLinkFor(submission))}" style="color: #0C1E2E; text-decoration: underline; word-break: break-all;">${escapeHtml(joinLinkFor(submission))}</a>
                     </p>
                   </td>
                 </tr>
@@ -411,7 +427,7 @@ export function buildPavelPaidConfirmationEmail(
                 <a href="mailto:hello@fynix.digital" style="color: #0C1E2E; text-decoration: underline;">hello@fynix.digital</a>.
               </p>
               <p style="margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 11px; line-height: 1.6; color: #9AA0A6;">
-                Reference ${ref} &nbsp;&middot;&nbsp; &copy; ${new Date().getFullYear()} Fynix Digital
+                Reference ${escapeHtml(ref)} &nbsp;&middot;&nbsp; &copy; ${new Date().getFullYear()} Fynix Digital
               </p>
             </td>
           </tr>
@@ -464,11 +480,11 @@ export function buildPavelPaidRegistrationAdminEmail(
   const subject = `✅ [Paid] ${submission.name} registered for Pavel Workshop [${ref}]`;
   const html = `
     <h2>New Paid Registration: Pavel Semantic SEO Workshop</h2>
-    <p><strong>Name:</strong> ${submission.name}</p>
-    <p><strong>Email:</strong> ${submission.email}</p>
-    <p><strong>Country:</strong> ${submission.country || "REST"}</p>
-    <p><strong>Amount:</strong> ${submission.amountDisplay || "N/A"}</p>
-    <p><strong>Reference:</strong> ${ref}</p>
+    <p><strong>Name:</strong> ${escapeHtml(submission.name)}</p>
+    <p><strong>Email:</strong> ${escapeHtml(submission.email)}</p>
+    <p><strong>Country:</strong> ${escapeHtml(submission.country || "REST")}</p>
+    <p><strong>Amount:</strong> ${escapeHtml(submission.amountDisplay || "N/A")}</p>
+    <p><strong>Reference:</strong> ${escapeHtml(ref)}</p>
   `;
   const text = `New Paid Registration: Pavel Semantic SEO Workshop
 Name: ${submission.name}
@@ -522,7 +538,7 @@ function renderPavelEmailShell(opts: {
                 <a href="mailto:hello@fynix.digital" style="color: #0C1E2E; text-decoration: underline;">hello@fynix.digital</a>.
               </p>
               <p style="margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 11px; line-height: 1.6; color: #9AA0A6;">
-                Reference ${opts.ref} &nbsp;&middot;&nbsp; &copy; ${new Date().getFullYear()} Fynix Digital
+                Reference ${escapeHtml(opts.ref)} &nbsp;&middot;&nbsp; &copy; ${new Date().getFullYear()} Fynix Digital
               </p>
             </td>
           </tr>
@@ -563,8 +579,8 @@ export function buildPavelReminderEmail(
       : `Your workshop is a week away. Save your Zoom access.`;
   const heading =
     variant === "hour"
-      ? `We go live <span style="font-style: italic; color: #9A7B4F;">${countdown}</span>, ${firstName}.`
-      : `One week to go, <span style="font-style: italic; color: #9A7B4F;">${firstName}.</span>`;
+      ? `We go live <span style="font-style: italic; color: #9A7B4F;">${countdown}</span>, ${escapeHtml(firstName)}.`
+      : `One week to go, <span style="font-style: italic; color: #9A7B4F;">${escapeHtml(firstName)}.</span>`;
   const lead =
     variant === "hour"
       ? `The workshop begins ${countdown}. Join a few minutes early so you're settled before Pavel starts.`
@@ -578,7 +594,7 @@ export function buildPavelReminderEmail(
           <p style="margin: 0 0 4px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #565D64;">When</p>
           <p style="margin: 0 0 16px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.5; color: #0C1E2E;">${scheduleFor(submission).dateLabel} &middot; ${timeLabel}<br><span style="font-size: 13px; color: #9A7B4F; font-weight: 600;">Starts ${countdown}</span></p>
           <p style="margin: 0 0 4px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #565D64;">Join on Zoom</p>
-          <p style="margin: 0 0 6px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 15px; line-height: 1.5;"><a href="${joinLinkFor(submission)}" style="color: #0C1E2E; text-decoration: underline; word-break: break-all;">${joinLinkFor(submission)}</a></p>
+          <p style="margin: 0 0 6px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 15px; line-height: 1.5;"><a href="${escapeHtml(joinLinkFor(submission))}" style="color: #0C1E2E; text-decoration: underline; word-break: break-all;">${escapeHtml(joinLinkFor(submission))}</a></p>
         </td>
       </tr>
     </table>`;
@@ -619,7 +635,7 @@ export function buildPavelPostEventEmail(submission: PavelRegistrationSubmission
 
   const subject = `Thank you for joining. Pavel's workshop notes inside`;
   const preheader = `A recap and Pavel's notes from the Semantic SEO workshop.`;
-  const heading = `Thank you for joining, <span style="font-style: italic; color: #9A7B4F;">${firstName}.</span>`;
+  const heading = `Thank you for joining, <span style="font-style: italic; color: #9A7B4F;">${escapeHtml(firstName)}.</span>`;
 
   const bodyHtml = `
     <p style="margin: 0 0 20px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.7; color: #454F58;">
@@ -658,11 +674,11 @@ export function buildAuditSubmissionAdminEmail(submission: PavelAuditSubmission)
   const subject = `🔍 [Live Audit Request] ${submission.name} submitted ${submission.websiteUrl}`;
   const html = `
     <h2>New Live Audit Request for Pavel's Workshop</h2>
-    <p><strong>Name:</strong> ${submission.name}</p>
-    <p><strong>Email:</strong> ${submission.email}</p>
-    <p><strong>Website URL:</strong> <a href="${submission.websiteUrl}">${submission.websiteUrl}</a></p>
-    <p><strong>Target Keyword / Niche:</strong> ${submission.targetKeyword}</p>
-    <p><strong>Biggest Challenge:</strong> ${submission.biggestChallenge || "N/A"}</p>
+    <p><strong>Name:</strong> ${escapeHtml(submission.name)}</p>
+    <p><strong>Email:</strong> ${escapeHtml(submission.email)}</p>
+    <p><strong>Website URL:</strong> <a href="${escapeHtml(submission.websiteUrl)}">${escapeHtml(submission.websiteUrl)}</a></p>
+    <p><strong>Target Keyword / Niche:</strong> ${escapeHtml(submission.targetKeyword)}</p>
+    <p><strong>Biggest Challenge:</strong> ${escapeHtml(submission.biggestChallenge || "N/A")}</p>
   `;
   const text = `
 New Live Audit Request:
@@ -689,7 +705,7 @@ export function buildPavelCertificateEmail(
 
   const subject = `Your Semantic SEO certificate is ready`;
   const preheader = `Your certificate of completion, plus Pavel's workshop notes.`;
-  const heading = `You earned it, <span style="font-style: italic; color: #9A7B4F;">${firstName}.</span>`;
+  const heading = `You earned it, <span style="font-style: italic; color: #9A7B4F;">${escapeHtml(firstName)}.</span>`;
 
   const bodyHtml = `
     <p style="margin: 0 0 18px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.65; color: #454F58;">
@@ -698,7 +714,7 @@ export function buildPavelCertificateEmail(
     <table role="presentation" border="0" cellspacing="0" cellpadding="0" style="margin: 0 0 22px 0;">
       <tr>
         <td style="background-color: #0C1E2E; border-radius: 999px;">
-          <a href="${submission.certificateUrl}" style="display: inline-block; padding: 13px 26px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 15px; font-weight: 600; color: #FFFFFF; text-decoration: none;">View your certificate</a>
+          <a href="${escapeHtml(submission.certificateUrl)}" style="display: inline-block; padding: 13px 26px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 15px; font-weight: 600; color: #FFFFFF; text-decoration: none;">View your certificate</a>
         </td>
       </tr>
     </table>
@@ -754,7 +770,7 @@ export function buildPavelMissedYouEmail(submission: PavelRegistrationSubmission
   const preheader = hasRecording
     ? `Your recording from the Semantic SEO workshop.`
     : `Your seat still counts. The recording is on its way.`;
-  const heading = `We missed you, <span style="font-style: italic; color: #9A7B4F;">${firstName}.</span>`;
+  const heading = `We missed you, <span style="font-style: italic; color: #9A7B4F;">${escapeHtml(firstName)}.</span>`;
 
   const bodyHtml = `
     <p style="margin: 0 0 18px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.65; color: #454F58;">

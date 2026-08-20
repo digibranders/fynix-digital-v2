@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { sendTransactionalEmail } from "@/lib/email/brevo";
+import { clientKey, rateLimit } from "@/lib/security/rateLimit";
 import {
   buildAuditSubmissionAdminEmail,
   type PavelAuditSubmission,
@@ -12,7 +13,24 @@ const URL_REGEX = /^(https?:\/\/)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(\/.*)?$/;
 const SENDER = { email: "hello@fynix.digital", name: "Pavel Workshop Audits" };
 const ADMIN_RECIPIENT = { email: "hello@fynix.digital", name: "Fynix Digital" };
 
+/**
+ * Submissions per client per window. This route relays straight into the admin
+ * inbox with the submitter's own reply-to, so without a cap it is a free spam
+ * cannon — and a Brevo quota burner. No form token here: external landing
+ * pages post to this endpoint, and a token requirement would break them.
+ */
+const LIMIT = 3;
+const WINDOW_MS = 60_000;
+
 export async function POST(request: Request) {
+  const limit = rateLimit(`pavel-audit:${clientKey(request)}`, LIMIT, WINDOW_MS);
+  if (!limit.allowed) {
+    return NextResponse.json(
+      { error: "Too many submissions. Please wait a moment and try again." },
+      { status: 429, headers: { "Retry-After": String(limit.retryAfter) } }
+    );
+  }
+
   let body: unknown;
   try {
     body = await request.json();
@@ -42,12 +60,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Please enter your primary target keyword/niche." }, { status: 400 });
   }
 
+  // Capped so a stray paste (or a deliberate flood) cannot balloon the email.
   const submission: PavelAuditSubmission = {
-    name: name.trim(),
-    email: email.trim().toLowerCase(),
-    websiteUrl: websiteUrl.trim(),
-    targetKeyword: targetKeyword.trim(),
-    biggestChallenge: typeof biggestChallenge === "string" ? biggestChallenge.trim() : "",
+    name: name.trim().slice(0, 120),
+    email: email.trim().toLowerCase().slice(0, 320),
+    websiteUrl: websiteUrl.trim().slice(0, 500),
+    targetKeyword: targetKeyword.trim().slice(0, 200),
+    biggestChallenge:
+      typeof biggestChallenge === "string"
+        ? biggestChallenge.trim().slice(0, 2000)
+        : "",
   };
 
   const adminEmail = buildAuditSubmissionAdminEmail(submission);

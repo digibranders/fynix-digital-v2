@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import { randomBytes } from "crypto";
 import { screenSubmission } from "@/lib/security/honeypot";
+import { clientKey, rateLimit } from "@/lib/security/rateLimit";
 import { getDb } from "@/lib/db/client";
 import { registrations } from "@/lib/db/schema";
-import { countryFromParam } from "@/components/pavel/pricing";
+import { countryFromParam, PRICING } from "@/components/pavel/pricing";
 import {
   COUNTRIES,
   countPhoneDigits,
@@ -31,12 +32,33 @@ export const runtime = "nodejs";
  * no email is ever tied to an unpaid seat.
  */
 
-/** Public reference id, e.g. "PVL-8F3K2A". Unguessable, printable, short. */
+/**
+ * Public reference id, e.g. "PVL-8F3K2A1B9C0D2E3F". Unguessable and printable.
+ * 8 random bytes (64 bits): the ref doubles as the capability that unlocks the
+ * thank-you page, so the space must be far beyond online enumeration. Older,
+ * shorter refs remain valid — this only widens new ones.
+ */
 function generateRef(): string {
-  return `PVL-${randomBytes(4).toString("hex").toUpperCase()}`;
+  return `PVL-${randomBytes(8).toString("hex").toUpperCase()}`;
 }
 
+/** Shape check for the address the confirmation will be sent to. */
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/** Registrations allowed per client per window — a replayed form token must
+ *  not translate into unlimited pending rows. */
+const LIMIT = 5;
+const WINDOW_MS = 60_000;
+
 export async function POST(request: Request) {
+  const limit = rateLimit(`pavel-register:${clientKey(request)}`, LIMIT, WINDOW_MS);
+  if (!limit.allowed) {
+    return NextResponse.json(
+      { error: "Too many attempts. Please wait a moment and try again." },
+      { status: 429, headers: { "Retry-After": String(limit.retryAfter) } }
+    );
+  }
+
   let body: unknown;
   try {
     body = await request.json();
@@ -95,7 +117,6 @@ export async function POST(request: Request) {
     email,
     phone,
     country,
-    amountDisplay,
     companyName,
     gstin,
     companyAddress,
@@ -103,13 +124,29 @@ export async function POST(request: Request) {
     referralCode,
   } = body as Record<string, string>;
 
+  // Name and email are required and validated, never defaulted. The old
+  // fallbacks ("Guest", guest@example.com) let a row with no deliverable
+  // address become a PAID seat whose confirmation, invoice and join link all
+  // silently went nowhere. Length caps keep a stray paste out of the invoices,
+  // emails and Zoom records these fields flow into.
   const attendeeName =
-    (name && typeof name === "string" && name.trim()) || "Guest";
+    typeof name === "string" ? name.trim().slice(0, 120) : "";
+  if (!attendeeName) {
+    return NextResponse.json(
+      { error: "Please enter your name." },
+      { status: 400 }
+    );
+  }
   const attendeeEmail =
-    (email && typeof email === "string" && email.trim().toLowerCase()) ||
-    "guest@example.com";
+    typeof email === "string" ? email.trim().toLowerCase().slice(0, 320) : "";
+  if (!attendeeEmail || !EMAIL_REGEX.test(attendeeEmail)) {
+    return NextResponse.json(
+      { error: "Please enter a valid email address." },
+      { status: 400 }
+    );
+  }
   const attendeePhone =
-    (phone && typeof phone === "string" && phone.trim()) || null;
+    (phone && typeof phone === "string" && phone.trim().slice(0, 32)) || null;
   // Optional referral code. Nothing is stored unless it validates — see below.
   const typedReferral =
     typeof referralCode === "string" && referralCode.trim() ? referralCode : null;
@@ -155,7 +192,7 @@ export async function POST(request: Request) {
       );
     }
     const companyTrimmed =
-      typeof companyName === "string" ? companyName.trim() : "";
+      typeof companyName === "string" ? companyName.trim().slice(0, 200) : "";
     if (!companyTrimmed) {
       return NextResponse.json(
         { error: "Please enter the company name registered under the GSTIN." },
@@ -221,7 +258,11 @@ export async function POST(request: Request) {
       country: resolvedCountry,
       countryName: buyerCountry?.name ?? null,
       countryCode: buyerCountry?.code ?? null,
-      amountDisplay: amountDisplay || null,
+      // The list price for the resolved region — derived here, never read from
+      // the client, so a tampered request can't plant its own text in the admin
+      // table. Checkout overwrites it with the real charged amount (discount
+      // and GST included) when the order is created.
+      amountDisplay: PRICING[resolvedCountry].display,
       status: "pending",
     });
   } catch (insertError) {
