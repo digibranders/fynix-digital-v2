@@ -26,12 +26,26 @@ export const metadata: Metadata = {
 /** The event this dashboard manages, so its name is not written twice. */
 const EVENT = ADMIN_EVENTS.find((e) => e.slug === "pavel");
 
-/** "How old is this?" in the zone the workshop runs in. */
+/**
+ * "How old is this?" in the zone the workshop runs in.
+ *
+ * Carries the date as well as the time. A bare clock time is ambiguous on a
+ * console left open overnight, or reopened the next morning on a stale tab:
+ * "10:40" reads as this morning whichever morning it was.
+ *
+ * The zone is spelled out rather than taken from `timeZoneName`, which renders
+ * Asia/Kolkata as "GMT+5:30". Every other time on this page says IST, and the
+ * one figure telling the operator how current their data is should not be the
+ * one that makes them convert.
+ */
 const LOADED_AT = new Intl.DateTimeFormat("en-GB", {
   timeZone: "Asia/Kolkata",
+  day: "2-digit",
+  month: "short",
+  year: "numeric",
   hour: "2-digit",
   minute: "2-digit",
-  hour12: false,
+  hour12: true,
 });
 
 /**
@@ -300,7 +314,7 @@ export default async function PavelAdminPage() {
     hydration; fixing the zone to Asia/Kolkata makes it deterministic, and IST
     is the zone every other time on this page is shown in.
   */
-  const loadedAtLabel = LOADED_AT.format(new Date());
+  const loadedAtLabel = `${LOADED_AT.format(new Date())} IST`;
 
   /*
     A failed registrations read is no longer a dead end.
