@@ -19,6 +19,10 @@ import { isValidGstin, normalizeGstin } from "@/lib/pavel/gst";
 import { INDIAN_STATES } from "@/lib/pavel/indianStates";
 import { apiUrl } from "@/lib/pavel/apiBase";
 import { clearReferral, currentReferral } from "@/lib/pavel/referralLink";
+import {
+  paymentFailureMessage,
+  type RazorpayFailure,
+} from "@/lib/pavel/paymentFailure";
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -744,8 +748,10 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
           ondismiss: () => setLoading(false),
         },
       });
-      rzp.on("payment.failed", () => {
-        setError("Payment failed or was cancelled. You can try again.");
+      rzp.on("payment.failed", (response: unknown) => {
+        setError(
+          paymentFailureMessage(response as RazorpayFailure, checkout.currency)
+        );
         setLoading(false);
       });
       rzp.open();
