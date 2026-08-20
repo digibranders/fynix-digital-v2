@@ -1,6 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import { getDb, type Db } from "@/lib/db/client";
-import { emailLog, registrations } from "@/lib/db/schema";
+import { emailLog, registrations, type WebinarSession } from "@/lib/db/schema";
 import {
   AdminGatewayError,
   adminGatewayFetch,
@@ -14,7 +14,7 @@ import {
 } from "@/lib/email/pavelTemplates";
 import type { PavelRegistrationSubmission } from "@/lib/email/pavelTemplates";
 import { loadSchedule } from "@/lib/pavel/loadSchedule";
-import { getActiveSession } from "@/lib/pavel/webinarSession";
+import { getActiveSession, getSessionById } from "@/lib/pavel/webinarSession";
 import { syncAttendance } from "@/lib/pavel/attendanceSync";
 import {
   issueCertificateForRegistration,
@@ -234,7 +234,7 @@ export type AdminOperation =
  */
 export async function runAdminOperation(
   action: AdminOperation,
-  input: { ref?: string } = {}
+  input: { ref?: string; sessionId?: string } = {}
 ): Promise<OperationResult> {
   if (hasLocalDb()) {
     const db = getDb();
@@ -248,7 +248,7 @@ export async function runAdminOperation(
         case "sync_attendance":
           return await runAttendanceSyncNow(db);
         case "send_recording":
-          return await sendRecordingToAll(db);
+          return await sendRecordingToAll(db, input.sessionId);
       }
     } catch (error) {
       console.error("[admin/operations] failed", error);
@@ -282,11 +282,18 @@ export async function runAdminOperation(
 
 
 /**
- * Send the recording to everyone in the active cohort who has not had it.
+ * Send the recording to everyone in one cohort who has not had it.
  *
- * The cron does this on its own once the link is published — this is for
- * sending it now rather than on the next tick, and for picking up anyone a
- * failed send left behind.
+ * Takes the session explicitly because a recording always belongs to a cohort
+ * that has finished, and the finished cohort is almost never the active one.
+ * The moment a workshop ends the operator activates the next one, and Zoom's
+ * recording appears hours after that. Resolving the target as "whichever
+ * session is active" therefore aimed at the wrong cohort every time: it once
+ * mailed a recording to somebody booked on a workshop that had not happened
+ * yet, while the people who had earned it got nothing.
+ *
+ * Omitting the id falls back to the active session, which is right for the one
+ * caller that has no cohort in hand.
  *
  * Anyone whose post-event email already carried the link had this slot claimed
  * at send time, so they are skipped here by the same unique constraint that
@@ -294,17 +301,64 @@ export async function runAdminOperation(
  * promises the recording to everyone who paid, and for a no-show it is the only
  * thing they get.
  */
-export async function sendRecordingToAll(db: Db): Promise<OperationResult> {
-  const session = await getActiveSession(db);
-  if (!session) return { ok: false, message: "No active session." };
+export async function sendRecordingToAll(
+  db: Db,
+  sessionId?: string
+): Promise<OperationResult> {
+  const session = sessionId
+    ? await getSessionById(db, sessionId)
+    : await getActiveSession(db);
+
+  if (!session) {
+    return {
+      ok: false,
+      message: sessionId ? "Session not found." : "No active session.",
+    };
+  }
 
   const recordingUrl = session.recordingUrl?.trim();
   if (!recordingUrl) {
     return {
       ok: false,
-      message: "No recording link on this session yet. Paste it above first.",
+      // Names the session, because there is now a button per cohort and a bare
+      // "this session" would not say which one refused.
+      message: `${session.label} has no recording link yet. Paste it in first.`,
     };
   }
+
+  const tally = await deliverRecording(db, session);
+
+  return {
+    ok: tally.failed === 0,
+    message:
+      `Recording sent to ${tally.sent} seat(s).` +
+      (tally.skipped ? ` ${tally.skipped} already had it.` : "") +
+      (tally.failed ? ` ${tally.failed} failed, check the logs.` : ""),
+  };
+}
+
+export type RecordingTally = { sent: number; skipped: number; failed: number };
+
+/**
+ * Mail one session's recording to every paid seat in it, and count what
+ * happened.
+ *
+ * Split out from `sendRecordingToAll` so the cron sweep and the operator button
+ * share one delivery path. The alternative was for the sweep to call the
+ * operator function and read its counts back out of an English sentence, which
+ * would break the moment that sentence was reworded.
+ *
+ * Dedupe is the `email_log` unique (registration_id, type), the same claim that
+ * stops every other email double-sending. Anyone whose post-event mail already
+ * carried the link had this slot taken then, so they come back as skipped
+ * rather than being mailed twice.
+ */
+export async function deliverRecording(
+  db: Db,
+  session: WebinarSession
+): Promise<RecordingTally> {
+  const recordingUrl = session.recordingUrl?.trim();
+  if (!recordingUrl) return { sent: 0, skipped: 0, failed: 0 };
 
   const schedule = await loadSchedule();
 
@@ -362,11 +416,5 @@ export async function sendRecordingToAll(db: Db): Promise<OperationResult> {
     else failed += 1;
   }
 
-  return {
-    ok: failed === 0,
-    message:
-      `Recording sent to ${sent} seat(s).` +
-      (skipped ? ` ${skipped} already had it.` : "") +
-      (failed ? ` ${failed} failed — check the logs.` : ""),
-  };
+  return { sent, skipped, failed };
 }

@@ -3,8 +3,15 @@ import { eq } from "drizzle-orm";
 import { getDb } from "@/lib/db/client";
 import { registrations } from "@/lib/db/schema";
 import { getRazorpay } from "@/lib/razorpay/client";
+import { clientKey, rateLimit } from "@/lib/security/rateLimit";
 
 export const runtime = "nodejs";
+
+/** Lookups per client per window. The ref is the capability here, so bulk
+ *  probing for valid refs must stay impractical; a buyer's page polls this a
+ *  handful of times at most. */
+const LIMIT = 30;
+const WINDOW_MS = 60_000;
 
 /**
  * Server-side gate for the thank-you page. The page passes the `ref` (and the
@@ -17,6 +24,14 @@ export const runtime = "nodejs";
  * /api/pavel/verify). It only reports whether the seat is already confirmed.
  */
 export async function GET(request: Request) {
+  const limit = rateLimit(`pavel-thank-you:${clientKey(request)}`, LIMIT, WINDOW_MS);
+  if (!limit.allowed) {
+    return NextResponse.json(
+      { paid: false, reason: "rate_limited" },
+      { status: 429, headers: { "Retry-After": String(limit.retryAfter) } }
+    );
+  }
+
   const { searchParams } = new URL(request.url);
   const ref = searchParams.get("ref");
   const paymentId = searchParams.get("payment_id");
@@ -77,13 +92,15 @@ export async function GET(request: Request) {
   }
 
   // Still pending — the webhook/verify may not have landed yet. Ask Razorpay
-  // directly, but only trust a payment that belongs to THIS registration's order.
+  // directly, but only trust a payment that belongs to THIS registration's
+  // order. A registration with no stored order id cannot have been paid, so it
+  // gets no fallback at all: treating "no order" as a match let any captured
+  // payment on the account vouch for someone else's registration.
   const razorpay = getRazorpay();
-  if (paymentId && razorpay) {
+  if (paymentId && razorpay && registration.razorpayOrderId) {
     try {
       const payment = await razorpay.payments.fetch(paymentId);
       const belongsToThisOrder =
-        !registration.razorpayOrderId ||
         payment.order_id === registration.razorpayOrderId;
       if (payment.status === "captured" && belongsToThisOrder) {
         return NextResponse.json({

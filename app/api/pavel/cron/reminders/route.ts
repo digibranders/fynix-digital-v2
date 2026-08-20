@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { timingSafeEqual } from "node:crypto";
 import { and, eq, inArray, lte } from "drizzle-orm";
 import { loadSchedule } from "@/lib/pavel/loadSchedule";
 import { getActiveSession } from "@/lib/pavel/webinarSession";
@@ -19,6 +20,7 @@ import {
 import { backfillMissingInvoices } from "@/lib/pavel/invoice";
 import { backfillWebinarAccess } from "@/lib/pavel/webinarAccess";
 import { syncAttendance } from "@/lib/pavel/attendanceSync";
+import { EMPTY_SWEEP, sweepRecordings } from "@/lib/pavel/recordingSweep";
 import { issueEarnedCertificates } from "@/lib/pavel/certificate";
 import {
   buildPavelReminderEmail,
@@ -253,11 +255,20 @@ async function runReminderType(
  * Only the cron scheduler (or an authorised manual trigger) may run this. Vercel
  * Cron sends `Authorization: Bearer <CRON_SECRET>`; locally, curl the same
  * header. If no secret is configured the route stays closed rather than open.
+ * Compared in constant time, like every other secret check in this system.
  */
 function isAuthorized(request: Request): boolean {
   const secret = process.env.CRON_SECRET || process.env.PAVEL_CRON_SECRET;
   if (!secret) return false;
-  return request.headers.get("authorization") === `Bearer ${secret}`;
+  const provided = request.headers.get("authorization");
+  if (!provided) return false;
+  const a = Buffer.from(provided);
+  const b = Buffer.from(`Bearer ${secret}`);
+  if (a.length !== b.length) {
+    timingSafeEqual(a, a);
+    return false;
+  }
+  return timingSafeEqual(a, b);
 }
 
 /**
@@ -284,6 +295,17 @@ export async function GET(request: Request) {
     getActiveSession(db),
   ]);
 
+  // Recordings first, and before the no-active-session return below.
+  //
+  // A recording belongs to a cohort that has finished, which by then is not the
+  // active one and may be the only cohort there is. Putting this after the
+  // early return would mean the gap between two cohorts, the exact window a
+  // recording is published in, delivered nothing at all.
+  const recordings = await sweepRecordings(db).catch((error) => {
+    console.error("[pavel/cron] recording sweep failed", error);
+    return EMPTY_SWEEP;
+  });
+
   // No active session means no cohort to remind. Returning here rather than
   // falling through avoids the worst outcome: reminders built from the fallback
   // schedule going out to whoever happens to be in the table.
@@ -291,6 +313,7 @@ export async function GET(request: Request) {
     return NextResponse.json({
       ran: [],
       message: "No active session; nothing to remind.",
+      recordings,
     });
   }
 
@@ -359,7 +382,7 @@ export async function GET(request: Request) {
   }
 
   if (types.length === 0) {
-    return NextResponse.json({ ran: [], message: "No reminders due.", backfill, access, attendance, certificatesIssued });
+    return NextResponse.json({ ran: [], message: "No reminders due.", backfill, access, attendance, certificatesIssued, recordings });
   }
 
   const results = [];
@@ -376,5 +399,5 @@ export async function GET(request: Request) {
     );
   }
 
-  return NextResponse.json({ ran: types, results, backfill, access, attendance, certificatesIssued });
+  return NextResponse.json({ ran: types, results, backfill, access, attendance, certificatesIssued, recordings });
 }

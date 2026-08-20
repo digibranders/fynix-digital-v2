@@ -73,6 +73,23 @@ describe("csvCell", () => {
   it("does not quote a value that merely contains a semicolon or space", () => {
     expect(csvCell("a; b")).toBe("a; b");
   });
+
+  it("neutralises spreadsheet formula triggers in string values", () => {
+    // Registrant-typed text lands in this file and the operator opens it in
+    // Excel/Sheets, which execute cells starting with a formula trigger.
+    expect(csvCell('=HYPERLINK("http://evil.example","x")')).toBe(
+      `"'=HYPERLINK(""http://evil.example"",""x"")"`
+    );
+    expect(csvCell("+1-800-EVIL")).toBe("'+1-800-EVIL");
+    expect(csvCell("@import")).toBe("'@import");
+    expect(csvCell("-cmd")).toBe("'-cmd");
+  });
+
+  it("leaves numbers and numeric strings alone", () => {
+    expect(csvCell(-42)).toBe("-42");
+    expect(csvCell("-42")).toBe("-42");
+    expect(csvCell("-7499.50")).toBe("-7499.50");
+  });
 });
 
 describe("buildCsv", () => {

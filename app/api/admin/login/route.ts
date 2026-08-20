@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { isAdminUiDisabled } from "@/lib/admin/host";
 import { screenSubmission } from "@/lib/security/honeypot";
+import { clientKey, rateLimit } from "@/lib/security/rateLimit";
 import {
   ADMIN_SESSION_COOKIE,
   ADMIN_SESSION_MAX_AGE_SECONDS,
@@ -11,18 +12,36 @@ import {
 export const runtime = "nodejs";
 
 /**
+ * Login attempts allowed per client per window. Tight on purpose: a real
+ * operator types one credential, and every extra attempt only ever serves a
+ * guesser. Per-process (see lib/security/rateLimit.ts) — a speed bump against
+ * brute force, not the only defence; the form token and constant-time
+ * credential check still stand behind it.
+ */
+const LIMIT = 5;
+const WINDOW_MS = 60_000;
+
+/**
  * Authenticate the operator and set a signed session cookie.
  *
- * Layered defense: the same honeypot/form-token screen used on the public
- * checkout runs first (so scripted credential-stuffing without a page token is
- * rejected outright), then the credential is checked in constant time. A
- * generic error message is returned for every failure so nothing distinguishes
- * "wrong email" from "wrong password".
+ * Layered defense: a per-client rate limit, then the same honeypot/form-token
+ * screen used on the public checkout (so scripted credential-stuffing without
+ * a page token is rejected outright), then the credential is checked in
+ * constant time. A generic error message is returned for every failure so
+ * nothing distinguishes "wrong email" from "wrong password".
  */
 export async function POST(request: Request) {
   // Backend-only host: no console here, so no session to mint.
   if (isAdminUiDisabled()) {
     return NextResponse.json({ error: "Not found." }, { status: 404 });
+  }
+
+  const limit = rateLimit(`admin-login:${clientKey(request)}`, LIMIT, WINDOW_MS);
+  if (!limit.allowed) {
+    return NextResponse.json(
+      { error: "Too many attempts. Please wait a minute and try again." },
+      { status: 429, headers: { "Retry-After": String(limit.retryAfter) } }
+    );
   }
 
   let body: unknown;
