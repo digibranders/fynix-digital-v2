@@ -7,8 +7,6 @@ import { Container } from "@/components/pavel/ui/Container";
 import { Button } from "@/components/pavel/ui/Button";
 import {
   Video,
-  Copy,
-  Check,
   Loader2,
   ShieldAlert,
   CalendarDays,
@@ -66,15 +64,6 @@ export const ThankYouContent: React.FC = () => {
   const searchParams = useSearchParams();
   const { schedule } = usePricing();
 
-  /**
-   * The buyer's OWN Zoom link, returned by the verify call once their seat is
-   * confirmed. Each registrant gets a distinct tokenised URL, and attendance is
-   * matched on the registrant id inside it, so showing the shared webinar link
-   * here would both give away a seat and break attendance tracking.
-   *
-   * Empty until the seat verifies, or if Zoom registration has not landed yet.
-   */
-
   const ref = searchParams.get("ref");
   const paymentId = searchParams.get("payment_id");
 
@@ -83,7 +72,17 @@ export const ThankYouContent: React.FC = () => {
   const [status, setStatus] = useState<VerifyState>(ref ? "loading" : "unverified");
   const [attendeeName, setAttendeeName] = useState("");
   const [attendeeRef, setAttendeeRef] = useState("");
-  const [copiedZoom, setCopiedZoom] = useState(false);
+  /**
+   * The buyer's OWN Zoom link, returned by the verify call once their seat is
+   * confirmed. Each registrant gets a distinct tokenised URL, and attendance is
+   * matched on the registrant id inside it, so the shared webinar link is never
+   * used in its place: that would both give away a seat and break attendance
+   * tracking.
+   *
+   * The page does not display it. The link is mailed an hour before the
+   * session, so it only feeds the calendar entry the attendee saves here.
+   * Empty until the seat verifies, or if Zoom registration has not landed yet.
+   */
   const [zoomUrl, setZoomUrl] = useState("");
   /**
    * This cohort's WhatsApp community, returned by the verify call alongside the
@@ -135,12 +134,6 @@ export const ThankYouContent: React.FC = () => {
       active = false;
     };
   }, [ref, paymentId]);
-
-  const copyToClipboard = (text: string, setCopied: (v: boolean) => void) => {
-    navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2500);
-  };
 
   /** Compact UTC stamp every calendar provider accepts: YYYYMMDDTHHMMSSZ. */
   const toCalDate = (iso: string) =>
@@ -290,7 +283,8 @@ export const ThankYouContent: React.FC = () => {
 
           <p className="text-[1.15rem] sm:text-[1.25rem] text-text-muted leading-[1.6] max-w-xl mx-auto">
             Your seat for Pavel Klimakov&apos;s 3-hour live workshop is confirmed.
-            A confirmation email with your Zoom access is on its way.
+            A confirmation email is on its way, and your personal joining link
+            arrives an hour before the session starts.
           </p>
         </div>
 
@@ -361,39 +355,9 @@ export const ThankYouContent: React.FC = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="p-4 rounded-xl bg-background-soft border border-border space-y-2">
-              <span className="text-[11px] text-text-muted uppercase tracking-wider font-semibold">
-                Zoom Meeting Access
-              </span>
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-sm font-mono text-primary font-medium truncate">
-                  {zoomUrl}
-                </span>
-                <button
-                  onClick={() => copyToClipboard(zoomUrl, setCopiedZoom)}
-                  className="p-1.5 text-text-muted hover:text-primary rounded-lg hover:bg-white transition-colors shrink-0 border border-transparent hover:border-border"
-                  title="Copy Zoom Link"
-                >
-                  {copiedZoom ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
-                </button>
-              </div>
-            </div>
-
-            <div className="p-4 rounded-xl bg-background-soft border border-border space-y-2">
-              <span className="text-[11px] text-text-muted uppercase tracking-wider font-semibold">
-                Your access
-              </span>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-primary">
-                  Personal link, do not share
-                </span>
-                <span className="text-[11px] text-primary bg-white px-2 py-0.5 rounded border border-border font-medium">
-                  No passcode needed
-                </span>
-              </div>
-            </div>
-          </div>
+          {/* The join link is not shown here: it is mailed an hour before the
+              session, so the page would only ever display a link the attendee
+              cannot use yet. It still rides along in the calendar entry. */}
 
           {attendeeRef && (
             <p className="text-[11px] text-text-muted text-right">
