@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useMemo, useState } from "react";
-import { AlertCircle, CheckCircle2, Check, Link2 } from "lucide-react";
+import { Check, Link2 } from "lucide-react";
 import { buildReferralLink } from "@/lib/pavel/referralLink";
 import { siteConfig } from "@/lib/content";
 import type { OperationState } from "@/components/admin/OperationsPanel";
@@ -26,6 +26,7 @@ import {
   type AdminReferralRow,
   type ReferralStatus,
 } from "@/lib/admin/referralStats";
+import { ResultAlert } from "@/components/admin/ResultAlert";
 
 /**
  * Referral codes panel.
@@ -88,18 +89,7 @@ const FIELD =
 function Result({ state }: { state: OperationState }) {
   if (!state) return null;
   return (
-    <Alert
-      tone={state.ok ? "success" : "warning"}
-      icon={
-        state.ok ? (
-          <CheckCircle2 aria-hidden="true" className="h-3.5 w-3.5" />
-        ) : (
-          <AlertCircle aria-hidden="true" className="h-3.5 w-3.5" />
-        )
-      }
-    >
-      {state.message}
-    </Alert>
+    <ResultAlert state={state} />
   );
 }
 

@@ -1,11 +1,10 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { AlertCircle, CheckCircle2 } from "lucide-react";
 import { DateTimeField } from "@/components/admin/DateTimeField";
 import { SubmitButton } from "@/components/admin/SubmitButton";
-import { Alert } from "@/components/admin/ui";
 import type { OperationState } from "@/components/admin/OperationsPanel";
+import { ResultAlert } from "@/components/admin/ResultAlert";
 
 /**
  * When a session should stop selling on its own.
@@ -85,18 +84,7 @@ export function ScheduleCloseFields({
 
       {state ? (
         <div className="mt-2">
-          <Alert
-            tone={state.ok ? "success" : "warning"}
-            icon={
-              state.ok ? (
-                <CheckCircle2 aria-hidden="true" className="h-3.5 w-3.5" />
-              ) : (
-                <AlertCircle aria-hidden="true" className="h-3.5 w-3.5" />
-              )
-            }
-          >
-            {state.message}
-          </Alert>
+          <ResultAlert state={state} />
         </div>
       ) : null}
     </div>

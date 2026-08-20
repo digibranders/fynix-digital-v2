@@ -1,9 +1,10 @@
 "use client";
 
 import { useActionState } from "react";
-import { CheckCircle2, AlertCircle, RefreshCw } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 import { SubmitButton } from "@/components/admin/SubmitButton";
-import { Alert, Card, CardHeader } from "@/components/admin/ui";
+import { Card, CardHeader } from "@/components/admin/ui";
+import { ResultAlert } from "@/components/admin/ResultAlert";
 
 export type OperationState = {
   ok: boolean;
@@ -98,17 +99,6 @@ export function OperationsPanel({
 function Result({ state }: { state: OperationState }) {
   if (!state) return null;
   return (
-    <Alert
-      tone={state.ok ? "success" : "warning"}
-      icon={
-        state.ok ? (
-          <CheckCircle2 aria-hidden="true" className="h-3.5 w-3.5" />
-        ) : (
-          <AlertCircle aria-hidden="true" className="h-3.5 w-3.5" />
-        )
-      }
-    >
-      {state.message}
-    </Alert>
+    <ResultAlert state={state} />
   );
 }
