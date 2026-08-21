@@ -20,9 +20,9 @@ import type { Metadata } from "next";
  * the direct route. Change the card and change both.
  */
 const OG_IMAGE = {
-  url: "/pavel/opengraph-image.jpg",
+  url: "pavel/ads/pavel_1.91x1_1200x628_nocd.png",
   width: 1200,
-  height: 630,
+  height: 628,
   alt:
     "What you hear about Semantic SEO is just 15% of the story. A 3-hour live " +
     "Semantic SEO workshop with Pavel Klimakov on 5 September 2026",
