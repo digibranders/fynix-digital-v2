@@ -599,11 +599,9 @@ export default function MeetingsCaseStudyPage() {
         <div className="max-w-6xl mx-auto px-6 md:px-12 grid grid-cols-1 lg:grid-cols-12 gap-14 lg:gap-16 items-center">
           <Reveal className="lg:col-span-7">
             <p className="font-serif text-3xl md:text-4xl text-primary font-normal leading-snug tracking-tight">
-              The client was a B2B
+              A B2B cybersecurity company 
               <br />
-              cybersecurity company that
-              <br />
-              wanted a{" "}
+              needed a{" "}
               <span className="text-accent font-medium">
                 predictable pipeline
               </span>
