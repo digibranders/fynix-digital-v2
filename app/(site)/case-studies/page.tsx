@@ -53,6 +53,63 @@ export default function CaseStudiesPage() {
         </div>
       </section>
 
+      <section className="pt-10 md:pt-14 pb-4 md:pb-6 bg-background-soft">
+        <div className="max-w-7xl mx-auto px-6 md:px-12">
+          <Reveal>
+            <Link
+              href="/case-studies/lead-generation-up"
+              className="group relative isolate block overflow-hidden rounded-2xl border border-border bg-primary text-white"
+            >
+              <div className="relative grid grid-cols-1 lg:grid-cols-12 gap-8 p-8 md:p-12">
+                <div className="lg:col-span-8">
+                  <span className="text-[11px] font-mono uppercase tracking-[0.3em] text-accent">
+                    Featured · Lead Generation
+                  </span>
+                  <h2 className="mt-5 font-serif text-3xl md:text-4xl lg:text-5xl text-white font-medium leading-[1.1] tracking-tight max-w-2xl">
+                    How we delivered{" "}
+                    <span className="text-accent">6×</span>{" "}
+                    <span className="text-accent">ROI</span> for a
+                    cybersecurity company in India.
+                  </h2>
+                  <span className="mt-8 inline-flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-accent">
+                    Read the case study
+                    <svg
+                      className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-1"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      aria-hidden
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M14 5l7 7m0 0l-7 7m7-7H3"
+                      />
+                    </svg>
+                  </span>
+                </div>
+                <div className="lg:col-span-4 flex flex-wrap lg:flex-col justify-between gap-6 lg:border-l lg:border-white/10 lg:pl-10">
+                  {[
+                    { value: "60", label: "Meetings attended" },
+                    { value: "78%", label: "C-level & Director" },
+                  ].map((s) => (
+                    <div key={s.label}>
+                      <div className="font-serif italic text-4xl md:text-5xl text-accent leading-none tabular-nums">
+                        {s.value}
+                      </div>
+                      <div className="mt-1.5 text-xs text-white/60 font-normal">
+                        {s.label}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </Link>
+          </Reveal>
+        </div>
+      </section>
+
       <section className="pt-4 md:pt-8 pb-12 md:pb-16 bg-background-soft">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <CaseStudiesGrid />
