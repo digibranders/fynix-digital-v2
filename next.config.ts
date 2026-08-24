@@ -50,6 +50,11 @@ const nextConfig: NextConfig = {
       // subdomain.
       "https://stats.g.doubleclick.net",
       "https://www.google.com",
+      // Google Ads conversion tracking, flagged by GTM's own CSP checker as
+      // blocked: ad.doubleclick.net and googleadservices.com are neither
+      // Analytics nor Tag Manager subdomains, so they need their own entries.
+      "https://ad.doubleclick.net",
+      "https://www.googleadservices.com",
       // Meta Pixel, injected by GTM rather than by this codebase: the library
       // comes from connect.facebook.net and events beacon to www.facebook.com/tr.
       "https://connect.facebook.net",
