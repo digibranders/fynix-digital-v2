@@ -14,7 +14,7 @@ const TITLE =
   "How we generated 60 sales-qualified meetings for a cybersecurity company in India";
 const DESCRIPTION =
   "An account-based, multi-channel outbound program that booked 60 qualified meetings with CISOs, CTOs, CIOs and senior security leaders across a six-month campaign.";
-const OG_IMAGE = `${siteConfig.url}/case-studies/${SLUG}-og.png`;
+const OG_IMAGE = `${siteConfig.url}/case-studies/${SLUG}-og.webp`;
 const OG_ALT =
   "Lead generation case study — B2B cybersecurity company, India, 6X ROI.";
 
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     // 1.91:1; the design keeps the badge, headline and 6X inside the
     // safe horizontal band, so the crop still reads.
     images: [
-      { url: OG_IMAGE, width: 1080, height: 1080, alt: OG_ALT, type: "image/png" },
+      { url: OG_IMAGE, width: 1080, height: 1080, alt: OG_ALT, type: "image/webp" },
     ],
   },
   twitter: {
