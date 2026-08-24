@@ -1,7 +1,6 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SmoothScroll from "@/components/SmoothScroll";
-import AnnouncementBanner from "@/components/AnnouncementBanner";
 
 export default function SiteLayout({
   children,
@@ -17,7 +16,6 @@ export default function SiteLayout({
         Skip to main content
       </a>
       <SmoothScroll>
-        <AnnouncementBanner />
         <Header />
         <main id="main" className="flex-1 flex flex-col">
           {children}
