@@ -150,7 +150,7 @@ const leadGenFaqs: { q: string; a: string }[] = [
 
 // Prose kept as string constants so JSX stays free of unescaped-entity issues.
 const heroCopy1 =
-  "Traffic is not the finish line. We turn qualified interest into booked meetings with systematic outreach, high-intent offers, and pipeline you can measure.";
+  "Traffic is not the finish line. We turn qualified interest into booked meetings and pipeline you can measure.";
 const whyCopy1 =
   "The right buyers find you, read the work, then leave without ever starting a conversation, and that silent gap is where most pipeline quietly disappears.";
 const whyCopy2 =
@@ -246,7 +246,7 @@ export default function LeadGenServiceContent({ act }: Props) {
                   href="/contact"
                   className="cta-glide inline-flex items-center justify-center gap-3 px-8 py-4 bg-gradient-to-r from-[#e9af88] to-[#ffd2b3] text-[#0C1E2E] hover:brightness-105 font-bold rounded-full shadow-sm text-center"
                 >
-                  Book a Pipeline Strategy Call
+                  Let&apos;s connect
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={arrowPath} />
                   </svg>
