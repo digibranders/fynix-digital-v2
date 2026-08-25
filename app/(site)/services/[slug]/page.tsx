@@ -160,7 +160,7 @@ export default async function ServiceDetailPage(
                 href="/contact"
                 className="cta-glide inline-flex items-center justify-center gap-3 px-8 py-4 bg-gradient-to-r from-[#e9af88] to-[#ffd2b3] text-[#0C1E2E] hover:brightness-105 font-bold rounded-full shadow-sm text-center"
               >
-                Start with {act.title}
+                Let&apos;s connect
                 <svg
                   className="w-4 h-4"
                   fill="none"

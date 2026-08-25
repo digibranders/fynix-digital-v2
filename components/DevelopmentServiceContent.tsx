@@ -165,7 +165,7 @@ const devFaqs: { q: string; a: string }[] = [
 
 // Prose kept as string constants so JSX stays free of unescaped-entity issues.
 const heroCopy1 =
-  "Your website is your most valuable digital asset. We build fast, secure, and scalable websites that strengthen your brand and drive business growth.";
+  "Your website is your most valuable asset. We build fast, secure sites that strengthen your brand and drive growth.";
 const whyCopy1 =
   "Your website is often the first impression customers have of your business, and a slow or outdated one erodes trust and costs valuable opportunities.";
 const whyCopy2 =
@@ -261,7 +261,7 @@ export default function DevelopmentServiceContent({ act }: Props) {
                   href="/contact"
                   className="cta-glide inline-flex items-center justify-center gap-3 px-8 py-4 bg-gradient-to-r from-[#e9af88] to-[#ffd2b3] text-[#0C1E2E] hover:brightness-105 font-bold rounded-full shadow-sm text-center"
                 >
-                  Book a Website Consultation
+                  Let&apos;s connect
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={arrowPath} />
                   </svg>

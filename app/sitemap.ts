@@ -14,6 +14,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/privacy",
   ];
 
+  // Standalone service pages that live outside the four-act catalogue.
+  const standaloneServicePaths = [
+    "/services/linkedin-personal-account",
+    "/services/social-media",
+  ];
+
   const getPriority = (path: string) => {
     if (path === "") return 1.0;
     if (path === "/services") return 0.9;
@@ -35,6 +41,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: now,
       changeFrequency: "monthly",
       priority: 0.9,
+    });
+  }
+
+  for (const path of standaloneServicePaths) {
+    entries.push({
+      url: `${siteConfig.url}${path}`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.8,
     });
   }
 
