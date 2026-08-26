@@ -281,7 +281,7 @@ export default function LinkedInManagementPage() {
               <h1 className="font-serif text-white font-medium tracking-tight leading-[1.06] whitespace-nowrap text-[clamp(1.9rem,6.4vw,4.1rem)]">
                 <span className="block">A LinkedIn Presence</span>
                 <span className="block font-serif italic text-[#e9af88]">
-                  Built by Hand
+                  Built by Humans
                 </span>
               </h1>
 
