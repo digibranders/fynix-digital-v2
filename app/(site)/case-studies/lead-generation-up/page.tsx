@@ -11,15 +11,15 @@ import { siteConfig } from "@/lib/content";
 
 const SLUG = "lead-generation-up";
 const TITLE =
-  "How we generated 60 sales-qualified meetings for a cybersecurity company in India";
+  "How we generated 60 sales-qualified meetings for a cloud security company in India";
 const DESCRIPTION =
   "An account-based, multi-channel outbound program that booked 60 qualified meetings with CISOs, CTOs, CIOs and senior security leaders across a six-month campaign.";
 const OG_IMAGE = `${siteConfig.url}/case-studies/${SLUG}-og.webp`;
 const OG_ALT =
-  "Lead generation case study — B2B cybersecurity company, India, 6X ROI.";
+  "Lead generation case study — B2B cloud security company, India, 6X ROI.";
 
 export const metadata: Metadata = {
-  title: "60 Sales-Qualified Meetings for a Cybersecurity Company · Case Study",
+  title: "60 Sales-Qualified Meetings for a Cloud Security Company · Case Study",
   description: DESCRIPTION,
   alternates: { canonical: `/case-studies/${SLUG}` },
   openGraph: {
@@ -45,7 +45,7 @@ export const metadata: Metadata = {
 /* ---------------------------------------------------------------- data ---- */
 
 const snapshot = [
-  { label: "Client", value: "Cloudsecurity Company" },
+  { label: "Client", value: "Cloud Security Company" },
   { label: "Market", value: "India" },
   { label: "Campaign duration", value: "6 months" },
   {
@@ -584,7 +584,7 @@ export default function MeetingsCaseStudyPage() {
                 </span>{" "}
                 for a
                 <br />
-                cloudsecurity company
+                cloud security company
                 <br />
                 in India.
               </h1>
@@ -614,7 +614,7 @@ export default function MeetingsCaseStudyPage() {
         <div className="max-w-6xl mx-auto px-6 md:px-12 grid grid-cols-1 lg:grid-cols-12 gap-14 lg:gap-16 items-center">
           <Reveal className="lg:col-span-7">
             <p className="font-serif text-3xl md:text-4xl text-primary font-normal leading-snug tracking-tight">
-              A B2B cloudsecurity company
+              A B2B cloud security company
               <br />
               needed a{" "}
               <span className="text-accent font-medium">
