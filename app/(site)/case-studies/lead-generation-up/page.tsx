@@ -1152,7 +1152,7 @@ export default function MeetingsCaseStudyPage() {
           <div className="lg:col-span-6 lg:row-start-1">
             <Reveal>
               <p className="font-serif text-2xl md:text-3xl text-primary font-normal leading-snug tracking-tight">
-                78% of meetings were with{" "}
+                60% of meetings were with{" "}
                 <span className="italic text-accent">
                   C-level
                 </span>{" "}
