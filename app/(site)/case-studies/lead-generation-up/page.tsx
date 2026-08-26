@@ -45,12 +45,12 @@ export const metadata: Metadata = {
 /* ---------------------------------------------------------------- data ---- */
 
 const snapshot = [
-  { label: "Client", value: "B2B Cybersecurity Company" },
+  { label: "Client", value: "Cloudsecurity" },
   { label: "Market", value: "India" },
   { label: "Campaign duration", value: "6 months" },
   {
     label: "Target audience",
-    value: "CISOs, CTOs, CIOs, IT Directors & Security Leaders",
+    value: "CISOs, CTOs, CIOs, IT Directors, Senior Security & Decision Makers",
   },
 ];
 
@@ -60,7 +60,7 @@ const headlineMetrics = [
   { value: "6,800+", label: "Prospects contacted" },
   { value: "15,500+", label: "Outreach attempts" },
   { value: "240+", label: "Positive conversations" },
-  { value: "60", label: "Meetings attended" },
+  { value: "60", label: "Meetings" },
 ];
 
 const challengePoints = [
@@ -104,7 +104,6 @@ const optimizationSignals = [
   "Response rates",
   "Positive replies",
   "Meetings booked",
-  "Meeting attendance",
   "Persona performance",
   "Industry performance",
   "Messaging performance",
@@ -116,11 +115,11 @@ const funnel = [
   { value: "9,500+", label: "Decision-makers identified" },
   { value: "6,800+", label: "Prospects contacted" },
   { value: "240+", label: "Positive conversations" },
-  { value: "60", label: "Qualified meetings attended" },
+  { value: "60", label: "Meetings" },
 ];
 
 const results = [
-  { value: "60", label: "Meetings attended" },
+  { value: "60", label: "Meetings" },
   { value: "6X", label: "Revenue generated" },
 ];
 
@@ -196,10 +195,10 @@ const whyItWorked = [
 ];
 
 const revenue = [
-  { closed: "5", value: "₹40 lakh" },
-  { closed: "10", value: "₹80 lakh" },
-  { closed: "15", value: "₹1.2 crore" },
-  { closed: "20", value: "₹1.6 crore" },
+  { closed: "3", value: "₹30 lakh" },
+  { closed: "6", value: "₹60 lakh" },
+  { closed: "9", value: "₹90 lakh" },
+  { closed: "12", value: "₹1.2 crore" },
 ];
 
 /** Icon set for the campaign-snapshot card rows — one per data point. */
@@ -585,7 +584,7 @@ export default function MeetingsCaseStudyPage() {
                 </span>{" "}
                 for a
                 <br />
-                cybersecurity company
+                cloudsecurity company
                 <br />
                 in India.
               </h1>
@@ -615,7 +614,7 @@ export default function MeetingsCaseStudyPage() {
         <div className="max-w-6xl mx-auto px-6 md:px-12 grid grid-cols-1 lg:grid-cols-12 gap-14 lg:gap-16 items-center">
           <Reveal className="lg:col-span-7">
             <p className="font-serif text-3xl md:text-4xl text-primary font-normal leading-snug tracking-tight">
-              A B2B cybersecurity company 
+              A B2B cloudsecurity company
               <br />
               needed a{" "}
               <span className="text-accent font-medium">
@@ -723,7 +722,7 @@ export default function MeetingsCaseStudyPage() {
             <p className="font-serif text-2xl md:text-3xl text-white font-normal leading-snug tracking-tight">
               At an average deal size of{" "}
               <span className="italic text-accent whitespace-nowrap">
-                ₹8 lakh
+                ₹10 lakh
               </span>
               , the pipeline compounds quickly.
             </p>
@@ -744,7 +743,7 @@ export default function MeetingsCaseStudyPage() {
                       Closed customers
                     </th>
                     <th className="px-6 py-4 text-[10px] font-mono uppercase tracking-widest font-semibold text-right">
-                      Illustrative revenue at ₹8 lakh average deal
+                      Illustrative revenue at ₹10 lakh average deal
                     </th>
                   </tr>
                 </thead>
@@ -791,9 +790,9 @@ export default function MeetingsCaseStudyPage() {
               <path d="M9.5 4C6.5 6 5 9 5 13v7h7v-8H8.5c0-2.5 1-4.5 3-6L9.5 4zm9 0c-3 2-4.5 5-4.5 9v7h7v-8h-3.5c0-2.5 1-4.5 3-6L18.5 4z" />
             </svg>
             <blockquote className="mt-8 font-serif italic text-3xl md:text-4xl text-primary font-medium leading-[1.25] tracking-tight">
-              We don&apos;t just generate cybersecurity leads. We create
-              qualified sales conversations with the people who can actually
-              buy.
+              We don&apos;t just generate sales leads. We create
+              <br />
+              high-potential sales opportunities.
             </blockquote>
             <div className="mt-8">
               <p className="font-serif text-lg text-primary font-medium leading-tight">
@@ -1155,7 +1154,7 @@ export default function MeetingsCaseStudyPage() {
               <p className="font-serif text-2xl md:text-3xl text-primary font-normal leading-snug tracking-tight">
                 78% of meetings were with{" "}
                 <span className="italic text-accent">
-                  C-level or Director-level
+                  C-level
                 </span>{" "}
                 decision-makers.
               </p>
@@ -1263,9 +1262,9 @@ export default function MeetingsCaseStudyPage() {
               <path d="M9.5 4C6.5 6 5 9 5 13v7h7v-8H8.5c0-2.5 1-4.5 3-6L9.5 4zm9 0c-3 2-4.5 5-4.5 9v7h7v-8h-3.5c0-2.5 1-4.5 3-6L18.5 4z" />
             </svg>
             <blockquote className="mt-8 font-serif italic text-3xl md:text-4xl text-primary font-medium leading-[1.25] tracking-tight">
-              We don&apos;t just generate cybersecurity leads. We create
-              qualified sales conversations with the people who can actually
-              buy.
+              We don&apos;t just generate sales leads. We create
+              <br />
+              high-potential sales opportunities.
             </blockquote>
             <div className="mt-8">
               <p className="font-serif text-lg text-primary font-medium leading-tight">
@@ -1330,9 +1329,9 @@ export default function MeetingsCaseStudyPage() {
                   <path d="M9.5 4C6.5 6 5 9 5 13v7h7v-8H8.5c0-2.5 1-4.5 3-6L9.5 4zm9 0c-3 2-4.5 5-4.5 9v7h7v-8h-3.5c0-2.5 1-4.5 3-6L18.5 4z" />
                 </svg>
                 <blockquote className="mt-4 font-serif italic text-lg md:text-xl text-primary font-medium leading-[1.3] tracking-tight">
-                  We don&apos;t just generate cybersecurity leads. We create
-                  qualified sales conversations with the people who can
-                  actually buy.
+                  We don&apos;t just generate sales leads. We create
+                  <br />
+                  high-potential sales opportunities.
                 </blockquote>
                 <div className="mt-5">
                   <p className="font-serif text-base text-primary font-medium leading-tight">
@@ -1462,7 +1461,7 @@ export default function MeetingsCaseStudyPage() {
                 <p className="font-serif text-xl md:text-2xl text-white font-normal leading-snug tracking-tight">
                   At an average deal size of{" "}
                   <span className="italic text-accent whitespace-nowrap">
-                    ₹8 lakh
+                    ₹10 lakh
                   </span>
                   , the pipeline compounds quickly.
                 </p>
@@ -1483,7 +1482,7 @@ export default function MeetingsCaseStudyPage() {
                           Closed customers
                         </th>
                         <th className="px-5 py-3.5 text-[10px] font-mono uppercase tracking-widest font-semibold text-right">
-                          Illustrative revenue at ₹8 lakh average deal
+                          Illustrative revenue at ₹10 lakh average deal
                         </th>
                       </tr>
                     </thead>
