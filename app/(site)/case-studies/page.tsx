@@ -69,7 +69,7 @@ export default function CaseStudiesPage() {
                     How we delivered{" "}
                     <span className="text-accent">6×</span>{" "}
                     <span className="text-accent">ROI</span> for a
-                    cybersecurity company in India.
+                    cloud security company in India.
                   </h2>
                   <span className="mt-8 inline-flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-accent">
                     Read the case study
@@ -91,8 +91,8 @@ export default function CaseStudiesPage() {
                 </div>
                 <div className="lg:col-span-4 flex flex-wrap lg:flex-col justify-between gap-6 lg:border-l lg:border-white/10 lg:pl-10">
                   {[
-                    { value: "60", label: "Meetings attended" },
-                    { value: "78%", label: "C-level & Director" },
+                    { value: "60", label: "Meetings" },
+                    { value: "78%", label: "C-level" },
                   ].map((s) => (
                     <div key={s.label}>
                       <div className="font-serif italic text-4xl md:text-5xl text-accent leading-none tabular-nums">

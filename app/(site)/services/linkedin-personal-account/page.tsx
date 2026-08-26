@@ -96,48 +96,6 @@ const scopeServices: ScopeService[] = [
     ],
   },
   {
-    name: "Relationship Building",
-    tagline: "A Connection Is Only the Beginning",
-    description:
-      "We nurture relevant connections over time with a relationship-first approach, so trust is established well before any pitch.",
-    items: [
-      "Engaging With Connections",
-      "Interacting With Their Posts",
-      "Sharing Useful Information",
-      "Starting Contextual Conversations",
-      "Nurturing High-Value Contacts",
-      "Spotting Collaboration Openings",
-    ],
-  },
-  {
-    name: "Strategic Outreach",
-    tagline: "Personalised, Relevant, Manual",
-    description:
-      "Once relationships are established, we run targeted outreach built on understanding each prospect, never generic mass messaging.",
-    items: [
-      "High-Potential Targeting",
-      "Prospect & Business Research",
-      "Personalised Messaging",
-      "Contextual Conversations",
-      "Considered Follow-Ups",
-      "Qualified Business Discussions",
-    ],
-  },
-  {
-    name: "Network Expansion",
-    tagline: "Grow Into the Right Market",
-    description:
-      "We continuously find new, relevant people to connect with so the network keeps growing in both quality and business relevance.",
-    items: [
-      "New Prospect Segments",
-      "Second-Degree Connections",
-      "Engaged Content Audiences",
-      "New Target Accounts",
-      "Referral Partners",
-      "Relevant Communities",
-    ],
-  },
-  {
     name: "Measure & Improve",
     tagline: "Refined Against Real Signals",
     description:
@@ -640,8 +598,9 @@ export default function LinkedInManagementPage() {
               <path d="M9.5 4C6.5 6 5 9 5 13v7h7v-8H8.5c0-2.5 1-4.5 3-6L9.5 4zm9 0c-3 2-4.5 5-4.5 9v7h7v-8h-3.5c0-2.5 1-4.5 3-6L18.5 4z" />
             </svg>
             <blockquote className="mt-8 font-serif italic text-3xl md:text-4xl text-primary font-medium leading-[1.25] tracking-tight">
-              We don&apos;t automate your LinkedIn. We build real relationships by
-              hand, so the right people actually want to talk to you.
+              We build your network through genuine human conversations that
+              build trust, create meaningful connections, and open doors to new
+              opportunities.
             </blockquote>
             <div className="mt-8">
               <p className="font-serif text-lg text-primary font-medium leading-tight">
