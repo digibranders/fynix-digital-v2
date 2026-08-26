@@ -439,6 +439,40 @@ export default function Header() {
                           </span>
                         </Link>
                       </li>
+                      <li
+                        style={{
+                          transitionDelay: megaOpen
+                            ? `${(acts.length + 2) * MEGA_ITEM_STAGGER}ms`
+                            : "0ms",
+                        }}
+                        className={`transition-[opacity,transform,filter] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+                          megaOpen
+                            ? "opacity-100 translate-y-0 blur-0"
+                            : "opacity-0 -translate-y-2 blur-[3px]"
+                        }`}
+                      >
+                        <Link
+                          href="/services/social-media-advertisement"
+                          onClick={(e) => {
+                            closeMegaNow();
+                            handleSamePageNav("/services/social-media-advertisement")(e);
+                          }}
+                          className="group flex items-center gap-4 py-2.5"
+                        >
+                          <span className="font-mono text-xs text-accent font-semibold tabular-nums shrink-0 w-6">
+                            07
+                          </span>
+                          <span className="font-serif text-xl text-primary group-hover:text-accent transition-colors">
+                            Social Media Advertising
+                          </span>
+                          <span
+                            aria-hidden
+                            className="ml-auto text-accent text-base opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300"
+                          >
+                            &rarr;
+                          </span>
+                        </Link>
+                      </li>
                     </ul>
                   </div>
 
@@ -714,6 +748,23 @@ export default function Header() {
                           </span>
                           <span className="font-serif text-lg text-primary/85 group-hover/sub:text-accent transition-colors">
                             Social Media
+                          </span>
+                        </Link>
+                      </li>
+                      <li>
+                        <Link
+                          href="/services/social-media-advertisement"
+                          onClick={(e) => {
+                            setMenuOpen(false);
+                            handleSamePageNav("/services/social-media-advertisement")(e);
+                          }}
+                          className="flex items-center gap-3 group/sub text-sm"
+                        >
+                          <span className="font-mono text-xs font-semibold text-accent shrink-0 w-5">
+                            07
+                          </span>
+                          <span className="font-serif text-lg text-primary/85 group-hover/sub:text-accent transition-colors">
+                            Social Media Advertising
                           </span>
                         </Link>
                       </li>

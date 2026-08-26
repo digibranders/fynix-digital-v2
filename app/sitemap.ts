@@ -18,6 +18,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const standaloneServicePaths = [
     "/services/linkedin-personal-account",
     "/services/social-media",
+    "/services/social-media-advertisement",
   ];
 
   const getPriority = (path: string) => {
