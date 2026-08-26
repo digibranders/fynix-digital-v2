@@ -45,7 +45,7 @@ export const metadata: Metadata = {
 /* ---------------------------------------------------------------- data ---- */
 
 const snapshot = [
-  { label: "Client", value: "Cloudsecurity" },
+  { label: "Client", value: "Cloudsecurity Company" },
   { label: "Market", value: "India" },
   { label: "Campaign duration", value: "6 months" },
   {
