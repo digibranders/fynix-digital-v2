@@ -15,7 +15,6 @@ const serviceLinks = [
   { href: "/services/seo", label: "SEO / AEO" },
   { href: "/services/lead-generation", label: "Lead Generation" },
   { href: "/services/linkedin-personal-account", label: "LinkedIn Management" },
-  { href: "/services/social-media", label: "Social Media" },
   { href: "/services/social-media-advertisement", label: "Social Media Advertising" },
 ];
 
