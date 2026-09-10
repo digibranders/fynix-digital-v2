@@ -14,16 +14,11 @@ type Signature = {
 const signatures: Signature[] = [
   { name: "Dr. Savita Katiyar", filename: "dr-savita-katiyar.html", role: "Co-founder & COO" },
   { name: "Siddique Ahmed", filename: "siddique-ahmed.html", role: "Co-founder & CEO" },
-  { name: "Satyam Yadav", filename: "satyam-yadav.html", role: "Creative Head" },
   { name: "Gaurav Jadhav", filename: "gaurav-jadhav.html", role: "AI Engineer" },
-  { name: "Pranita Kadav", filename: "pranita-kadav.html", role: "Senior SEO Executive" },
-  { name: "Nitesh Alim", filename: "nitesh-alim.html", role: "Graphic Designer" },
-  { name: "Anushka Tiwari", filename: "anushka-tiwari.html", role: "Client Relationship Executive" },
   { name: "Farheen Khan", filename: "farheen-khan.html", role: "Web Developer" },
-  { name: "Mayur Bate", filename: "mayu-bate.html", role: "UI/UX Designer" },
-  { name: "Appurva Panchabhai", filename: "appurva-panchabhai.html", role: "Content Strategist" },
-  { name: "Steve Nadar", filename: "steve.html", role: "Software Engineer" },
-  { name: "Firdous Shaikh", filename: "firdous-shaikh.html", role: "SEO Analyst" },
+  { name: "Jaydeep Haria", filename: "jaydeep-haria.html", role: "SEO Executive" },
+  { name: "Steve Jason", filename: "steve-jason.html", role: "Software Engineer" },
+  { name: "Alisha Kothadia", filename: "alisha-kothadia.html", role: "Content Strategist" },
 ];
 
 export default function SignaturesPage() {
