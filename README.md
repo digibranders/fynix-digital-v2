@@ -185,6 +185,31 @@ npx tsx scripts/zoom-webinar-emails.ts <webinarId>
 
 Registration must also stay on **Manually Approve**. `registerAttendee` pushes paid buyers in with `auto_approve`, which Zoom only honours on a manually-approved webinar; switching to automatic approval opens the public registration page as a second, unpaid door into the session.
 
+## Spend & Invoice Control
+
+**Designed, not built.** No code for this exists yet.
+
+A control layer for the company's own outgoings: a registry of every recurring
+subscription, a ledger of the invoices each one is expected to produce, and
+multi-channel collection (vendor API, billing mailbox, manual upload) that files
+the documents in Cloudflare R2 and makes a missing one impossible to overlook.
+It becomes a third section of the admin console at `/admin/finance`, using the
+existing gateway, session and console primitives.
+
+Note the naming trap: the existing `invoices` table means **tax invoices Fynix
+issues to workshop buyers**. Everything in that system is prefixed `finance_`
+and the inbound artifact is called a *document*, never an invoice.
+
+| Document | Holds |
+|---|---|
+| [`docs/finance/architecture.md`](docs/finance/architecture.md) | Architecture review, gap analysis, target design, and the critique of the prior spec |
+| [`docs/finance/data-model.md`](docs/finance/data-model.md) | Every table, column, index, constraint and state machine |
+| [`docs/finance/connector-architecture.md`](docs/finance/connector-architecture.md) | Capability model, connector interface, per-vendor research with sources |
+| [`docs/finance/failure-recovery.md`](docs/finance/failure-recovery.md) | Failure matrix, retry and backoff policy, the pre-implementation self-critique |
+| [`docs/finance/security-model.md`](docs/finance/security-model.md) | Secrets, least privilege, audit, threat model, vendor-credential policy |
+| [`docs/finance/operations-runbook.md`](docs/finance/operations-runbook.md) | Vendor checklist, month-end close, what to do when each thing breaks |
+| [`docs/finance/implementation-plan.md`](docs/finance/implementation-plan.md) | Files, routes, workers, env vars, migrations, tests, rollout, rollback |
+
 ## Deployment
 
 Hosted on Vercel. `vercel.json` restricts automatic deployments to `main`:
@@ -199,3 +224,4 @@ Work happens on `development` and reaches production by merging to `main`. `SENT
 
 - `/api/lead-diagnostic` currently logs submissions and returns success. It does not yet dispatch email, hit a CRM webhook, or persist anything.
 - `components/Header.tsx` has a standing ESLint error (`setState` inside an effect) and two unused-variable warnings.
+- **The cron trigger is not in version control.** `/api/pavel/cron/reminders` is invoked on a schedule configured outside this repository: `vercel.json` declares no `crons` and there is no systemd unit or crontab here. A schedule nobody can see is a schedule nobody can verify, and nothing currently detects the timer having stopped. [`docs/finance/operations-runbook.md §6`](docs/finance/operations-runbook.md) has a slot to record it, and the finance work adds a heartbeat so a stalled scheduler becomes visible.
