@@ -111,7 +111,7 @@ export default function Footer() {
           <div className="grid grid-cols-2 md:grid-cols-12 gap-10 md:gap-8">
             {/* Brand */}
             <div className="col-span-2 md:col-span-4 flex flex-col">
-              <Logo className="text-white" />
+              <Logo className="text-white" width={130} height={54} />
               <div className="mt-auto pt-6 flex items-center gap-2">
                 {socialLinks.map((s) => {
                   const external = s.href.startsWith("http");
