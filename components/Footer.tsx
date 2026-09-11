@@ -158,8 +158,8 @@ export default function Footer() {
             ))}
           </div>
 
-          {/* Divider + copyright */}
-          <div className="mt-16 md:mt-20 pt-6 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-white/50">
+          {/* Copyright */}
+          <div className="mt-10 md:mt-12 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-white/50">
             <span>&copy; {year} Fynix Digital · All rights reserved</span>
             {/* <span>
               {siteConfig.email} · {siteConfig.locations}
