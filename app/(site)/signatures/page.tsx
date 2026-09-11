@@ -23,7 +23,7 @@ const signatures: Signature[] = [
 
 export default function SignaturesPage() {
   return (
-    <section className="pt-32 md:pt-40 pb-16 md:pb-24 bg-background-soft">
+    <section className="pt-12 md:pt-16 pb-16 md:pb-24 bg-background-soft">
       <div className="max-w-7xl mx-auto px-6 md:px-12">
         <Reveal>
           <div className="max-w-2xl">
