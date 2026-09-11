@@ -850,4 +850,57 @@ select:not(:disabled) {
   }
 }
 
+/* ─── Footer signature ───────────────────────────────────────────────────────
+   The footer's real content (logo, nav columns, socials, copyright) is the
+   opaque curtain (`.footer-body`, z-index 1). Underneath it sits a second
+   band (`.footer-signature`) holding the wordmark, pinned to the viewport
+   bottom via `position: sticky`. As the curtain's bottom edge scrolls past
+   the viewport bottom, the pinned band is revealed beneath it and — driven by
+   FooterSignature's scroll listener — drifts upward at half scroll speed via
+   `--footer-signature-progress`, landing in normal flow at the true end of
+   the page. Without JavaScript the variable defaults to 1 (no offset), so
+   the wordmark is still simply revealed 1:1 by the curtain lifting.
+
+   The body's gradient ends in the exact color the band's gradient starts
+   from, so the handoff between "content" and "wordmark" has no visible seam. */
+.footer {
+  /* Fallback fill for the band's in-flow slot while it is pinned above it
+     (element screenshots, programmatic scroll-into-view): never paint white. */
+  background: #071119;
+}
+
+.footer-body {
+  position: relative;
+  z-index: 1;
+  background: linear-gradient(180deg, var(--primary) 0%, #071119 100%);
+}
+
+.footer-signature {
+  position: sticky;
+  bottom: 0;
+  z-index: 0;
+  overflow: hidden;
+  line-height: 0;
+  pointer-events: none;
+  background: #071119;
+}
+
+/* Wordmark-only mark (icon + "Fynix", no "Digital" caption), used as a mask
+   so the fill can carry a top-to-bottom fade: the name reads as engraved
+   into the footer rather than printed on it. */
+.footer-wordmark {
+  width: 100%;
+  aspect-ratio: 2967 / 1138;
+  background: linear-gradient(180deg, rgba(233, 175, 136, 0.55) 0%, rgba(255, 255, 255, 0.22) 35%, rgba(255, 255, 255, 0.08) 100%);
+  -webkit-mask: url("/footer/fynix-wordmark.png") center / 100% 100% no-repeat;
+  mask: url("/footer/fynix-wordmark.png") center / 100% 100% no-repeat;
+  transform: translateY(calc((1 - var(--footer-signature-progress, 1)) * 50%));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .footer-wordmark {
+    transform: none;
+  }
+}
+
 
