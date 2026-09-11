@@ -1,7 +1,7 @@
-import Image from "next/image";
 import Link from "next/link";
 import { siteConfig } from "@/lib/content";
 import Logo from "@/components/Logo";
+import FooterSignature from "@/components/FooterSignature";
 
 const siteLinks = [
   { href: "/", label: "Home" },
@@ -102,83 +102,76 @@ export default function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="relative bg-primary text-white overflow-hidden mt-auto">
-      <div className="max-w-7xl mx-auto px-6 md:px-12 pt-16 md:pt-20 pb-8">
-        <div className="grid grid-cols-2 md:grid-cols-12 gap-10 md:gap-8">
-          {/* Brand */}
-          <div className="col-span-2 md:col-span-4 flex flex-col">
-            <Logo className="text-white" />
-            <div className="mt-auto pt-6 flex items-center gap-2">
-              {socialLinks.map((s) => {
-                const external = s.href.startsWith("http");
-                return (
-                  <a
-                    key={s.label}
-                    href={s.href}
-                    aria-label={s.label}
-                    {...(external
-                      ? { target: "_blank", rel: "noopener noreferrer" }
-                      : {})}
-                    className={`h-9 w-9 flex items-center justify-center rounded-md border border-white/15 text-white/70 transition-colors duration-200 ${s.hoverClass}`}
-                  >
-                    {s.icon}
-                  </a>
-                );
-              })}
+    <footer className="footer relative text-white mt-auto">
+      {/* Curtain: the real footer content, opaque, sitting above the pinned
+          signature band (see FooterSignature and the `.footer-*` rules in
+          globals.css). */}
+      <div className="footer-body">
+        <div className="max-w-7xl mx-auto px-6 md:px-12 pt-16 md:pt-20 pb-8">
+          <div className="grid grid-cols-2 md:grid-cols-12 gap-10 md:gap-8">
+            {/* Brand */}
+            <div className="col-span-2 md:col-span-4 flex flex-col">
+              <Logo className="text-white" />
+              <div className="mt-auto pt-6 flex items-center gap-2">
+                {socialLinks.map((s) => {
+                  const external = s.href.startsWith("http");
+                  return (
+                    <a
+                      key={s.label}
+                      href={s.href}
+                      aria-label={s.label}
+                      {...(external
+                        ? { target: "_blank", rel: "noopener noreferrer" }
+                        : {})}
+                      className={`h-9 w-9 flex items-center justify-center rounded-md border border-white/15 text-white/70 transition-colors duration-200 ${s.hoverClass}`}
+                    >
+                      {s.icon}
+                    </a>
+                  );
+                })}
+              </div>
             </div>
+
+            {/* Link groups */}
+            {groups.map((group) => (
+              <nav
+                key={group.title}
+                aria-label={group.title}
+                className="col-span-1 md:col-span-2"
+              >
+                <h2 className="text-sm font-semibold text-white mb-5">
+                  {group.title}
+                </h2>
+                <ul className="space-y-3 text-sm text-white/60">
+                  {group.items.map((item) => (
+                    <li key={item.href}>
+                      <Link
+                        href={item.href}
+                        className="hover:text-white transition-colors"
+                      >
+                        {item.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+            ))}
           </div>
 
-          {/* Link groups */}
-          {groups.map((group) => (
-            <nav
-              key={group.title}
-              aria-label={group.title}
-              className="col-span-1 md:col-span-2"
-            >
-              <h2 className="text-sm font-semibold text-white mb-5">
-                {group.title}
-              </h2>
-              <ul className="space-y-3 text-sm text-white/60">
-                {group.items.map((item) => (
-                  <li key={item.href}>
-                    <Link
-                      href={item.href}
-                      className="hover:text-white transition-colors"
-                    >
-                      {item.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </nav>
-          ))}
-        </div>
-
-        {/* Divider + copyright */}
-        <div className="mt-16 md:mt-20 pt-6 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-white/50">
-          <span>&copy; {year} Fynix Digital · All rights reserved</span>
-          {/* <span>
-            {siteConfig.email} · {siteConfig.locations}
-          </span> */}
+          {/* Divider + copyright */}
+          <div className="mt-16 md:mt-20 pt-6 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-white/50">
+            <span>&copy; {year} Fynix Digital · All rights reserved</span>
+            {/* <span>
+              {siteConfig.email} · {siteConfig.locations}
+            </span> */}
+          </div>
         </div>
       </div>
 
-      {/* Ghost brand wordmark */}
-      <div
-        aria-hidden
-        className="relative select-none pointer-events-none overflow-hidden bg-primary h-[23vw]"
-      >
-        <Image
-          src="/new_footer.webp"
-          alt=""
-          width={1200}
-          height={800}
-          sizes="100vw"
-          priority
-          fetchPriority="high"
-          className="absolute inset-x-0 top-1/2 -translate-y-[47%] w-full h-auto opacity-40 invert"
-        />
-      </div>
+      {/* Signature: the wordmark at container width, pinned under the
+          curtain and revealed as it lifts (see FooterSignature). Purely
+          decorative; the brand band above carries the accessible logo. */}
+      <FooterSignature />
     </footer>
   );
 }
