@@ -890,7 +890,7 @@ select:not(:disabled) {
    into the footer rather than printed on it. */
 .footer-wordmark {
   width: 100%;
-  aspect-ratio: 910 / 277;
+  aspect-ratio: 2967 / 1138;
   background: linear-gradient(180deg, rgba(233, 175, 136, 0.55) 0%, rgba(255, 255, 255, 0.22) 35%, rgba(255, 255, 255, 0.08) 100%);
   -webkit-mask: url("/footer/fynix-wordmark.png") center / 100% 100% no-repeat;
   mask: url("/footer/fynix-wordmark.png") center / 100% 100% no-repeat;

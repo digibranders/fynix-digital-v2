@@ -18,7 +18,7 @@ const signatures: Signature[] = [
   { name: "Farheen Khan", filename: "farheen-khan.html", role: "Web Developer" },
   { name: "Jaydeep Haria", filename: "jaydeep-haria.html", role: "SEO Executive" },
   { name: "Steve Jason", filename: "steve-jason.html", role: "Software Engineer" },
-  { name: "Alisha Kothadia", filename: "alisha-kothadia.html", role: "Content Strategist" },
+  { name: "Alisha Kotadia", filename: "alisha-kotadia.html", role: "Content Strategist" },
 ];
 
 export default function SignaturesPage() {
