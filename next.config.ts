@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { framedSiteOrigins } from "./lib/work-sites";
 import { withSentryConfig } from "@sentry/nextjs";
 
 const nextConfig: NextConfig = {
@@ -86,7 +87,7 @@ const nextConfig: NextConfig = {
       // The overlay also pulls its risk/fraud-detection bundle from
       // cdn.razorpay.com, so script-src must allow that host too.
       `script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://connect.facebook.net https://checkout.razorpay.com https://cdn.razorpay.com${isDev ? " 'unsafe-eval'" : ""}`,
-      "frame-src 'self' https://www.youtube-nocookie.com https://www.googletagmanager.com https://api.razorpay.com https://checkout.razorpay.com",
+      `frame-src 'self' https://www.youtube-nocookie.com https://www.googletagmanager.com https://api.razorpay.com https://checkout.razorpay.com ${framedSiteOrigins().join(" ")}`,
       `connect-src 'self' ${analyticsConnectSrc} https://*.razorpay.com${apiOrigin ? ` ${apiOrigin}` : ""}${isDev ? " ws:" : ""}`,
       "worker-src 'self' blob:",
     ].join("; ");
