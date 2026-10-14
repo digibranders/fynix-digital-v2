@@ -19,9 +19,9 @@ describe("the sign-up buttons on /free-business-website", () => {
   });
 
   it("go to the dashboard's create-account page with the plan, once it is switched on", () => {
-    vi.stubEnv("NEXT_PUBLIC_LOCAL_BUSINESS_URL", "https://localbusiness.fynix.digital/");
-    expect(localBusinessOrigin()).toBe("https://localbusiness.fynix.digital");
-    expect(signUpUrl("care")).toBe("https://localbusiness.fynix.digital/login?plan=care");
-    expect(signUpUrl("premium")).toBe("https://localbusiness.fynix.digital/login?plan=premium");
+    vi.stubEnv("NEXT_PUBLIC_LOCAL_BUSINESS_URL", "https://app.fynix.digital/");
+    expect(localBusinessOrigin()).toBe("https://app.fynix.digital");
+    expect(signUpUrl("care")).toBe("https://app.fynix.digital/login?plan=care");
+    expect(signUpUrl("premium")).toBe("https://app.fynix.digital/login?plan=premium");
   });
 });

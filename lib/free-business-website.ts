@@ -5,7 +5,7 @@ import { workSites } from "./work-sites";
 /**
  * Content for /free-business-website: the website Fynix builds for a local business at no development fee, and the
  * monthly plan that keeps it running. Every sign-up button goes to the plan's sign-up in the business dashboard
- * (localbusiness.fynix.digital, where only the Care and Premium plans are sold) once NEXT_PUBLIC_LOCAL_BUSINESS_URL
+ * (app.fynix.digital, where only the Care and Premium plans are sold) once NEXT_PUBLIC_LOCAL_BUSINESS_URL
  * says the dashboard is live. Until then it goes to the contact page, so no visitor lands on an address that does not exist.
  */
 
@@ -14,7 +14,7 @@ export const CONTACT_PATH = "/contact";
 
 /**
  * Where the business dashboard lives, or null while it is not switched on: set NEXT_PUBLIC_LOCAL_BUSINESS_URL to its
- * origin (https://localbusiness.fynix.digital in production, http://localbusiness.localhost:3097 locally) to turn it on.
+ * origin (https://app.fynix.digital in production, http://app.localhost:3098 locally) to turn it on.
  */
 export function localBusinessOrigin(): string | null {
   const configured = process.env.NEXT_PUBLIC_LOCAL_BUSINESS_URL?.trim();
