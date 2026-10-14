@@ -3,23 +3,29 @@ import type { Faq } from "@/lib/content";
 
 /**
  * Content for /free-business-website: the website Fynix builds for a local business at no development fee, and the
- * monthly plan that keeps it running. Every button on the page goes to the plan's sign-up in the business dashboard
- * (localbusiness.fynix.digital), where only the Care and Premium plans are sold.
+ * monthly plan that keeps it running. Every sign-up button goes to the plan's sign-up in the business dashboard
+ * (localbusiness.fynix.digital, where only the Care and Premium plans are sold) once NEXT_PUBLIC_LOCAL_BUSINESS_URL
+ * says the dashboard is live. Until then it goes to the contact page, so no visitor lands on an address that does not exist.
  */
 
-const DEFAULT_LOCAL_BUSINESS_ORIGIN = "https://localbusiness.fynix.digital";
+/** The page the sign-up buttons use while the dashboard is not live. */
+export const CONTACT_PATH = "/contact";
 
-/** Where the business dashboard lives. Overridden per environment, e.g. http://localbusiness.localhost:3097 locally. */
-export function localBusinessOrigin(): string {
+/**
+ * Where the business dashboard lives, or null while it is not switched on: set NEXT_PUBLIC_LOCAL_BUSINESS_URL to its
+ * origin (https://localbusiness.fynix.digital in production, http://localbusiness.localhost:3097 locally) to turn it on.
+ */
+export function localBusinessOrigin(): string | null {
   const configured = process.env.NEXT_PUBLIC_LOCAL_BUSINESS_URL?.trim();
-  return (configured === undefined || configured === "" ? DEFAULT_LOCAL_BUSINESS_ORIGIN : configured).replace(/\/+$/, "");
+  return configured === undefined || configured === "" ? null : configured.replace(/\/+$/, "");
 }
 
 export type LocalBusinessPlan = "care" | "premium";
 
-/** The dashboard's create-account page with a plan already chosen. */
+/** The dashboard's create-account page with a plan already chosen, or the contact page while the dashboard is not live. */
 export function signUpUrl(plan: LocalBusinessPlan): string {
-  return `${localBusinessOrigin()}/login?plan=${plan}`;
+  const origin = localBusinessOrigin();
+  return origin === null ? CONTACT_PATH : `${origin}/login?plan=${plan}`;
 }
 
 /** The Care plan's monthly price, before GST, as the dashboard charges it (₹2,999 + 18% GST). */
