@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import Link from "next/link";
 import type { ReactElement } from "react";
 import BeforeAfter from "@/components/free-business-website/BeforeAfter";
 import FaqAccordion from "@/components/FaqAccordion";
@@ -131,17 +132,17 @@ export default function FreeBusinessWebsitePage(): ReactElement {
       {/* ─── HERO ─────────────────────────────────────────────── */}
       <section
         data-nav-theme="dark"
-        className="relative isolate -mt-20 overflow-hidden bg-primary pt-32 pb-16 text-white md:-mt-24 md:pt-40 md:pb-24"
+        className="relative isolate -mt-20 overflow-hidden bg-primary pt-32 pb-16 text-white md:-mt-24 md:pt-40 md:pb-20"
       >
         <HeroDarkBackdrop />
-        <div className="relative mx-auto grid max-w-7xl gap-x-16 gap-y-10 px-6 md:px-12 lg:grid-cols-[1fr_1.1fr]">
-          {/* The site's own heading size (64px from lg, as on every Fynix page), across the top and never past two lines. */}
-          <h1 className="max-w-5xl font-serif text-4xl leading-tight font-medium text-balance sm:text-5xl lg:col-span-2 lg:text-[64px] lg:leading-[1.25]">
-            {hero.title} <span className="font-serif text-[#e9af88] italic">{hero.accent}</span>
-          </h1>
-
+        {/* From 1280px the words stand on the left and the slider beside them, level with the headline; below that the slider follows them. */}
+        <div className="relative mx-auto grid max-w-7xl gap-x-12 gap-y-12 px-6 md:px-12 xl:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)] xl:items-start">
           <div>
-            <p className="max-w-xl text-base leading-relaxed font-normal text-white/70 md:text-lg">{hero.lede}</p>
+            {/* The site's own heading size (64px from lg, as on every Fynix page), two lines, a few words. */}
+            <h1 className="font-serif text-4xl leading-tight font-medium text-balance sm:text-5xl lg:text-[64px] lg:leading-[1.25]">
+              {hero.title} <span className="block font-serif text-[#e9af88] italic">{hero.accent}</span>
+            </h1>
+            <p className="mt-6 max-w-md text-base leading-relaxed font-normal text-balance text-white/70 md:text-lg">{hero.lede}</p>
             <div className="mt-8 flex flex-wrap items-center gap-4">
               <a href={careUrl} className={PRIMARY_BUTTON_ON_DARK}>
                 {hero.primaryCta}
@@ -164,15 +165,84 @@ export default function FreeBusinessWebsitePage(): ReactElement {
           </div>
 
           {featured ? (
-            <Reveal variant="right">
+            <Reveal variant="right" className="xl:mt-3">
               <BeforeAfter image={featured.image} host={new URL(featured.url).hostname.replace(/^www\./, "")} />
             </Reveal>
           ) : null}
         </div>
       </section>
 
+      {/* ─── PLANS ────────────────────────────────────────────── */}
+      <section id="compare" aria-labelledby="compare-title" className="bg-background py-12 md:py-16">
+        <div className="mx-auto max-w-5xl px-6 md:px-12">
+          <Reveal className="max-w-3xl">
+            <h2 id="compare-title" className="font-serif text-4xl leading-tight font-medium text-primary md:text-5xl">
+              {page.compare.title}
+            </h2>
+            <p className="mt-4 max-w-2xl text-base leading-relaxed text-text-muted">{page.compare.lede}</p>
+          </Reveal>
+
+          <Reveal className="mt-10">
+            <table className="w-full border-collapse text-left">
+              <caption className="sr-only">What the Care and Premium plans include</caption>
+              <thead>
+                <tr>
+                  <th scope="col" className="border-b-2 border-primary pb-3">
+                    <span className="sr-only">What you get</span>
+                  </th>
+                  <th scope="col" className="w-24 border-b-2 border-primary px-2 pb-3 text-center align-bottom font-serif text-xl font-medium text-primary sm:w-40">
+                    {page.compare.care}
+                  </th>
+                  <th scope="col" className="w-24 border-b-2 border-primary bg-background-soft px-2 py-3 text-center align-bottom font-serif text-xl font-medium text-primary sm:w-40">
+                    {page.compare.premium}
+                  </th>
+                </tr>
+              </thead>
+              {groupRows(page.compare.rows).map((group) => (
+                <tbody key={group.name}>
+                  <tr>
+                    <th scope="colgroup" colSpan={2} className="pt-7 pb-2 text-left text-sm font-medium text-accent-strong">
+                      {group.name}
+                    </th>
+                    <td className="bg-background-soft" />
+                  </tr>
+                  {group.rows.map((row) => (
+                    <tr key={row.label} className="border-b border-border">
+                      <th scope="row" className="py-3 pr-4 font-normal">
+                        <span className="flex items-center gap-3.5">
+                          <PlanIcon name={row.icon} />
+                          <span className="text-sm leading-snug text-foreground sm:text-base">{row.label}</span>
+                        </span>
+                      </th>
+                      <td className="px-2 py-3 text-center">
+                        <Cell value={row.care} />
+                      </td>
+                      <td className="bg-background-soft px-2 py-3 text-center">
+                        <Cell value={row.premium} />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              ))}
+            </table>
+          </Reveal>
+
+          <Reveal className="mt-10 flex flex-wrap gap-4">
+            <a href={careUrl} className={PRIMARY_BUTTON}>
+              {page.compare.careCta}
+              <Arrow />
+            </a>
+            <a href={signUpUrl("premium")} className={SECONDARY_BUTTON}>
+              {page.compare.premiumCta}
+            </a>
+          </Reveal>
+        </div>
+      </section>
+
+      <SectionSeam from="white" to="soft" />
+
       {/* ─── PRICE ────────────────────────────────────────────── */}
-      <section id="plan" aria-labelledby="plan-title" className="bg-background py-12 md:py-16">
+      <section id="plan" aria-labelledby="plan-title" className="bg-background-soft py-12 md:py-16">
         <div className="mx-auto max-w-7xl px-6 md:px-12">
           <Reveal className="max-w-3xl">
             <h2 id="plan-title" className="font-serif text-4xl leading-tight font-medium text-balance text-primary md:text-5xl">
@@ -229,75 +299,6 @@ export default function FreeBusinessWebsitePage(): ReactElement {
             </div>
           </Reveal>
 
-        </div>
-      </section>
-
-      <SectionSeam from="white" to="soft" />
-
-      {/* ─── PLANS ────────────────────────────────────────────── */}
-      <section id="compare" aria-labelledby="compare-title" className="bg-background-soft py-12 md:py-16">
-        <div className="mx-auto max-w-5xl px-6 md:px-12">
-          <Reveal className="max-w-3xl">
-            <h2 id="compare-title" className="font-serif text-4xl leading-tight font-medium text-primary md:text-5xl">
-              {page.compare.title}
-            </h2>
-            <p className="mt-4 max-w-2xl text-base leading-relaxed text-text-muted">{page.compare.lede}</p>
-          </Reveal>
-
-          <Reveal className="mt-10">
-            <table className="w-full border-collapse text-left">
-              <caption className="sr-only">What the Care and Premium plans include</caption>
-              <thead>
-                <tr>
-                  <th scope="col" className="border-b-2 border-primary pb-3">
-                    <span className="sr-only">What you get</span>
-                  </th>
-                  <th scope="col" className="w-24 border-b-2 border-primary px-2 pb-3 text-center align-bottom font-serif text-xl font-medium text-primary sm:w-40">
-                    {page.compare.care}
-                  </th>
-                  <th scope="col" className="w-24 border-b-2 border-primary bg-white px-2 py-3 text-center align-bottom font-serif text-xl font-medium text-primary sm:w-40">
-                    {page.compare.premium}
-                  </th>
-                </tr>
-              </thead>
-              {groupRows(page.compare.rows).map((group) => (
-                <tbody key={group.name}>
-                  <tr>
-                    <th scope="colgroup" colSpan={2} className="pt-7 pb-2 text-left text-sm font-medium text-accent-strong">
-                      {group.name}
-                    </th>
-                    <td className="bg-white" />
-                  </tr>
-                  {group.rows.map((row) => (
-                    <tr key={row.label} className="border-b border-border">
-                      <th scope="row" className="py-3 pr-4 font-normal">
-                        <span className="flex items-center gap-3.5">
-                          <PlanIcon name={row.icon} />
-                          <span className="text-sm leading-snug text-foreground sm:text-base">{row.label}</span>
-                        </span>
-                      </th>
-                      <td className="px-2 py-3 text-center">
-                        <Cell value={row.care} />
-                      </td>
-                      <td className="bg-white px-2 py-3 text-center">
-                        <Cell value={row.premium} />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              ))}
-            </table>
-          </Reveal>
-
-          <Reveal className="mt-10 flex flex-wrap gap-4">
-            <a href={careUrl} className={PRIMARY_BUTTON}>
-              {page.compare.careCta}
-              <Arrow />
-            </a>
-            <a href={signUpUrl("premium")} className={SECONDARY_BUTTON}>
-              {page.compare.premiumCta}
-            </a>
-          </Reveal>
         </div>
       </section>
 
@@ -415,10 +416,8 @@ export default function FreeBusinessWebsitePage(): ReactElement {
             {page.work.sites.map((site, index) => (
               <li key={site.title}>
                 <Reveal delay={index * 100} className="h-full">
-                  <a
-                    href={site.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <Link
+                    href={`/free-business-website/live/${site.slug}`}
                     className="group grid h-full content-start gap-5 rounded-xl border border-border bg-white p-4 transition-shadow duration-300 hover:shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                   >
                     <Image
@@ -434,11 +433,11 @@ export default function FreeBusinessWebsitePage(): ReactElement {
                       <h3 className="font-serif text-xl font-medium text-primary">{site.title}</h3>
                       <p className="text-[15px] leading-relaxed text-text-muted">{site.summary}</p>
                       <span className="mt-2 inline-flex items-center gap-2 text-sm font-medium text-primary underline-offset-4 group-hover:underline">
-                        Open the website
+                        Explore the website
                         <Arrow />
                       </span>
                     </div>
-                  </a>
+                  </Link>
                 </Reveal>
               </li>
             ))}

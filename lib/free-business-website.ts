@@ -1,5 +1,6 @@
 import type { PlanIconKey } from "@/components/free-business-website/PlanIcon";
 import type { Faq } from "@/lib/content";
+import { workSites } from "./work-sites";
 
 /**
  * Content for /free-business-website: the website Fynix builds for a local business at no development fee, and the
@@ -40,9 +41,9 @@ export const freeWebsiteContent = {
       "A professional website for your local business with no development fee, live in 7 working days. Design, hosting, security and upkeep in one monthly plan.",
   },
   hero: {
-    title: "Your brand makes its first impression.",
-    accent: "Make it a good one.",
-    lede: "Your website is where customers meet your business. We design it, build it and keep it running. You pay nothing to build it.",
+    title: "Your first impression.",
+    accent: "Make it count.",
+    lede: "We build your website free and look after it every month.",
     primaryCta: "Get my free website",
     secondaryCta: "See what is included",
     assurances: ["Your business", "Your website", "We keep it running"],
@@ -219,45 +220,8 @@ export const freeWebsiteContent = {
   },
   work: {
     title: "Websites we have built.",
-    lede: "Real client websites. Open one and explore it.",
-    sites: [
-      {
-        title: "Curry Cook",
-        category: "Restaurant with online ordering",
-        summary: "A bright restaurant website where customers browse the menu, build their own curry plate and order online.",
-        url: "https://currycook.com/",
-        image: {
-          src: "/free-business-website/curry-cook.jpg",
-          width: 1600,
-          height: 1000,
-          alt: "The Curry Cook home page: the headline “Taste bud reviving Curry flavors” on bright yellow, pink and green banners beside a plate of curry, rice and naan, with an Order now button.",
-        },
-      },
-      {
-        title: "PayWeek",
-        category: "Payroll and accounting software",
-        summary: "A clean product website that shows the software at work and leads to a free trial.",
-        url: "https://payweek.com/home",
-        image: {
-          src: "/free-business-website/payweek.jpg",
-          width: 1600,
-          height: 1000,
-          alt: "The PayWeek home page: a payroll and accounting product website with a free trial button.",
-        },
-      },
-      {
-        title: "GKR Hospitality",
-        category: "Hospitality consultancy",
-        summary: "A dark, confident website for a consultancy, built around one next step: a free discovery call.",
-        url: "https://www.gkrhospitality.com/",
-        image: {
-          src: "/free-business-website/gkr-hospitality.jpg",
-          width: 1600,
-          height: 1000,
-          alt: "The GKR Hospitality home page: a dark website for a hospitality consultancy with a discovery call button.",
-        },
-      },
-    ],
+    lede: "Real client websites. Open one and explore it right here.",
+    sites: workSites,
   },
   faq: {
     title: "Questions, answered.",
