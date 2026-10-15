@@ -175,7 +175,8 @@ export const freeWebsiteContent = {
         name: "Outreach and lead generation",
         tag: "Add-on",
         price: OUTREACH_ADDON_PRICE,
-        intro: "We reach out to potential clients for you and schedule the meetings directly on your Calendly.",
+        intro:
+          "If your potential customers can be approached through LinkedIn and email, this is for you.\nWe reach out to potential clients for you and schedule the meetings directly on your Calendly.",
         columns: [
           {
             items: [
