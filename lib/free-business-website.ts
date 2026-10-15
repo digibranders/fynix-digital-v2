@@ -77,7 +77,6 @@ export const freeWebsiteContent = {
         "Up to 5 pages",
         "Works on every phone",
         "Enquiry forms and click-to-call",
-        "Google Maps and Business Profile setup",
         "Local SEO foundation",
       ],
     },
