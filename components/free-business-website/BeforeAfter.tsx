@@ -19,6 +19,8 @@ export default function BeforeAfter({ image, host }: Props) {
   // Half and half to begin with, so both the site and what it replaces show at once.
   const [position, setPosition] = useState(50);
   const [touched, setTouched] = useState(false);
+  // Only the label of the side that is mostly showing: the Fynix site once it covers half or more, the empty page below that.
+  const showsFynix = position >= 50;
 
   return (
     <figure className="overflow-hidden rounded-xl border border-white/15 bg-[#07131d] shadow-[0_40px_80px_-30px_rgba(0,0,0,0.7)]">
@@ -63,11 +65,17 @@ export default function BeforeAfter({ image, host }: Props) {
           </div>
         </div>
 
-        <p className="pointer-events-none absolute right-3 top-3 rounded-full bg-primary/90 px-3 py-1.5 font-mono text-[11px] font-medium tracking-widest text-white uppercase">
+        <p
+          aria-hidden
+          className={`pointer-events-none absolute right-3 top-3 rounded-full bg-primary/90 px-3 py-1.5 font-mono text-[11px] font-medium tracking-widest text-white uppercase transition-opacity duration-300 ${showsFynix ? "opacity-0" : "opacity-100"}`}
+        >
           <span className="sm:hidden">Before</span>
           <span className="max-sm:hidden">Without a website</span>
         </p>
-        <p className="pointer-events-none absolute left-3 top-3 rounded-full bg-accent px-3 py-1.5 font-mono text-[11px] font-medium tracking-widest text-primary uppercase">
+        <p
+          aria-hidden
+          className={`pointer-events-none absolute left-3 top-3 rounded-full bg-accent px-3 py-1.5 font-mono text-[11px] font-medium tracking-widest text-primary uppercase transition-opacity duration-300 ${showsFynix ? "opacity-100" : "opacity-0"}`}
+        >
           <span className="sm:hidden">After</span>
           <span className="max-sm:hidden">With Fynix</span>
         </p>

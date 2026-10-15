@@ -17,8 +17,11 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [megaOpen, setMegaOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  // True once the first (hero) section has scrolled out from under the header.
+  const [pastHero, setPastHero] = useState(false);
   const pathname = usePathname();
-  // The free business website page is a single-purpose page: no navigation, and the header button signs up.
+  // The free business website page is a single-purpose page: no desktop navigation, and a sign-up button that takes the
+  // hamburger's place once the hero has scrolled away.
   const isFreeWebsitePage = pathname.startsWith("/free-business-website");
   const lenis = useLenis();
 
@@ -121,6 +124,7 @@ export default function Header() {
         : y > SCROLL_THRESHOLD,
     );
     const sections = darkSectionsRef.current;
+    setPastHero(sections.length > 0 && sections[0].getBoundingClientRect().bottom <= HEADER_HEIGHT);
     if (sections.length === 0) {
       setTheme("light");
       return;
@@ -561,6 +565,7 @@ export default function Header() {
 
           <div className="flex items-center gap-2 md:gap-5 shrink-0">
             {isFreeWebsitePage ? (
+              pastHero ? (
               <a
                 href={signUpUrl("care")}
                 className={`group relative inline-flex items-center justify-center gap-1.5 px-4 py-2.5 md:px-5 rounded-full text-[11px] md:text-xs font-semibold uppercase tracking-widest transition-[background-color,color,transform,box-shadow] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 active:translate-y-0 will-change-transform ${
@@ -571,6 +576,7 @@ export default function Header() {
               >
                 Get my free website
               </a>
+              ) : null
             ) : (
               <Link
                 href="/contact"
@@ -594,7 +600,7 @@ export default function Header() {
               </Link>
             )}
 
-            {!isFreeWebsitePage && (
+            {isFreeWebsitePage && pastHero ? null : (
               <button
                 type="button"
                 aria-expanded={menuOpen}
@@ -642,151 +648,149 @@ export default function Header() {
         }`}
       />
 
-      {!isFreeWebsitePage && (
-        <div
-          id="mobile-menu"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Menu"
-          hidden={!menuOpen}
-          className={`lg:hidden fixed inset-x-0 top-20 bottom-0 z-40 bg-white transition-[opacity,transform] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
-            menuOpen
-              ? "opacity-100 translate-y-0"
-              : "opacity-0 pointer-events-none -translate-y-2"
-          }`}
+      <div
+        id="mobile-menu"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Menu"
+        hidden={!menuOpen}
+        className={`lg:hidden fixed inset-x-0 top-20 bottom-0 z-40 bg-white transition-[opacity,transform] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+          menuOpen
+            ? "opacity-100 translate-y-0"
+            : "opacity-0 pointer-events-none -translate-y-2"
+        }`}
+      >
+        <nav
+          aria-label="Mobile primary"
+          className="h-full overflow-y-auto px-6 pt-8 pb-12 flex flex-col"
         >
-          <nav
-            aria-label="Mobile primary"
-            className="h-full overflow-y-auto px-6 pt-8 pb-12 flex flex-col"
-          >
-            <ul className="flex flex-col divide-y divide-border">
-              {nav.map((item, idx) => {
-                const isServices = item.href === "/services";
-                return (
-                  <li key={item.href}>
-                    <Link
-                      href={item.href}
-                      onClick={(e) => {
-                        setMenuOpen(false);
-                        handleSamePageNav(item.href)(e);
-                      }}
-                      className="flex items-center justify-between py-5 group"
+          <ul className="flex flex-col divide-y divide-border">
+            {nav.map((item, idx) => {
+              const isServices = item.href === "/services";
+              return (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    onClick={(e) => {
+                      setMenuOpen(false);
+                      handleSamePageNav(item.href)(e);
+                    }}
+                    className="flex items-center justify-between py-5 group"
+                  >
+                    <span className="font-serif text-3xl text-primary group-hover:text-accent transition-colors">
+                      {item.label}
+                    </span>
+                    <span
+                      aria-hidden
+                      className="text-xs font-mono text-text-muted tabular-nums"
                     >
-                      <span className="font-serif text-3xl text-primary group-hover:text-accent transition-colors">
-                        {item.label}
-                      </span>
-                      <span
-                        aria-hidden
-                        className="text-xs font-mono text-text-muted tabular-nums"
-                      >
-                        {String(idx + 1).padStart(2, "0")}
-                      </span>
-                    </Link>
+                      {String(idx + 1).padStart(2, "0")}
+                    </span>
+                  </Link>
 
-                    {isServices && (
-                      <ul className="pl-4 pb-4 space-y-3 border-l-2 border-accent/30 ml-1 mb-2">
-                        {acts.map((act) => (
-                          <li key={act.slug}>
-                            <Link
-                              href={`/services/${act.slug}`}
-                              onClick={(e) => {
-                                setMenuOpen(false);
-                                handleSamePageNav(`/services/${act.slug}`)(e);
-                              }}
-                              className="flex items-center gap-3 group/sub text-sm"
-                            >
-                              <span className="font-mono text-xs font-semibold text-accent shrink-0">
-                                {act.num}
-                              </span>
-                              <span className="font-serif text-lg text-primary/85 group-hover/sub:text-accent transition-colors">
-                                {act.title}
-                              </span>
-                            </Link>
-                          </li>
-                        ))}
-                        <li>
+                  {isServices && (
+                    <ul className="pl-4 pb-4 space-y-3 border-l-2 border-accent/30 ml-1 mb-2">
+                      {acts.map((act) => (
+                        <li key={act.slug}>
                           <Link
-                            href="/services/linkedin-personal-account"
+                            href={`/services/${act.slug}`}
                             onClick={(e) => {
                               setMenuOpen(false);
-                              handleSamePageNav("/services/linkedin-personal-account")(e);
+                              handleSamePageNav(`/services/${act.slug}`)(e);
                             }}
-                            className="flex items-center gap-3 group/sub text-sm"
-                          >
-                            <span className="font-mono text-xs font-semibold text-accent shrink-0 w-5">
-                              05
-                            </span>
-                            <span className="font-serif text-lg text-primary/85 group-hover/sub:text-accent transition-colors">
-                              LinkedIn Management
-                            </span>
-                          </Link>
-                        </li>
-                        <li>
-                          <Link
-                            href="/services/social-media-advertisement"
-                            onClick={(e) => {
-                              setMenuOpen(false);
-                              handleSamePageNav("/services/social-media-advertisement")(e);
-                            }}
-                            className="flex items-center gap-3 group/sub text-sm"
-                          >
-                            <span className="font-mono text-xs font-semibold text-accent shrink-0 w-5">
-                              06
-                            </span>
-                            <span className="font-serif text-lg text-primary/85 group-hover/sub:text-accent transition-colors">
-                              Social Media Advertising
-                            </span>
-                          </Link>
-                        </li>
-                        <li>
-                          <Link
-                            href="/#technical-seo-audit"
-                            onClick={handleAuditNav}
                             className="flex items-center gap-3 group/sub text-sm"
                           >
                             <span className="font-mono text-xs font-semibold text-accent shrink-0">
-                              &#9733;
+                              {act.num}
                             </span>
                             <span className="font-serif text-lg text-primary/85 group-hover/sub:text-accent transition-colors">
-                              Technical Audit
-                            </span>
-                            <span className="font-mono text-[10px] uppercase tracking-widest text-accent font-semibold rounded-full border border-accent/40 px-1.5 py-0.5">
-                              Free
+                              {act.title}
                             </span>
                           </Link>
                         </li>
-                      </ul>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
+                      ))}
+                      <li>
+                        <Link
+                          href="/services/linkedin-personal-account"
+                          onClick={(e) => {
+                            setMenuOpen(false);
+                            handleSamePageNav("/services/linkedin-personal-account")(e);
+                          }}
+                          className="flex items-center gap-3 group/sub text-sm"
+                        >
+                          <span className="font-mono text-xs font-semibold text-accent shrink-0 w-5">
+                            05
+                          </span>
+                          <span className="font-serif text-lg text-primary/85 group-hover/sub:text-accent transition-colors">
+                            LinkedIn Management
+                          </span>
+                        </Link>
+                      </li>
+                      <li>
+                        <Link
+                          href="/services/social-media-advertisement"
+                          onClick={(e) => {
+                            setMenuOpen(false);
+                            handleSamePageNav("/services/social-media-advertisement")(e);
+                          }}
+                          className="flex items-center gap-3 group/sub text-sm"
+                        >
+                          <span className="font-mono text-xs font-semibold text-accent shrink-0 w-5">
+                            06
+                          </span>
+                          <span className="font-serif text-lg text-primary/85 group-hover/sub:text-accent transition-colors">
+                            Social Media Advertising
+                          </span>
+                        </Link>
+                      </li>
+                      <li>
+                        <Link
+                          href="/#technical-seo-audit"
+                          onClick={handleAuditNav}
+                          className="flex items-center gap-3 group/sub text-sm"
+                        >
+                          <span className="font-mono text-xs font-semibold text-accent shrink-0">
+                            &#9733;
+                          </span>
+                          <span className="font-serif text-lg text-primary/85 group-hover/sub:text-accent transition-colors">
+                            Technical Audit
+                          </span>
+                          <span className="font-mono text-[10px] uppercase tracking-widest text-accent font-semibold rounded-full border border-accent/40 px-1.5 py-0.5">
+                            Free
+                          </span>
+                        </Link>
+                      </li>
+                    </ul>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
 
-            <div className="mt-auto pt-10 space-y-4 text-sm">
-              <Link
-                href="/faqs"
-                onClick={(e) => {
-                  setMenuOpen(false);
-                  handleSamePageNav("/faqs")(e);
-                }}
-                className="block font-mono uppercase tracking-widest text-xs text-text-muted hover:text-primary transition-colors"
-              >
-                FAQs
-              </Link>
-              <Link
-                href="/contact"
-                onClick={(e) => {
-                  setMenuOpen(false);
-                  handleSamePageNav("/contact")(e);
-                }}
-                className="block font-mono uppercase tracking-widest text-xs text-text-muted hover:text-primary transition-colors"
-              >
-                {siteConfig.email}
-              </Link>
-            </div>
-          </nav>
-        </div>
-      )}
+          <div className="mt-auto pt-10 space-y-4 text-sm">
+            <Link
+              href="/faqs"
+              onClick={(e) => {
+                setMenuOpen(false);
+                handleSamePageNav("/faqs")(e);
+              }}
+              className="block font-mono uppercase tracking-widest text-xs text-text-muted hover:text-primary transition-colors"
+            >
+              FAQs
+            </Link>
+            <Link
+              href="/contact"
+              onClick={(e) => {
+                setMenuOpen(false);
+                handleSamePageNav("/contact")(e);
+              }}
+              className="block font-mono uppercase tracking-widest text-xs text-text-muted hover:text-primary transition-colors"
+            >
+              {siteConfig.email}
+            </Link>
+          </div>
+        </nav>
+      </div>
     </>
   );
 }
