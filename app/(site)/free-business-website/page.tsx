@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import type { ReactElement } from "react";
+import { Fragment, type ReactElement } from "react";
 import BeforeAfter from "@/components/free-business-website/BeforeAfter";
 import FaqAccordion from "@/components/FaqAccordion";
 import PlanIcon from "@/components/free-business-website/PlanIcon";
@@ -129,9 +129,10 @@ export default function FreeBusinessWebsitePage(): ReactElement {
             <h1 className="font-serif text-[32px] leading-tight font-medium text-balance sm:text-5xl lg:text-[64px] lg:leading-[1.25]">
               {hero.title} <span className="block font-serif text-[#e9af88] italic">{hero.accent}</span>
             </h1>
-            <p className="mt-4 max-w-md text-base leading-normal font-normal text-balance text-white/70 md:mt-6 md:text-lg md:leading-relaxed">{hero.lede}</p>
+            {/* One line at every width: the type shrinks with the phone so the whole sentence fits (16px from 464px up). */}
+            <p className="mt-4 text-[clamp(12px,3.45vw,16px)] leading-normal font-normal whitespace-nowrap text-white/70 md:mt-6 md:text-lg md:leading-relaxed">{hero.lede}</p>
             <div className="mt-6 flex flex-wrap items-center gap-4 md:mt-8">
-              <a href={careUrl} className={`${PRIMARY_BUTTON_ON_DARK} w-full sm:w-auto`}>
+              <a href={careUrl} className={`${PRIMARY_BUTTON_ON_DARK} max-sm:px-6 max-sm:py-3 max-sm:text-[15px]`}>
                 {hero.primaryCta}
                 <Arrow />
               </a>
@@ -168,77 +169,86 @@ export default function FreeBusinessWebsitePage(): ReactElement {
 
           <Reveal className="mt-10">
             <table className="w-full border-collapse text-left">
-              <caption className="sr-only">What the Care plan includes, and the two add-ons you can add to it, with prices</caption>
-              <thead>
+              <caption className="sr-only">The monthly plan and its optional add-ons: what each includes and what it costs</caption>
+              <thead className="sr-only">
                 <tr>
-                  <th scope="col" className="border-b-2 border-primary pb-3">
-                    <span className="sr-only">What you get</span>
-                  </th>
-                  <th scope="col" className="w-28 border-b-2 border-primary px-2 pb-3 text-center align-bottom font-serif text-xl font-medium text-primary sm:w-44">
-                    {page.compare.care.name}
-                  </th>
+                  <th scope="col">What you get</th>
+                  <th scope="col">Included</th>
                 </tr>
               </thead>
-              <tbody>
-                <tr className="border-b border-border">
-                  <th scope="row" className="py-4 pr-4 text-left text-sm font-medium text-accent-strong">
-                    Price
-                  </th>
-                  <td className="px-2 py-4 text-center">
-                    <span className="block font-serif text-2xl leading-none font-medium text-primary tabular-nums">{page.compare.care.price}</span>
-                    <span className="mt-1.5 block text-xs leading-tight text-text-muted">{page.compare.priceLine}</span>
-                  </td>
-                </tr>
-              </tbody>
-              {page.compare.groups.map((group) => (
-                <tbody key={group.name}>
+              {page.compare.bands.map((band, index) => (
+                <tbody key={band.name}>
+                  {index === 1 ? (
+                    <tr>
+                      <td colSpan={2} className="pt-12 pb-4 text-base text-text-muted">
+                        {page.compare.addonsIntro}
+                      </td>
+                    </tr>
+                  ) : index > 1 ? (
+                    <tr aria-hidden>
+                      <td colSpan={2} className="h-8" />
+                    </tr>
+                  ) : null}
                   <tr>
-                    <th scope="row" className="pt-7 pb-2 pr-4 text-left align-top">
-                      <span className="block text-sm font-medium text-accent-strong">{group.name}</span>
-                      <span className="mt-1.5 block max-w-2xl text-[15px] leading-relaxed font-normal text-text-muted sm:text-base">{group.note}</span>
-                      {group.extra ? (
-                        <span className="mt-2.5 flex max-w-2xl items-start gap-2.5 text-[15px] leading-snug font-medium text-primary sm:text-base">
-                          <span
-                            aria-hidden
-                            className="mt-px inline-flex shrink-0 items-center rounded-full bg-primary px-2 py-0.5 text-[11px] font-semibold tracking-widest text-white uppercase"
-                          >
-                            Extra
+                    <th scope="colgroup" colSpan={2} className="rounded-t-xl bg-primary px-5 py-4 text-left font-normal text-white">
+                      <span className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2">
+                        <span className="flex items-center gap-3">
+                          <span className="rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-semibold tracking-widest uppercase">
+                            {index === 0 ? "Your plan" : "Add-on"}
                           </span>
-                          {group.extra}
+                          <span className="font-serif text-xl font-medium sm:text-2xl">{band.name}</span>
                         </span>
-                      ) : null}
+                        <span className="flex items-baseline gap-2">
+                          <span className="font-serif text-2xl font-medium tabular-nums sm:text-3xl">{band.price}</span>
+                          <span className="text-xs text-white/70">{page.compare.priceLine}</span>
+                        </span>
+                      </span>
                     </th>
-                    <td className="px-2 pt-7 pb-2 text-center align-top">
-                      {group.addon ? (
-                        <>
-                          <span className="block text-xs font-semibold tracking-widest text-accent-strong uppercase">
-                            {group.addon.name}
-                          </span>
-                          {group.addon.price ? (
-                            <>
-                              <span className="mt-1.5 block font-serif text-2xl leading-none font-medium text-primary tabular-nums">
-                                {group.addon.price}
-                              </span>
-                              <span className="mt-1.5 block text-xs leading-tight text-text-muted">{page.compare.priceLine}</span>
-                            </>
-                          ) : null}
-                        </>
-                      ) : null}
-                    </td>
                   </tr>
-                  {page.compare.rows
-                    .filter((row) => row.group === group.name)
-                    .map((row) => (
-                      <tr key={row.label} className="border-b border-border">
-                        <th scope="row" className="py-3 pr-4 font-normal">
-                          <span className="flex items-center gap-3.5">
-                            <PlanIcon name={row.icon} />
-                            <span className="text-sm leading-snug text-foreground sm:text-base">{row.label}</span>
-                          </span>
-                        </th>
-                        <td className="px-2 py-3 text-center">{group.addon ? null : <Cell value />}</td>
-                      </tr>
-                    ))}
+                  {band.groups.map((group) => (
+                    <Fragment key={group.name ?? band.name}>
+                      {group.name || group.note || group.extra ? (
+                        <tr>
+                          <th scope="colgroup" colSpan={2} className="px-1 pt-6 pb-2 text-left align-top">
+                            {group.name ? <span className="block text-sm font-medium text-accent-strong">{group.name}</span> : null}
+                            {group.note ? (
+                              <span className={`${group.name ? "mt-1.5" : ""} block max-w-2xl text-[15px] leading-relaxed font-normal text-text-muted sm:text-base`}>
+                                {group.note}
+                              </span>
+                            ) : null}
+                            {group.extra ? (
+                              <span className="mt-2.5 flex max-w-2xl items-start gap-2.5 text-[15px] leading-snug font-medium text-primary sm:text-base">
+                                <span
+                                  aria-hidden
+                                  className="mt-px inline-flex shrink-0 items-center rounded-full bg-primary px-2 py-0.5 text-[11px] font-semibold tracking-widest text-white uppercase"
+                                >
+                                  Extra
+                                </span>
+                                {group.extra}
+                              </span>
+                            ) : null}
+                          </th>
+                        </tr>
+                      ) : (
+                        <tr aria-hidden>
+                          <td colSpan={2} className="h-2" />
+                        </tr>
+                      )}
+                      {group.rows.map((row) => (
+                        <tr key={row.label} className="border-b border-border">
+                          <th scope="row" className="py-3 pr-4 pl-1 font-normal">
+                            <span className="flex items-center gap-3.5">
+                              <PlanIcon name={row.icon} />
+                              <span className="text-sm leading-snug text-foreground sm:text-base">{row.label}</span>
+                            </span>
+                          </th>
+                          <td className="w-16 px-2 py-3 text-center sm:w-24">
+                            <Cell value />
+                          </td>
+                        </tr>
+                      ))}
+                    </Fragment>
+                  ))}
                 </tbody>
               ))}
             </table>
@@ -484,7 +494,7 @@ export default function FreeBusinessWebsitePage(): ReactElement {
             </a>
           </div>
           <p className="mt-6 font-mono text-xs tracking-widest text-white/60 uppercase">
-            ₹0 development fee · Care {page.ticket.care.price} {page.ticket.care.priceLine}
+            ₹0 development fee · Website plan {page.ticket.care.price} {page.ticket.care.priceLine}
           </p>
         </Reveal>
       </section>

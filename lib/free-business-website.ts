@@ -5,7 +5,7 @@ import { workSites } from "./work-sites";
 /**
  * Content for /free-business-website: the website Fynix builds for a local business at no development fee, and the
  * monthly plan that keeps it running. Every sign-up button goes to the plan's sign-up in the business dashboard
- * (app.fynix.digital, where one plan, Care, is sold with two add-ons) once NEXT_PUBLIC_LOCAL_BUSINESS_URL
+ * (app.fynix.digital, where one plan is sold with add-ons) once NEXT_PUBLIC_LOCAL_BUSINESS_URL
  * says the dashboard is live. Until then it goes to the contact page, so no visitor lands on an address that does not exist.
  */
 
@@ -29,13 +29,27 @@ export function signUpUrl(plan: LocalBusinessPlan): string {
   return origin === null ? CONTACT_PATH : `${origin}/login?plan=${plan}`;
 }
 
-/** The Care plan's monthly price, before GST, as the dashboard charges it (₹2,999 + 18% GST). */
+/** The monthly plan's price, before GST, as the dashboard charges it (₹2,999 + 18% GST). */
 export const CARE_MONTHLY_PRICE = "₹2,999";
 export const GST_NOTE = "+ 18% GST";
-/** The two add-ons sold on top of Care, a month before GST. */
-export const SOCIAL_ADDON_PRICE = "₹2,000";
-export const ADVERTISING_ADDON_PRICE = "₹4,000";
+/** The three add-ons sold on top of the monthly plan, a month before GST. */
+export const SOCIAL_ADDON_PRICE = "₹1,999";
+export const OUTREACH_ADDON_PRICE = "₹3,999";
+export const ADVERTISING_ADDON_PRICE = "₹5,999";
 export const CARE_MONTHLY_TEXT = `${CARE_MONTHLY_PRICE} a month ${GST_NOTE}`;
+
+export interface CompareBand {
+  readonly name: string;
+  readonly price: string;
+  readonly groups: readonly {
+    /** Shown only where the band holds more than the one thing its own name already says. */
+    readonly name?: string;
+    readonly note?: string;
+    /** What costs extra on top of the price, on its own line under the note so it is read. */
+    readonly extra?: string;
+    readonly rows: readonly { readonly label: string; readonly icon: PlanIconKey }[];
+  }[];
+}
 
 export const freeWebsiteContent = {
   meta: {
@@ -79,71 +93,86 @@ export const freeWebsiteContent = {
         { title: "Monthly health report", detail: "A short report on how your website is doing." },
         { title: "OyeChats professional chatbot", detail: "A professional chatbot on your website." },
       ],
-      cta: "Start with Care",
+      cta: "Get my free website",
     },
   },
   /**
-   * The one monthly plan (Care) and, below it, the two add-ons bought on top of Care, as one table of groups. A group
-   * of Care's own features is ticked in the Care column; an add-on group says "Add-on" there and carries the add-on's
-   * price (on the first group of that add-on). There is no other plan.
+   * The one monthly plan and the three add-ons bought on top of it, as one table in bands. Each band has
+   * its own name and price on a dark header row; every row under a band is included in that band, so a tick means
+   * "you get this". There is no other plan.
    */
   compare: {
-    title: "One plan. Two add-ons.",
-    lede: "Care keeps your website, hosting and chatbot running. Add social media or advertising when you want them.",
-    care: { name: "Care", price: CARE_MONTHLY_PRICE },
+    title: "One plan. Add what you need.",
+    lede: "One monthly plan keeps your website, hosting and chatbot running. Add social media, outreach or advertising on top when you want them.",
     priceLine: `a month ${GST_NOTE}`,
-    addonLabel: "Add-on",
-    groups: [
+    addonsIntro: "Optional add-ons. Pick any you need.",
+    bands: [
       {
-        name: "Website maintenance",
-        note: "Security, performance and hosting monitoring.",
-        extra: "Content updates and new pages: ₹500 an hour.",
+        name: "Website plan",
+        price: CARE_MONTHLY_PRICE,
+        groups: [
+          {
+            name: "Website maintenance",
+            note: "Security, performance and hosting monitoring.",
+            extra: "Content updates and new pages: ₹500 an hour.",
+            rows: [
+              { label: "Server and hosting", icon: "hosting" },
+              { label: "Next.js business website", icon: "code" },
+              { label: "Website management", icon: "website" },
+              { label: "OyeChats professional chatbot", icon: "chatbot" },
+            ],
+          },
+        ],
       },
       {
         name: "Social media management",
-        note: "Facebook and Instagram, 2 posts a week.",
-        extra: "Extra video editing for Reels: ₹500 an hour.",
-        addon: { name: "Social media add-on", price: SOCIAL_ADDON_PRICE },
+        price: SOCIAL_ADDON_PRICE,
+        groups: [
+          {
+            note: "Facebook and Instagram, 2 posts a week.",
+            extra: "Extra video editing for Reels: ₹500 an hour.",
+            rows: [
+              { label: "Facebook account management", icon: "facebook" },
+              { label: "Instagram account management", icon: "instagram" },
+            ],
+          },
+        ],
       },
       {
         name: "Outreach and lead generation",
-        note: "Reach out to potential clients by email and LinkedIn, and book meetings straight into your Calendly.",
-        addon: { name: "Advertising add-on", price: ADVERTISING_ADDON_PRICE },
+        price: OUTREACH_ADDON_PRICE,
+        groups: [
+          {
+            rows: [
+              { label: "Reach out to potential clients by email and LinkedIn", icon: "target" },
+              { label: "Schedule meetings directly on your Calendly", icon: "calendar" },
+            ],
+          },
+        ],
       },
       {
         name: "Paid advertising",
-        note: "We manage your paid campaigns on Facebook and Instagram.",
-        extra: "Advertising spend is charged separately.",
-        addon: { name: "Advertising add-on" },
+        price: ADVERTISING_ADDON_PRICE,
+        groups: [
+          {
+            note: "We manage your paid campaigns on Facebook and Instagram.",
+            extra: "Advertising spend is charged separately.",
+            rows: [
+              { label: "Meta Ads management (Facebook and Instagram)", icon: "meta-ads" },
+              { label: "Lead generation and conversion optimisation", icon: "target" },
+              { label: "Ad campaign tracking and performance reporting", icon: "reporting" },
+            ],
+          },
+        ],
       },
-    ] satisfies readonly {
-      readonly name: string;
-      readonly note: string;
-      /** What costs extra on top of the plan, on its own line under the note so it is read. */
-      readonly extra?: string;
-      readonly addon?: { readonly name: string; readonly price?: string };
-    }[],
-    rows: [
-      { label: "Server and hosting", group: "Website maintenance", icon: "hosting" },
-      { label: "Next.js business website", group: "Website maintenance", icon: "code" },
-      { label: "Website management", group: "Website maintenance", icon: "website" },
-      { label: "OyeChats professional chatbot", group: "Website maintenance", icon: "chatbot" },
-      { label: "Facebook account management", group: "Social media management", icon: "facebook" },
-      { label: "Instagram account management", group: "Social media management", icon: "instagram" },
-      { label: "Reach out to potential clients by email and LinkedIn", group: "Outreach and lead generation", icon: "target" },
-      { label: "Schedule meetings directly on your Calendly", group: "Outreach and lead generation", icon: "calendar" },
-      { label: "Google Ads management", group: "Paid advertising", icon: "google-ads" },
-      { label: "Meta Ads management (Facebook and Instagram)", group: "Paid advertising", icon: "meta-ads" },
-      { label: "Lead generation and conversion optimisation", group: "Paid advertising", icon: "target" },
-      { label: "Ad campaign tracking and performance reporting", group: "Paid advertising", icon: "reporting" },
-    ] satisfies readonly { readonly label: string; readonly group: string; readonly icon: PlanIconKey }[],
-    careCta: "Start with Care",
+    ] as readonly CompareBand[],
+    careCta: "Get my free website",
   },
   journey: {
     title: "From hello to live.",
     lede: "Five steps to a live website, then it is looked after every month.",
     buildLabel: "We build it · ₹0",
-    careLabel: "Monthly care",
+    careLabel: "Monthly plan",
     steps: [
       { title: "Tell us about your business", detail: "Sign up and send your details from your dashboard." },
       { title: "We get to know it", detail: "We learn what you sell, who you sell to and what you want customers to do." },
@@ -268,7 +297,7 @@ export const freeWebsiteContent = {
 export const freeWebsiteFaqs: Faq[] = [
   {
     q: "Is the website really free?",
-    a: `Yes. There is no design or build fee: you pay nothing for us to build your website. You pay the Care plan, ${CARE_MONTHLY_TEXT}, which **keeps it hosted, secure and up to date**.`,
+    a: `Yes. There is no design or build fee: you pay nothing for us to build your website. You pay the monthly plan, ${CARE_MONTHLY_TEXT}, which **keeps it hosted, secure and up to date**.`,
   },
   {
     q: "What do I pay for every month?",
