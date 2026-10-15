@@ -158,7 +158,6 @@ export const freeWebsiteContent = {
             note: "We manage your paid campaigns on Facebook and Instagram.",
             extra: "Advertising spend is charged separately.",
             rows: [
-              { label: "Google Ads management", icon: "google-ads" },
               { label: "Meta Ads management (Facebook and Instagram)", icon: "meta-ads" },
               { label: "Lead generation and conversion optimisation", icon: "target" },
               { label: "Ad campaign tracking and performance reporting", icon: "reporting" },
