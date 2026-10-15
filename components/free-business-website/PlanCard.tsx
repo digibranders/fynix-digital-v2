@@ -19,19 +19,18 @@ export default function PlanCard({ card, priceLine }: { readonly card: CompareCa
   const columnCount = card.columns.length;
   return (
     <article className="overflow-hidden rounded-2xl border border-border bg-white shadow-[0_24px_36px_-28px_rgba(12,30,46,0.35)]">
-      <header className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 bg-primary px-5 py-4 text-white sm:px-8 sm:py-5">
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-          <span className="rounded-full bg-white/15 px-3 py-1.5 text-[11px] font-semibold tracking-widest uppercase">{card.tag}</span>
-          <h3 className="font-serif text-2xl leading-tight font-medium sm:text-3xl">{card.name}</h3>
-        </div>
-        <p className="flex items-baseline gap-2.5">
+      {/* Two lines on a phone: the tag and the name, then the price. One row from tablet width. */}
+      <header className="flex flex-wrap items-center gap-x-3 gap-y-3 bg-primary px-5 py-4 text-white sm:gap-x-4 sm:px-8 sm:py-5">
+        <span className="rounded-full bg-white/15 px-2.5 py-1.5 text-[10px] font-semibold tracking-widest uppercase sm:px-3 sm:text-[11px]">{card.tag}</span>
+        <h3 className="min-w-0 flex-1 font-serif text-base leading-tight font-medium sm:flex-none sm:text-3xl">{card.name}</h3>
+        <p className="flex basis-full items-baseline gap-2.5 sm:ml-auto sm:basis-auto">
           <span className="font-serif text-3xl leading-none font-medium tabular-nums sm:text-4xl">{card.price}</span>
           <span className="text-xs text-white/70 sm:text-sm">{priceLine}</span>
         </p>
       </header>
 
       <div className="px-5 py-6 sm:px-8 sm:py-8">
-        {card.intro ? <p className="mb-7 max-w-4xl text-base leading-relaxed text-foreground sm:text-lg">{card.intro}</p> : null}
+        {card.intro ? <p className="mb-7 text-base leading-relaxed text-foreground md:text-[clamp(14px,1.55vw,18px)]">{card.intro}</p> : null}
 
         <div className={`grid gap-y-8 md:gap-y-0 ${columnCount > 1 ? "md:grid-cols-2 md:divide-x md:divide-border" : ""}`}>
           {card.columns.map((column, index) => (
