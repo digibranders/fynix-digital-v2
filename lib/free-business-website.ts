@@ -5,7 +5,7 @@ import { workSites } from "./work-sites";
 /**
  * Content for /free-business-website: the website Fynix builds for a local business at no development fee, and the
  * monthly plan that keeps it running. Every sign-up button goes to the plan's sign-up in the business dashboard
- * (app.fynix.digital, where only the Care and Premium plans are sold) once NEXT_PUBLIC_LOCAL_BUSINESS_URL
+ * (app.fynix.digital, where one plan, Care, is sold with two add-ons) once NEXT_PUBLIC_LOCAL_BUSINESS_URL
  * says the dashboard is live. Until then it goes to the contact page, so no visitor lands on an address that does not exist.
  */
 
@@ -21,7 +21,7 @@ export function localBusinessOrigin(): string | null {
   return configured === undefined || configured === "" ? null : configured.replace(/\/+$/, "");
 }
 
-export type LocalBusinessPlan = "care" | "premium";
+export type LocalBusinessPlan = "care";
 
 /** The dashboard's create-account page with a plan already chosen, or the contact page while the dashboard is not live. */
 export function signUpUrl(plan: LocalBusinessPlan): string {
@@ -32,6 +32,9 @@ export function signUpUrl(plan: LocalBusinessPlan): string {
 /** The Care plan's monthly price, before GST, as the dashboard charges it (₹2,999 + 18% GST). */
 export const CARE_MONTHLY_PRICE = "₹2,999";
 export const GST_NOTE = "+ 18% GST";
+/** The two add-ons sold on top of Care, a month before GST. */
+export const SOCIAL_ADDON_PRICE = "₹2,000";
+export const ADVERTISING_ADDON_PRICE = "₹4,000";
 export const CARE_MONTHLY_TEXT = `${CARE_MONTHLY_PRICE} a month ${GST_NOTE}`;
 
 export const freeWebsiteContent = {
@@ -45,7 +48,6 @@ export const freeWebsiteContent = {
     accent: "Make it count.",
     lede: "We build your website free and look after it every month.",
     primaryCta: "Get my free website",
-    secondaryCta: "See what is included",
     assurances: ["Your business", "Your website", "We keep it running"],
   },
   ticket: {
@@ -81,32 +83,61 @@ export const freeWebsiteContent = {
     },
   },
   /**
-   * Care against Premium, from the dashboard's plan table with the Free column and every listing row left
-   * out: this page sells websites, and the dashboard here offers only these two plans. A cell is a tick (true), a dash
-   * (false) or the words it says instead.
+   * The one monthly plan (Care) and, below it, the two add-ons bought on top of Care, as one table of groups. A group
+   * of Care's own features is ticked in the Care column; an add-on group says "Add-on" there and carries the add-on's
+   * price (on the first group of that add-on). There is no other plan.
    */
   compare: {
-    title: "Care or Premium.",
-    lede: "Both plans include your website, hosting and chatbot. Premium adds appointments and the marketing around them.",
-    care: "Care",
-    premium: "Premium",
+    title: "One plan. Two add-ons.",
+    lede: "Care keeps your website, hosting and chatbot running. Add social media or advertising when you want them.",
+    care: { name: "Care", price: CARE_MONTHLY_PRICE },
+    priceLine: `a month ${GST_NOTE}`,
+    addonLabel: "Add-on",
+    groups: [
+      {
+        name: "Website maintenance",
+        note: "Security, performance and hosting monitoring.",
+        extra: "Content updates and new pages: ₹500 an hour.",
+      },
+      {
+        name: "Social media management",
+        note: "Facebook and Instagram, 2 posts a week.",
+        extra: "Extra video editing for Reels: ₹500 an hour.",
+        addon: { name: "Social media add-on", price: SOCIAL_ADDON_PRICE },
+      },
+      {
+        name: "Outreach and lead generation",
+        note: "Reach out to potential clients by email and LinkedIn, and book meetings straight into your Calendly.",
+        addon: { name: "Advertising add-on", price: ADVERTISING_ADDON_PRICE },
+      },
+      {
+        name: "Paid advertising",
+        note: "We manage your paid campaigns on Facebook and Instagram.",
+        extra: "Advertising spend is charged separately.",
+        addon: { name: "Advertising add-on" },
+      },
+    ] satisfies readonly {
+      readonly name: string;
+      readonly note: string;
+      /** What costs extra on top of the plan, on its own line under the note so it is read. */
+      readonly extra?: string;
+      readonly addon?: { readonly name: string; readonly price?: string };
+    }[],
     rows: [
-      { label: "Server and hosting", group: "Website", icon: "hosting", care: true, premium: true },
-      { label: "Next.js business website", group: "Website", icon: "code", care: true, premium: true },
-      { label: "Website management", group: "Website", icon: "website", care: true, premium: true },
-      { label: "OyeChats professional chatbot", group: "Website", icon: "chatbot", care: true, premium: true },
-      { label: "Appointment management system", group: "Bookings", icon: "calendar", care: false, premium: true },
-      { label: "Google Business Profile management", group: "Social media", icon: "google-business", care: false, premium: true },
-      { label: "Facebook account management", group: "Social media", icon: "facebook", care: false, premium: true },
-      { label: "Instagram account management", group: "Social media", icon: "instagram", care: false, premium: true },
-      { label: "Google Ads management", group: "Advertising", icon: "google-ads", care: false, premium: true },
-      { label: "Meta Ads management (Facebook and Instagram)", group: "Advertising", icon: "meta-ads", care: false, premium: true },
-      { label: "Lead generation and conversion optimisation", group: "Advertising", icon: "target", care: false, premium: true },
-      { label: "Ad campaign tracking and performance reporting", group: "Advertising", icon: "reporting", care: false, premium: true },
-      { label: "Fynix digital marketing services", group: "Marketing", icon: "marketing", care: false, premium: "10% off" },
-    ] satisfies readonly { readonly label: string; readonly group: string; readonly icon: PlanIconKey; readonly care: boolean | string; readonly premium: boolean | string }[],
+      { label: "Server and hosting", group: "Website maintenance", icon: "hosting" },
+      { label: "Next.js business website", group: "Website maintenance", icon: "code" },
+      { label: "Website management", group: "Website maintenance", icon: "website" },
+      { label: "OyeChats professional chatbot", group: "Website maintenance", icon: "chatbot" },
+      { label: "Facebook account management", group: "Social media management", icon: "facebook" },
+      { label: "Instagram account management", group: "Social media management", icon: "instagram" },
+      { label: "Reach out to potential clients by email and LinkedIn", group: "Outreach and lead generation", icon: "target" },
+      { label: "Schedule meetings directly on your Calendly", group: "Outreach and lead generation", icon: "calendar" },
+      { label: "Google Ads management", group: "Paid advertising", icon: "google-ads" },
+      { label: "Meta Ads management (Facebook and Instagram)", group: "Paid advertising", icon: "meta-ads" },
+      { label: "Lead generation and conversion optimisation", group: "Paid advertising", icon: "target" },
+      { label: "Ad campaign tracking and performance reporting", group: "Paid advertising", icon: "reporting" },
+    ] satisfies readonly { readonly label: string; readonly group: string; readonly icon: PlanIconKey }[],
     careCta: "Start with Care",
-    premiumCta: "Start with Premium",
   },
   journey: {
     title: "From hello to live.",

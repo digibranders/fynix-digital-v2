@@ -10,7 +10,6 @@ describe("the sign-up buttons on /free-business-website", () => {
     vi.stubEnv("NEXT_PUBLIC_LOCAL_BUSINESS_URL", "");
     expect(localBusinessOrigin()).toBeNull();
     expect(signUpUrl("care")).toBe(CONTACT_PATH);
-    expect(signUpUrl("premium")).toBe(CONTACT_PATH);
   });
 
   it("treat a blank setting as not switched on", () => {
@@ -22,6 +21,5 @@ describe("the sign-up buttons on /free-business-website", () => {
     vi.stubEnv("NEXT_PUBLIC_LOCAL_BUSINESS_URL", "https://app.fynix.digital/");
     expect(localBusinessOrigin()).toBe("https://app.fynix.digital");
     expect(signUpUrl("care")).toBe("https://app.fynix.digital/login?plan=care");
-    expect(signUpUrl("premium")).toBe("https://app.fynix.digital/login?plan=premium");
   });
 });

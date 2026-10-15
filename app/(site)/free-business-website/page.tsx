@@ -49,14 +49,12 @@ const structuredData = {
 
 const PRIMARY_BUTTON_ON_DARK =
   "inline-flex items-center justify-center gap-3 rounded-full bg-white px-8 py-4 font-medium text-primary shadow-sm transition-colors duration-200 hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white";
-const GHOST_BUTTON_ON_DARK =
-  "inline-flex items-center justify-center rounded-full border border-white/35 px-8 py-4 font-medium text-white transition-colors duration-200 hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white";
+
 
 
 const PRIMARY_BUTTON =
   "inline-flex items-center justify-center gap-3 rounded-full bg-primary px-8 py-4 font-medium text-white shadow-sm transition-colors duration-200 hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary";
-const SECONDARY_BUTTON =
-  "inline-flex items-center justify-center rounded-full border border-primary/40 bg-white px-8 py-4 font-medium text-primary transition-colors duration-200 hover:border-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary";
+
 
 /**
  * The "Our work" band: a light wash of the brand peach that fades in from the soft section above and out to the white
@@ -111,17 +109,6 @@ function Cell({ value }: { readonly value: boolean | string }): ReactElement {
   return <span className="sr-only">Not included</span>;
 }
 
-/** The table's rows in runs of the same group, in order: Website, Bookings, Social media, Advertising, Marketing. */
-function groupRows<T extends { readonly group: string }>(rows: readonly T[]): { readonly name: string; readonly rows: readonly T[] }[] {
-  const groups: { name: string; rows: T[] }[] = [];
-  for (const row of rows) {
-    const last = groups[groups.length - 1];
-    if (last !== undefined && last.name === row.group) last.rows.push(row);
-    else groups.push({ name: row.group, rows: [row] });
-  }
-  return groups;
-}
-
 export default function FreeBusinessWebsitePage(): ReactElement {
   const careUrl = signUpUrl("care");
   const hero = page.hero;
@@ -132,30 +119,27 @@ export default function FreeBusinessWebsitePage(): ReactElement {
       {/* ─── HERO ─────────────────────────────────────────────── */}
       <section
         data-nav-theme="dark"
-        className="relative isolate -mt-20 overflow-hidden bg-primary pt-32 pb-16 text-white md:-mt-24 md:pt-40 md:pb-20"
+        className="relative isolate -mt-20 overflow-hidden bg-primary pt-28 pb-12 text-white md:-mt-24 md:pt-40 md:pb-20"
       >
         <HeroDarkBackdrop />
         {/* From 1280px the words stand on the left and the slider beside them, level with the headline; below that the slider follows them. */}
-        <div className="relative mx-auto grid max-w-7xl gap-x-12 gap-y-12 px-6 md:px-12 xl:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)] xl:items-start">
+        <div className="relative mx-auto grid max-w-7xl gap-x-12 gap-y-8 px-6 md:gap-y-12 md:px-12 xl:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)] xl:items-start">
           <div>
             {/* The site's own heading size (64px from lg, as on every Fynix page), two lines, a few words. */}
-            <h1 className="font-serif text-4xl leading-tight font-medium text-balance sm:text-5xl lg:text-[64px] lg:leading-[1.25]">
+            <h1 className="font-serif text-[32px] leading-tight font-medium text-balance sm:text-5xl lg:text-[64px] lg:leading-[1.25]">
               {hero.title} <span className="block font-serif text-[#e9af88] italic">{hero.accent}</span>
             </h1>
-            <p className="mt-6 max-w-md text-base leading-relaxed font-normal text-balance text-white/70 md:text-lg">{hero.lede}</p>
-            <div className="mt-8 flex flex-wrap items-center gap-4">
-              <a href={careUrl} className={PRIMARY_BUTTON_ON_DARK}>
+            <p className="mt-4 max-w-md text-base leading-normal font-normal text-balance text-white/70 md:mt-6 md:text-lg md:leading-relaxed">{hero.lede}</p>
+            <div className="mt-6 flex flex-wrap items-center gap-4 md:mt-8">
+              <a href={careUrl} className={`${PRIMARY_BUTTON_ON_DARK} w-full sm:w-auto`}>
                 {hero.primaryCta}
                 <Arrow />
               </a>
-              <a href="#included" className={GHOST_BUTTON_ON_DARK}>
-                {hero.secondaryCta}
-              </a>
             </div>
-            <ul className="mt-8 flex flex-wrap gap-x-7 gap-y-2.5 text-[15px] text-white/70">
+            <ul className="mt-6 flex flex-wrap gap-x-3 gap-y-2 text-xs text-white/70 sm:gap-x-7 sm:text-[15px] md:mt-8">
               {hero.assurances.map((item) => (
-                <li key={item} className="flex items-center gap-2">
-                  <svg aria-hidden viewBox="0 0 20 20" className="size-4 text-accent" fill="none">
+                <li key={item} className="flex items-center gap-1.5 sm:gap-2">
+                  <svg aria-hidden viewBox="0 0 20 20" className="size-3.5 text-accent sm:size-4" fill="none">
                     <path d="M4.5 10.5l3.5 3.5 7.5-8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                   {item}
@@ -184,44 +168,77 @@ export default function FreeBusinessWebsitePage(): ReactElement {
 
           <Reveal className="mt-10">
             <table className="w-full border-collapse text-left">
-              <caption className="sr-only">What the Care and Premium plans include</caption>
+              <caption className="sr-only">What the Care plan includes, and the two add-ons you can add to it, with prices</caption>
               <thead>
                 <tr>
                   <th scope="col" className="border-b-2 border-primary pb-3">
                     <span className="sr-only">What you get</span>
                   </th>
-                  <th scope="col" className="w-24 border-b-2 border-primary px-2 pb-3 text-center align-bottom font-serif text-xl font-medium text-primary sm:w-40">
-                    {page.compare.care}
-                  </th>
-                  <th scope="col" className="w-24 border-b-2 border-primary bg-background-soft px-2 py-3 text-center align-bottom font-serif text-xl font-medium text-primary sm:w-40">
-                    {page.compare.premium}
+                  <th scope="col" className="w-28 border-b-2 border-primary px-2 pb-3 text-center align-bottom font-serif text-xl font-medium text-primary sm:w-44">
+                    {page.compare.care.name}
                   </th>
                 </tr>
               </thead>
-              {groupRows(page.compare.rows).map((group) => (
+              <tbody>
+                <tr className="border-b border-border">
+                  <th scope="row" className="py-4 pr-4 text-left text-sm font-medium text-accent-strong">
+                    Price
+                  </th>
+                  <td className="px-2 py-4 text-center">
+                    <span className="block font-serif text-2xl leading-none font-medium text-primary tabular-nums">{page.compare.care.price}</span>
+                    <span className="mt-1.5 block text-xs leading-tight text-text-muted">{page.compare.priceLine}</span>
+                  </td>
+                </tr>
+              </tbody>
+              {page.compare.groups.map((group) => (
                 <tbody key={group.name}>
                   <tr>
-                    <th scope="colgroup" colSpan={2} className="pt-7 pb-2 text-left text-sm font-medium text-accent-strong">
-                      {group.name}
-                    </th>
-                    <td className="bg-background-soft" />
-                  </tr>
-                  {group.rows.map((row) => (
-                    <tr key={row.label} className="border-b border-border">
-                      <th scope="row" className="py-3 pr-4 font-normal">
-                        <span className="flex items-center gap-3.5">
-                          <PlanIcon name={row.icon} />
-                          <span className="text-sm leading-snug text-foreground sm:text-base">{row.label}</span>
+                    <th scope="row" className="pt-7 pb-2 pr-4 text-left align-top">
+                      <span className="block text-sm font-medium text-accent-strong">{group.name}</span>
+                      <span className="mt-1.5 block max-w-2xl text-[15px] leading-relaxed font-normal text-text-muted sm:text-base">{group.note}</span>
+                      {group.extra ? (
+                        <span className="mt-2.5 flex max-w-2xl items-start gap-2.5 text-[15px] leading-snug font-medium text-primary sm:text-base">
+                          <span
+                            aria-hidden
+                            className="mt-px inline-flex shrink-0 items-center rounded-full bg-primary px-2 py-0.5 text-[11px] font-semibold tracking-widest text-white uppercase"
+                          >
+                            Extra
+                          </span>
+                          {group.extra}
                         </span>
-                      </th>
-                      <td className="px-2 py-3 text-center">
-                        <Cell value={row.care} />
-                      </td>
-                      <td className="bg-background-soft px-2 py-3 text-center">
-                        <Cell value={row.premium} />
-                      </td>
-                    </tr>
-                  ))}
+                      ) : null}
+                    </th>
+                    <td className="px-2 pt-7 pb-2 text-center align-top">
+                      {group.addon ? (
+                        <>
+                          <span className="block text-xs font-semibold tracking-widest text-accent-strong uppercase">
+                            {group.addon.name}
+                          </span>
+                          {group.addon.price ? (
+                            <>
+                              <span className="mt-1.5 block font-serif text-2xl leading-none font-medium text-primary tabular-nums">
+                                {group.addon.price}
+                              </span>
+                              <span className="mt-1.5 block text-xs leading-tight text-text-muted">{page.compare.priceLine}</span>
+                            </>
+                          ) : null}
+                        </>
+                      ) : null}
+                    </td>
+                  </tr>
+                  {page.compare.rows
+                    .filter((row) => row.group === group.name)
+                    .map((row) => (
+                      <tr key={row.label} className="border-b border-border">
+                        <th scope="row" className="py-3 pr-4 font-normal">
+                          <span className="flex items-center gap-3.5">
+                            <PlanIcon name={row.icon} />
+                            <span className="text-sm leading-snug text-foreground sm:text-base">{row.label}</span>
+                          </span>
+                        </th>
+                        <td className="px-2 py-3 text-center">{group.addon ? null : <Cell value />}</td>
+                      </tr>
+                    ))}
                 </tbody>
               ))}
             </table>
@@ -231,9 +248,6 @@ export default function FreeBusinessWebsitePage(): ReactElement {
             <a href={careUrl} className={PRIMARY_BUTTON}>
               {page.compare.careCta}
               <Arrow />
-            </a>
-            <a href={signUpUrl("premium")} className={SECONDARY_BUTTON}>
-              {page.compare.premiumCta}
             </a>
           </Reveal>
         </div>
