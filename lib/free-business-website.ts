@@ -34,7 +34,7 @@ export const CARE_MONTHLY_PRICE = "₹2,999";
 export const GST_NOTE = "+ 18% GST";
 /** The three add-ons sold on top of the monthly plan, a month before GST. */
 export const SOCIAL_ADDON_PRICE = "₹1,999";
-export const OUTREACH_ADDON_PRICE = "₹3,999";
+export const OUTREACH_ADDON_PRICE = "₹4,999";
 export const ADVERTISING_ADDON_PRICE = "₹5,999";
 export const CARE_MONTHLY_TEXT = `${CARE_MONTHLY_PRICE} a month ${GST_NOTE}`;
 
