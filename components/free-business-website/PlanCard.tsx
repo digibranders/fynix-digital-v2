@@ -29,6 +29,7 @@ export default function PlanCard({
   const stacked = stackIndex !== undefined;
   return (
     <article
+      data-stack-item={stacked ? "" : undefined}
       style={stacked ? ({ "--stack-index": stackIndex, zIndex: 10 + stackIndex } as CSSProperties) : undefined}
       className={`[--peek:104px] md:[--peek:88px] overflow-hidden rounded-2xl border border-border bg-white shadow-[0_24px_36px_-28px_rgba(12,30,46,0.35)] ${
         stacked ? "sticky top-[calc(var(--site-header,80px)+var(--stack-head,0px)+var(--stack-index)*var(--peek))]" : ""
