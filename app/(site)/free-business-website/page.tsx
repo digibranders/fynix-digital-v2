@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { Fragment, type ReactElement } from "react";
+import type { ReactElement } from "react";
 import BeforeAfter from "@/components/free-business-website/BeforeAfter";
 import FaqAccordion from "@/components/FaqAccordion";
 import PlanCard from "@/components/free-business-website/PlanCard";
@@ -152,15 +152,20 @@ export default function FreeBusinessWebsitePage(): ReactElement {
           </Reveal>
 
           <Reveal className="mt-10">
-            <div className="grid gap-6">
-              {page.compare.cards.map((card, index) => (
-                <Fragment key={card.name}>
-                  {index === 1 ? <p className="mt-6 text-base text-text-muted">{page.compare.addonsIntro}</p> : null}
-                  <PlanCard card={card} priceLine={page.compare.priceLine} />
-                </Fragment>
-              ))}
-            </div>
+            <PlanCard card={page.compare.cards[0]} priceLine={page.compare.priceLine} />
           </Reveal>
+
+          <h3 className="mt-14 mb-6 text-[26px] leading-tight font-semibold text-primary sm:text-[30px]">{page.compare.addonsIntro}</h3>
+
+          {/* The add-ons stack as the services page does: each sticks under the header and the next slides over it, so only its title strip stays in view. */}
+          {/* A stuck card cannot go past the end of this box. On a phone the first card is taller than the last, so a little empty room
+              at the end keeps it pinned until the last card has arrived. */}
+          <div className="relative grid gap-6">
+            {page.compare.cards.slice(1).map((card, index) => (
+              <PlanCard key={card.name} card={card} priceLine={page.compare.priceLine} stackIndex={index} />
+            ))}
+            <div aria-hidden className="h-36 md:hidden" />
+          </div>
 
           <Reveal className="mt-10 flex flex-wrap gap-4">
             <a href={careUrl} className={PRIMARY_BUTTON}>

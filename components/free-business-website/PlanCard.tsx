@@ -1,4 +1,4 @@
-import type { ReactElement } from "react";
+import type { CSSProperties, ReactElement } from "react";
 import PlanIcon from "@/components/free-business-website/PlanIcon";
 import type { CompareCard, CompareColumn } from "@/lib/free-business-website";
 
@@ -15,22 +15,37 @@ function Lead({ lead }: { readonly lead: NonNullable<CompareColumn["lead"]> }): 
  * The plan, or one add-on, as a card: a dark header with its name and price, an optional line about it, columns of
  * what it includes (a rule between them from tablet width, stacked on a phone) and, at the foot, what costs extra.
  */
-export default function PlanCard({ card, priceLine }: { readonly card: CompareCard; readonly priceLine: string }): ReactElement {
+export default function PlanCard({
+  card,
+  priceLine,
+  stackIndex,
+}: {
+  readonly card: CompareCard;
+  readonly priceLine: string;
+  /** Position in a stack of cards: the card sticks under the site header, below the cards before it, so only its header strip shows once the next card slides over it. */
+  readonly stackIndex?: number;
+}): ReactElement {
   const columnCount = card.columns.length;
+  const stacked = stackIndex !== undefined;
   return (
-    <article className="overflow-hidden rounded-2xl border border-border bg-white shadow-[0_24px_36px_-28px_rgba(12,30,46,0.35)]">
-      {/* Two lines on a phone: the tag and the name, then the price. One row from tablet width. */}
-      <header className="flex flex-wrap items-center gap-x-3 gap-y-3 bg-primary px-5 py-4 text-white sm:gap-x-4 sm:px-8 sm:py-5">
-        <span className="rounded-full bg-white/15 px-2.5 py-1.5 text-[10px] font-semibold tracking-widest uppercase sm:px-3 sm:text-[11px]">{card.tag}</span>
-        <h3 className="min-w-0 flex-1 font-serif text-base leading-tight font-medium sm:flex-none sm:text-3xl">{card.name}</h3>
-        <p className="flex basis-full items-baseline gap-2.5 sm:ml-auto sm:basis-auto">
-          <span className="font-serif text-3xl leading-none font-medium tabular-nums sm:text-4xl">{card.price}</span>
-          <span className="text-xs text-white/70 sm:text-sm">{priceLine}</span>
+    <article
+      style={stacked ? ({ "--stack-index": stackIndex, zIndex: 10 + stackIndex } as CSSProperties) : undefined}
+      className={`[--peek:104px] md:[--peek:88px] overflow-hidden rounded-2xl border border-border bg-white shadow-[0_24px_36px_-28px_rgba(12,30,46,0.35)] ${
+        stacked ? "sticky top-[calc(var(--site-header,80px)+var(--stack-index)*var(--peek))]" : ""
+      }`}
+    >
+      {/* Two lines up to tablet width: the tag and the name, then the price. One row from md. Fixed height so a stack shows exactly this strip. */}
+      <header className="flex h-[var(--peek)] flex-wrap content-center items-center gap-x-3 gap-y-2 overflow-hidden bg-primary px-5 text-white md:flex-nowrap md:gap-x-4 md:px-8">
+        <span className="rounded-full bg-white/15 px-2.5 py-1.5 text-[10px] font-semibold tracking-widest uppercase md:px-3 md:text-[11px]">{card.tag}</span>
+        <h3 className="min-w-0 flex-1 font-serif text-base leading-tight font-medium sm:text-xl md:flex-none md:text-3xl">{card.name}</h3>
+        <p className="flex basis-full items-baseline gap-2.5 md:ml-auto md:basis-auto">
+          <span className="font-serif text-3xl leading-none font-medium tabular-nums md:text-4xl">{card.price}</span>
+          <span className="text-xs text-white/70 md:text-sm">{priceLine}</span>
         </p>
       </header>
 
       <div className="px-5 py-6 sm:px-8 sm:py-8">
-        {card.intro ? <p className="mb-7 text-base leading-relaxed text-foreground md:text-[clamp(14px,1.55vw,18px)]">{card.intro}</p> : null}
+        {card.intro ? <p className="mb-7 text-base leading-relaxed whitespace-pre-line text-foreground md:text-[clamp(14px,1.55vw,18px)]">{card.intro}</p> : null}
 
         <div className={`grid gap-y-8 md:gap-y-0 ${columnCount > 1 ? "md:grid-cols-2 md:divide-x md:divide-border" : ""}`}>
           {card.columns.map((column, index) => (
