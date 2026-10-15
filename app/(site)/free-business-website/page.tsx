@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Fragment, type ReactElement } from "react";
 import BeforeAfter from "@/components/free-business-website/BeforeAfter";
 import FaqAccordion from "@/components/FaqAccordion";
-import PlanIcon from "@/components/free-business-website/PlanIcon";
+import PlanCard from "@/components/free-business-website/PlanCard";
 import { StackArt } from "@/components/free-business-website/StackArt";
 import HeroDarkBackdrop from "@/components/HeroDarkBackdrop";
 import Reveal from "@/components/Reveal";
@@ -93,22 +93,6 @@ function Tick({ className = "text-accent" }: { readonly className?: string }): R
   );
 }
 
-/** One plan's answer in the table: a tick, a dash, or the words it says instead. Never colour alone: each carries text for a screen reader. */
-function Cell({ value }: { readonly value: boolean | string }): ReactElement {
-  if (typeof value === "string") return <span className="text-sm font-medium text-primary">{value}</span>;
-  if (value) {
-    return (
-      <>
-        <svg aria-hidden viewBox="0 0 20 20" className="mx-auto size-5 text-primary" fill="none">
-          <path d="M4.5 10.5l3.7 3.7 7.3-8.4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-        <span className="sr-only">Included</span>
-      </>
-    );
-  }
-  return <span className="sr-only">Not included</span>;
-}
-
 export default function FreeBusinessWebsitePage(): ReactElement {
   const careUrl = signUpUrl("care");
   const hero = page.hero;
@@ -168,90 +152,14 @@ export default function FreeBusinessWebsitePage(): ReactElement {
           </Reveal>
 
           <Reveal className="mt-10">
-            <table className="w-full border-collapse text-left">
-              <caption className="sr-only">The monthly plan and its optional add-ons: what each includes and what it costs</caption>
-              <thead className="sr-only">
-                <tr>
-                  <th scope="col">What you get</th>
-                  <th scope="col">Included</th>
-                </tr>
-              </thead>
-              {page.compare.bands.map((band, index) => (
-                <tbody key={band.name}>
-                  {index === 1 ? (
-                    <tr>
-                      <td colSpan={2} className="pt-12 pb-4 text-base text-text-muted">
-                        {page.compare.addonsIntro}
-                      </td>
-                    </tr>
-                  ) : index > 1 ? (
-                    <tr aria-hidden>
-                      <td colSpan={2} className="h-8" />
-                    </tr>
-                  ) : null}
-                  <tr>
-                    <th scope="colgroup" colSpan={2} className="rounded-t-xl bg-primary px-5 py-4 text-left font-normal text-white">
-                      <span className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2">
-                        <span className="flex items-center gap-3">
-                          <span className="rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-semibold tracking-widest uppercase">
-                            {index === 0 ? "Your plan" : "Add-on"}
-                          </span>
-                          <span className="font-serif text-xl font-medium sm:text-2xl">{band.name}</span>
-                        </span>
-                        <span className="flex items-baseline gap-2">
-                          <span className="font-serif text-2xl font-medium tabular-nums sm:text-3xl">{band.price}</span>
-                          <span className="text-xs text-white/70">{page.compare.priceLine}</span>
-                        </span>
-                      </span>
-                    </th>
-                  </tr>
-                  {band.groups.map((group) => (
-                    <Fragment key={group.name ?? band.name}>
-                      {group.name || group.note || group.extra ? (
-                        <tr>
-                          <th scope="colgroup" colSpan={2} className="px-1 pt-6 pb-2 text-left align-top">
-                            {group.name ? <span className="block text-sm font-medium text-accent-strong">{group.name}</span> : null}
-                            {group.note ? (
-                              <span className={`${group.name ? "mt-1.5" : ""} block max-w-2xl text-[15px] leading-relaxed font-normal text-text-muted sm:text-base`}>
-                                {group.note}
-                              </span>
-                            ) : null}
-                            {group.extra ? (
-                              <span className="mt-2.5 flex max-w-2xl items-start gap-2.5 text-[15px] leading-snug font-medium text-primary sm:text-base">
-                                <span
-                                  aria-hidden
-                                  className="mt-px inline-flex shrink-0 items-center rounded-full bg-primary px-2 py-0.5 text-[11px] font-semibold tracking-widest text-white uppercase"
-                                >
-                                  Extra
-                                </span>
-                                {group.extra}
-                              </span>
-                            ) : null}
-                          </th>
-                        </tr>
-                      ) : (
-                        <tr aria-hidden>
-                          <td colSpan={2} className="h-2" />
-                        </tr>
-                      )}
-                      {group.rows.map((row) => (
-                        <tr key={row.label} className="border-b border-border">
-                          <th scope="row" className="py-3 pr-4 pl-1 font-normal">
-                            <span className="flex items-center gap-3.5">
-                              <PlanIcon name={row.icon} />
-                              <span className="text-sm leading-snug text-foreground sm:text-base">{row.label}</span>
-                            </span>
-                          </th>
-                          <td className="w-16 px-2 py-3 text-center sm:w-24">
-                            <Cell value />
-                          </td>
-                        </tr>
-                      ))}
-                    </Fragment>
-                  ))}
-                </tbody>
+            <div className="grid gap-6">
+              {page.compare.cards.map((card, index) => (
+                <Fragment key={card.name}>
+                  {index === 1 ? <p className="mt-6 text-base text-text-muted">{page.compare.addonsIntro}</p> : null}
+                  <PlanCard card={card} priceLine={page.compare.priceLine} />
+                </Fragment>
               ))}
-            </table>
+            </div>
           </Reveal>
 
           <Reveal className="mt-10 flex flex-wrap gap-4">

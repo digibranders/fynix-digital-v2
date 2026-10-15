@@ -38,17 +38,23 @@ export const OUTREACH_ADDON_PRICE = "₹3,999";
 export const ADVERTISING_ADDON_PRICE = "₹5,999";
 export const CARE_MONTHLY_TEXT = `${CARE_MONTHLY_PRICE} a month ${GST_NOTE}`;
 
-export interface CompareBand {
+/** One column inside a plan card: a head (a numbered circle or a product mark) over a short list of what it covers. */
+export interface CompareColumn {
+  readonly title?: string;
+  readonly subtitle?: string;
+  readonly lead?: { readonly number: number } | { readonly icon: PlanIconKey };
+  readonly items: readonly { readonly label: string; readonly icon: PlanIconKey }[];
+}
+
+/** The plan, or one add-on, as a card: a dark header with its name and price, columns of what is included, and what costs extra. */
+export interface CompareCard {
   readonly name: string;
+  readonly tag: string;
   readonly price: string;
-  readonly groups: readonly {
-    /** Shown only where the band holds more than the one thing its own name already says. */
-    readonly name?: string;
-    readonly note?: string;
-    /** What costs extra on top of the price, on its own line under the note so it is read. */
-    readonly extra?: string;
-    readonly rows: readonly { readonly label: string; readonly icon: PlanIconKey }[];
-  }[];
+  readonly intro?: string;
+  readonly columns: readonly CompareColumn[];
+  /** What costs extra on top of the price, on its own bar at the foot of the card so it is read. */
+  readonly extra?: string;
 }
 
 export const freeWebsiteContent = {
@@ -105,45 +111,75 @@ export const freeWebsiteContent = {
     lede: "One monthly plan keeps your website, hosting and chatbot running. Add social media, outreach or advertising on top when you want them.",
     priceLine: `a month ${GST_NOTE}`,
     addonsIntro: "Optional add-ons. Pick any you need.",
-    bands: [
+    cards: [
       {
-        name: "Website plan",
+        name: "Website",
+        tag: "Your plan",
         price: CARE_MONTHLY_PRICE,
-        groups: [
+        columns: [
           {
-            name: "Website maintenance",
-            note: "Security, performance and hosting monitoring.",
-            extra: "Content updates and new pages: ₹500 an hour.",
-            rows: [
-              { label: "Server and hosting", icon: "hosting" },
-              { label: "Next.js business website", icon: "code" },
-              { label: "Website management", icon: "website" },
+            title: "Next.js business website",
+            subtitle: "A professional, mobile-friendly website to help you get enquiries online.",
+            lead: { number: 1 },
+            items: [
+              { label: "Professional design", icon: "monitor" },
+              { label: "Up to 5 pages", icon: "document" },
+              { label: "Mobile-friendly (works on all devices)", icon: "mobile" },
+              { label: "Enquiry forms and click-to-call", icon: "phone" },
+              { label: "Local SEO foundation", icon: "pin" },
               { label: "OyeChats professional chatbot", icon: "chatbot" },
             ],
           },
-        ],
-      },
-      {
-        name: "Social media management",
-        price: SOCIAL_ADDON_PRICE,
-        groups: [
           {
-            note: "Facebook and Instagram, 2 posts a week.",
-            extra: "Extra video editing for Reels: ₹500 an hour.",
-            rows: [
-              { label: "Facebook account management", icon: "facebook" },
-              { label: "Instagram account management", icon: "instagram" },
+            title: "Website maintenance",
+            subtitle: "We keep your website secure, updated and running smoothly.",
+            lead: { number: 2 },
+            items: [
+              { label: "Security monitoring", icon: "shield" },
+              { label: "Performance monitoring", icon: "bars" },
+              { label: "Hosting and uptime monitoring", icon: "server" },
+              { label: "Routine updates and upkeep", icon: "gear" },
+              { label: "Monthly health report", icon: "document" },
             ],
           },
         ],
+        extra: "Content updates and new pages: ₹500 an hour.",
+      },
+      {
+        name: "Social media management",
+        tag: "Add-on",
+        price: SOCIAL_ADDON_PRICE,
+        intro:
+          "We publish two audience-targeted posts per week to keep your social media accounts relevant and informative. As this is an organic growth strategy, increased engagement takes time and consistent effort.",
+        columns: [
+          {
+            title: "Facebook account management",
+            lead: { icon: "facebook" },
+            items: [
+              { label: "2 targeted posts per week", icon: "document" },
+              { label: "Account management", icon: "gear" },
+            ],
+          },
+          {
+            title: "Instagram account management",
+            lead: { icon: "instagram" },
+            items: [
+              { label: "2 targeted posts per week", icon: "document" },
+              { label: "Account management", icon: "gear" },
+            ],
+          },
+        ],
+        extra: "Extra video editing for Reels: ₹500 an hour.",
       },
       {
         name: "Outreach and lead generation",
+        tag: "Add-on",
         price: OUTREACH_ADDON_PRICE,
-        groups: [
+        intro: "We reach out to potential clients for you and schedule the meetings directly on your Calendly.",
+        columns: [
           {
-            rows: [
-              { label: "Reach out to potential clients by email and LinkedIn", icon: "target" },
+            items: [
+              { label: "Reach out to potential clients by email and LinkedIn", icon: "mail" },
               { label: "Schedule meetings directly on your Calendly", icon: "calendar" },
             ],
           },
@@ -151,20 +187,21 @@ export const freeWebsiteContent = {
       },
       {
         name: "Paid advertising",
+        tag: "Add-on",
         price: ADVERTISING_ADDON_PRICE,
-        groups: [
+        intro: "We manage your paid campaigns on Facebook and Instagram.",
+        columns: [
           {
-            note: "We manage your paid campaigns on Facebook and Instagram.",
-            extra: "Advertising spend is charged separately.",
-            rows: [
+            items: [
               { label: "Meta Ads management (Facebook and Instagram)", icon: "meta-ads" },
               { label: "Lead generation and conversion optimisation", icon: "target" },
               { label: "Ad campaign tracking and performance reporting", icon: "reporting" },
             ],
           },
         ],
+        extra: "Advertising spend is charged separately.",
       },
-    ] as readonly CompareBand[],
+    ] as readonly CompareCard[],
     careCta: "Get my free website",
   },
   journey: {
