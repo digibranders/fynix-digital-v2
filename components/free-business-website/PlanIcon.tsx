@@ -18,7 +18,17 @@ export type PlanIconKey =
   | "meta-ads"
   | "target"
   | "reporting"
-  | "marketing";
+  | "marketing"
+  | "monitor"
+  | "document"
+  | "mobile"
+  | "phone"
+  | "pin"
+  | "shield"
+  | "bars"
+  | "server"
+  | "gear"
+  | "mail";
 
 interface GlyphProps {
   readonly className?: string;
@@ -204,10 +214,99 @@ const GLYPHS: Readonly<Record<PlanIconKey, { readonly brand: boolean; readonly d
       </Line>
     ),
   },
+  monitor: {
+    brand: false,
+    draw: ({ className }) => (
+      <Line className={className}>
+        <rect x="3" y="4" width="18" height="12" rx="2" />
+        <path d="M8 20h8M12 16v4" />
+      </Line>
+    ),
+  },
+  document: {
+    brand: false,
+    draw: ({ className }) => (
+      <Line className={className}>
+        <path d="M7 3h7l4 4v14H7Z" />
+        <path d="M14 3v4h4M9.5 12h5M9.5 15.5h5" />
+      </Line>
+    ),
+  },
+  mobile: {
+    brand: false,
+    draw: ({ className }) => (
+      <Line className={className}>
+        <rect x="7" y="3" width="10" height="18" rx="2" />
+        <path d="M11 18h2" />
+      </Line>
+    ),
+  },
+  phone: {
+    brand: false,
+    draw: ({ className }) => (
+      <Line className={className}>
+        <path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A15 15 0 0 1 3 6a2 2 0 0 1 2-2Z" />
+      </Line>
+    ),
+  },
+  pin: {
+    brand: false,
+    draw: ({ className }) => (
+      <Line className={className}>
+        <path d="M12 21s-6-5.5-6-11a6 6 0 0 1 12 0c0 5.5-6 11-6 11Z" />
+        <circle cx="12" cy="10" r="2.2" />
+      </Line>
+    ),
+  },
+  shield: {
+    brand: false,
+    draw: ({ className }) => (
+      <Line className={className}>
+        <path d="M12 3l7 3v5c0 5-3 8.5-7 10-4-1.5-7-5-7-10V6Z" />
+      </Line>
+    ),
+  },
+  bars: {
+    brand: false,
+    draw: ({ className }) => (
+      <Line className={className}>
+        <path d="M6 19v-6M12 19V6M18 19V10" />
+      </Line>
+    ),
+  },
+  server: {
+    brand: false,
+    draw: ({ className }) => (
+      <Line className={className}>
+        <rect x="4" y="4" width="16" height="6" rx="2" />
+        <rect x="4" y="14" width="16" height="6" rx="2" />
+        <path d="M8 7h.01M8 17h.01" />
+      </Line>
+    ),
+  },
+  gear: {
+    brand: false,
+    draw: ({ className }) => (
+      <Line className={className}>
+        <circle cx="12" cy="12" r="3.5" />
+        <path d="M12 3v2.5M12 18.5V21M3 12h2.5M18.5 12H21M5.6 5.6l1.8 1.8M16.6 16.6l1.8 1.8M5.6 18.4l1.8-1.8M16.6 7.4l1.8-1.8" />
+      </Line>
+    ),
+  },
+  mail: {
+    brand: false,
+    draw: ({ className }) => (
+      <Line className={className}>
+        <rect x="3" y="5" width="18" height="14" rx="2" />
+        <path d="M3 7l9 6 9-6" />
+      </Line>
+    ),
+  },
 };
 
 /** A row's icon, drawn bare as Firstfold's plan table does: a mark in its own colours, a line icon in navy. */
-export default function PlanIcon({ name }: { readonly name: PlanIconKey }): ReactElement {
+export default function PlanIcon({ name, tone = "navy" }: { readonly name: PlanIconKey; readonly tone?: "navy" | "accent" }): ReactElement {
   const { brand, draw: Glyph } = GLYPHS[name];
-  return <Glyph className={brand ? "size-6 shrink-0" : "size-6 shrink-0 text-primary/80"} />;
+  const line = tone === "accent" ? "text-accent-strong" : "text-primary/80";
+  return <Glyph className={brand ? "size-6 shrink-0" : `size-6 shrink-0 ${line}`} />;
 }
