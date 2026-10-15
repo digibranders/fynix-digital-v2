@@ -110,7 +110,7 @@ export const freeWebsiteContent = {
     title: "One plan. Add what you need.",
     lede: "One monthly plan keeps your website, hosting and chatbot running. Add social media, outreach or advertising on top when you want them.",
     priceLine: `a month ${GST_NOTE}`,
-    addonsIntro: "Optional add-ons. Pick any you need.",
+    addonsIntro: "Optional add-ons",
     cards: [
       {
         name: "Website",

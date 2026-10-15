@@ -155,14 +155,20 @@ export default function FreeBusinessWebsitePage(): ReactElement {
             <PlanCard card={page.compare.cards[0]} priceLine={page.compare.priceLine} />
           </Reveal>
 
-          <h3 className="mt-14 mb-6 text-[26px] leading-tight font-semibold text-primary sm:text-[30px]">{page.compare.addonsIntro}</h3>
-
-          {/* The add-ons stack as the services page does: each sticks under the header and the next slides over it, so only its title strip stays in view. */}
+          {/* The add-ons stack as the services page does: the heading and each card stick under the site header, and the next card slides
+              over the last, so the heading and each card's title strip stay in view while the stack scrolls. */}
           {/* A stuck card cannot go past the end of this box. On a phone the first card is taller than the last, so a little empty room
               at the end keeps it pinned until the last card has arrived. */}
-          <div className="relative grid gap-6">
-            {page.compare.cards.slice(1).map((card, index) => (
-              <PlanCard key={card.name} card={card} priceLine={page.compare.priceLine} stackIndex={index} />
+          <div className="relative mt-14 grid gap-6 [--stack-head:64px]">
+            {/* The heading rides on top of the first card, so it leaves with the stack when the stack scrolls away. */}
+            <div className="sticky top-20 z-10 grid gap-0">
+              <h3 className="flex h-16 items-center bg-background text-[26px] leading-tight font-semibold text-primary sm:text-[30px]">
+                {page.compare.addonsIntro}
+              </h3>
+              <PlanCard card={page.compare.cards[1]} priceLine={page.compare.priceLine} />
+            </div>
+            {page.compare.cards.slice(2).map((card, index) => (
+              <PlanCard key={card.name} card={card} priceLine={page.compare.priceLine} stackIndex={index + 1} />
             ))}
             <div aria-hidden className="h-36 md:hidden" />
           </div>

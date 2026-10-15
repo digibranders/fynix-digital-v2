@@ -22,7 +22,7 @@ export default function PlanCard({
 }: {
   readonly card: CompareCard;
   readonly priceLine: string;
-  /** Position in a stack of cards: the card sticks under the site header, below the cards before it, so only its header strip shows once the next card slides over it. */
+  /** Position in a stack of cards: the card sticks under the site header (and under the stack's own heading, if it has one, set by --stack-head), below the cards before it, so only its header strip shows once the next card slides over it. */
   readonly stackIndex?: number;
 }): ReactElement {
   const columnCount = card.columns.length;
@@ -31,7 +31,7 @@ export default function PlanCard({
     <article
       style={stacked ? ({ "--stack-index": stackIndex, zIndex: 10 + stackIndex } as CSSProperties) : undefined}
       className={`[--peek:104px] md:[--peek:88px] overflow-hidden rounded-2xl border border-border bg-white shadow-[0_24px_36px_-28px_rgba(12,30,46,0.35)] ${
-        stacked ? "sticky top-[calc(var(--site-header,80px)+var(--stack-index)*var(--peek))]" : ""
+        stacked ? "sticky top-[calc(var(--site-header,80px)+var(--stack-head,0px)+var(--stack-index)*var(--peek))]" : ""
       }`}
     >
       {/* Two lines up to tablet width: the tag and the name, then the price. One row from md. Fixed height so a stack shows exactly this strip. */}
