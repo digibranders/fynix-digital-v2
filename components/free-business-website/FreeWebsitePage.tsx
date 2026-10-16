@@ -179,66 +179,63 @@ export default function FreeWebsitePage({ market }: { readonly market: Market })
             <p className="mt-4 max-w-2xl text-base leading-relaxed text-text-muted">{page.ticket.lede}</p>
           </Reveal>
 
+          {/* Desktop: the build column on the left with the button under it, the monthly plan on the right. On a phone the button
+              moves to the end of the card, so the monthly price is read before it. */}
           <Reveal className="mt-10">
-            <div className="overflow-hidden rounded-xl bg-primary text-white shadow-[0_28px_36px_-24px_rgba(12,30,46,0.45)]">
-              <div className="grid lg:grid-cols-[20rem_minmax(0,1fr)]">
-                <div className="grid content-start gap-6 border-b border-dashed border-white/30 p-7 sm:p-10 lg:border-r lg:border-b-0">
-                  <p className="font-mono text-xs tracking-widest text-white/70 uppercase">{page.ticket.build.label}</p>
-                  <div className="grid gap-2">
-                    <p className="font-serif text-6xl leading-none font-medium tracking-tight text-accent tabular-nums">
-                      {page.ticket.build.price}
-                    </p>
-                    <p className="font-mono text-xs tracking-widest text-white/70 uppercase">{page.ticket.build.priceLine}</p>
-                    <p className="text-[15px] leading-snug text-white/80">{page.ticket.build.note}</p>
-                  </div>
-                  <ul className="grid gap-3">
-                    {page.ticket.build.points.map((point) => (
-                      <li key={point} className="flex items-start gap-3 text-base leading-snug">
-                        <Tick />
-                        {point}
-                      </li>
-                    ))}
-                  </ul>
+            <div className="grid overflow-hidden rounded-xl bg-primary text-white shadow-[0_28px_36px_-24px_rgba(12,30,46,0.45)] lg:grid-cols-[21.5rem_minmax(0,1fr)] lg:grid-rows-[1fr_auto]">
+              <div className="grid content-start gap-6 border-b border-dashed border-white/30 p-7 sm:p-9 lg:border-r lg:border-b-0 lg:pb-7">
+                <p className="font-mono text-xs tracking-widest text-white/70 uppercase">{page.ticket.build.label}</p>
+                <div className="grid gap-2">
+                  <p className="font-serif text-6xl leading-none font-medium tracking-tight text-accent tabular-nums">
+                    {page.ticket.build.price}
+                  </p>
+                  <p className="font-mono text-xs tracking-widest text-white/70 uppercase">{page.ticket.build.priceLine}</p>
+                  <p className="text-[15px] leading-snug text-white/80">{page.ticket.build.note}</p>
                 </div>
-
-                <div className="grid content-start gap-8 p-7 sm:p-10">
-                  <div className="grid gap-4">
-                    <h3 className="font-mono text-xs tracking-widest text-white/70 uppercase">{page.ticket.care.label}</h3>
-                    <div className="grid gap-2">
-                      <div className="flex flex-wrap items-baseline gap-x-5 gap-y-2">
-                        <p className="font-serif text-5xl leading-none font-medium tracking-tight tabular-nums">{page.ticket.care.price}</p>
-                        <p className="font-mono text-xs tracking-widest text-white/70 uppercase">{page.ticket.care.priceLine}</p>
-                      </div>
-                      <p className="text-[15px] leading-snug text-white/80">{page.ticket.care.note}</p>
-                    </div>
-                  </div>
-                  <ul className="grid gap-x-8 gap-y-5 sm:grid-cols-2">
-                    {page.ticket.care.benefits.map((benefit) => (
-                      <li key={benefit.title} className="flex items-start gap-3">
-                        <Tick />
-                        <div className="grid gap-1">
-                          <p className="text-base leading-snug">{benefit.title}</p>
-                          <p className="text-[15px] leading-normal text-white/70 max-sm:hidden">{benefit.detail}</p>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                  <a href={careUrl} className={`${PRIMARY_BUTTON_ON_DARK} w-full sm:w-auto sm:justify-self-start`}>
-                    {page.ticket.care.cta}
-                    <Arrow />
-                  </a>
-                </div>
+                <ul className="grid gap-3">
+                  {page.ticket.build.points.map((point) => (
+                    <li key={point} className="flex items-start gap-3 text-base leading-snug">
+                      <Tick />
+                      {point}
+                    </li>
+                  ))}
+                </ul>
               </div>
 
-              <div className="grid gap-3 px-7 pb-7 sm:px-10 sm:pb-10 md:grid-cols-2">
-                <p className="flex items-center gap-4 rounded-xl bg-white/[0.07] px-4 py-3.5 text-[15px] leading-snug">
-                  <span className="shrink-0 rounded-full bg-accent px-3.5 py-1.5 text-[11px] font-semibold tracking-widest text-primary uppercase">Extra</span>
-                  {page.ticket.extra}
-                </p>
-                <p className="flex items-center gap-4 rounded-xl bg-white/[0.07] px-4 py-3.5 text-[15px] leading-snug">
-                  <span className="shrink-0 rounded-full bg-white/15 px-3.5 py-1.5 text-[11px] font-semibold tracking-widest uppercase">Domain</span>
-                  {page.ticket.domain}
-                </p>
+              <div className="grid content-start gap-6 p-7 sm:p-9 lg:row-span-2">
+                <h3 className="font-mono text-xs tracking-widest text-white/70 uppercase">{page.ticket.care.label}</h3>
+                <div className="grid gap-2">
+                  <p className="font-serif text-6xl leading-none font-medium tracking-tight tabular-nums">{page.ticket.care.price}</p>
+                  <p className="font-mono text-xs tracking-widest text-white/70 uppercase">{page.ticket.care.priceLine}</p>
+                  <p className="text-[15px] leading-snug text-white/80">{page.ticket.care.note}</p>
+                </div>
+                {/* Two columns sized to their words, so no benefit wraps. */}
+                <ul className="grid gap-x-6 gap-y-3.5 border-t border-white/10 pt-6 sm:grid-cols-[max-content_max-content] sm:justify-between">
+                  {page.ticket.care.benefits.map((benefit) => (
+                    <li key={benefit} className="flex items-start gap-3 text-base leading-snug">
+                      <Tick />
+                      {benefit}
+                    </li>
+                  ))}
+                </ul>
+                {/* The two costs the plan does not include: labelled, not ticked, so they never read as included. */}
+                <dl className="grid gap-2.5 rounded-xl bg-white/[0.06] px-5 py-4 text-[15px] leading-snug">
+                  <div className="flex items-baseline gap-4">
+                    <dt className="w-16 shrink-0 text-[11px] font-semibold tracking-widest text-accent uppercase">Extra</dt>
+                    <dd className="text-white/85">{page.ticket.extra}</dd>
+                  </div>
+                  <div className="flex items-baseline gap-4">
+                    <dt className="w-16 shrink-0 text-[11px] font-semibold tracking-widest text-accent uppercase">Domain</dt>
+                    <dd className="text-white/85">{page.ticket.domain}</dd>
+                  </div>
+                </dl>
+              </div>
+
+              <div className="px-7 pb-7 sm:px-9 sm:pb-9 lg:col-start-1 lg:row-start-2 lg:border-r lg:border-dashed lg:border-white/30">
+                <a href={careUrl} className={`${PRIMARY_BUTTON_ON_DARK} w-full sm:w-auto`}>
+                  {page.ticket.care.cta}
+                  <Arrow />
+                </a>
               </div>
             </div>
           </Reveal>

@@ -124,7 +124,7 @@ export interface FreeWebsiteContent {
       readonly price: string;
       readonly priceLine: string;
       readonly note: string;
-      readonly benefits: readonly TitledLine[];
+      readonly benefits: readonly string[];
       readonly cta: string;
     };
     /** What costs extra, and the domain, which the visitor pays for separately: both at the card's foot so no cost is a surprise. */
@@ -243,17 +243,17 @@ export const freeWebsiteContent: FreeWebsiteContent = {
       priceLine: `a month ${GST_NOTE}`,
       note: "Your first payment covers your first month. Cancel anytime.",
       benefits: [
-        { title: "Hosting and SSL", detail: "Hosted for you and kept online." },
-        { title: "Security monitoring", detail: "Protected and kept secure." },
-        { title: "Updates and upkeep", detail: "Maintenance, updates and speed, all handled." },
-        { title: "Uptime and performance", detail: "Watched all month, so problems are caught early." },
-        { title: "Monthly health report", detail: "A short report on how your website is doing." },
-        { title: "OyeChats professional chatbot", detail: "Answers your visitors on your website." },
+        "Hosting and SSL",
+        "Security monitoring",
+        "Updates and upkeep",
+        "Uptime and performance",
+        "Monthly health report",
+        "OyeChats professional chatbot",
       ],
       cta: "Get my free website",
     },
     extra: "Content updates and new pages: ₹500 an hour.",
-    domain: "Your domain is registered in your name and paid separately.",
+    domain: "Registered in your name and paid separately.",
   },
   /**
    * The one monthly plan and the three add-ons bought on top of it, as one table in bands. Each band has
