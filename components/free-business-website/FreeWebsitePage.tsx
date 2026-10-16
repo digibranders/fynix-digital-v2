@@ -8,6 +8,7 @@ import CardStack from "@/components/free-business-website/CardStack";
 import MarketSwitch from "@/components/free-business-website/MarketSwitch";
 import PlanCard from "@/components/free-business-website/PlanCard";
 import { StackArt } from "@/components/free-business-website/StackArt";
+import WhatsAppButton from "@/components/free-business-website/WhatsAppButton";
 import HeroDarkBackdrop from "@/components/HeroDarkBackdrop";
 import Reveal from "@/components/Reveal";
 import SectionSeam from "@/components/SectionSeam";
@@ -439,6 +440,8 @@ export default function FreeWebsitePage({ market }: { readonly market: Market })
           </p>
         </Reveal>
       </section>
+
+      <WhatsAppButton />
 
       {page.marketSwitch ? (
         <MarketSwitch href={MARKET_PATHS[page.marketSwitch.market]} label={page.marketSwitch.label} cta={page.marketSwitch.cta} />

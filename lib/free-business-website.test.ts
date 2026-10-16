@@ -7,6 +7,7 @@ import {
   localBusinessOrigin,
   signUpUrl,
   usFreeWebsiteContent,
+  whatsappChatUrl,
 } from "./free-business-website";
 
 afterEach(() => {
@@ -46,6 +47,14 @@ describe("telling a US visitor by the browser's time zone", () => {
       expect(isUsTimeZone(zone)).toBe(false);
     },
   );
+});
+
+describe("the WhatsApp button on both markets' pages", () => {
+  it("opens a chat with 90822 05341, the message already typed in", () => {
+    expect(whatsappChatUrl()).toBe(
+      "https://wa.me/919082205341?text=Hi%20Fynix%20Digital%2C%20tell%20us%20more%20about%20the%20free%20website.",
+    );
+  });
 });
 
 describe("where each market's page lives", () => {
