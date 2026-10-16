@@ -37,10 +37,10 @@ export function freeWebsiteMetadata(market: Market): Metadata {
   };
 }
 
-const PRIMARY_BUTTON_ON_DARK =
+export const PRIMARY_BUTTON_ON_DARK =
   "inline-flex items-center justify-center gap-3 rounded-full bg-white px-8 py-4 font-medium text-primary shadow-sm transition-colors duration-200 hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white";
 
-const PRIMARY_BUTTON =
+export const PRIMARY_BUTTON =
   "inline-flex items-center justify-center gap-3 rounded-full bg-primary px-8 py-4 font-medium text-white shadow-sm transition-colors duration-200 hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary";
 
 /**
@@ -62,7 +62,7 @@ const WORK_BACKGROUND = {
   ].join(", "),
 } as const;
 
-function Arrow(): ReactElement {
+export function Arrow(): ReactElement {
   return (
     <svg aria-hidden viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M5 12h14M13 6l6 6-6 6" />
@@ -169,7 +169,7 @@ export default function FreeWebsitePage({ market }: { readonly market: Market })
               over the last, so the heading and each card's title strip stay in view while the stack scrolls. */}
           <CardStack className="relative mt-14 -mb-[calc(120vh+48px)] grid gap-6 [--stack-head:64px]">
             {/* The heading rides on top of the first card, so it leaves with the stack when the stack scrolls away. */}
-            <div data-stack-item className="sticky top-20 z-10 grid gap-0">
+            <div data-stack-item className="z-10 grid gap-0 md:sticky md:top-20">
               <h3 className="flex h-16 items-center bg-background text-[26px] leading-tight font-semibold text-primary sm:text-[30px]">
                 {page.compare.addonsIntro}
               </h3>

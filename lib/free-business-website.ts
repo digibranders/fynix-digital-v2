@@ -70,11 +70,11 @@ export interface CompareColumn {
   readonly items: readonly { readonly label: string; readonly icon: PlanIconKey }[];
 }
 
-/** The plan, or one add-on, as a card: a dark header with its name and price, columns of what is included, and what costs extra. */
+/** The plan, or one add-on, as a card: a dark header with its name and price, columns of what is included, and what costs extra. A card with no tag or price (the growth team page) shows just its name. */
 export interface CompareCard {
   readonly name: string;
-  readonly tag: string;
-  readonly price: string;
+  readonly tag?: string;
+  readonly price?: string;
   readonly intro?: string;
   readonly columns: readonly CompareColumn[];
   /** What costs extra on top of the price, on its own bar at the foot of the card so it is read. */

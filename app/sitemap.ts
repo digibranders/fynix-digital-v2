@@ -11,6 +11,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/faqs",
     "/in/free-business-website",
     "/us/free-business-website",
+    "/digital-growth-team",
     "/contact",
     "/terms",
     "/privacy",
