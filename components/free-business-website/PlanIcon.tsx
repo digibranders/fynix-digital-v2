@@ -14,6 +14,7 @@ export type PlanIconKey =
   | "google-business"
   | "facebook"
   | "instagram"
+  | "linkedin"
   | "google-ads"
   | "meta-ads"
   | "target"
@@ -172,6 +173,20 @@ const GLYPHS: Readonly<Record<PlanIconKey, { readonly brand: boolean; readonly d
         <rect x="5.5" y="5.5" width="13" height="13" rx="4" fill="none" stroke="#fff" strokeWidth="1.7" />
         <circle cx="12" cy="12" r="3.1" fill="none" stroke="#fff" strokeWidth="1.7" />
         <circle cx="16.2" cy="7.8" r="1" fill="#fff" />
+      </Brand>
+    ),
+  },
+  linkedin: {
+    brand: true,
+    draw: ({ className }) => (
+      <Brand className={className}>
+        <rect x="1" y="1" width="22" height="22" rx="3.5" fill="#0A66C2" />
+        <rect x="5.6" y="9.6" width="2.8" height="8.6" fill="#fff" />
+        <circle cx="7" cy="6.8" r="1.65" fill="#fff" />
+        <path
+          d="M10.7 9.6h2.7v1.2c.4-.7 1.4-1.4 2.8-1.4 2.9 0 3.4 1.9 3.4 4.3v4.5h-2.8v-4c0-1 0-2.2-1.4-2.2s-1.6 1.1-1.6 2.2v4h-2.8V9.6Z"
+          fill="#fff"
+        />
       </Brand>
     ),
   },

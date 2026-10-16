@@ -1,12 +1,14 @@
 import type { PlanIconKey } from "@/components/free-business-website/PlanIcon";
 import type { Faq } from "@/lib/content";
-import { workSites } from "./work-sites";
+import { type WorkSite, workSites } from "./work-sites";
 
 /**
- * Content for /free-business-website: the website Fynix builds for a local business at no development fee, and the
- * monthly plan that keeps it running. Every sign-up button goes to the plan's sign-up in the business dashboard
- * (app.fynix.digital, where one plan is sold with add-ons) once NEXT_PUBLIC_LOCAL_BUSINESS_URL
- * says the dashboard is live. Until then it goes to the contact page, so no visitor lands on an address that does not exist.
+ * Content for the free business website pages: the website Fynix builds for a local business at no development fee,
+ * and the monthly plan that keeps it running. There is one page per market, each at its own address so search engines
+ * index both: /free-business-website for India (rupees, GST) and /us/free-business-website for the US (dollars).
+ * Both pages' sign-up buttons go to the plan's sign-up in the business dashboard (app.fynix.digital, where one plan is
+ * sold with add-ons, in rupees or dollars by the visitor's country) once NEXT_PUBLIC_LOCAL_BUSINESS_URL says the
+ * dashboard is live. Until then they go to the contact page, so no visitor lands on an address that does not exist.
  */
 
 /** The page the sign-up buttons use while the dashboard is not live. */
@@ -27,6 +29,27 @@ export type LocalBusinessPlan = "care";
 export function signUpUrl(plan: LocalBusinessPlan): string {
   const origin = localBusinessOrigin();
   return origin === null ? CONTACT_PATH : `${origin}/login?plan=${plan}`;
+}
+
+/** The markets the page is sold in: India in rupees with GST, the US in dollars. */
+export type Market = "in" | "us";
+
+export const MARKET_PATHS: Readonly<Record<Market, string>> = {
+  in: "/free-business-website",
+  us: "/us/free-business-website",
+};
+
+/**
+ * Whether the browser's clock is set to a US time zone. IANA zones are per country (Canada has America/Toronto, not
+ * America/New_York), so this tells a US visitor apart from the rest of the Americas without asking the server.
+ * Browsers report some zones by their older names (Chrome says America/Indianapolis, and Asia/Calcutta for Kolkata),
+ * so those are listed too.
+ */
+const US_TIME_ZONE =
+  /^(America\/(New_York|Detroit|Kentucky\/.+|Indiana\/.+|Indianapolis|Fort_Wayne|Louisville|Knox_IN|Chicago|Menominee|North_Dakota\/.+|Denver|Boise|Phoenix|Los_Angeles|Anchorage|Juneau|Sitka|Metlakatla|Yakutat|Nome|Adak|Atka)|Pacific\/Honolulu|US\/.+|Navajo)$/;
+
+export function isUsTimeZone(zone: string): boolean {
+  return US_TIME_ZONE.test(zone);
 }
 
 /** The monthly plan's price, before GST, as the dashboard charges it (₹2,999 + 18% GST). */
@@ -57,7 +80,121 @@ export interface CompareCard {
   readonly extra?: string;
 }
 
-export const freeWebsiteContent = {
+interface TitledLine {
+  readonly title: string;
+  readonly detail: string;
+}
+
+/** One layer of what every website includes: an image when there is one, otherwise a drawn scene (StackArt). */
+export interface IncludedLayer {
+  readonly id: string;
+  readonly name: string;
+  readonly summary: string;
+  readonly items: readonly string[];
+  readonly image?: { readonly src: string; readonly width: number; readonly height: number; readonly alt: string };
+}
+
+/** Everything one market's page shows. */
+export interface FreeWebsiteContent {
+  readonly market: Market;
+  readonly meta: { readonly title: string; readonly description: string };
+  readonly hero: {
+    readonly title: string;
+    readonly accent: string;
+    readonly lede: string;
+    readonly primaryCta: string;
+    readonly assurances: readonly string[];
+  };
+  readonly ticket: {
+    readonly title: string;
+    readonly accent: string;
+    readonly lede: string;
+    readonly build: { readonly label: string; readonly price: string; readonly priceLine: string; readonly points: readonly string[] };
+    readonly care: {
+      readonly label: string;
+      readonly price: string;
+      readonly priceLine: string;
+      readonly benefits: readonly TitledLine[];
+      readonly cta: string;
+    };
+  };
+  readonly compare: {
+    readonly title: string;
+    readonly lede: string;
+    readonly priceLine: string;
+    readonly addonsIntro: string;
+    readonly cards: readonly CompareCard[];
+    readonly careCta: string;
+  };
+  readonly journey: {
+    readonly title: string;
+    readonly lede: string;
+    readonly buildLabel: string;
+    readonly careLabel: string;
+    readonly steps: readonly TitledLine[];
+    readonly care: TitledLine;
+  };
+  readonly included: { readonly title: string; readonly lede: string; readonly layers: readonly IncludedLayer[] };
+  readonly work: { readonly title: string; readonly lede: string; readonly sites: readonly WorkSite[] };
+  /** `**phrase**` in an answer is shown bold. */
+  readonly faq: { readonly title: string; readonly items: Faq[] };
+  readonly closing: { readonly title: string; readonly line: string; readonly cta: string; readonly note: string };
+  /** A note pointing visitors from another market to their own page, shown only to them. */
+  readonly marketSwitch?: { readonly market: Market; readonly label: string; readonly cta: string };
+}
+
+/** The questions both pages answer; only the monthly price and how build time is counted differ. */
+function freeWebsiteFaqs({ monthly, buildDays }: { readonly monthly: string; readonly buildDays: string }): Faq[] {
+  return [
+    {
+      q: "Is the website really free?",
+      a: `Yes. There is no design or build fee: you pay nothing for us to build your website. You pay the monthly plan, ${monthly}, which **keeps it hosted, secure and up to date**.`,
+    },
+    {
+      q: "What do I pay for every month?",
+      a: "Keeping your website running: hosting and SSL, security, updates and upkeep, monitoring all month, a monthly health report and the OyeChats chatbot. **The build itself is free.**",
+    },
+    {
+      q: "Is there anything to pay up front?",
+      a: `Only your first month. Your first payment is ${monthly} and it covers your first month. **There is no separate build fee.**`,
+    },
+    {
+      q: "How long does it take to build my website?",
+      a: `Once you have sent your details and made your first payment, your website goes live **within ${buildDays}**. It can take a little longer if we are waiting on feedback or content from you, or on your domain being connected.`,
+    },
+    {
+      q: "How many pages do I get?",
+      a: "Up to 5 pages. More pages or bigger features can be added for an extra fee, and we always confirm the price before doing anything.",
+    },
+    {
+      q: "Do I pay for hosting separately?",
+      a: "No. **Hosting is included** in the monthly plan.",
+    },
+    {
+      q: "Who owns the domain and the content?",
+      a: "You register and pay for your own domain, so it is always in your name. No domain yet? We will set your website up on a temporary domain for free until you have one. The design and the content we write stay with Fynix and are provided as a hosted service while you are subscribed.",
+    },
+    {
+      q: "Can I make changes later?",
+      a: "Yes. Send any change from your dashboard. We always tell you the cost before we start anything that costs extra.",
+    },
+    {
+      q: "Can I cancel?",
+      a: "Yes, anytime, with no notice period. Your website stays online until the end of the month you have already paid for, and your domain stays yours. We remind you before every renewal, so you are never charged by surprise.",
+    },
+    {
+      q: "What happens if a payment fails?",
+      a: "Your website is taken offline as soon as a payment is due and unpaid; there is no grace period. Your content is kept safe, and the website comes back as soon as the payment goes through.",
+    },
+    {
+      q: "What technology is my website built on?",
+      a: "Next.js: a modern, fast and scalable foundation.",
+    },
+  ];
+}
+
+export const freeWebsiteContent: FreeWebsiteContent = {
+  market: "in",
   meta: {
     title: "Get your business website free",
     description:
@@ -202,7 +339,7 @@ export const freeWebsiteContent = {
         ],
         extra: "Advertising spend is charged separately.",
       },
-    ] as readonly CompareCard[],
+    ],
     careCta: "Get my free website",
   },
   journey: {
@@ -322,58 +459,102 @@ export const freeWebsiteContent = {
   },
   faq: {
     title: "Questions, answered.",
+    items: freeWebsiteFaqs({ monthly: CARE_MONTHLY_TEXT, buildDays: "7 working days" }),
   },
   closing: {
     title: "Stop saying “we will build a website later.”",
     line: "Your customers are already searching.",
     cta: "Get my free website",
+    note: `₹0 development fee · Website plan ${CARE_MONTHLY_TEXT}`,
   },
-} as const;
+  marketSwitch: { market: "us", label: "In the US? See our prices in US dollars.", cta: "US pricing" },
+};
 
-/** The page's questions, in the shape FaqAccordion reads. `**phrase**` is shown bold. */
-export const freeWebsiteFaqs: Faq[] = [
-  {
-    q: "Is the website really free?",
-    a: `Yes. There is no design or build fee: you pay nothing for us to build your website. You pay the monthly plan, ${CARE_MONTHLY_TEXT}, which **keeps it hosted, secure and up to date**.`,
+/** The US price list, a month in dollars, with no sales tax added. */
+export const US_WEBSITE_PRICE = "$75";
+export const US_SOCIAL_ADDON_PRICE = "$100";
+export const US_OUTREACH_ADDON_PRICE = "$125";
+export const US_ADVERTISING_ADDON_PRICE = "$125";
+export const US_WEBSITE_MONTHLY_TEXT = `${US_WEBSITE_PRICE} a month`;
+/** Hourly work on top of a plan, where India charges ₹500 an hour. */
+export const US_EXTRA_HOUR_PRICE = "$10";
+
+/** The US client the US page shows first. */
+const US_FEATURED_SITE = "gkr-hospitality";
+
+const [indiaWebsiteCard, , indiaOutreachCard, indiaAdvertisingCard] = freeWebsiteContent.compare.cards;
+const accountManagement = [
+  { label: "2 targeted posts per week", icon: "document" },
+  { label: "Account management", icon: "gear" },
+] as const;
+
+/**
+ * The US page: the same website, build and upkeep as India, sold in dollars. Social media covers Facebook, Instagram
+ * and LinkedIn in one add-on.
+ */
+export const usFreeWebsiteContent: FreeWebsiteContent = {
+  ...freeWebsiteContent,
+  market: "us",
+  meta: {
+    title: "Free business website for US local businesses",
+    description:
+      "A professional website for your local business with no development fee, live in 7 business days. Hosting, security and upkeep for $75 a month.",
   },
-  {
-    q: "What do I pay for every month?",
-    a: "Keeping your website running: hosting and SSL, security, updates and upkeep, monitoring all month, a monthly health report and the OyeChats chatbot. **The build itself is free.**",
+  ticket: {
+    ...freeWebsiteContent.ticket,
+    build: { ...freeWebsiteContent.ticket.build, price: "$0" },
+    care: { ...freeWebsiteContent.ticket.care, price: US_WEBSITE_PRICE, priceLine: "a month" },
   },
-  {
-    q: "Is there anything to pay up front?",
-    a: `Only your first month. Your first payment is ${CARE_MONTHLY_TEXT} and it covers your first month. **There is no separate build fee.**`,
+  compare: {
+    ...freeWebsiteContent.compare,
+    lede: "One monthly plan keeps your website, hosting and chatbot running. Add social media, outreach or paid ads on top when you want them.",
+    priceLine: "a month",
+    cards: [
+      { ...indiaWebsiteCard, price: US_WEBSITE_PRICE, extra: `Content updates and new pages: ${US_EXTRA_HOUR_PRICE} an hour.` },
+      {
+        name: "Social media management",
+        tag: "Add-on",
+        price: US_SOCIAL_ADDON_PRICE,
+        intro:
+          "We publish two audience-targeted posts per week on Facebook, Instagram and LinkedIn to keep your accounts relevant and informative. As this is an organic growth strategy, increased engagement takes time and consistent effort.",
+        columns: [
+          { title: "Facebook", lead: { icon: "facebook" }, items: accountManagement },
+          { title: "Instagram", lead: { icon: "instagram" }, items: accountManagement },
+          { title: "LinkedIn", lead: { icon: "linkedin" }, items: accountManagement },
+        ],
+        extra: `Extra video editing for Reels: ${US_EXTRA_HOUR_PRICE} an hour.`,
+      },
+      { ...indiaOutreachCard, price: US_OUTREACH_ADDON_PRICE },
+      {
+        ...indiaAdvertisingCard,
+        name: "Paid ads management",
+        price: US_ADVERTISING_ADDON_PRICE,
+        extra: "Ad spend is not included in the management fee.",
+      },
+    ],
   },
-  {
-    q: "How long does it take to build my website?",
-    a: "Once you have sent your details and made your first payment, your website goes live **within 7 working days**. It can take a little longer if we are waiting on feedback or content from you, or on your domain being connected.",
+  journey: {
+    ...freeWebsiteContent.journey,
+    buildLabel: "We build it · $0",
+    steps: freeWebsiteContent.journey.steps.map((step, index, steps) =>
+      index === steps.length - 1 ? { ...step, detail: "Within 7 business days of your details and first payment." } : step,
+    ),
+    care: { ...freeWebsiteContent.journey.care, detail: `Hosting, security, updates and monitoring for ${US_WEBSITE_MONTHLY_TEXT}.` },
   },
-  {
-    q: "How many pages do I get?",
-    a: "Up to 5 pages. More pages or bigger features can be added for an extra fee, and we always confirm the price before doing anything.",
+  work: {
+    ...freeWebsiteContent.work,
+    // The US client first: the first site leads the hero's before-and-after and the list of work.
+    sites: [...workSites].sort((a, b) => Number(b.slug === US_FEATURED_SITE) - Number(a.slug === US_FEATURED_SITE)),
   },
-  {
-    q: "Do I pay for hosting separately?",
-    a: "No. **Hosting is included** in the monthly plan.",
+  faq: {
+    ...freeWebsiteContent.faq,
+    items: freeWebsiteFaqs({ monthly: US_WEBSITE_MONTHLY_TEXT, buildDays: "7 business days" }),
   },
-  {
-    q: "Who owns the domain and the content?",
-    a: "You register and pay for your own domain, so it is always in your name. No domain yet? We will set your website up on a temporary domain for free until you have one. The design and the content we write stay with Fynix and are provided as a hosted service while you are subscribed.",
-  },
-  {
-    q: "Can I make changes later?",
-    a: "Yes. Send any change from your dashboard. We always tell you the cost before we start anything that costs extra.",
-  },
-  {
-    q: "Can I cancel?",
-    a: "Yes, anytime, with no notice period. Your website stays online until the end of the month you have already paid for, and your domain stays yours. We remind you before every renewal, so you are never charged by surprise.",
-  },
-  {
-    q: "What happens if a payment fails?",
-    a: "Your website is taken offline as soon as a payment is due and unpaid; there is no grace period. Your content is kept safe, and the website comes back as soon as the payment goes through.",
-  },
-  {
-    q: "What technology is my website built on?",
-    a: "Next.js: a modern, fast and scalable foundation.",
-  },
-];
+  closing: { ...freeWebsiteContent.closing, note: `$0 development fee · Website plan ${US_WEBSITE_MONTHLY_TEXT}` },
+  marketSwitch: undefined,
+};
+
+export const FREE_WEBSITE_CONTENT: Readonly<Record<Market, FreeWebsiteContent>> = {
+  in: freeWebsiteContent,
+  us: usFreeWebsiteContent,
+};

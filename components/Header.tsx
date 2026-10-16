@@ -6,7 +6,7 @@ import { useCallback, useEffect, useRef, useState, type MouseEvent } from "react
 import { useLenis } from "lenis/react";
 import { acts, nav, siteConfig } from "@/lib/content";
 import Logo from "@/components/Logo";
-import { signUpUrl } from "@/lib/free-business-website";
+import { MARKET_PATHS, signUpUrl } from "@/lib/free-business-website";
 
 const HEADER_HEIGHT = 80;
 const MEGA_ITEM_STAGGER = 70;
@@ -22,7 +22,7 @@ export default function Header() {
   const pathname = usePathname();
   // The free business website page is a single-purpose page: no desktop navigation, and a sign-up button that takes the
   // hamburger's place once the hero has scrolled away.
-  const isFreeWebsitePage = pathname.startsWith("/free-business-website");
+  const isFreeWebsitePage = pathname.startsWith(MARKET_PATHS.in) || pathname.startsWith(MARKET_PATHS.us);
   const lenis = useLenis();
 
   const handleSamePageNav =
