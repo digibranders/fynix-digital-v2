@@ -54,6 +54,15 @@ export function isUsTimeZone(zone: string): boolean {
 }
 
 /** The monthly plan's price, before GST, as the dashboard charges it (₹2,999 + 18% GST). */
+/** The WhatsApp line on both markets' pages: country code and number, digits only, as wa.me expects. */
+export const WHATSAPP_NUMBER = "919082205341";
+export const WHATSAPP_MESSAGE = "Hi Fynix Digital, tell us more about the free website.";
+
+/** The wa.me link that opens a chat with the WhatsApp line, the message already typed in. */
+export function whatsappChatUrl(number: string = WHATSAPP_NUMBER, message: string = WHATSAPP_MESSAGE): string {
+  return `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
+}
+
 export const CARE_MONTHLY_PRICE = "₹2,999";
 export const GST_NOTE = "+ 18% GST";
 /** The three add-ons sold on top of the monthly plan, a month before GST. */
