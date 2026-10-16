@@ -48,7 +48,11 @@ export default function PlanCard({
       <div className="px-5 py-6 sm:px-8 sm:py-8">
         {card.intro ? <p className="mb-7 text-base leading-relaxed whitespace-pre-line text-foreground md:text-[clamp(14px,1.55vw,18px)]">{card.intro}</p> : null}
 
-        <div className={`grid gap-y-8 md:gap-y-0 ${columnCount > 1 ? "md:grid-cols-2 md:divide-x md:divide-border" : ""}`}>
+        <div
+          className={`grid gap-y-8 md:gap-y-0 ${columnCount > 1 ? "md:divide-x md:divide-border" : ""} ${
+            columnCount > 2 ? "md:grid-cols-3" : columnCount > 1 ? "md:grid-cols-2" : ""
+          }`}
+        >
           {card.columns.map((column, index) => (
             <div key={column.title ?? index} className={columnCount > 1 ? "md:px-8 md:first:pl-0 md:last:pr-0" : ""}>
               {column.title || column.lead ? (
