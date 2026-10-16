@@ -64,8 +64,9 @@ describe("the US price list", () => {
     ]);
     expect(usFreeWebsiteContent.ticket.care.price).toBe("$75");
     expect(usFreeWebsiteContent.ticket.build.price).toBe("$0");
+    expect(usFreeWebsiteContent.ticket.extra).toBe("Content updates and new pages: $10 an hour.");
     expect(usFreeWebsiteContent.compare.cards.map((card) => card.extra)).toEqual([
-      "Content updates and new pages: $10 an hour.",
+      undefined,
       "Extra video editing for Reels: $10 an hour.",
       undefined,
       "Ad spend is not included in the management fee.",
@@ -91,6 +92,23 @@ describe("the US price list", () => {
   it("points only India visitors at the other market's page", () => {
     expect(freeWebsiteContent.marketSwitch?.market).toBe("us");
     expect(usFreeWebsiteContent.marketSwitch).toBeUndefined();
+  });
+
+  it("states every cost on the plan card: a free build, the monthly price, the hourly extra and the separate domain", () => {
+    for (const page of [freeWebsiteContent, usFreeWebsiteContent]) {
+      expect(page.ticket.build.price).toMatch(/^[₹$]0$/);
+      expect(page.ticket.care.note).toContain("first payment covers your first month");
+      expect(page.ticket.extra).toMatch(/an hour\.$/);
+      expect(page.ticket.domain).toContain("paid separately");
+    }
+    expect(freeWebsiteContent.ticket.extra).toContain("₹500");
+    expect(freeWebsiteContent.ticket.build.note).toContain("working days");
+    expect(usFreeWebsiteContent.ticket.build.note).toContain("business days");
+  });
+
+  it("leads the hero with facts the FAQ backs up, counting build days the way each market does", () => {
+    expect(freeWebsiteContent.hero.assurances).toEqual(["No build fee", "Live in 7 working days", "Cancel anytime"]);
+    expect(usFreeWebsiteContent.hero.assurances).toEqual(["No build fee", "Live in 7 business days", "Cancel anytime"]);
   });
 
   it("uses no em or en dashes in either page's copy", () => {
