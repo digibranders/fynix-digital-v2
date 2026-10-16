@@ -4,7 +4,6 @@ import {
   freeWebsiteContent,
   isUsTimeZone,
   localBusinessOrigin,
-  marketSignUpUrl,
   signUpUrl,
   usFreeWebsiteContent,
 } from "./free-business-website";
@@ -29,12 +28,6 @@ describe("the sign-up buttons on /free-business-website", () => {
     vi.stubEnv("NEXT_PUBLIC_LOCAL_BUSINESS_URL", "https://app.fynix.digital/");
     expect(localBusinessOrigin()).toBe("https://app.fynix.digital");
     expect(signUpUrl("care")).toBe("https://app.fynix.digital/login?plan=care");
-  });
-
-  it("send US visitors to the contact page even when the dashboard is live, as it cannot charge the US prices yet", () => {
-    vi.stubEnv("NEXT_PUBLIC_LOCAL_BUSINESS_URL", "https://app.fynix.digital");
-    expect(marketSignUpUrl("in")).toBe("https://app.fynix.digital/login?plan=care");
-    expect(marketSignUpUrl("us")).toBe(CONTACT_PATH);
   });
 });
 

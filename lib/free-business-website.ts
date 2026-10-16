@@ -6,9 +6,9 @@ import { type WorkSite, workSites } from "./work-sites";
  * Content for the free business website pages: the website Fynix builds for a local business at no development fee,
  * and the monthly plan that keeps it running. There is one page per market, each at its own address so search engines
  * index both: /free-business-website for India (rupees, GST) and /us/free-business-website for the US (dollars).
- * India's sign-up buttons go to the plan's sign-up in the business dashboard (app.fynix.digital, where one plan is sold
- * with add-ons) once NEXT_PUBLIC_LOCAL_BUSINESS_URL says the dashboard is live. Until then, and always in the US for now,
- * they go to the contact page, so no visitor lands on an address that does not exist or a price that is not charged.
+ * Both pages' sign-up buttons go to the plan's sign-up in the business dashboard (app.fynix.digital, where one plan is
+ * sold with add-ons, in rupees or dollars by the visitor's country) once NEXT_PUBLIC_LOCAL_BUSINESS_URL says the
+ * dashboard is live. Until then they go to the contact page, so no visitor lands on an address that does not exist.
  */
 
 /** The page the sign-up buttons use while the dashboard is not live. */
@@ -38,13 +38,6 @@ export const MARKET_PATHS: Readonly<Record<Market, string>> = {
   in: "/free-business-website",
   us: "/us/free-business-website",
 };
-
-/** Where a market's sign-up buttons go. */
-export function marketSignUpUrl(market: Market): string {
-  // shortcut: the dashboard cannot charge the US prices yet (it has no USD add-ons, and its USD plan is not $75), so US
-  // sign-ups go to the contact page. Send them to signUpUrl("care") once the dashboard sells this US price list.
-  return market === "us" ? CONTACT_PATH : signUpUrl("care");
-}
 
 /**
  * Whether the browser's clock is set to a US time zone. IANA zones are per country (Canada has America/Toronto, not

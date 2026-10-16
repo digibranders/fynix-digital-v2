@@ -12,7 +12,7 @@ import HeroDarkBackdrop from "@/components/HeroDarkBackdrop";
 import Reveal from "@/components/Reveal";
 import SectionSeam from "@/components/SectionSeam";
 import { siteConfig } from "@/lib/content";
-import { FREE_WEBSITE_CONTENT, MARKET_PATHS, type Market, marketSignUpUrl } from "@/lib/free-business-website";
+import { FREE_WEBSITE_CONTENT, MARKET_PATHS, type Market, signUpUrl } from "@/lib/free-business-website";
 
 /**
  * The page's metadata for one market. Each market's page names the other as its alternate, so search engines show
@@ -84,7 +84,7 @@ function Tick({ className = "text-accent" }: { readonly className?: string }): R
 export default function FreeWebsitePage({ market }: { readonly market: Market }): ReactElement {
   const page = FREE_WEBSITE_CONTENT[market];
   const path = MARKET_PATHS[market];
-  const careUrl = marketSignUpUrl(market);
+  const careUrl = signUpUrl("care");
   const hero = page.hero;
   const featured = page.work.sites[0];
   const structuredData = {

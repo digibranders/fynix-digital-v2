@@ -6,7 +6,7 @@ import { useCallback, useEffect, useRef, useState, type MouseEvent } from "react
 import { useLenis } from "lenis/react";
 import { acts, nav, siteConfig } from "@/lib/content";
 import Logo from "@/components/Logo";
-import { MARKET_PATHS, marketSignUpUrl } from "@/lib/free-business-website";
+import { MARKET_PATHS, signUpUrl } from "@/lib/free-business-website";
 
 const HEADER_HEIGHT = 80;
 const MEGA_ITEM_STAGGER = 70;
@@ -22,8 +22,7 @@ export default function Header() {
   const pathname = usePathname();
   // The free business website page is a single-purpose page: no desktop navigation, and a sign-up button that takes the
   // hamburger's place once the hero has scrolled away.
-  const isUsFreeWebsitePage = pathname.startsWith(MARKET_PATHS.us);
-  const isFreeWebsitePage = isUsFreeWebsitePage || pathname.startsWith(MARKET_PATHS.in);
+  const isFreeWebsitePage = pathname.startsWith(MARKET_PATHS.in) || pathname.startsWith(MARKET_PATHS.us);
   const lenis = useLenis();
 
   const handleSamePageNav =
@@ -568,7 +567,7 @@ export default function Header() {
             {isFreeWebsitePage ? (
               pastHero ? (
               <a
-                href={marketSignUpUrl(isUsFreeWebsitePage ? "us" : "in")}
+                href={signUpUrl("care")}
                 className={`group relative inline-flex items-center justify-center gap-1.5 px-4 py-2.5 md:px-5 rounded-full text-[11px] md:text-xs font-semibold uppercase tracking-widest transition-[background-color,color,transform,box-shadow] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 active:translate-y-0 will-change-transform ${
                   isDark
                     ? "bg-white text-primary hover:bg-gradient-to-r hover:from-[#e9af88] hover:to-[#ffd2b3] hover:text-[#0C1E2E]"
