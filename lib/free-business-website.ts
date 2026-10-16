@@ -5,7 +5,8 @@ import { type WorkSite, workSites } from "./work-sites";
 /**
  * Content for the free business website pages: the website Fynix builds for a local business at no development fee,
  * and the monthly plan that keeps it running. There is one page per market, each at its own address so search engines
- * index both: /free-business-website for India (rupees, GST) and /us/free-business-website for the US (dollars).
+ * index both: /in/free-business-website for India (rupees, GST) and /us/free-business-website for the US (dollars).
+ * India's page used to live at /free-business-website, which now redirects to it (next.config.ts).
  * Both pages' sign-up buttons go to the plan's sign-up in the business dashboard (app.fynix.digital, where one plan is
  * sold with add-ons, in rupees or dollars by the visitor's country) once NEXT_PUBLIC_LOCAL_BUSINESS_URL says the
  * dashboard is live. Until then they go to the contact page, so no visitor lands on an address that does not exist.
@@ -35,7 +36,7 @@ export function signUpUrl(plan: LocalBusinessPlan): string {
 export type Market = "in" | "us";
 
 export const MARKET_PATHS: Readonly<Record<Market, string>> = {
-  in: "/free-business-website",
+  in: "/in/free-business-website",
   us: "/us/free-business-website",
 };
 

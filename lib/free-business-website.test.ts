@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   CONTACT_PATH,
   freeWebsiteContent,
+  MARKET_PATHS,
   isUsTimeZone,
   localBusinessOrigin,
   signUpUrl,
@@ -45,6 +46,12 @@ describe("telling a US visitor by the browser's time zone", () => {
       expect(isUsTimeZone(zone)).toBe(false);
     },
   );
+});
+
+describe("where each market's page lives", () => {
+  it("gives India and the US their own address", () => {
+    expect(MARKET_PATHS).toEqual({ in: "/in/free-business-website", us: "/us/free-business-website" });
+  });
 });
 
 describe("the US price list", () => {

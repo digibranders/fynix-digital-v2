@@ -9,7 +9,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/case-studies",
     "/about",
     "/faqs",
-    "/free-business-website",
+    "/in/free-business-website",
     "/us/free-business-website",
     "/contact",
     "/terms",
