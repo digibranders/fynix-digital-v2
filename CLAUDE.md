@@ -1,58 +1,91 @@
-# Claude Prompting Guidelines for Fynix.ai Website Redesign
+@AGENTS.md
 
-**Project Scope**: Redesigning the Fynix.ai marketing website to function as a lead-generation engine for cybersecurity companies. The project covers UI/UX, Development, SEO/AEO, and Lead Generation.
+# fynix-digital-v2
 
-## Core Project Setup
+The fynix.digital codebase: the marketing site for Fynix Digital, the paid "Semantic SEO Workshop with Pavel Klimakov" funnel and its API, and the internal admin console that reports on it. `README.md` has setup, env vars and runbooks; `DESIGN.md` has the visual system. This file is the working guide.
 
-**When starting any task or discussing the project, Claude must:**
-1.  Review `fynix/CLAUDE.md` for architectural patterns and "System Prompt" behavior.
-2.  Review `fynix/PROJECT_OVERVIEW.md` for business context and goals.
-3.  Review `fynix/REFERENCE.md` for visual direction and specific examples.
+Stack: Next.js 16 (App Router, Turbopack) · React 19 · TypeScript · Tailwind CSS v4 · Motion · Drizzle ORM with `postgres-js` · Razorpay · Brevo · Zoom Server-to-Server OAuth · Sentry · Vitest. npm, Node 20 (CI) and `>=20.9`.
 
-## Architecture & Code Standards
+## Branches and deploys
 
-### Component Structure
-- All page-level components must be **Server Components**.
-- All interactive "Act" components must be **Client Components**.
-- Use the `"use client";` directive at the top of all client files.
+- Work on `development`. `main` is production and only changes through a PR from `development`.
+- Merging to `main` deploys twice. Vercel builds `main` only (`vercel.json`). GitHub Actions (`.github/workflows/deploy.yml`) runs lint, typecheck, tests and build, then ships `main` to the DigitalOcean droplet. PRs into `main` run the same CI without deploying.
 
-### State Management
-- **Local State**: Use React Hooks (`useState`, `useRef`, `useEffect`).
-- **Global State**: Not needed for this scope. Keep it simple.
+## One codebase, two deployments
 
-### Routing
-- Utilize Next.js App Router conventions.
-- Ensure all links use the `"use client"` directive or `next/link`.
+| | Vercel: fynix.digital | Droplet: api.fynix.digital |
+|---|---|---|
+| Serves | Marketing pages, `/pavel`, the `/admin` console | `/api/pavel/*` and `/api/admin/data/*` |
+| Database | Not reachable | Postgres on localhost |
+| Key env | `NEXT_PUBLIC_API_BASE_URL=https://api.fynix.digital`, `ADMIN_API_ORIGIN` (falls back to the former) | `NEXT_PUBLIC_API_BASE_URL` empty, `ADMIN_UI_DISABLED=true`, `ALLOWED_ORIGIN` |
 
-## Prompt Engineering Guidelines
+- Browser calls to the Pavel API go through `apiUrl()` in `lib/pavel/apiBase.ts`: cross-origin on Vercel, same-origin locally and on the droplet.
+- `middleware.ts` adds credential-less CORS for `/api/pavel/*` from `ALLOWED_ORIGIN`, and rewrites `/pavel` to a prerendered variant at `app/pavel/v/[country]/[zone]` chosen from the visitor's country and time zone. `?country=` is a QA override and skips the rewrite.
+- The console on Vercel reads data through `lib/admin/gateway.ts`, which calls the droplet's `/api/admin/data/*` server to server with `ADMIN_PROXY_SECRET`. Locally, with `DATABASE_URL` set, it queries the database directly.
+- `lib/admin/host.ts` 404s the console on any host with `ADMIN_UI_DISABLED=true`, so fynix.digital/admin is the only login.
 
-### UI/UX & Component Prompts
-When asked to create a UI component, Claude must:
-1.  **Follow the Visual Direction**: Reference `REFERENCE.md` for aesthetic details (e.g., "Deep navy and cream palette," "editorial feel").
-2.  **Apply Design System**: Use the Tailwind classes defined in `fynix/app/globals.css`.
-3.  **Ensure Responsiveness**: Explicitly handle mobile, tablet, and desktop breakpoints.
-4.  **Consider Interaction**: Define hover states, focus states, and transitions.
+## Where things live
 
-### Logic & Functionality Prompts
-When asked to implement logic, Claude must:
-1.  **Prioritize Performance**: Use server-side rendering where possible.
-2.  **Handle State**: Define state transitions clearly.
-3.  **Secure User Data**: If collecting data, ensure it follows privacy best practices (though backend is out of scope, frontend forms should be secure).
+| Path | Holds |
+|---|---|
+| `app/(site)/` | Marketing pages: home, about, services (`[slug]` for the four Acts, plus `social-media`, `social-media-advertisement`, `linkedin-personal-account`), case studies, contact, faqs, `free-business-website`, `signatures` (internal email-signature tool), privacy, terms |
+| `app/(viewer)/free-business-website/live/[slug]` | Framed live previews of sample client sites (`lib/work-sites.ts`, `lib/frame-sandbox.ts`) |
+| `app/pavel/` | Workshop landing page and its variants, `thank-you`, `certificate` lookup and `certificate/[credentialId]` |
+| `app/api/pavel/` | `form-token`, `register`, `checkout`, `verify`, `webhook` (Razorpay), `thank-you-verify`, `referral`, `schedule`, `invoice/[ref]`, `certificate/*`, `audit-submission`, `zoom/webhook`, `cron/reminders` |
+| `app/admin/`, `app/api/admin/` | Console pages, `login`/`logout`, `invoice/[ref]`, and the droplet data API `data/{registrations,sessions,referrals,operations,invoice}` |
+| `app/api/contact`, `technical-seo-audit`, `lead-diagnostic`, `health` | Contact form and SEO audit form (both email through Brevo), lead diagnostic (only logs; sends and stores nothing yet), health check (200 only when Postgres answers) |
+| `lib/content.ts` | Marketing copy and data: acts, case studies, `siteConfig`. `**bold**` in strings renders via `lib/emphasize.tsx` |
+| `lib/pavel/` | Workshop domain: `gst.ts` and `tax.ts`, `invoice*.ts` (numbering, PDF, download), `referral*.ts`, `schedule.ts` and `sessionTimes.ts`, `landingVariant.ts`, `confirm.ts`, `webinarAccess.ts`, `attendanceSync.ts`, `certificate*.ts`, `recording*.ts` |
+| `lib/admin/` | Console auth (`auth.ts`), gateway, filters, grouping, totals, CSV export |
+| `lib/email/` | `brevo.ts` (transport), `dispatch.ts` (workshop email choke point), `design.ts`, `templates.ts`, `pavelTemplates.ts` |
+| `lib/zoom/`, `lib/razorpay/`, `lib/security/` | Zoom registrants and attendance, Razorpay client, honeypot and rate limiting |
+| `lib/free-business-website.ts` | `/free-business-website` content. Sign-up buttons go to `NEXT_PUBLIC_LOCAL_BUSINESS_URL` + `/login?plan=...` (the fynix-platform dashboard), or to `/contact` while that is unset |
+| `lib/db/schema.ts`, `lib/db/client.ts`, `drizzle/` | Tables `registrations`, `email_log`, `referral_codes`, `invoices`, `invoice_counters`, `webinar_sessions`, `certificates`; the server-only client (returns `null` without `DATABASE_URL`); SQL migrations |
+| `components/` | Shared site components at the top level, plus `pavel/`, `admin/`, `free-business-website/` |
+| `docs/finance/` | Spend and invoice control: designed, not built |
+| `scripts/` | Email preview, email logo export, referral seed, Zoom webinar settings check, audits |
 
-## Prompting Workflow
+## The workshop purchase flow
 
-**To ensure accuracy, Claude should follow these steps when executing a prompt:**
-1.  **Deconstruct**: Break the user's request into smaller, manageable tasks.
-2.  **Reference**: Check `PROJECT_OVERVIEW.md` and `REFERENCE.md` for context and constraints.
-3.  **Implement**: Write the code according to the architectural standards.
-4.  **Validate**: Mentally verify that the code meets the project goals and follows the "acts" structure.
-5.  **Document**: Add inline comments for complex logic.
+1. The checkout modal fetches a signed token from `/api/pavel/form-token` (bot screening, `lib/security/honeypot.ts`).
+2. `/api/pavel/register` stores a `pending` registration with an unguessable `ref` (`PVL-...`). It sends no email.
+3. `/api/pavel/checkout` creates the Razorpay order. Price and country come from the stored row, never from the client.
+4. Payment is confirmed by `/api/pavel/webhook` (authoritative, HMAC over the raw body) and `/api/pavel/verify` (fast path). Both call `confirmRegistrationPaid` in `lib/pavel/confirm.ts`, which is idempotent.
+5. Confirmation flips the row to `paid`, issues the GST invoice, grants Zoom access (`lib/pavel/webinarAccess.ts`) and sends email through `dispatchPavelEmail`, which claims an `email_log` row per registration and type so nothing is sent twice.
+6. `/api/pavel/cron/reminders` (guarded by `CRON_SECRET` or `PAVEL_CRON_SECRET`, scheduled outside this repo) sends reminders, then a certificate to attendees or the recording to absentees.
 
-## Safety & Tone
-- **Tone**: Maintain a professional, concise, and confident tone, as befitting a cybersecurity partner.
-- **Security**: Always be mindful of security implications, even in frontend code.
-- **Privacy**: Respect user privacy in all data-handling logic.
+## Conventions
 
-## Summary
+- Pages and layouts are Server Components. Add `"use client"` only to components that need state, effects or browser APIs; many files in `components/` are server components.
+- Content is data: put copy in `lib/content.ts` (or the feature's own content file), not in JSX.
+- Use the semantic design tokens from `app/globals.css` (`--color-primary`, `--color-text-muted`, ...), never raw values. Follow `DESIGN.md`: trust-first, editorial, measured.
+- Import with the `@/` alias (repo root).
+- Tests are `*.test.ts` next to the source under `lib/` or `components/`, run by Vitest in a Node environment (no DOM tests).
+- All mail goes through `lib/email/brevo.ts`. Each file has an `EMAILS_ENABLED` kill switch (both `true` now). Send from `hello@fynix.digital`, the Brevo-verified sender; other addresses are silently dropped.
+- Only `lib/email/design.ts` may use raw colours or `<table>`. Add new templates to `lib/email/templates.test.ts` so the shared invariants cover them.
 
-Claude's role is to act as a senior full-stack developer and design system expert. By strictly adhering to these guidelines and referencing the provided documentation, Claude can ensure the delivery of a high-quality, high-performing, and visually consistent website for Fynix.ai.
+## Rules that are easy to break
+
+- **Migrations must be additive.** The deploy migrates before it builds, so the old process runs against the new schema for a while. Split drops and renames across two deploys.
+- **Droplet env comes from the workflow.** Every deploy regenerates `/opt/fynix/.env` from GitHub secrets and variables, so a value set by hand on the server is lost. Add new variables to `deploy.yml` and `.env.example`.
+- **GST and invoice numbering are compliance code.** A wrong tax split or a reused invoice number is a legal defect. Keep `lib/pavel/*.test.ts` passing and extend them with any change.
+- **Naming trap:** `invoices` means tax invoices issued to workshop buyers. The planned finance system uses the `finance_` prefix and calls inbound files documents.
+- **Zoom:** create each cohort's webinar from the `Semantic SEO Masterclass (Fynix emails only)` template and keep registration on manual approval. See README, "Opening a new cohort".
+- **Sentry privacy:** request bodies are never sent, and console capture is limited to `warn` and `error`. Do not log personal data at those levels.
+
+## Commands
+
+```bash
+npm install
+npm run dev              # localhost:3000 (.claude/launch.json: fynix-dev)
+npm run lint
+npx tsc --noEmit
+npm test                 # vitest run
+npm run build
+npm run db:generate      # SQL migration from lib/db/schema.ts into drizzle/
+npm run db:migrate       # apply migrations to DATABASE_URL
+npm run db:seed          # referral codes
+npm run email:preview    # render every email to .email-preview/ (launch.json: email-preview)
+```
+
+Before calling a change done, run `npm run lint`, `npx tsc --noEmit`, `npm test` and `npm run build`. These are the CI gates on `main`.
