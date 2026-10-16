@@ -16,7 +16,8 @@ import { FREE_WEBSITE_CONTENT, MARKET_PATHS, type Market, signUpUrl } from "@/li
 
 /** The share card both markets use: "Get Your Business Website for FREE" with FREE in split-flap tiles. */
 const SHARE_IMAGE = {
-  url: `${siteConfig.url}/free-business-website/og-card.png`,
+  // Bump the version when the image changes: WhatsApp and LinkedIn cache previews by image URL.
+  url: `${siteConfig.url}/free-business-website/og-card.png?v=2`,
   width: 1200,
   height: 630,
   alt: "Get your business website for free. Built for you. Live 24/7. Fynix Digital",
