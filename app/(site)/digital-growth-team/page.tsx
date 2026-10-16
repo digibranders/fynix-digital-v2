@@ -14,6 +14,14 @@ import { DIGITAL_GROWTH_TEAM_CTA, DIGITAL_GROWTH_TEAM_PATH, digitalGrowthTeamCon
 
 const { meta, hero, compare, quote, board } = digitalGrowthTeamContent;
 
+/** The share card: the hero heading, with GROWTH TEAM in split-flap tiles. */
+const SHARE_IMAGE = {
+  url: `${siteConfig.url}${DIGITAL_GROWTH_TEAM_PATH}/og-card.png`,
+  width: 1200,
+  height: 630,
+  alt: "Your Outsourced Digital Growth Team. Fynix Digital",
+} as const;
+
 export const metadata: Metadata = {
   title: meta.title,
   description: meta.description,
@@ -22,7 +30,15 @@ export const metadata: Metadata = {
     title: `${meta.title} | ${siteConfig.name}`,
     description: meta.description,
     url: `${siteConfig.url}${DIGITAL_GROWTH_TEAM_PATH}`,
+    siteName: siteConfig.name,
     type: "website",
+    images: [SHARE_IMAGE],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `${meta.title} | ${siteConfig.name}`,
+    description: meta.description,
+    images: [SHARE_IMAGE.url],
   },
 };
 

@@ -14,6 +14,14 @@ import SectionSeam from "@/components/SectionSeam";
 import { siteConfig } from "@/lib/content";
 import { FREE_WEBSITE_CONTENT, MARKET_PATHS, type Market, signUpUrl } from "@/lib/free-business-website";
 
+/** The share card both markets use: "Get Your Business Website for FREE" with FREE in split-flap tiles. */
+const SHARE_IMAGE = {
+  url: `${siteConfig.url}/free-business-website/og-card.png`,
+  width: 1200,
+  height: 630,
+  alt: "Get your business website for free. Built for you. Live 24/7. Fynix Digital",
+} as const;
+
 /**
  * The page's metadata for one market. Each market's page names the other as its alternate, so search engines show
  * Indian searchers the rupee page and US searchers the dollar page; the US page stands in for every other country.
@@ -32,7 +40,15 @@ export function freeWebsiteMetadata(market: Market): Metadata {
       title: `${meta.title} | ${siteConfig.name}`,
       description: meta.description,
       url: `${siteConfig.url}${path}`,
+      siteName: siteConfig.name,
       type: "website",
+      images: [SHARE_IMAGE],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${meta.title} | ${siteConfig.name}`,
+      description: meta.description,
+      images: [SHARE_IMAGE.url],
     },
   };
 }
