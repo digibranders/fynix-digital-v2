@@ -139,8 +139,7 @@ export default function FreeWebsitePage({ market }: { readonly market: Market })
             <h1 className="font-serif text-[32px] leading-tight font-medium text-balance sm:text-5xl lg:text-[64px] lg:leading-[1.25]">
               {hero.title} <span className="block font-serif text-[#e9af88] italic">{hero.accent}</span>
             </h1>
-            {/* One line at every width: the type shrinks with the phone so the whole sentence fits (16px from 464px up). */}
-            <p className="mt-4 text-[clamp(12px,3.45vw,16px)] leading-normal font-normal whitespace-nowrap text-white/70 md:mt-6 md:text-lg md:leading-relaxed">{hero.lede}</p>
+            <p className="mt-4 max-w-xl text-base leading-normal text-white/70 md:mt-6 md:text-lg md:leading-relaxed">{hero.lede}</p>
             <div className="mt-6 flex flex-wrap items-center gap-4 md:mt-8">
               <a href={careUrl} className={`${PRIMARY_BUTTON_ON_DARK} max-sm:px-6 max-sm:py-3 max-sm:text-[15px]`}>
                 {hero.primaryCta}
@@ -167,27 +166,94 @@ export default function FreeWebsitePage({ market }: { readonly market: Market })
         </div>
       </section>
 
-      {/* ─── PLANS ────────────────────────────────────────────── */}
+      {/* ─── PLAN ─────────────────────────────────────────────── */}
+      {/* The deal comes first, in one card: the build costs nothing, the monthly plan keeps it running, and every other cost
+          sits at the card's foot. The add-ons follow it. */}
       <section id="compare" aria-labelledby="compare-title" className="bg-background py-12 md:py-16">
         <div className="mx-auto max-w-5xl px-6 md:px-12">
           <Reveal className="max-w-3xl">
-            <h2 id="compare-title" className="font-serif text-4xl leading-tight font-medium text-primary md:text-5xl">
-              {page.compare.title}
+            <h2 id="compare-title" className="font-serif text-4xl leading-tight font-medium text-balance text-primary md:text-5xl">
+              {page.ticket.title}{" "}
+              <span className="font-serif text-accent-strong italic md:block">{page.ticket.accent}</span>
             </h2>
-            <p className="mt-4 max-w-2xl text-base leading-relaxed text-text-muted">{page.compare.lede}</p>
+            <p className="mt-4 max-w-2xl text-base leading-relaxed text-text-muted">{page.ticket.lede}</p>
           </Reveal>
 
           <Reveal className="mt-10">
-            <PlanCard card={page.compare.cards[0]} priceLine={page.compare.priceLine} />
+            <div className="overflow-hidden rounded-xl bg-primary text-white shadow-[0_28px_36px_-24px_rgba(12,30,46,0.45)]">
+              <div className="grid lg:grid-cols-[20rem_minmax(0,1fr)]">
+                <div className="grid content-start gap-6 border-b border-dashed border-white/30 p-7 sm:p-10 lg:border-r lg:border-b-0">
+                  <p className="font-mono text-xs tracking-widest text-white/70 uppercase">{page.ticket.build.label}</p>
+                  <div className="grid gap-2">
+                    <p className="font-serif text-6xl leading-none font-medium tracking-tight text-accent tabular-nums">
+                      {page.ticket.build.price}
+                    </p>
+                    <p className="font-mono text-xs tracking-widest text-white/70 uppercase">{page.ticket.build.priceLine}</p>
+                    <p className="text-[15px] leading-snug text-white/80">{page.ticket.build.note}</p>
+                  </div>
+                  <ul className="grid gap-3">
+                    {page.ticket.build.points.map((point) => (
+                      <li key={point} className="flex items-start gap-3 text-base leading-snug">
+                        <Tick />
+                        {point}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="grid content-start gap-8 p-7 sm:p-10">
+                  <div className="grid gap-4">
+                    <h3 className="font-mono text-xs tracking-widest text-white/70 uppercase">{page.ticket.care.label}</h3>
+                    <div className="grid gap-2">
+                      <div className="flex flex-wrap items-baseline gap-x-5 gap-y-2">
+                        <p className="font-serif text-5xl leading-none font-medium tracking-tight tabular-nums">{page.ticket.care.price}</p>
+                        <p className="font-mono text-xs tracking-widest text-white/70 uppercase">{page.ticket.care.priceLine}</p>
+                      </div>
+                      <p className="text-[15px] leading-snug text-white/80">{page.ticket.care.note}</p>
+                    </div>
+                  </div>
+                  <ul className="grid gap-x-8 gap-y-5 sm:grid-cols-2">
+                    {page.ticket.care.benefits.map((benefit) => (
+                      <li key={benefit.title} className="flex items-start gap-3">
+                        <Tick />
+                        <div className="grid gap-1">
+                          <p className="text-base leading-snug">{benefit.title}</p>
+                          <p className="text-[15px] leading-normal text-white/70 max-sm:hidden">{benefit.detail}</p>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                  <a href={careUrl} className={`${PRIMARY_BUTTON_ON_DARK} w-full sm:w-auto sm:justify-self-start`}>
+                    {page.ticket.care.cta}
+                    <Arrow />
+                  </a>
+                </div>
+              </div>
+
+              <div className="grid gap-3 px-7 pb-7 sm:px-10 sm:pb-10 md:grid-cols-2">
+                <p className="flex items-center gap-4 rounded-xl bg-white/[0.07] px-4 py-3.5 text-[15px] leading-snug">
+                  <span className="shrink-0 rounded-full bg-accent px-3.5 py-1.5 text-[11px] font-semibold tracking-widest text-primary uppercase">Extra</span>
+                  {page.ticket.extra}
+                </p>
+                <p className="flex items-center gap-4 rounded-xl bg-white/[0.07] px-4 py-3.5 text-[15px] leading-snug">
+                  <span className="shrink-0 rounded-full bg-white/15 px-3.5 py-1.5 text-[11px] font-semibold tracking-widest uppercase">Domain</span>
+                  {page.ticket.domain}
+                </p>
+              </div>
+            </div>
           </Reveal>
 
           {/* The add-ons stack as the services page does: the heading and each card stick under the site header, and the next card slides
-              over the last, so the heading and each card's title strip stay in view while the stack scrolls. */}
+              over the last, so the heading and each card's title strip stay in view while the stack scrolls. The first card in the
+              content is the website plan itself, which the card above already covers, so the stack starts at the second. */}
           <CardStack className="relative mt-14 -mb-[calc(120vh+48px)] grid gap-6 [--stack-head:64px]">
             {/* The heading rides on top of the first card, so it leaves with the stack when the stack scrolls away. */}
             <div data-stack-item className="z-10 grid gap-0 md:sticky md:top-20">
               <h3 className="flex h-16 items-center bg-background text-[26px] leading-tight font-semibold text-primary sm:text-[30px]">
-                {page.compare.addonsIntro}
+                <span>
+                  {page.compare.addonsIntro.title}{" "}
+                  <span className="font-serif text-[32px] font-medium text-accent-strong italic sm:text-[38px]">{page.compare.addonsIntro.accent}</span>
+                </span>
               </h3>
               <PlanCard card={page.compare.cards[1]} priceLine={page.compare.priceLine} />
             </div>
@@ -204,71 +270,6 @@ export default function FreeWebsitePage({ market }: { readonly market: Market })
           </Reveal>
         </div>
       </section>
-
-      <SectionSeam from="white" to="soft" />
-
-      {/* ─── PRICE ────────────────────────────────────────────── */}
-      <section id="plan" aria-labelledby="plan-title" className="bg-background-soft py-12 md:py-16">
-        <div className="mx-auto max-w-7xl px-6 md:px-12">
-          <Reveal className="max-w-3xl">
-            <h2 id="plan-title" className="font-serif text-4xl leading-tight font-medium text-balance text-primary md:text-5xl">
-              {page.ticket.title}{" "}
-              <span className="font-serif text-accent-strong italic md:block">{page.ticket.accent}</span>
-            </h2>
-            <p className="mt-4 max-w-2xl text-base leading-relaxed text-text-muted">{page.ticket.lede}</p>
-          </Reveal>
-
-          <Reveal className="mt-10">
-            <div className="grid overflow-hidden rounded-xl bg-primary text-white shadow-[0_28px_36px_-24px_rgba(12,30,46,0.45)] lg:grid-cols-[24rem_minmax(0,1fr)]">
-              <div className="grid content-start gap-6 border-b border-dashed border-white/30 p-8 sm:p-11 lg:border-r lg:border-b-0">
-                <p className="font-mono text-xs tracking-widest text-white/70 uppercase">{page.ticket.build.label}</p>
-                <div className="grid gap-2">
-                  <p className="font-serif text-6xl leading-none font-medium tracking-tight text-accent tabular-nums">
-                    {page.ticket.build.price}
-                  </p>
-                  <p className="font-mono text-xs tracking-widest text-white/70 uppercase">{page.ticket.build.priceLine}</p>
-                </div>
-                <ul className="grid gap-3">
-                  {page.ticket.build.points.map((point) => (
-                    <li key={point} className="flex items-start gap-3 text-base leading-snug">
-                      <Tick />
-                      {point}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <div className="grid content-start gap-8 p-8 sm:p-11 lg:px-14">
-                <div className="grid gap-4">
-                  <h3 className="font-mono text-xs tracking-widest text-white/70 uppercase">{page.ticket.care.label}</h3>
-                  <div className="flex flex-wrap items-baseline gap-x-5 gap-y-2">
-                    <p className="font-serif text-5xl leading-none font-medium tracking-tight tabular-nums">{page.ticket.care.price}</p>
-                    <p className="font-mono text-xs tracking-widest text-white/70 uppercase">{page.ticket.care.priceLine}</p>
-                  </div>
-                </div>
-                <ul className="grid gap-x-10 gap-y-5 sm:grid-cols-2">
-                  {page.ticket.care.benefits.map((benefit) => (
-                    <li key={benefit.title} className="flex items-start gap-3">
-                      <Tick />
-                      <div className="grid gap-1">
-                        <p className="text-base leading-snug">{benefit.title}</p>
-                        <p className="text-[15px] leading-normal text-white/70 max-sm:hidden">{benefit.detail}</p>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-                <a href={careUrl} className={`${PRIMARY_BUTTON_ON_DARK} w-full sm:w-auto sm:justify-self-start`}>
-                  {page.ticket.care.cta}
-                  <Arrow />
-                </a>
-              </div>
-            </div>
-          </Reveal>
-
-        </div>
-      </section>
-
-      <SectionSeam from="soft" to="white" />
 
       {/* ─── JOURNEY ──────────────────────────────────────────── */}
       <section id="journey" aria-labelledby="journey-title" className="bg-background py-12 md:py-16">

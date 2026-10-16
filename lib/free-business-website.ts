@@ -106,24 +106,36 @@ export interface FreeWebsiteContent {
     readonly primaryCta: string;
     readonly assurances: readonly string[];
   };
+  /** The page's one plan card: what the build costs (nothing), what the monthly plan costs and covers, and every other cost. */
   readonly ticket: {
     readonly title: string;
     readonly accent: string;
     readonly lede: string;
-    readonly build: { readonly label: string; readonly price: string; readonly priceLine: string; readonly points: readonly string[] };
+    readonly build: {
+      readonly label: string;
+      readonly price: string;
+      readonly priceLine: string;
+      /** A line under the price that answers the visitor's next question. */
+      readonly note: string;
+      readonly points: readonly string[];
+    };
     readonly care: {
       readonly label: string;
       readonly price: string;
       readonly priceLine: string;
+      readonly note: string;
       readonly benefits: readonly TitledLine[];
       readonly cta: string;
     };
+    /** What costs extra, and the domain, which the visitor pays for separately: both at the card's foot so no cost is a surprise. */
+    readonly extra: string;
+    readonly domain: string;
   };
+  /** The add-ons stacked under the plan card. The first card is the website plan itself: the growth team page shows it, this page does not. */
   readonly compare: {
-    readonly title: string;
-    readonly lede: string;
     readonly priceLine: string;
-    readonly addonsIntro: string;
+    /** The add-ons heading: the title in navy, then the accent in peach italic, as the other headings on the page. */
+    readonly addonsIntro: { readonly title: string; readonly accent: string };
     readonly cards: readonly CompareCard[];
     readonly careCta: string;
   };
@@ -204,20 +216,21 @@ export const freeWebsiteContent: FreeWebsiteContent = {
   hero: {
     title: "Your first impression.",
     accent: "Make it count.",
-    lede: "We build your website free and look after it every month.",
+    lede: "Free to build. One monthly plan keeps it hosted, secure and up to date.",
     primaryCta: "Get my free website",
-    assurances: ["Your business", "Your website", "We keep it running"],
+    assurances: ["No build fee", "Live in 7 working days", "Cancel anytime"],
   },
   ticket: {
     title: "You do not pay to build it.",
     accent: "You pay to keep it running.",
-    lede: "We design and build your website for free. Once it is live, one monthly price keeps it hosted, secure and up to date.",
+    lede: "We design and build your website for free. One monthly plan keeps it hosted, secure and up to date, with the OyeChats chatbot included.",
     build: {
       label: "We build it",
       price: "₹0",
       priceLine: "Development fee",
+      note: "Live in 7 working days.",
       points: [
-        "Professional design",
+        "Professional Next.js website",
         "Up to 5 pages",
         "Works on every phone",
         "Enquiry forms and click-to-call",
@@ -228,16 +241,19 @@ export const freeWebsiteContent: FreeWebsiteContent = {
       label: "We keep it running",
       price: CARE_MONTHLY_PRICE,
       priceLine: `a month ${GST_NOTE}`,
+      note: "Your first payment covers your first month. Cancel anytime.",
       benefits: [
-        { title: "Hosting and SSL", detail: "Your website is hosted for you and kept online." },
-        { title: "Security", detail: "Your website is protected and kept secure." },
+        { title: "Hosting and SSL", detail: "Hosted for you and kept online." },
+        { title: "Security monitoring", detail: "Protected and kept secure." },
         { title: "Updates and upkeep", detail: "Maintenance, updates and speed, all handled." },
-        { title: "Monitoring", detail: "Your website is watched all month, so problems are caught early." },
+        { title: "Uptime and performance", detail: "Watched all month, so problems are caught early." },
         { title: "Monthly health report", detail: "A short report on how your website is doing." },
-        { title: "OyeChats professional chatbot", detail: "A professional chatbot on your website." },
+        { title: "OyeChats professional chatbot", detail: "Answers your visitors on your website." },
       ],
       cta: "Get my free website",
     },
+    extra: "Content updates and new pages: ₹500 an hour.",
+    domain: "Your domain is registered in your name and paid separately.",
   },
   /**
    * The one monthly plan and the three add-ons bought on top of it, as one table in bands. Each band has
@@ -245,10 +261,8 @@ export const freeWebsiteContent: FreeWebsiteContent = {
    * "you get this". There is no other plan.
    */
   compare: {
-    title: "One plan. Add what you need.",
-    lede: "One monthly plan keeps your website, hosting and chatbot running. Add social media, outreach or advertising on top when you want them.",
     priceLine: `a month ${GST_NOTE}`,
-    addonsIntro: "Optional add-ons",
+    addonsIntro: { title: "Optional", accent: "add-ons" },
     cards: [
       {
         name: "Website",
@@ -281,7 +295,6 @@ export const freeWebsiteContent: FreeWebsiteContent = {
             ],
           },
         ],
-        extra: "Content updates and new pages: ₹500 an hour.",
       },
       {
         name: "Social media management",
@@ -501,17 +514,18 @@ export const usFreeWebsiteContent: FreeWebsiteContent = {
     description:
       "A professional website for your local business with no development fee, live in 7 business days. Hosting, security and upkeep for $75 a month.",
   },
+  hero: { ...freeWebsiteContent.hero, assurances: ["No build fee", "Live in 7 business days", "Cancel anytime"] },
   ticket: {
     ...freeWebsiteContent.ticket,
-    build: { ...freeWebsiteContent.ticket.build, price: "$0" },
+    build: { ...freeWebsiteContent.ticket.build, price: "$0", note: "Live in 7 business days." },
     care: { ...freeWebsiteContent.ticket.care, price: US_WEBSITE_PRICE, priceLine: "a month" },
+    extra: `Content updates and new pages: ${US_EXTRA_HOUR_PRICE} an hour.`,
   },
   compare: {
     ...freeWebsiteContent.compare,
-    lede: "One monthly plan keeps your website, hosting and chatbot running. Add social media, outreach or paid ads on top when you want them.",
     priceLine: "a month",
     cards: [
-      { ...indiaWebsiteCard, price: US_WEBSITE_PRICE, extra: `Content updates and new pages: ${US_EXTRA_HOUR_PRICE} an hour.` },
+      { ...indiaWebsiteCard, price: US_WEBSITE_PRICE },
       {
         name: "Social media management",
         tag: "Add-on",
