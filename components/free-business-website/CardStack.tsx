@@ -26,6 +26,14 @@ export default function CardStack({ children, className }: { readonly children: 
     let frame = 0;
     const update = (): void => {
       frame = 0;
+      // On a phone the cards are not sticky (PlanCard), so they scroll as a plain list and there is nothing to move or cut off.
+      if (getComputedStyle(last).position !== "sticky") {
+        for (const item of items) {
+          item.style.transform = "";
+          item.style.clipPath = "";
+        }
+        return;
+      }
       // Where the last card sits once settled: its sticky top plus its own height.
       const settledBottom = parseFloat(getComputedStyle(last).top) + last.offsetHeight;
       const lift = Math.min(0, end.getBoundingClientRect().top - settledBottom);
