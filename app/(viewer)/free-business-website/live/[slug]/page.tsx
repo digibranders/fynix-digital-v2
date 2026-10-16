@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: `${site.title} website`,
     description: `The live ${site.title} website, built by Fynix Digital.`,
     // The page is the client's own site in a frame; the free business website page is what should be found in search.
-    alternates: { canonical: "/free-business-website" },
+    alternates: { canonical: "/in/free-business-website" },
     robots: { index: false, follow: true },
   };
 }
@@ -77,7 +77,7 @@ export default async function LiveSitePage({ params }: Props): Promise<ReactElem
           <Logo width={67} height={28} />
         </Link>
         <Link
-          href="/free-business-website#work"
+          href="/in/free-business-website#work"
           className="group inline-flex min-w-0 items-center gap-2 rounded-full py-1.5 pr-2 text-sm font-medium text-white/80 transition-colors duration-200 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
         >
           <svg aria-hidden viewBox="0 0 24 24" className="size-4 shrink-0 transition-transform duration-200 group-hover:-translate-x-0.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

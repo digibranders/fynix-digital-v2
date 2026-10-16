@@ -23,6 +23,21 @@ const nextConfig: NextConfig = {
     // be declared explicitly (75 stays available as the default).
     qualities: [75, 82, 90],
   },
+  /**
+   * India's free business website page moved from /free-business-website to /in/free-business-website, beside the US
+   * page. Permanent (308), so search engines carry the old address's ranking to the new one and links keep working.
+   * Exact match only: the sample-site viewer under /free-business-website/live/ and the images under
+   * /free-business-website/ stay where they are.
+   */
+  async redirects() {
+    return [
+      {
+        source: "/free-business-website",
+        destination: "/in/free-business-website",
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     const isDev = process.env.NODE_ENV === "development";
 
