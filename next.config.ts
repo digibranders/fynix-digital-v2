@@ -1,5 +1,4 @@
 import type { NextConfig } from "next";
-import { framedSiteOrigins } from "./lib/work-sites";
 import { withSentryConfig } from "@sentry/nextjs";
 
 const nextConfig: NextConfig = {
@@ -24,18 +23,17 @@ const nextConfig: NextConfig = {
     qualities: [75, 82, 90],
   },
   /**
-   * India's free business website page moved from /free-business-website to /in/free-business-website, beside the US
-   * page. Permanent (308), so search engines carry the old address's ranking to the new one and links keep working.
-   * Exact match only: the sample-site viewer under /free-business-website/live/ and the images under
-   * /free-business-website/ stay where they are.
+   * The local-business offer moved to Brandbasket (brandbasket.in), a separate Digibranders brand. The free business
+   * website pages (India and US), their sample-site viewer and images, and the Digital Growth Team page now redirect
+   * there permanently (308), so links and search rankings carry over.
    */
   async redirects() {
     return [
-      {
-        source: "/free-business-website",
-        destination: "/in/free-business-website",
-        permanent: true,
-      },
+      { source: "/free-business-website", destination: "https://brandbasket.in/", permanent: true },
+      { source: "/free-business-website/:path*", destination: "https://brandbasket.in/", permanent: true },
+      { source: "/in/free-business-website", destination: "https://brandbasket.in/", permanent: true },
+      { source: "/us/free-business-website", destination: "https://brandbasket.in/", permanent: true },
+      { source: "/digital-growth-team", destination: "https://brandbasket.in/pricing", permanent: true },
     ];
   },
   async headers() {
@@ -102,7 +100,7 @@ const nextConfig: NextConfig = {
       // The overlay also pulls its risk/fraud-detection bundle from
       // cdn.razorpay.com, so script-src must allow that host too.
       `script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://connect.facebook.net https://checkout.razorpay.com https://cdn.razorpay.com${isDev ? " 'unsafe-eval'" : ""}`,
-      `frame-src 'self' https://www.youtube-nocookie.com https://www.googletagmanager.com https://api.razorpay.com https://checkout.razorpay.com ${framedSiteOrigins().join(" ")}`,
+      `frame-src 'self' https://www.youtube-nocookie.com https://www.googletagmanager.com https://api.razorpay.com https://checkout.razorpay.com`,
       `connect-src 'self' ${analyticsConnectSrc} https://*.razorpay.com${apiOrigin ? ` ${apiOrigin}` : ""}${isDev ? " ws:" : ""}`,
       "worker-src 'self' blob:",
     ].join("; ");

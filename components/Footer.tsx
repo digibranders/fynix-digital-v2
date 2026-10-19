@@ -7,7 +7,6 @@ const siteLinks = [
   { href: "/", label: "Home" },
   { href: "/services", label: "Services" },
   { href: "/case-studies", label: "Case Studies" },
-  { href: "/in/free-business-website", label: "Free Business Website" },
 ];
 
 const serviceLinks = [

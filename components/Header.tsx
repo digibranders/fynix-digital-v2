@@ -6,8 +6,6 @@ import { useCallback, useEffect, useRef, useState, type MouseEvent } from "react
 import { useLenis } from "lenis/react";
 import { acts, nav, siteConfig } from "@/lib/content";
 import Logo from "@/components/Logo";
-import { DIGITAL_GROWTH_TEAM_CTA, DIGITAL_GROWTH_TEAM_PATH } from "@/lib/digital-growth-team";
-import { MARKET_PATHS, signUpUrl } from "@/lib/free-business-website";
 
 const HEADER_HEIGHT = 80;
 const MEGA_ITEM_STAGGER = 70;
@@ -18,17 +16,7 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [megaOpen, setMegaOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  // True once the first (hero) section has scrolled out from under the header.
-  const [pastHero, setPastHero] = useState(false);
   const pathname = usePathname();
-  // The free business website pages and the growth team page are single-purpose pages: no desktop navigation, and a
-  // sign-up button that takes the hamburger's place once the hero has scrolled away.
-  const isGrowthTeamPage = pathname.startsWith(DIGITAL_GROWTH_TEAM_PATH);
-  const isFreeWebsitePage =
-    isGrowthTeamPage || pathname.startsWith(MARKET_PATHS.in) || pathname.startsWith(MARKET_PATHS.us);
-  const signUp = isGrowthTeamPage
-    ? DIGITAL_GROWTH_TEAM_CTA
-    : { label: "Get my free website", href: signUpUrl("care") };
   const lenis = useLenis();
 
   const handleSamePageNav =
@@ -130,7 +118,6 @@ export default function Header() {
         : y > SCROLL_THRESHOLD,
     );
     const sections = darkSectionsRef.current;
-    setPastHero(sections.length > 0 && sections[0].getBoundingClientRect().bottom <= HEADER_HEIGHT);
     if (sections.length === 0) {
       setTheme("light");
       return;
@@ -265,8 +252,7 @@ export default function Header() {
             />
           </Link>
 
-          {!isFreeWebsitePage && (
-            <nav
+          <nav
               aria-label="Primary"
               className={`hidden lg:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 items-center gap-10 text-base font-medium transition-colors duration-300 ${
                 isDark ? "text-white/70" : "text-text-muted"
@@ -567,23 +553,8 @@ export default function Header() {
                 </div>
               </div>
             </nav>
-          )}
 
           <div className="flex items-center gap-2 md:gap-5 shrink-0">
-            {isFreeWebsitePage ? (
-              pastHero ? (
-              <a
-                href={signUp.href}
-                className={`group relative inline-flex items-center justify-center gap-1.5 px-4 py-2.5 md:px-5 rounded-full text-[11px] md:text-xs font-semibold uppercase tracking-widest transition-[background-color,color,transform,box-shadow] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 active:translate-y-0 will-change-transform ${
-                  isDark
-                    ? "bg-white text-primary hover:bg-gradient-to-r hover:from-[#e9af88] hover:to-[#ffd2b3] hover:text-[#0C1E2E]"
-                    : "bg-primary text-white hover:bg-gradient-to-r hover:from-[#e9af88] hover:to-[#ffd2b3] hover:text-[#0C1E2E]"
-                }`}
-              >
-                {signUp.label}
-              </a>
-              ) : null
-            ) : (
               <Link
                 href="/contact"
                 onClick={(e) => {
@@ -604,9 +575,7 @@ export default function Header() {
                   →
                 </span>
               </Link>
-            )}
 
-            {isFreeWebsitePage && pastHero ? null : (
               <button
                 type="button"
                 aria-expanded={menuOpen}
@@ -639,7 +608,6 @@ export default function Header() {
                   )}
                 </svg>
               </button>
-            )}
           </div>
         </div>
       </div>
