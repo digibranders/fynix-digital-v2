@@ -26,10 +26,11 @@ Stack: Next.js 16 (App Router, Turbopack) · React 19 · TypeScript · Tailwind 
 
 ## Where things live
 
+The local-business offer (free business website, monthly plans, Digital Growth Team) moved to Brandbasket (brandbasket.in, its own workspace at `/Users/a12345/Desktop/AI/BrandBasket`). Its old pages here now 308 to brandbasket.in (`next.config.ts` redirects); do not rebuild them in this repo.
+
 | Path | Holds |
 |---|---|
-| `app/(site)/` | Marketing pages: home, about, services (`[slug]` for the four Acts, plus `social-media`, `social-media-advertisement`, `linkedin-personal-account`), case studies, contact, faqs, `in/free-business-website` and `us/free-business-website`, `signatures` (internal email-signature tool), privacy, terms |
-| `app/(viewer)/free-business-website/live/[slug]` | Framed live previews of sample client sites (`lib/work-sites.ts`, `lib/frame-sandbox.ts`) |
+| `app/(site)/` | Marketing pages: home, about, services (`[slug]` for the four Acts, plus `social-media`, `social-media-advertisement`, `linkedin-personal-account`), case studies, contact, faqs, `signatures` (internal email-signature tool), privacy, terms |
 | `app/pavel/` | Workshop landing page and its variants, `thank-you`, `certificate` lookup and `certificate/[credentialId]` |
 | `app/api/pavel/` | `form-token`, `register`, `checkout`, `verify`, `webhook` (Razorpay), `thank-you-verify`, `referral`, `schedule`, `invoice/[ref]`, `certificate/*`, `audit-submission`, `zoom/webhook`, `cron/reminders` |
 | `app/admin/`, `app/api/admin/` | Console pages, `login`/`logout`, `invoice/[ref]`, and the droplet data API `data/{registrations,sessions,referrals,operations,invoice}` |
@@ -39,9 +40,8 @@ Stack: Next.js 16 (App Router, Turbopack) · React 19 · TypeScript · Tailwind 
 | `lib/admin/` | Console auth (`auth.ts`), gateway, filters, grouping, totals, CSV export |
 | `lib/email/` | `brevo.ts` (transport), `dispatch.ts` (workshop email choke point), `design.ts`, `templates.ts`, `pavelTemplates.ts` |
 | `lib/zoom/`, `lib/razorpay/`, `lib/security/` | Zoom registrants and attendance, Razorpay client, honeypot and rate limiting |
-| `lib/free-business-website.ts` | `/in/free-business-website` and `/us/free-business-website` content (one page per market; `/free-business-website` redirects to `/in/`). Sign-up buttons go to `NEXT_PUBLIC_LOCAL_BUSINESS_URL` + `/login?plan=...` (the fynix-platform dashboard), or to `/contact` while that is unset |
 | `lib/db/schema.ts`, `lib/db/client.ts`, `drizzle/` | Tables `registrations`, `email_log`, `referral_codes`, `invoices`, `invoice_counters`, `webinar_sessions`, `certificates`; the server-only client (returns `null` without `DATABASE_URL`); SQL migrations |
-| `components/` | Shared site components at the top level, plus `pavel/`, `admin/`, `free-business-website/` |
+| `components/` | Shared site components at the top level, plus `pavel/` and `admin/` |
 | `docs/finance/` | Spend and invoice control: designed, not built |
 | `scripts/` | Email preview, email logo export, referral seed, Zoom webinar settings check, audits |
 
