@@ -5,6 +5,11 @@ import nextTs from "eslint-config-next/typescript";
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
+  {
+    // The blog's catch-all route (app/(site)/[...path]) matches every internal href, so this rule would flag each
+    // plain <a> in the site, including the deliberate full-page links in the Pavel funnel.
+    rules: { "@next/next/no-html-link-for-pages": "off" },
+  },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next. Matched at ANY depth (`**/`) so a
