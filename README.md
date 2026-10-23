@@ -71,7 +71,7 @@ Never commit `.env` — it is gitignored, and `SENTRY_AUTH_TOKEN` and `BREVO_API
 
 Posts are written in fynix-cms and read from its API (`lib/cms/`). A post lives at an address the editor chooses, so one catch-all route (`app/(site)/[...path]/page.tsx`) renders it by its full path; existing routes always win. The blog index is `/blog`, with `/blog/page/<n>`, `/blog/category/<slug>` and `/blog/author/<slug>` (both also take `/page/<n>`).
 
-The blog is dormant until `CMS_API_URL` and `CMS_READ_TOKEN` are both set: `/blog` and post addresses return 404 and the sitemap adds nothing, so it is safe to deploy before the CMS is live. Set `CMS_API_URL`, `CMS_READ_TOKEN` and `REVALIDATE_SECRET` on Vercel only; the droplet does not serve these pages.
+The blog is dormant until `CMS_API_URL` and `CMS_READ_TOKEN` are both set: `/blog` and post addresses return 404 and the sitemap adds nothing, so it is safe to deploy before the CMS is live. Set `CMS_API_URL`, `CMS_READ_TOKEN` and `REVALIDATE_SECRET` on Vercel only; the VPS API does not serve these pages.
 
 Cached CMS responses refresh after 5 minutes. To refresh sooner the CMS calls:
 
@@ -235,7 +235,7 @@ and the inbound artifact is called a *document*, never an invoice.
 
 ## Deployment
 
-Hosted on Vercel. `vercel.json` restricts automatic deployments to `main`:
+Hosted on Vercel. The Pavel API (`api.fynix.digital`) runs on the Firstfold VPS, which pulls `main` itself; the runbook is `docs/vps/README.md` in firstfold-platform. `vercel.json` restricts automatic deployments to `main`:
 
 ```jsonc
 { "git": { "deploymentEnabled": { "*": false, "main": true } } }

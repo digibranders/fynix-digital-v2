@@ -1,3 +1,5 @@
+Hosting note (2026-10-23): the API and database described here as the droplet now run on the Firstfold VPS (see docs/vps/README.md in firstfold-platform). The design below is otherwise unchanged.
+
 # Fynix Spend & Invoice Control: architecture
 
 **Date:** 2026-08-24
