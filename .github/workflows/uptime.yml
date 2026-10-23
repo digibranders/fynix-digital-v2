@@ -1,6 +1,6 @@
 name: Uptime (api.fynix.digital)
 
-# External health check for the DigitalOcean droplet.
+# External health check for the Pavel API on the Firstfold VPS (behind Cloudflare).
 #
 # Runs on GitHub's infrastructure rather than on the droplet, so it still fires
 # when the box itself is down, which an on-host checker could never report. The
