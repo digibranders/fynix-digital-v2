@@ -9,7 +9,7 @@ Stack: Next.js 16 (App Router, Turbopack) · React 19 · TypeScript · Tailwind 
 ## Branches and deploys
 
 - Work on `development`. `main` is production and only changes through a PR from `development`.
-- Merging to `main` deploys twice. Vercel builds `main` only (`vercel.json`). GitHub Actions (`.github/workflows/deploy.yml`) runs lint, typecheck, tests and build, then ships `main` to the DigitalOcean droplet. PRs into `main` run the same CI without deploying.
+- Merging to `main` deploys twice. Vercel builds `main` only (`vercel.json`). The Pavel API on the Firstfold VPS pulls `main` itself (`fynix-api-autodeploy`, files in the vps-setup repository under `fynix/api`). GitHub Actions (`.github/workflows/ci.yml`) only runs lint, typecheck, tests and build, on pushes to `main` and on PRs into it; it deploys nothing.
 
 ## One codebase, two deployments
 
@@ -67,7 +67,7 @@ The local-business offer (free business website, monthly plans, Digital Growth T
 ## Rules that are easy to break
 
 - **Migrations must be additive.** The deploy migrates before it builds, so the old process runs against the new schema for a while. Split drops and renames across two deploys.
-- **Droplet env comes from the workflow.** Every deploy regenerates `/opt/fynix/.env` from GitHub secrets and variables, so a value set by hand on the server is lost. Add new variables to `deploy.yml` and `.env.example`.
+- **API env lives on the VPS.** The API reads its environment file on the Firstfold VPS (`firstfold-platform/docs/vps/README.md`, section "Fynix on this server"); GitHub holds no copy. Add new variables there and to `.env.example`.
 - **GST and invoice numbering are compliance code.** A wrong tax split or a reused invoice number is a legal defect. Keep `lib/pavel/*.test.ts` passing and extend them with any change.
 - **Naming trap:** `invoices` means tax invoices issued to workshop buyers. The planned finance system uses the `finance_` prefix and calls inbound files documents.
 - **Zoom:** create each cohort's webinar from the `Semantic SEO Masterclass (Fynix emails only)` template and keep registration on manual approval. See README, "Opening a new cohort".

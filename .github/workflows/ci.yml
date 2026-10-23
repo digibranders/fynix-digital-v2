@@ -1,0 +1,42 @@
+name: CI
+
+# Lint, typecheck, unit tests and a production build on every push to main and every pull request into main.
+# Nothing is deployed from here. The marketing site is deployed by Vercel; the Pavel API (api.fynix.digital) runs on the
+# Firstfold VPS and pulls main itself (fynix-api-autodeploy, see vps-setup/fynix/api in the vps-setup repository).
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  # Cancel only superseded PR checks, never a run on main.
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  ci:
+    name: CI (lint, typecheck, build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "20"
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npx tsc --noEmit
+      - name: Unit tests
+        # Guards the GST engine and invoice series: a wrong tax split or a
+        # duplicated invoice number is a compliance defect, not just a bug.
+        run: npm test
+      - name: Build
+        # Validate a production build compiles. The API is same-origin, and
+        # Sentry source-map upload is skipped here (not needed to gate the build).
+        env:
+          NEXT_PUBLIC_API_BASE_URL: ""
+          SENTRY_AUTH_TOKEN: ""
+        run: npm run build

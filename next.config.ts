@@ -49,6 +49,9 @@ const nextConfig: NextConfig = {
       ""
     );
 
+    // Local CMS (http://localhost:...) serves post images over plain http, which `https:` in img-src does not match.
+    const cmsDevOrigin = isDev ? (URL.canParse(process.env.CMS_API_URL ?? "") ? new URL(process.env.CMS_API_URL!).origin : "") : "";
+
     // Hosts the tag manager's tags beacon to.
     //
     // The bare domains matter: a CSP host wildcard matches SUBdomains only, so
@@ -87,7 +90,8 @@ const nextConfig: NextConfig = {
       "object-src 'none'",
       "frame-ancestors 'self'",
       "form-action 'self'",
-      "img-src 'self' data: blob: https:",
+      // https: covers the CMS in production; plain-http localhost needs its origin spelled out in dev.
+      `img-src 'self' data: blob: https:${cmsDevOrigin ? ` ${cmsDevOrigin}` : ""}`,
       "font-src 'self' data:",
       "style-src 'self' 'unsafe-inline'",
       // Google Tag Manager loads gtm.js, renders its <noscript> tracking iframe,

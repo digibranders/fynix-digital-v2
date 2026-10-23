@@ -59,10 +59,30 @@ Open [http://localhost:3000](http://localhost:3000).
 | `SENTRY_AUTH_TOKEN` | Build | Production only | Uploads source maps so production stack traces are readable |
 | `NEXT_PUBLIC_SITE_URL` | Client | Optional | Overrides the canonical URL used in metadata |
 | `SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_DSN` | Server / Client | Optional | Override the DSN; the project DSN is hardcoded as a fallback |
+| `CMS_API_URL` | Server | For the blog | Origin of the fynix-cms read API. Vercel (marketing site) variable only |
+| `CMS_READ_TOKEN` | Server | For the blog | Bearer token for the CMS read API. Vercel variable only; a secret |
+| `REVALIDATE_SECRET` | Server | For the blog | Bearer secret for `POST /api/revalidate`. Vercel variable only; a secret |
 
 `VERCEL_ENV`, `NEXT_PUBLIC_VERCEL_ENV` and `VERCEL_PROJECT_PRODUCTION_URL` are injected by Vercel and need no local configuration.
 
 Never commit `.env` — it is gitignored, and `SENTRY_AUTH_TOKEN` and `BREVO_API_KEY` are both secrets.
+
+## Blog
+
+Posts are written in fynix-cms and read from its API (`lib/cms/`). A post lives at an address the editor chooses, so one catch-all route (`app/(site)/[...path]/page.tsx`) renders it by its full path; existing routes always win. The blog index is `/blog`, with `/blog/page/<n>`, `/blog/category/<slug>` and `/blog/author/<slug>` (both also take `/page/<n>`).
+
+The blog is dormant until `CMS_API_URL` and `CMS_READ_TOKEN` are both set: `/blog` and post addresses return 404 and the sitemap adds nothing, so it is safe to deploy before the CMS is live. Set `CMS_API_URL`, `CMS_READ_TOKEN` and `REVALIDATE_SECRET` on Vercel only; the droplet does not serve these pages.
+
+Cached CMS responses refresh after 5 minutes. To refresh sooner the CMS calls:
+
+```bash
+curl -X POST https://fynix.digital/api/revalidate \
+  -H "Authorization: Bearer $REVALIDATE_SECRET" \
+  -H "Content-Type: application/json" \
+  -d '{"paths": ["/blog/my-post"]}'
+```
+
+`paths` is optional: the changed post addresses (send the old and the new address when one moved). Without it every CMS page is revalidated. Answers `200 {"revalidated": true, ...}`, `401` for a missing or wrong secret, `400` for a malformed body. Cache tags: `cms` (all), `cms:posts`, `cms:post:<path>`, `cms:categories`, `cms:authors`, `cms:sitemap`, `cms:redirects`.
 
 ## Scripts
 
@@ -104,7 +124,10 @@ sentry.*.config.ts      Sentry init per runtime
 | `/privacy`, `/terms` | Static |
 | `/services`, `/services/[slug]` | SSG (4 acts) |
 | `/case-studies`, `/case-studies/[slug]` | SSG (5 case studies) |
+| `/blog`, `/blog/page/[n]`, `/blog/category/[slug]`, `/blog/author/[slug]` | ISR, from the CMS (404 until configured) |
+| `/[...path]` | ISR, a CMS post at its full address, or a CMS redirect, else 404 |
 | `/robots.txt`, `/sitemap.xml` | Generated |
+| `/api/revalidate` | Dynamic, POST, bearer `REVALIDATE_SECRET` |
 | `/api/contact` | Dynamic (Node runtime) |
 | `/api/lead-diagnostic` | Dynamic |
 | `/monitoring` | Sentry tunnel (rewrite, bypasses ad blockers) |

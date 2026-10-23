@@ -1,7 +1,10 @@
 import type { MetadataRoute } from "next";
 import { acts, caseStudies, siteConfig } from "@/lib/content";
+import { getSitemapEntries } from "@/lib/cms/client";
+import { BLOG_PATH } from "@/lib/cms/paths";
+import { sitemapEntries } from "@/lib/cms/seo";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
   const staticPaths = [
     "",
@@ -61,6 +64,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly",
       priority: 0.8,
     });
+  }
+
+  // Blog posts. Empty while the CMS is unset or unreachable: the rest of the sitemap must still be served.
+  const posts = await getSitemapEntries().catch(() => []);
+  if (posts.length > 0) {
+    entries.push({
+      url: `${siteConfig.url}${BLOG_PATH}`,
+      lastModified: new Date(Math.max(...posts.map((post) => Date.parse(post.updatedAt)))),
+      changeFrequency: "weekly",
+      priority: 0.7,
+    });
+    entries.push(...sitemapEntries(posts, siteConfig.url));
   }
 
   return entries;
