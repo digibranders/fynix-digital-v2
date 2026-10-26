@@ -13,15 +13,15 @@ Stack: Next.js 16 (App Router, Turbopack) · React 19 · TypeScript · Tailwind 
 
 ## One codebase, two deployments
 
-| | Vercel: fynix.digital | Droplet: api.fynix.digital |
+| | Vercel: fynix.digital | Firstfold VPS: api.fynix.digital |
 |---|---|---|
 | Serves | Marketing pages, `/pavel`, the `/admin` console | `/api/pavel/*` and `/api/admin/data/*` |
-| Database | Not reachable | Postgres on localhost |
+| Database | Not reachable | Postgres on localhost (on the VPS) |
 | Key env | `NEXT_PUBLIC_API_BASE_URL=https://api.fynix.digital`, `ADMIN_API_ORIGIN` (falls back to the former) | `NEXT_PUBLIC_API_BASE_URL` empty, `ADMIN_UI_DISABLED=true`, `ALLOWED_ORIGIN` |
 
-- Browser calls to the Pavel API go through `apiUrl()` in `lib/pavel/apiBase.ts`: cross-origin on Vercel, same-origin locally and on the droplet.
+- Browser calls to the Pavel API go through `apiUrl()` in `lib/pavel/apiBase.ts`: cross-origin on Vercel, same-origin locally and on the VPS.
 - `middleware.ts` adds credential-less CORS for `/api/pavel/*` from `ALLOWED_ORIGIN`, and rewrites `/pavel` to a prerendered variant at `app/pavel/v/[country]/[zone]` chosen from the visitor's country and time zone. `?country=` is a QA override and skips the rewrite.
-- The console on Vercel reads data through `lib/admin/gateway.ts`, which calls the droplet's `/api/admin/data/*` server to server with `ADMIN_PROXY_SECRET`. Locally, with `DATABASE_URL` set, it queries the database directly.
+- The console on Vercel reads data through `lib/admin/gateway.ts`, which calls the VPS API's `/api/admin/data/*` server to server with `ADMIN_PROXY_SECRET`. Locally, with `DATABASE_URL` set, it queries the database directly.
 - `lib/admin/host.ts` 404s the console on any host with `ADMIN_UI_DISABLED=true`, so fynix.digital/admin is the only login.
 
 ## Where things live
@@ -33,7 +33,7 @@ The local-business offer (free business website, monthly plans, Digital Growth T
 | `app/(site)/` | Marketing pages: home, about, services (`[slug]` for the four Acts, plus `social-media`, `social-media-advertisement`, `linkedin-personal-account`), case studies, contact, faqs, `signatures` (internal email-signature tool), privacy, terms |
 | `app/pavel/` | Workshop landing page and its variants, `thank-you`, `certificate` lookup and `certificate/[credentialId]` |
 | `app/api/pavel/` | `form-token`, `register`, `checkout`, `verify`, `webhook` (Razorpay), `thank-you-verify`, `referral`, `schedule`, `invoice/[ref]`, `certificate/*`, `audit-submission`, `zoom/webhook`, `cron/reminders` |
-| `app/admin/`, `app/api/admin/` | Console pages, `login`/`logout`, `invoice/[ref]`, and the droplet data API `data/{registrations,sessions,referrals,operations,invoice}` |
+| `app/admin/`, `app/api/admin/` | Console pages, `login`/`logout`, `invoice/[ref]`, and the VPS data API `data/{registrations,sessions,referrals,operations,invoice}` |
 | `app/api/contact`, `technical-seo-audit`, `lead-diagnostic`, `health` | Contact form and SEO audit form (both email through Brevo), lead diagnostic (only logs; sends and stores nothing yet), health check (200 only when Postgres answers) |
 | `lib/content.ts` | Marketing copy and data: acts, case studies, `siteConfig`. `**bold**` in strings renders via `lib/emphasize.tsx` |
 | `lib/pavel/` | Workshop domain: `gst.ts` and `tax.ts`, `invoice*.ts` (numbering, PDF, download), `referral*.ts`, `schedule.ts` and `sessionTimes.ts`, `landingVariant.ts`, `confirm.ts`, `webinarAccess.ts`, `attendanceSync.ts`, `certificate*.ts`, `recording*.ts` |
