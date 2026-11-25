@@ -131,6 +131,14 @@ const nextConfig: NextConfig = {
         ],
       },
       {
+        // Campaign landing pages under /lp are kept out of search results. The
+        // page also sets <meta robots>, and they are left out of the sitemap and
+        // NOT disallowed in robots.txt: a disallowed URL is never fetched, so the
+        // noindex would go unseen.
+        source: "/lp/:path*",
+        headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
+      },
+      {
         source: "/(.*)",
         headers: [
           {
