@@ -18,10 +18,10 @@ import { siteConfig, type Act } from "@/lib/content";
 const accent = actAccents["lead-generation"];
 
 // Editorial pull-quote band that breaks up the text-heavy sections with colour.
-const bandEyebrow = "Pipeline over vanity metrics";
-const bandQuote =
+export const bandEyebrow = "Pipeline over vanity metrics";
+export const bandQuote =
   "A full inbox is not a full pipeline. The only lead that matters is one your sales team can actually close.";
-const bandPoints: BandPoint[] = [
+export const bandPoints: BandPoint[] = [
   {
     title: "Built on real intent",
     text: "Targeting grounded in firmographic and buyer-signal data, not spray-and-pray contact lists.",
@@ -46,14 +46,14 @@ const bandPoints: BandPoint[] = [
  * copper accent, per-act violet pillar signature, JSON-LD structured data).
  */
 
-type LeadGenService = {
+export type LeadGenService = {
   name: string;
   tagline: string;
   description: string;
   items: string[];
 };
 
-const leadGenServices: LeadGenService[] = [
+export const leadGenServices: LeadGenService[] = [
   {
     name: "ICP & Account Research",
     tagline: "Target the Accounts Most Likely to Buy",
@@ -121,7 +121,7 @@ const leadGenServices: LeadGenService[] = [
   },
 ];
 
-const leadGenProcess: { step: string; text: string }[] = [
+export const leadGenProcess: { step: string; text: string }[] = [
   { step: "Discover", text: "We learn your business goals, sales cycle, and what a qualified opportunity really looks like." },
   { step: "Target", text: "We define your ICP, build verified account lists, and validate offers against real deals in your CRM." },
   { step: "Launch", text: "We build and launch multi-channel campaigns and landing pages wired into the tools you already use." },
@@ -155,9 +155,9 @@ const whyCopy1 =
   "The right buyers find you, read the work, then leave without ever starting a conversation, and that silent gap is where most pipeline quietly disappears.";
 const whyCopy2 =
   "Effective lead generation closes that gap with precise targeting, relevant offers, and clear qualification, so every campaign is measured by the meetings and pipeline it creates.";
-const servicesIntro =
+export const servicesIntro =
   "Every cybersecurity company sells to a different buyer, sales cycle, and market. We build lead generation programs around how your customers actually evaluate and buy.";
-const arrowPath = "M14 5l7 7m0 0l-7 7m7-7H3";
+export const arrowPath = "M14 5l7 7m0 0l-7 7m7-7H3";
 
 type Props = { act: Act };
 
