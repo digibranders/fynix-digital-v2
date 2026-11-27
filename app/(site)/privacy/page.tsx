@@ -4,7 +4,7 @@ import TableOfContents from "@/components/TableOfContents";
 import HeroDarkBackdrop from "@/components/HeroDarkBackdrop";
 import { siteConfig } from "@/lib/content";
 
-const LAST_UPDATED = "July 2026";
+const LAST_UPDATED = "November 2026";
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
@@ -67,8 +67,13 @@ const sections: Section[] = [
     body: "We may update this Policy from time to time. Material changes will be reflected on this page along with an updated effective date. Continued use of the website after changes constitutes acceptance of the revised Policy.",
   },
   {
+    id: "calendar-access",
+    heading: "11. Calendar Access in the Leads Portal",
+    body: "In our Leads Portal, a person can choose to connect their Google or Microsoft calendar. We ask only for permission to read calendar events, never to change them. We use it for two things. First, to show the people who book meetings with that person when they are free or busy; others see only that a time is busy, never the title, place or guests of an event. Second, to show the person their own events, with titles, on their own calendar page; these are read when the page is opened and are not stored. We store an encrypted token that lets us keep reading the calendar, and the start and end times of busy periods for the next 60 days for people of our clients. We do not store event titles, descriptions, guests or places. We do not sell this information, use it for advertising, or use it to train AI models, and we share it only with the hosting providers that run the portal. A person can disconnect at any time on their profile page, which deletes the token and the stored busy times, and can also remove access in their Google or Microsoft account settings. Our use and transfer of information received from Google APIs adheres to the Google API Services User Data Policy, including the Limited Use requirements.",
+  },
+  {
     id: "contact",
-    heading: "11. Contact",
+    heading: "12. Contact",
     body: `For privacy questions or to exercise your rights, contact us at ${siteConfig.email}.`,
   },
 ];
